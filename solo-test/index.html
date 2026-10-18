@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Solo Test | RIDS GAMES</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --card-dark: #121826;
+      --cyan-glow: #06b6d4;
+      --cyan-light: #22d3ee;
+    }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 15%, #162238 0%, #090d16 70%, #06090f 100%);
+      color: #f1f5f9;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    .cyan-pill {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      box-shadow: 0 0 18px rgba(6, 182, 212, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .btn-rids {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(10, 15, 29, 0.95) 100%);
+      border: 1px solid rgba(34, 211, 238, 0.4);
+      color: #e2e8f0;
+      transition: all 0.18s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 0 10px rgba(6, 182, 212, 0.1);
+    }
+    .btn-rids:hover:not(:disabled) {
+      border-color: #22d3ee;
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(6, 182, 212, 0.28);
+      transform: translateY(-1px);
+    }
+    .btn-rids:active:not(:disabled) {
+      transform: translateY(0px);
+    }
+    .btn-rids:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: rgba(148, 163, 184, 0.2);
+    }
+    .btn-primary-cyan {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      border: 1px solid #67e8f9;
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);
+      transition: all 0.18s ease;
+    }
+    .btn-primary-cyan:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 20px rgba(34, 211, 238, 0.5);
+      transform: translateY(-1px);
+    }
+    .rank-row.active-rank {
+      background: rgba(6, 182, 212, 0.18);
+      border-color: rgba(34, 211, 238, 0.65);
+      color: #ffffff;
+    }
+    canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="flex flex-col h-[100dvh] lg:min-h-screen lg:h-auto overflow-hidden lg:overflow-x-hidden lg:overflow-y-auto justify-between">
+
+  <!-- Üst Bar / RIDS GAMES Header -->
+  <header id="topHeader" class="w-full border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md shrink-0 z-30">
+    <div class="max-w-6xl mx-auto px-2 sm:px-6 h-11 sm:h-14 flex items-center justify-between gap-1 sm:gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-cyan-500/15 border border-cyan-400/50 flex items-center justify-center shadow-sm shadow-cyan-500/20 shrink-0">
+          <span class="text-cyan-400 font-extrabold text-[11px] sm:text-sm tracking-tighter">RG</span>
+        </div>
+        <div class="flex items-center">
+          <span class="font-extrabold tracking-wide sm:tracking-wider text-[11px] sm:text-base text-white whitespace-nowrap">RIDS GAMES</span>
+          <span class="hidden md:inline-block text-xs text-cyan-400/90 ml-2 px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/30">Solo Test</span>
+        </div>
+      </div>
+
+      <!-- Orta / Sağ Kontroller -->
+      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+        <!-- Mod Seçici -->
+        <select id="modeSelect" aria-label="Oyun Modu" class="btn-rids text-[10px] sm:text-sm rounded-lg px-1.5 sm:px-2.5 py-1 sm:py-1.5 font-medium max-w-[96px] sm:max-w-none truncate focus:outline-none focus:border-cyan-400 cursor-pointer">
+          <option value="classic" id="optClassic">Klasik (32 Piyon)</option>
+          <option value="diamond" id="optDiamond">Elmas Isınma (14 Piyon)</option>
+          <option value="cross" id="optCross">Hızlı Bulmaca (9 Piyon)</option>
+        </select>
+
+        <!-- Ses Aç/Kapat -->
+        <button id="soundBtn" type="button" class="btn-rids rounded-lg w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1 shrink-0" title="Ses Efektleri">
+          <span id="soundIcon">🔊</span>
+          <span id="soundLabel" class="hidden md:inline">Ses</span>
+        </button>
+
+        <!-- Kurallar & Unvanlar Modalı -->
+        <button id="rulesBtn" type="button" class="btn-rids rounded-lg w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 text-xs sm:text-sm font-medium flex items-center justify-center gap-1 shrink-0" title="Unvan Tablosu ve Kurallar">
+          <span>🏆</span>
+          <span id="rulesBtnText" class="hidden sm:inline">Unvanlar</span>
+        </button>
+
+        <!-- Dil Değiştirici (TR | EN) -->
+        <button id="langBtn" type="button" class="btn-rids rounded-lg px-1.5 py-1 sm:px-2.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-tight sm:tracking-wide text-cyan-300 whitespace-nowrap shrink-0">
+          TR | EN
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Ana İçerik -->
+  <main class="flex-1 w-full max-w-6xl mx-auto px-2.5 sm:px-6 py-2 sm:py-4 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-3 lg:gap-6">
+
+    <!-- Sol / Orta Sütun: Skor Paneli + Oyun Tablası + Alt Butonlar -->
+    <div class="w-full max-w-xl flex flex-col items-center">
+
+      <!-- Üst Gösterge Paneli (Süre | SOLO TEST | Kalan Piyon) -->
+      <div id="topHud" class="w-full grid grid-cols-3 gap-1.5 sm:gap-3 mb-1.5 sm:mb-2.5">
+        <div class="cyan-pill rounded-xl px-2 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center justify-center">
+          <span id="lblTime" class="text-[9px] sm:text-xs uppercase tracking-wider text-slate-400 font-semibold whitespace-nowrap">SÜRE</span>
+          <span id="timerValue" class="text-sm sm:text-xl font-extrabold text-cyan-300 tabular-nums leading-tight">00:00</span>
+        </div>
+
+        <div class="cyan-pill rounded-xl px-2 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center justify-center border-cyan-400/50">
+          <span id="lblGameTitle" class="text-[11px] sm:text-base font-extrabold tracking-wider sm:tracking-widest text-white whitespace-nowrap">SOLO TEST</span>
+          <span id="movesText" class="text-[10px] sm:text-xs text-cyan-400 font-medium leading-tight">Hamle: 0</span>
+        </div>
+
+        <div class="cyan-pill rounded-xl px-2 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center justify-center">
+          <span id="lblRemaining" class="text-[9px] sm:text-xs uppercase tracking-wider text-slate-400 font-semibold whitespace-nowrap">KALAN PİYON</span>
+          <div class="flex items-baseline gap-1 leading-tight">
+            <span id="pegCountValue" class="text-sm sm:text-xl font-extrabold text-amber-300 tabular-nums">32</span>
+            <span id="validMovesBadge" class="text-[10px] sm:text-xs text-slate-400 font-medium">(4)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Durum / Rehber Mesajı -->
+      <div id="statusBanner" class="w-full text-center text-[11px] sm:text-sm text-slate-300 bg-slate-900/70 border border-slate-800 rounded-lg py-1 px-2.5 mb-1.5 sm:mb-2.5 transition-all truncate">
+        Bir piyon seçin ve komşu piyonun üzerinden boş deliğe atlatın.
+      </div>
+
+      <!-- Canvas Kapsayıcı -->
+      <div id="canvasContainer" class="relative w-full flex items-center justify-center my-0.5">
+        <canvas id="boardCanvas" class="block cursor-pointer"></canvas>
+      </div>
+
+      <!-- Alt Kontrol Butonları -->
+      <div id="bottomControls" class="w-full grid grid-cols-4 gap-1.5 sm:gap-2.5 mt-2 sm:mt-3">
+        <button id="newGameBtn" type="button" class="btn-primary-cyan rounded-xl py-2 sm:py-2.5 px-1.5 sm:px-2 text-[11px] sm:text-sm font-bold flex items-center justify-center gap-1 whitespace-nowrap">
+          <span>🔄</span>
+          <span id="btnNewText">Yeni Oyun</span>
+        </button>
+
+        <button id="undoBtn" type="button" disabled class="btn-rids rounded-xl py-2 sm:py-2.5 px-1.5 sm:px-2 text-[11px] sm:text-sm font-semibold flex items-center justify-center gap-1 whitespace-nowrap">
+          <span>↩️</span>
+          <span id="btnUndoText">Geri Al</span>
+        </button>
+
+        <button id="hintBtn" type="button" class="btn-rids rounded-xl py-2 sm:py-2.5 px-1.5 sm:px-2 text-[11px] sm:text-sm font-semibold flex items-center justify-center gap-1 whitespace-nowrap">
+          <span>💡</span>
+          <span id="btnHintText">İpucu</span>
+        </button>
+
+        <button id="themeBtn" type="button" class="btn-rids rounded-xl py-2 sm:py-2.5 px-1.5 sm:px-2 text-[11px] sm:text-sm font-semibold flex items-center justify-center gap-1 whitespace-nowrap">
+          <span>🎨</span>
+          <span id="btnThemeText">Tema</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sağ Sütun: Yumuşatılmış Unvan Tablosu ve İstatistik Kartı -->
+    <aside class="hidden lg:flex w-full lg:w-80 flex-col gap-3">
+      <div class="cyan-pill rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-800">
+          <h2 id="rankCardTitle" class="text-sm font-bold text-cyan-300 tracking-wide uppercase flex items-center gap-1.5">
+            <span>🏅</span> Derece & Unvan Tablosu
+          </h2>
+          <span id="themeBadge" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Klasik Kırmızı</span>
+        </div>
+
+        <p id="rankCardDesc" class="text-xs text-slate-400 mb-3 leading-relaxed">
+          Oyun sonunda tablada kalan piyon sayısına göre unvanınız belirlenir:
+        </p>
+
+        <div id="rankListContainer" class="space-y-1.5 text-xs">
+          <!-- JS tarafından doldurulur -->
+        </div>
+
+        <!-- En İyi Skor Özeti -->
+        <div class="mt-3 pt-3 border-t border-slate-800/90 flex items-center justify-between text-xs text-slate-300">
+          <span id="lblBestScore" class="font-medium text-slate-400">En İyi Derece:</span>
+          <span id="bestScoreValue" class="font-bold text-cyan-300">—</span>
+        </div>
+      </div>
+
+      <!-- Küçük İpucu Kartı -->
+      <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-3.5 text-xs text-slate-400 leading-relaxed">
+        <div class="font-semibold text-slate-200 mb-1 flex items-center gap-1.5">
+          <span>✨</span> <span id="tipTitle">Strateji İpucu</span>
+        </div>
+        <p id="tipBody">
+          Merkezdeki delikleri hemen doldurmaktan kaçının; köşe ve kenar kollarındaki piyonları önce eritmek oyun sonunda tek piyon bırakma şansınızı artırır.
+        </p>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Alt Bilgi / Footer -->
+  <footer id="bottomFooter" class="w-full border-t border-slate-900 bg-slate-950/60 py-1.5 sm:py-2.5 px-3 text-center text-[10px] sm:text-xs text-slate-500 shrink-0">
+    <div class="max-w-6xl mx-auto flex items-center justify-center sm:justify-between gap-2">
+      <span>© 2026 Ridsgames. Tüm hakları saklıdır.</span>
+      <span id="footerSubText" class="hidden sm:inline text-slate-400">Dokunmatik, Sürükle-Bırak ve Fare Destekli Nostaljik Solo Test</span>
+    </div>
+  </footer>
+
+  <!-- Oyun Sonu & Unvanlar Modalı -->
+  <div id="modalOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="cyan-pill rounded-2xl max-w-md w-full p-5 sm:p-6 bg-slate-900 border border-cyan-400/50 shadow-2xl relative">
+      <button id="closeModalBtn" type="button" class="absolute top-3.5 right-3.5 w-8 h-8 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-bold">
+        ✕
+      </button>
+
+      <div id="modalContent">
+        <div class="text-center mb-4">
+          <div id="modalEmoji" class="text-4xl mb-2">🏆</div>
+          <h3 id="modalTitle" class="text-xl font-extrabold text-white tracking-wide">Oyun Tamamlandı!</h3>
+          <p id="modalSubtitle" class="text-xs sm:text-sm text-cyan-300 font-semibold mt-1"></p>
+        </div>
+
+        <div id="modalStatsBox" class="grid grid-cols-3 gap-2 bg-slate-950/80 border border-slate-800 rounded-xl p-3 mb-4 text-center">
+          <div>
+            <div id="modalLblPegs" class="text-[10px] uppercase text-slate-400">Kalan Piyon</div>
+            <div id="modalStatPegs" class="text-lg font-extrabold text-amber-300">1</div>
+          </div>
+          <div>
+            <div id="modalLblMoves" class="text-[10px] uppercase text-slate-400">Hamle</div>
+            <div id="modalStatMoves" class="text-lg font-extrabold text-white">31</div>
+          </div>
+          <div>
+            <div id="modalLblTime" class="text-[10px] uppercase text-slate-400">Süre</div>
+            <div id="modalStatTime" class="text-lg font-extrabold text-cyan-300">01:12</div>
+          </div>
+        </div>
+
+        <p id="modalMessage" class="text-xs sm:text-sm text-slate-300 text-center leading-relaxed mb-3 bg-slate-800/50 rounded-xl p-2.5 border border-slate-700/60"></p>
+        <div id="modalRankList" class="max-h-48 overflow-y-auto space-y-1 text-xs mb-4 pr-1"></div>
+
+        <div class="flex gap-2.5">
+          <button id="modalUndoBtn" type="button" class="btn-rids flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-semibold">
+            ↩️ Son Hamleyi Geri Al
+          </button>
+          <button id="modalRestartBtn" type="button" class="btn-primary-cyan flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold">
+            🔄 Tekrar Oyna
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // --- ÇİFT DİLLİ METİNLER & YUMUŞATILMIŞ UNVAN TABLOSU ---
+      const I18N = {
+        tr: {
+          time: "SÜRE",
+          remaining: "KALAN PİYON",
+          movesPrefix: "Hamle: ",
+          newGame: "Yeni Oyun",
+          undo: "Geri Al",
+          hint: "İpucu",
+          theme: "Tema",
+          sound: "Ses",
+          ranksBtn: "Unvanlar",
+          rankCardTitle: "Derece & Unvan Tablosu",
+          rankCardDesc: "Oyun sonunda tablada kalan piyon sayısına göre unvanınız belirlenir:",
+          bestScore: "En İyi Derece:",
+          tipTitle: "Strateji İpucu",
+          tipBody: "Merkezdeki delikleri hemen doldurmaktan kaçının; köşe ve kenar kollarındaki piyonları önce eritmek oyun sonunda tek piyon bırakma şansınızı artırır.",
+          footerSub: "Dokunmatik, Sürükle-Bırak ve Fare Destekli Nostaljik Solo Test",
+          statusDefault: "Bir piyon seçin ve komşu piyonun üzerinden boş deliğe atlatın.",
+          statusSelected: "Parlayan mavi deliklerden birine dokunarak piyonu atlatın.",
+          statusHint: "İpucu: İşaretli piyonu ok yönündeki boş deliğe atlatabilirsiniz.",
+          statusNoMoves: "Geçerli hamle kalmadı! Sonucunuzu inceleyin veya hamle geri alın.",
+          modeClassic: "Klasik (32 Piyon)",
+          modeDiamond: "Elmas Isınma (14 Piyon)",
+          modeCross: "Hızlı Bulmaca (9 Piyon)",
+          modalOverTitle: "Oyun Tamamlandı!",
+          modalWinTitle: "Kusursuz Zafer!",
+          modalRulesTitle: "Nasıl Oynanır & Unvanlar",
+          modalRulesSub: "Klasik 33 Delikli Solo Test Kuralları",
+          modalRulesMsg: "Bir piyonu hemen yanındaki (yatay veya dikey) dolu bir piyonun üzerinden arkasındaki boş deliğe atlatın. Üzerinden atladığınız piyon tablanın dış çukur oluğuna alınır. Amaç tablada yalnızca 1 piyon bırakmaktır!",
+          modalUndo: "↩️ Hamleyi Geri Al",
+          modalRestart: "🔄 Yeni Oyun Başlat",
+          pegsUnit: "Piyon",
+          centerBonus: " 🌟 (Merkezde Efsane Bitiriş!)",
+          ranks: [
+            { count: "1", max: 1, title: "Bilgin", badge: "👑", desc: "Kusursuz strateji! Tablada yalnızca tek piyon bırakmayı başardın." },
+            { count: "2", max: 2, title: "Zeki", badge: "🧠", desc: "Harika bir oyun çıkardın, zirveye sadece tek bir adım kaldı!" },
+            { count: "3", max: 3, title: "Kurnaz", badge: "🦊", desc: "Çok iyi taktik! Hamleleri birkaç adım önceden okuyabiliyorsun." },
+            { count: "4", max: 4, title: "Başarılı", badge: "⭐", desc: "Ortalamanın oldukça üzerinde, sağlam ve dengeli bir performans." },
+            { count: "5", max: 5, title: "Dengeli", badge: "⚖️", desc: "Güzel deneme! Köşe piyonlarını biraz daha erken eriterek üst lige çıkabilirsin." },
+            { count: "6", max: 6, title: "Gelişime Açık", badge: "🌱", desc: "İyi bir ısınma turuydu; merkez deliklerini açık tutmaya odaklan." },
+            { count: "7", max: 7, title: "Aceleci", badge: "⚡", desc: "Biraz hızlı karar verdin! 'Geri Al' veya 'İpucu' ile alternatif yolları dene." },
+            { count: "8", max: 8, title: "Dalgın", badge: "☁️", desc: "Bazı piyonlar kenarlarda yalnız kaldı; piyonları birbirine yakın tutmaya çalış." },
+            { count: "9+", max: 99, title: "Acemi Kaşif", badge: "🧭", desc: "Her usta bir zamanlar acemiydi! Yeni bir stratejiyle tekrar dene." }
+          ]
+        },
+        en: {
+          time: "TIME",
+          remaining: "PEGS LEFT",
+          movesPrefix: "Moves: ",
+          newGame: "New Game",
+          undo: "Undo",
+          hint: "Hint",
+          theme: "Theme",
+          sound: "Sound",
+          ranksBtn: "Ranks",
+          rankCardTitle: "Rank & Title Scale",
+          rankCardDesc: "Your title at the end of the game is based on how many pegs remain:",
+          bestScore: "Best Record:",
+          tipTitle: "Strategy Tip",
+          tipBody: "Avoid clogging the center hole too early; clearing the four outer arms first makes leaving a single peg much easier.",
+          footerSub: "Nostalgic Peg Solitaire with Touch, Drag-and-Drop & Mouse Support",
+          statusDefault: "Select any peg and jump it over an adjacent peg into an empty hole.",
+          statusSelected: "Tap a glowing cyan hole to complete your jump.",
+          statusHint: "Hint: Jump the highlighted peg toward the target hole.",
+          statusNoMoves: "No more valid jumps! Check your rank or undo your last move.",
+          modeClassic: "Classic (32 Pegs)",
+          modeDiamond: "Diamond Warm-up (14 Pegs)",
+          modeCross: "Quick Puzzle (9 Pegs)",
+          modalOverTitle: "Game Complete!",
+          modalWinTitle: "Grandmaster Victory!",
+          modalRulesTitle: "How to Play & Ranks",
+          modalRulesSub: "Classic 33-Hole Peg Solitaire Rules",
+          modalRulesMsg: "Jump any peg orthogonally (up, down, left, right) over an adjacent peg into an empty hole right behind it. Captured pegs rest in the outer circular groove. Aim to leave just 1 peg!",
+          modalUndo: "↩️ Undo Last Move",
+          modalRestart: "🔄 Start New Game",
+          pegsUnit: "Pegs",
+          centerBonus: " 🌟 (Perfect Center Finish!)",
+          ranks: [
+            { count: "1", max: 1, title: "Grandmaster (Bilgin)", badge: "👑", desc: "Flawless strategy! You left only a single peg on the board." },
+            { count: "2", max: 2, title: "Mastermind (Zeki)", badge: "🧠", desc: "Brilliant game—just one jump away from perfection!" },
+            { count: "3", max: 3, title: "Tactician (Kurnaz)", badge: "🦊", desc: "Sharp tactics! You planned several moves ahead." },
+            { count: "4", max: 4, title: "Skilled (Başarılı)", badge: "⭐", desc: "Well above average, solid and thoughtful play." },
+            { count: "5", max: 5, title: "Balanced (Dengeli)", badge: "⚖️", desc: "Nice effort! Clear the outer corners earlier to reach the top ranks." },
+            { count: "6", max: 6, title: "Apprentice (Gelişime Açık)", badge: "🌱", desc: "Good warm-up round—focus on keeping central holes available." },
+            { count: "7", max: 7, title: "Hasty (Aceleci)", badge: "⚡", desc: "A bit quick on the trigger! Try Undo or Hint to explore better lines." },
+            { count: "8", max: 8, title: "Daydreamer (Dalgın)", badge: "☁️", desc: "Some pegs got stranded on the edges—keep your group connected." },
+            { count: "9+", max: 99, title: "Rookie Explorer (Acemi Kaşif)", badge: "🧭", desc: "Every master started as a beginner! Give it another go." }
+          ]
+        }
+      };
+
+      // --- 4 FARKLI GÖRSEL TEMA ---
+      const THEMES = [
+        {
+          id: "classic_red",
+          nameTr: "Klasik Kırmızı",
+          nameEn: "Classic Red",
+          rimOuter: "#7f1d1d",
+          rimMain: "#b91c1c",
+          rimHighlight: "#ef4444",
+          grooveBg: "#450a0a",
+          deckInner: "#78350f",
+          deckCenter: "#92400e",
+          gridLine: "rgba(69, 26, 3, 0.55)",
+          holeBg: "#271206",
+          holeRim: "#b45309",
+          pegBase: "#d97706",
+          pegTop: "#fef3c7",
+          pegMid: "#fde68a",
+          pegEdge: "#b45309"
+        },
+        {
+          id: "rids_neon",
+          nameTr: "Rids Neon",
+          nameEn: "Rids Neon",
+          rimOuter: "#082f49",
+          rimMain: "#0e7490",
+          rimHighlight: "#22d3ee",
+          grooveBg: "#041321",
+          deckInner: "#0f172a",
+          deckCenter: "#1e293b",
+          gridLine: "rgba(56, 189, 248, 0.28)",
+          holeBg: "#020617",
+          holeRim: "#0284c7",
+          pegBase: "#0369a1",
+          pegTop: "#e0f2fe",
+          pegMid: "#38bdf8",
+          pegEdge: "#0284c7"
+        },
+        {
+          id: "mahogany",
+          nameTr: "Maun Ahşap",
+          nameEn: "Mahogany Wood",
+          rimOuter: "#29140a",
+          rimMain: "#431f10",
+          rimHighlight: "#7c3aed00",
+          grooveBg: "#1c0d06",
+          deckInner: "#5c2d16",
+          deckCenter: "#7c3f1d",
+          gridLine: "rgba(28, 13, 6, 0.55)",
+          holeBg: "#1c0d06",
+          holeRim: "#9a4e24",
+          pegBase: "#92400e",
+          pegTop: "#fffbeb",
+          pegMid: "#fcd34d",
+          pegEdge: "#78350f"
+        },
+        {
+          id: "retro_blue",
+          nameTr: "90'lar Mavi",
+          nameEn: "90s Retro Blue",
+          rimOuter: "#1e3a8a",
+          rimMain: "#1d4ed8",
+          rimHighlight: "#60a5fa",
+          grooveBg: "#0f172a",
+          deckInner: "#1e293b",
+          deckCenter: "#334155",
+          gridLine: "rgba(148, 163, 184, 0.35)",
+          holeBg: "#090d16",
+          holeRim: "#475569",
+          pegBase: "#b91c1c",
+          pegTop: "#fecaca",
+          pegMid: "#ef4444",
+          pegEdge: "#991b1b"
+        }
+      ];
+
+      // --- DURUM DEĞİŞKENLERİ ---
+      let lang = "tr";
+      let themeIdx = 0;
+      let soundEnabled = true;
+      let audioCtx = null;
+
+      // 7x7 matris: -1 = geçersiz köşe, 0 = boş delik, 1 = piyon var
+      let board = [];
+      let moveHistory = [];
+      let capturedPegsCount = 0;
+      let selectedCell = null; // {r, c}
+      let validJumpsForSelected = []; // [{fromR, fromC, overR, overC, toR, toC}]
+      let activeHint = null; // {fromR, fromC, overR, overC, toR, toC}
+      let draggingPeg = null; // {r, c, x, y}
+      let jumpAnim = null; // {fromR, fromC, toR, toC, overR, overC, progress}
+
+      let timerSeconds = 0;
+      let timerRunning = false;
+      let timerInterval = null;
+      let isGameOver = false;
+      let currentMode = "classic";
+
+      // --- DOM ELEMENTLERİ ---
+      const canvas = document.getElementById("boardCanvas");
+      const ctx = canvas.getContext("2d");
+      const modeSelect = document.getElementById("modeSelect");
+      const soundBtn = document.getElementById("soundBtn");
+      const soundIcon = document.getElementById("soundIcon");
+      const soundLabel = document.getElementById("soundLabel");
+      const rulesBtn = document.getElementById("rulesBtn");
+      const langBtn = document.getElementById("langBtn");
+
+      const timerValueEl = document.getElementById("timerValue");
+      const movesTextEl = document.getElementById("movesText");
+      const pegCountValueEl = document.getElementById("pegCountValue");
+      const validMovesBadgeEl = document.getElementById("validMovesBadge");
+      const statusBannerEl = document.getElementById("statusBanner");
+
+      const newGameBtn = document.getElementById("newGameBtn");
+      const undoBtn = document.getElementById("undoBtn");
+      const hintBtn = document.getElementById("hintBtn");
+      const themeBtn = document.getElementById("themeBtn");
+
+      const rankListContainer = document.getElementById("rankListContainer");
+      const bestScoreValueEl = document.getElementById("bestScoreValue");
+      const themeBadgeEl = document.getElementById("themeBadge");
+
+      const modalOverlay = document.getElementById("modalOverlay");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const modalEmoji = document.getElementById("modalEmoji");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalSubtitle = document.getElementById("modalSubtitle");
+      const modalStatsBox = document.getElementById("modalStatsBox");
+      const modalStatPegs = document.getElementById("modalStatPegs");
+      const modalStatMoves = document.getElementById("modalStatMoves");
+      const modalStatTime = document.getElementById("modalStatTime");
+      const modalMessage = document.getElementById("modalMessage");
+      const modalUndoBtn = document.getElementById("modalUndoBtn");
+      const modalRestartBtn = document.getElementById("modalRestartBtn");
+
+      // --- SES EFEKTLERİ (Web Audio API) ---
+      function playSound(type) {
+        if (!soundEnabled) return;
+        try {
+          if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) audioCtx = new AudioContextClass();
+          }
+          if (!audioCtx) return;
+          if (audioCtx.state === "suspended") audioCtx.resume();
+
+          const now = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          if (type === "select") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(680, now + 0.06);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+            osc.start(now);
+            osc.stop(now + 0.07);
+          } else if (type === "jump") {
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(340, now);
+            osc.frequency.exponentialRampToValueAtTime(760, now + 0.13);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+            osc.start(now);
+            osc.stop(now + 0.14);
+          } else if (type === "undo") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(480, now);
+            osc.frequency.exponentialRampToValueAtTime(300, now + 0.09);
+            gain.gain.setValueAtTime(0.09, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+          } else if (type === "win") {
+            const notes = [523.25, 659.25, 783.99, 1046.5];
+            notes.forEach((freq, idx) => {
+              const o = audioCtx.createOscillator();
+              const g = audioCtx.createGain();
+              o.type = "triangle";
+              o.connect(g);
+              g.connect(audioCtx.destination);
+              o.frequency.setValueAtTime(freq, now + idx * 0.09);
+              g.gain.setValueAtTime(0.12, now + idx * 0.09);
+              g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.22);
+              o.start(now + idx * 0.09);
+              o.stop(now + idx * 0.09 + 0.22);
+            });
+          } else if (type === "gameover") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(392, now);
+            osc.frequency.exponentialRampToValueAtTime(261.6, now + 0.22);
+            gain.gain.setValueAtTime(0.11, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+            osc.start(now);
+            osc.stop(now + 0.24);
+          }
+        } catch (err) {
+          // Tarayıcı ses engeli varsa sessizce devam et
+        }
+      }
+
+      // --- 33 DELİKLİ GEÇERLİ HÜCRE KONTROLÜ ---
+      function isValidHole(r, c) {
+        if (r < 0 || r > 6 || c < 0 || c > 6) return false;
+        if ((r < 2 || r > 4) && (c < 2 || c > 4)) return false;
+        return true;
+      }
+
+      // --- TAHTA BAŞLATMA ---
+      function createInitialBoard(mode) {
+        const b = [];
+        for (let r = 0; r < 7; r++) {
+          const row = [];
+          for (let c = 0; c < 7; c++) {
+            if (!isValidHole(r, c)) {
+              row.push(-1);
+            } else {
+              row.push(0);
+            }
+          }
+          b.push(row);
+        }
+
+        if (mode === "classic") {
+          for (let r = 0; r < 7; r++) {
+            for (let c = 0; c < 7; c++) {
+              if (isValidHole(r, c)) b[r][c] = 1;
+            }
+          }
+          b[3][3] = 0; // Tam merkez boş
+        } else if (mode === "diamond") {
+          const coords = [
+            [1, 3],
+            [2, 2], [2, 3], [2, 4],
+            [3, 1], [3, 2], [3, 4], [3, 5],
+            [4, 2], [4, 3], [4, 4],
+            [5, 3],
+            [0, 3], [6, 3]
+          ];
+          coords.forEach(([r, c]) => { b[r][c] = 1; });
+          b[3][3] = 0;
+        } else if (mode === "cross") {
+          const coords = [
+            [1, 3], [2, 3], [3, 3], [4, 3], [5, 3],
+            [3, 1], [3, 2], [3, 4], [3, 5]
+          ];
+          coords.forEach(([r, c]) => { b[r][c] = 1; });
+          b[3][3] = 0;
+          b[2][2] = 1;
+        }
+        return b;
+      }
+
+      // --- TÜM GEÇERLİ HAMLELERİ HESAPLA ---
+      function getAllValidJumps(currentBoard = board) {
+        const jumps = [];
+        const dirs = [
+          [-1, 0], [1, 0], [0, -1], [0, 1]
+        ];
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 7; c++) {
+            if (currentBoard[r][c] !== 1) continue;
+            for (const [dr, dc] of dirs) {
+              const overR = r + dr;
+              const overC = c + dc;
+              const toR = r + dr * 2;
+              const toC = c + dc * 2;
+              if (
+                isValidHole(overR, overC) &&
+                isValidHole(toR, toC) &&
+                currentBoard[overR][overC] === 1 &&
+                currentBoard[toR][toC] === 0
+              ) {
+                jumps.push({ fromR: r, fromC: c, overR, overC, toR, toC });
+              }
+            }
+          }
+        }
+        return jumps;
+      }
+
+      function countRemainingPegs(currentBoard = board) {
+        let count = 0;
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 7; c++) {
+            if (currentBoard[r][c] === 1) count++;
+          }
+        }
+        return count;
+      }
+
+      // --- KRONOMETRE ---
+      function formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+      }
+
+      function startTimerIfNeeded() {
+        if (timerRunning || isGameOver) return;
+        timerRunning = true;
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          timerValueEl.textContent = formatTime(timerSeconds);
+        }, 1000);
+      }
+
+      function stopTimer() {
+        timerRunning = false;
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+      }
+
+      // --- EN İYİ SKOR KAYDI (localStorage) ---
+      function loadBestScore() {
+        try {
+          const raw = localStorage.getItem("rids_solotest_best_" + currentMode);
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function saveBestScore(pegsLeft, seconds) {
+        try {
+          const prev = loadBestScore();
+          if (!prev || pegsLeft < prev.pegs || (pegsLeft === prev.pegs && seconds < prev.seconds)) {
+            localStorage.setItem(
+              "rids_solotest_best_" + currentMode,
+              JSON.stringify({ pegs: pegsLeft, seconds })
+            );
+          }
+        } catch (e) {
+          // Sandbox localStorage kısıtlaması varsa yoksay
+        }
+      }
+
+      // --- UNVAN HESAPLAMA ---
+      function getRankForPegs(pegsLeft) {
+        const list = I18N[lang].ranks;
+        for (const item of list) {
+          if (pegsLeft <= item.max) return item;
+        }
+        return list[list.length - 1];
+      }
+
+      // --- ARAYÜZ GÜNCELLEME ---
+      function renderRankTable() {
+        const t = I18N[lang];
+        const pegsLeft = countRemainingPegs();
+        const activeRank = getRankForPegs(pegsLeft);
+
+        rankListContainer.innerHTML = "";
+        t.ranks.forEach((rk) => {
+          const isCurrent = rk.title === activeRank.title;
+          const row = document.createElement("div");
+          row.className =
+            "rank-row flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition-all " +
+            (isCurrent
+              ? "active-rank font-bold"
+              : "border-slate-800/80 bg-slate-900/40 text-slate-300");
+
+          row.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="text-sm">${rk.badge}</span>
+              <span class="text-cyan-400 font-semibold w-12">${rk.count} ${t.pegsUnit}</span>
+            </div>
+            <span class="text-right">${rk.title}</span>
+          `;
+          rankListContainer.appendChild(row);
+        });
+
+        const modalRankList = document.getElementById("modalRankList");
+        if (modalRankList) {
+          modalRankList.innerHTML = rankListContainer.innerHTML;
+        }
+
+        const best = loadBestScore();
+        if (best) {
+          const bestRk = getRankForPegs(best.pegs);
+          bestScoreValueEl.textContent = `${best.pegs} ${t.pegsUnit} (${bestRk.title}) • ${formatTime(best.seconds)}`;
+        } else {
+          bestScoreValueEl.textContent = "—";
+        }
+      }
+
+      function updateUI() {
+        const t = I18N[lang];
+        const pegsLeft = countRemainingPegs();
+        const allJumps = getAllValidJumps();
+
+        document.getElementById("lblTime").textContent = t.time;
+        document.getElementById("lblRemaining").textContent = t.remaining;
+        movesTextEl.textContent = t.movesPrefix + moveHistory.length;
+        pegCountValueEl.textContent = pegsLeft;
+        validMovesBadgeEl.textContent = `(${allJumps.length})`;
+
+        document.getElementById("btnNewText").textContent = t.newGame;
+        document.getElementById("btnUndoText").textContent = t.undo;
+        document.getElementById("btnHintText").textContent = t.hint;
+        document.getElementById("btnThemeText").textContent = t.theme;
+        soundLabel.textContent = t.sound;
+        document.getElementById("rulesBtnText").textContent = t.ranksBtn;
+        document.getElementById("rankCardTitle").innerHTML = `<span>🏅</span> ${t.rankCardTitle}`;
+        document.getElementById("rankCardDesc").textContent = t.rankCardDesc;
+        document.getElementById("lblBestScore").textContent = t.bestScore;
+        document.getElementById("tipTitle").textContent = t.tipTitle;
+        document.getElementById("tipBody").textContent = t.tipBody;
+        document.getElementById("footerSubText").textContent = t.footerSub;
+
+        document.getElementById("optClassic").textContent = t.modeClassic;
+        document.getElementById("optDiamond").textContent = t.modeDiamond;
+        document.getElementById("optCross").textContent = t.modeCross;
+
+        const themeObj = THEMES[themeIdx];
+        themeBadgeEl.textContent = lang === "tr" ? themeObj.nameTr : themeObj.nameEn;
+
+        undoBtn.disabled = moveHistory.length === 0;
+        hintBtn.disabled = allJumps.length === 0;
+
+        if (isGameOver) {
+          statusBannerEl.textContent = t.statusNoMoves;
+          statusBannerEl.className =
+            "w-full text-center text-[11px] sm:text-sm text-amber-200 bg-amber-950/60 border border-amber-500/40 rounded-lg py-1 px-2.5 mb-1.5 sm:mb-2.5 truncate";
+        } else if (activeHint) {
+          statusBannerEl.textContent = t.statusHint;
+          statusBannerEl.className =
+            "w-full text-center text-[11px] sm:text-sm text-cyan-200 bg-cyan-950/60 border border-cyan-500/40 rounded-lg py-1 px-2.5 mb-1.5 sm:mb-2.5 truncate";
+        } else if (selectedCell) {
+          statusBannerEl.textContent = t.statusSelected;
+          statusBannerEl.className =
+            "w-full text-center text-[11px] sm:text-sm text-cyan-200 bg-slate-900/90 border border-cyan-500/40 rounded-lg py-1 px-2.5 mb-1.5 sm:mb-2.5 truncate";
+        } else {
+          statusBannerEl.textContent = t.statusDefault;
+          statusBannerEl.className =
+            "w-full text-center text-[11px] sm:text-sm text-slate-300 bg-slate-900/70 border border-slate-800 rounded-lg py-1 px-2.5 mb-1.5 sm:mb-2.5 truncate";
+        }
+
+        renderRankTable();
+      }
+
+      // --- OYUN BAŞLAT / SIFIRLA ---
+      function initGame() {
+        stopTimer();
+        timerSeconds = 0;
+        timerValueEl.textContent = "00:00";
+        board = createInitialBoard(currentMode);
+        moveHistory = [];
+        capturedPegsCount = 0;
+        selectedCell = null;
+        validJumpsForSelected = [];
+        activeHint = null;
+        draggingPeg = null;
+        jumpAnim = null;
+        isGameOver = false;
+        closeModal();
+        updateUI();
+        drawBoard();
+      }
+
+      // --- HAMLE YAPMA ---
+      function executeJump(jump) {
+        startTimerIfNeeded();
+        activeHint = null;
+        selectedCell = null;
+        validJumpsForSelected = [];
+
+        // Geçmişe kaydet
+        moveHistory.push({
+          fromR: jump.fromR,
+          fromC: jump.fromC,
+          overR: jump.overR,
+          overC: jump.overC,
+          toR: jump.toR,
+          toC: jump.toC
+        });
+
+        // Tahtayı güncelle
+        board[jump.fromR][jump.fromC] = 0;
+        board[jump.overR][jump.overC] = 0;
+        board[jump.toR][jump.toC] = 1;
+        capturedPegsCount++;
+
+        playSound("jump");
+
+        // Kısa zıplama animasyonu
+        jumpAnim = {
+          fromR: jump.fromR,
+          fromC: jump.fromC,
+          toR: jump.toR,
+          toC: jump.toC,
+          progress: 0
+        };
+
+        function stepAnim() {
+          if (!jumpAnim) return;
+          jumpAnim.progress += 0.22;
+          if (jumpAnim.progress >= 1) {
+            jumpAnim = null;
+            drawBoard();
+            checkGameEnd();
+          } else {
+            drawBoard();
+            requestAnimationFrame(stepAnim);
+          }
+        }
+        requestAnimationFrame(stepAnim);
+        updateUI();
+      }
+
+      // --- HAMLE GERİ ALMA ---
+      function undoMove() {
+        if (moveHistory.length === 0) return;
+        const last = moveHistory.pop();
+        board[last.fromR][last.fromC] = 1;
+        board[last.overR][last.overC] = 1;
+        board[last.toR][last.toC] = 0;
+        capturedPegsCount = Math.max(0, capturedPegsCount - 1);
+        selectedCell = null;
+        validJumpsForSelected = [];
+        activeHint = null;
+        isGameOver = false;
+        playSound("undo");
+        closeModal();
+        updateUI();
+        drawBoard();
+      }
+
+      // --- AKILLI İPUCU (Merkeze yakın ve sonraki hamle sayısını koruyan hamle seçimi) ---
+      function showSmartHint() {
+        const allJumps = getAllValidJumps();
+        if (allJumps.length === 0) return;
+
+        let bestJump = allJumps[0];
+        let bestScore = -9999;
+
+        for (const jmp of allJumps) {
+          // Simüle et
+          board[jmp.fromR][jmp.fromC] = 0;
+          board[jmp.overR][jmp.overC] = 0;
+          board[jmp.toR][jmp.toC] = 1;
+
+          const nextJumps = getAllValidJumps(board).length;
+          // Merkeze doğru zıplamayı ve köşeleri eritmeyi ödüllendir
+          const distFromCenterBefore = Math.abs(jmp.fromR - 3) + Math.abs(jmp.fromC - 3);
+          const distFromCenterAfter = Math.abs(jmp.toR - 3) + Math.abs(jmp.toC - 3);
+          const score = nextJumps * 10 + (distFromCenterBefore - distFromCenterAfter) * 3;
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestJump = jmp;
+          }
+
+          // Geri yükle
+          board[jmp.fromR][jmp.fromC] = 1;
+          board[jmp.overR][jmp.overC] = 1;
+          board[jmp.toR][jmp.toC] = 0;
+        }
+
+        activeHint = bestJump;
+        selectedCell = { r: bestJump.fromR, c: bestJump.fromC };
+        validJumpsForSelected = allJumps.filter(
+          (j) => j.fromR === bestJump.fromR && j.fromC === bestJump.fromC
+        );
+        playSound("select");
+        updateUI();
+        drawBoard();
+      }
+
+      // --- OYUN SONU KONTROLÜ ---
+      function checkGameEnd() {
+        const remainingJumps = getAllValidJumps();
+        if (remainingJumps.length > 0) return;
+
+        isGameOver = true;
+        stopTimer();
+        const pegsLeft = countRemainingPegs();
+        saveBestScore(pegsLeft, timerSeconds);
+        updateUI();
+
+        if (pegsLeft === 1) {
+          playSound("win");
+        } else {
+          playSound("gameover");
+        }
+
+        setTimeout(() => {
+          openGameOverModal(pegsLeft);
+        }, 260);
+      }
+
+      // --- MODAL FONKSİYONLARI ---
+      function openGameOverModal(pegsLeft) {
+        const t = I18N[lang];
+        const rk = getRankForPegs(pegsLeft);
+        const isCenterFinish = pegsLeft === 1 && board[3][3] === 1;
+
+        modalEmoji.textContent = rk.badge;
+        modalTitle.textContent = pegsLeft === 1 ? t.modalWinTitle : t.modalOverTitle;
+        modalSubtitle.textContent = `${rk.title}${isCenterFinish ? t.centerBonus : ""}`;
+
+        modalStatsBox.classList.remove("hidden");
+        document.getElementById("modalLblPegs").textContent = t.remaining;
+        document.getElementById("modalLblMoves").textContent = t.movesPrefix.replace(":", "");
+        document.getElementById("modalLblTime").textContent = t.time;
+
+        modalStatPegs.textContent = pegsLeft;
+        modalStatMoves.textContent = moveHistory.length;
+        modalStatTime.textContent = formatTime(timerSeconds);
+        modalMessage.textContent = rk.desc;
+
+        modalUndoBtn.classList.remove("hidden");
+        modalUndoBtn.textContent = t.modalUndo;
+        modalRestartBtn.textContent = t.modalRestart;
+
+        modalOverlay.classList.remove("hidden");
+        modalOverlay.classList.add("flex");
+      }
+
+      function openRulesModal() {
+        const t = I18N[lang];
+        modalEmoji.textContent = "🎯";
+        modalTitle.textContent = t.modalRulesTitle;
+        modalSubtitle.textContent = t.modalRulesSub;
+        modalStatsBox.classList.add("hidden");
+        modalMessage.textContent = t.modalRulesMsg;
+        modalUndoBtn.classList.add("hidden");
+        modalRestartBtn.textContent = t.modalRestart;
+
+        modalOverlay.classList.remove("hidden");
+        modalOverlay.classList.add("flex");
+      }
+
+      function closeModal() {
+        modalOverlay.classList.add("hidden");
+        modalOverlay.classList.remove("flex");
+      }
+
+      // --- CANVAS BOYUTLANDIRMA VE KOORDİNAT HESAPLAMA ---
+      function resizeCanvas() {
+        const headerH = document.getElementById("topHeader")?.offsetHeight || 44;
+        const hudH = document.getElementById("topHud")?.offsetHeight || 50;
+        const statusH = document.getElementById("statusBanner")?.offsetHeight || 28;
+        const controlsH = document.getElementById("bottomControls")?.offsetHeight || 42;
+        const footerH = document.getElementById("bottomFooter")?.offsetHeight || 28;
+        const verticalPadding = window.innerWidth < 1024 ? 36 : 70;
+
+        const availW = Math.min(window.innerWidth - 20, 460);
+        const availH = window.innerHeight - (headerH + hudH + statusH + controlsH + footerH + verticalPadding);
+        const size = Math.max(220, Math.floor(Math.min(availW, availH, 460)));
+
+        canvas.style.width = size + "px";
+        canvas.style.height = size + "px";
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = size * dpr;
+        canvas.height = size * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawBoard();
+      }
+
+      function getBoardGeometry() {
+        const dpr = window.devicePixelRatio || 1;
+        const size = canvas.width / dpr;
+        const cx = size / 2;
+        const cy = size / 2;
+        const outerRadius = size * 0.47;
+        const grooveRadius = size * 0.405;
+        const innerDeckRadius = size * 0.355;
+        const gridSpan = innerDeckRadius * 1.48;
+        const cellStep = gridSpan / 6;
+        const holeRadius = cellStep * 0.33;
+        const pegRadius = cellStep * 0.36;
+
+        return {
+          size,
+          cx,
+          cy,
+          outerRadius,
+          grooveRadius,
+          innerDeckRadius,
+          cellStep,
+          holeRadius,
+          pegRadius
+        };
+      }
+
+      function cellToXY(r, c, geom) {
+        return {
+          x: geom.cx + (c - 3) * geom.cellStep,
+          y: geom.cy + (r - 3) * geom.cellStep
+        };
+      }
+
+      function xyToCell(x, y, geom) {
+        let closest = null;
+        let minDist = geom.cellStep * 0.48;
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 7; c++) {
+            if (!isValidHole(r, c)) continue;
+            const pos = cellToXY(r, c, geom);
+            const dist = Math.hypot(x - pos.x, y - pos.y);
+            if (dist < minDist) {
+              minDist = dist;
+              closest = { r, c };
+            }
+          }
+        }
+        return closest;
+      }
+
+      // --- CANVAS ÇİZİM FONKSİYONU ---
+      function drawPegAt(x, y, radius, theme, isSelected, isHinted, scale = 1) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+
+        // Gölge
+        ctx.beginPath();
+        ctx.arc(2, 4, radius * 0.98, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.48)";
+        ctx.fill();
+
+        // Seçili veya İpucu Halesi
+        if (isSelected || isHinted) {
+          ctx.beginPath();
+          ctx.arc(0, 0, radius * 1.32, 0, Math.PI * 2);
+          ctx.fillStyle = isSelected
+            ? "rgba(34, 211, 238, 0.28)"
+            : "rgba(250, 204, 21, 0.28)";
+          ctx.fill();
+
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = isSelected ? "#22d3ee" : "#facc15";
+          ctx.stroke();
+        }
+
+        // Piyon 3D Gövde Gradyanı
+        const grad = ctx.createRadialGradient(
+          -radius * 0.3,
+          -radius * 0.32,
+          radius * 0.1,
+          0,
+          0,
+          radius
+        );
+        if (isSelected) {
+          grad.addColorStop(0, "#ecfeff");
+          grad.addColorStop(0.55, "#22d3ee");
+          grad.addColorStop(1, "#0e7490");
+        } else {
+          grad.addColorStop(0, theme.pegTop);
+          grad.addColorStop(0.6, theme.pegMid);
+          grad.addColorStop(1, theme.pegBase);
+        }
+
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = isSelected ? "#a5f3fc" : theme.pegEdge;
+        ctx.stroke();
+
+        // Üst Parlama Noktası (Glossy Pin Head)
+        ctx.beginPath();
+        ctx.arc(-radius * 0.26, -radius * 0.26, radius * 0.28, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawBoard() {
+        const geom = getBoardGeometry();
+        const theme = THEMES[themeIdx];
+        ctx.clearRect(0, 0, geom.size, geom.size);
+
+        // 1. Dış Taban Gölgesi
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(geom.cx, geom.cy + 6, geom.outerRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+        ctx.fill();
+        ctx.restore();
+
+        // 2. Dış Çerçeve (Kırmızı/Ahşap/Neon Rim)
+        const rimGrad = ctx.createRadialGradient(
+          geom.cx - geom.outerRadius * 0.25,
+          geom.cy - geom.outerRadius * 0.25,
+          geom.innerDeckRadius * 0.8,
+          geom.cx,
+          geom.cy,
+          geom.outerRadius
+        );
+        rimGrad.addColorStop(0, theme.rimMain);
+        rimGrad.addColorStop(1, theme.rimOuter);
+
+        ctx.beginPath();
+        ctx.arc(geom.cx, geom.cy, geom.outerRadius, 0, Math.PI * 2);
+        ctx.fillStyle = rimGrad;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(255,255,255,0.14)";
+        ctx.stroke();
+
+        // 3. Yenen Piyonlar İçin Çevre Oluk (Circular Groove)
+        ctx.beginPath();
+        ctx.arc(geom.cx, geom.cy, geom.grooveRadius, 0, Math.PI * 2);
+        ctx.lineWidth = (geom.outerRadius - geom.innerDeckRadius) * 0.56;
+        ctx.strokeStyle = theme.grooveBg;
+        ctx.stroke();
+
+        // Oluk İçi İnce Işık Çizgisi
+        ctx.beginPath();
+        ctx.arc(geom.cx, geom.cy, geom.grooveRadius, 0, Math.PI * 2);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.stroke();
+
+        // 4. İç Oyun Tablası (Ahşap / Koyu Gövde)
+        const deckGrad = ctx.createRadialGradient(
+          geom.cx,
+          geom.cy,
+          geom.innerDeckRadius * 0.05,
+          geom.cx,
+          geom.cy,
+          geom.innerDeckRadius
+        );
+        deckGrad.addColorStop(0, theme.deckCenter);
+        deckGrad.addColorStop(1, theme.deckInner);
+
+        ctx.beginPath();
+        ctx.arc(geom.cx, geom.cy, geom.innerDeckRadius, 0, Math.PI * 2);
+        ctx.fillStyle = deckGrad;
+        ctx.fill();
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.stroke();
+
+        // 5. Delikler Arası Bağlantı Çizgileri
+        ctx.strokeStyle = theme.gridLine;
+        ctx.lineWidth = 2;
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 7; c++) {
+            if (!isValidHole(r, c)) continue;
+            const p1 = cellToXY(r, c, geom);
+            if (isValidHole(r + 1, c)) {
+              const p2 = cellToXY(r + 1, c, geom);
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+            if (isValidHole(r, c + 1)) {
+              const p2 = cellToXY(r, c + 1, geom);
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // 6. Çevre Oluktaki Yenen Piyonları Çiz
+        for (let i = 0; i < capturedPegsCount; i++) {
+          const angle = -Math.PI / 2 + (i * (Math.PI * 2)) / 32;
+          const gx = geom.cx + Math.cos(angle) * geom.grooveRadius;
+          const gy = geom.cy + Math.sin(angle) * geom.grooveRadius;
+          drawPegAt(gx, gy, geom.pegRadius * 0.68, theme, false, false, 1);
+        }
+
+        // 7. 33 Deliği Çiz
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 7; c++) {
+            if (!isValidHole(r, c)) continue;
+            const pos = cellToXY(r, c, geom);
+
+            // Delik Çukuru
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, geom.holeRadius, 0, Math.PI * 2);
+            ctx.fillStyle = theme.holeBg;
+            ctx.fill();
+
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = theme.holeRim;
+            ctx.stroke();
+
+            // Geçerli Hedef Delik Parıltısı (Cyan Target)
+            const isTarget = validJumpsForSelected.some(
+              (j) => j.toR === r && j.toC === c
+            );
+            if (isTarget) {
+              ctx.beginPath();
+              ctx.arc(pos.x, pos.y, geom.holeRadius * 1.15, 0, Math.PI * 2);
+              ctx.fillStyle = "rgba(34, 211, 238, 0.25)";
+              ctx.fill();
+              ctx.lineWidth = 2;
+              ctx.strokeStyle = "#22d3ee";
+              ctx.stroke();
+
+              ctx.beginPath();
+              ctx.arc(pos.x, pos.y, geom.holeRadius * 0.42, 0, Math.PI * 2);
+              ctx.fillStyle = "#67e8f9";
+              ctx.fill();
+            }
+          }
+        }
+
+        // 8. İpucu Oku Varsa Çiz
+        if (activeHint) {
+          const fromPos = cellToXY(activeHint.fromR, activeHint.fromC, geom);
+          const toPos = cellToXY(activeHint.toR, activeHint.toC, geom);
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([5, 4]);
+          ctx.moveTo(fromPos.x, fromPos.y);
+          ctx.lineTo(toPos.x, toPos.y);
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "#facc15";
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 9. Tabladaki Piyonları Çiz
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 7; c++) {
+            if (board[r][c] !== 1) continue;
+            // Sürüklenen veya animasyondaki piyonu en üstte çizmek için atla
+            if (draggingPeg && draggingPeg.r === r && draggingPeg.c === c) continue;
+            if (jumpAnim && jumpAnim.toR === r && jumpAnim.toC === c) continue;
+
+            const pos = cellToXY(r, c, geom);
+            const isSelected =
+              selectedCell && selectedCell.r === r && selectedCell.c === c;
+            const isHinted =
+              activeHint && activeHint.fromR === r && activeHint.fromC === c;
+
+            drawPegAt(pos.x, pos.y, geom.pegRadius, theme, isSelected, isHinted, 1);
+          }
+        }
+
+        // 10. Zıplama Animasyonundaki Piyon
+        if (jumpAnim) {
+          const pFrom = cellToXY(jumpAnim.fromR, jumpAnim.fromC, geom);
+          const pTo = cellToXY(jumpAnim.toR, jumpAnim.toC, geom);
+          const t = jumpAnim.progress;
+          const curX = pFrom.x + (pTo.x - pFrom.x) * t;
+          const curY = pFrom.y + (pTo.y - pFrom.y) * t - Math.sin(t * Math.PI) * 18;
+          const scale = 1 + Math.sin(t * Math.PI) * 0.22;
+          drawPegAt(curX, curY, geom.pegRadius, theme, true, false, scale);
+        }
+
+        // 11. Sürüklenen Piyon
+        if (draggingPeg) {
+          drawPegAt(
+            draggingPeg.x,
+            draggingPeg.y,
+            geom.pegRadius,
+            theme,
+            true,
+            false,
+            1.15
+          );
+        }
+      }
+
+      // --- ETKİLEŞİM (DOKUNMATİK / FARE / SÜRÜKLE-BIRAK) ---
+      function getPointerPos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      }
+
+      function handlePointerDown(evt) {
+        if (isGameOver || jumpAnim) return;
+        const pos = getPointerPos(evt);
+        const geom = getBoardGeometry();
+        const cell = xyToCell(pos.x, pos.y, geom);
+        if (!cell) return;
+
+        // Eğer halihazırda seçili bir piyon varsa ve geçerli bir hedef deliğe tıklandıysa zıpla
+        if (selectedCell) {
+          const targetJump = validJumpsForSelected.find(
+            (j) => j.toR === cell.r && j.toC === cell.c
+          );
+          if (targetJump) {
+            executeJump(targetJump);
+            return;
+          }
+        }
+
+        // Tıklanan yerde piyon varsa seç ve sürüklemeyi başlat
+        if (board[cell.r][cell.c] === 1) {
+          const allJumps = getAllValidJumps();
+          selectedCell = { r: cell.r, c: cell.c };
+          validJumpsForSelected = allJumps.filter(
+            (j) => j.fromR === cell.r && j.fromC === cell.c
+          );
+          activeHint = null;
+          draggingPeg = {
+            r: cell.r,
+            c: cell.c,
+            x: pos.x,
+            y: pos.y,
+            startX: pos.x,
+            startY: pos.y,
+            hasMoved: false
+          };
+          playSound("select");
+          updateUI();
+          drawBoard();
+        } else {
+          selectedCell = null;
+          validJumpsForSelected = [];
+          updateUI();
+          drawBoard();
+        }
+      }
+
+      function handlePointerMove(evt) {
+        if (!draggingPeg) return;
+        evt.preventDefault();
+        const pos = getPointerPos(evt);
+        if (Math.hypot(pos.x - draggingPeg.startX, pos.y - draggingPeg.startY) > 6) {
+          draggingPeg.hasMoved = true;
+        }
+        if (draggingPeg.hasMoved) {
+          draggingPeg.x = pos.x;
+          draggingPeg.y = pos.y;
+          drawBoard();
+        }
+      }
+
+      function handlePointerUp(evt) {
+        if (!draggingPeg) return;
+        const wasDragged = draggingPeg.hasMoved;
+        const dragEndPos = { x: draggingPeg.x, y: draggingPeg.y };
+        draggingPeg = null;
+
+        if (wasDragged) {
+          const geom = getBoardGeometry();
+          const dropCell = xyToCell(dragEndPos.x, dragEndPos.y, geom);
+          if (dropCell) {
+            const targetJump = validJumpsForSelected.find(
+              (j) => j.toR === dropCell.r && j.toC === dropCell.c
+            );
+            if (targetJump) {
+              executeJump(targetJump);
+              return;
+            }
+          }
+        }
+        drawBoard();
+      }
+
+      // --- EVENT LISTENERS ---
+      canvas.addEventListener("mousedown", handlePointerDown);
+      window.addEventListener("mousemove", handlePointerMove);
+      window.addEventListener("mouseup", handlePointerUp);
+
+      canvas.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        handlePointerDown(e);
+      }, { passive: false });
+      window.addEventListener("touchmove", (e) => {
+        if (draggingPeg) handlePointerMove(e);
+      }, { passive: false });
+      window.addEventListener("touchend", handlePointerUp);
+
+      newGameBtn.addEventListener("click", () => {
+        initGame();
+      });
+
+      undoBtn.addEventListener("click", () => {
+        undoMove();
+      });
+
+      hintBtn.addEventListener("click", () => {
+        showSmartHint();
+      });
+
+      themeBtn.addEventListener("click", () => {
+        themeIdx = (themeIdx + 1) % THEMES.length;
+        playSound("select");
+        updateUI();
+        drawBoard();
+      });
+
+      modeSelect.addEventListener("change", (e) => {
+        currentMode = e.target.value;
+        initGame();
+      });
+
+      soundBtn.addEventListener("click", () => {
+        soundEnabled = !soundEnabled;
+        soundIcon.textContent = soundEnabled ? "🔊" : "🔇";
+        if (soundEnabled) playSound("select");
+      });
+
+      langBtn.addEventListener("click", () => {
+        lang = lang === "tr" ? "en" : "tr";
+        updateUI();
+      });
+
+      rulesBtn.addEventListener("click", () => {
+        openRulesModal();
+      });
+
+      closeModalBtn.addEventListener("click", () => {
+        closeModal();
+      });
+
+      modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) closeModal();
+      });
+
+      modalUndoBtn.addEventListener("click", () => {
+        undoMove();
+      });
+
+      modalRestartBtn.addEventListener("click", () => {
+        initGame();
+      });
+
+      window.addEventListener("resize", resizeCanvas);
+
+      window.addEventListener("load", () => {
+        resizeCanvas();
+        initGame();
+      });
+    })();
+  </script>
+</body>
+</html>
