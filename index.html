@@ -83,6 +83,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
   background: #36C5E8 url("assets/sulu-halka.jpg") center top / cover;
   color: #fff; text-decoration: none;
 }
+.game.civi { background: #8A5A2E url("assets/civi-futbolu.jpg") center 30% / cover; }
 .game::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,18,32,0) 25%, rgba(10,18,32,.6) 50%, rgba(10,18,32,.95) 80%); }
 .game > * { position: relative; }
 .game .info { padding: 24px; }
@@ -127,7 +128,7 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
 
 @media (max-width: 880px) {
   .games { grid-template-columns: 1fr 1fr; }
-  .games .game { grid-column: 1 / -1; min-height: 420px; }
+  .games .game:first-child { grid-column: 1 / -1; min-height: 420px; }
   .slot { min-height: 200px; }
   .contact { grid-template-columns: 1fr; gap: 24px; }
 }
@@ -172,11 +173,14 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
           <span class="btn">Oyna</span>
         </div>
       </a>
-      <div class="slot">
-        <svg class="shape" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="7 6"/></svg>
-        <h3>Yakında</h3>
-        <p>Yeni bir oyun hazırlanmaktadır.</p>
-      </div>
+      <a class="game civi cut" href="civi-futbolu/">
+        <div class="info">
+          <h3>Çivi Futbolu</h3>
+          <p>Parayı fırlatın, tahtaya çakılı çivilerin arasından geçirip rakip kaleye gol atın.</p>
+          <div class="tags"><span class="tag cut">Aynı cihazda 2 kişi</span><span class="tag cut">Bilgisayara karşı</span></div>
+          <span class="btn">Oyna</span>
+        </div>
+      </a>
       <div class="slot">
         <svg class="shape" viewBox="0 0 64 64" aria-hidden="true"><path d="M20 12 H52 V44 L44 52 H12 V20 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="7 6"/></svg>
         <h3>Yakında</h3>

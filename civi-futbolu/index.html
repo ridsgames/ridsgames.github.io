@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Çivi Futbolu</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { display: flex; flex-direction: column; background: #1f2a1c; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  #hud { position: relative; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 8px 12px 0; font-size: 20px; font-weight: 800; }
+  #turn { text-align: center; font-size: 14px; height: 22px; line-height: 22px; }
+  .r { color: #ff6a5c; } .b { color: #5aa8ff; }
+  #wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 8px 8px; }
+  canvas { display: block; touch-action: none; border-radius: 10px; box-shadow: 0 8px 30px #0008; }
+  .ov { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; text-align: center; background: #0e170cd9; }
+  .ov p { max-width: 330px; font-size: 14px; line-height: 1.5; opacity: .85; }
+  h1 { font-size: 40px; }
+  button { font: inherit; font-size: 18px; font-weight: 700; min-width: 220px; padding: 12px 24px; border: 0; border-radius: 12px; background: #e9b44c; color: #2b1a05; cursor: pointer; }
+  #menuBtn { position: absolute; left: 8px; min-width: 0; padding: 2px 10px; background: none; color: #fff; font-size: 22px; }
+  #gol { position: fixed; left: 0; right: 0; top: 42%; text-align: center; font-size: 72px; font-weight: 900; text-shadow: 0 4px 16px #000; pointer-events: none; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div id="hud">
+  <button id="menuBtn" aria-label="Menü">☰</button>
+  <span class="r">Kırmızı <span id="sA">0</span></span>
+  <span>:</span>
+  <span class="b"><span id="sB">0</span> <span id="nB">Mavi</span></span>
+</div>
+<div id="turn"></div>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="gol" hidden>GOL!</div>
+<div id="menu" class="ov">
+  <h1>Çivi Futbolu</h1>
+  <p>Paranın üstüne bas, tutup sürükle ve fırlat. Çivilerin arasından geçirip rakip kaleye sokarsan gol! Sıra her atışta değişir, 5 gol atan kazanır.</p>
+  <button id="p2">2 Oyuncu</button>
+  <button id="ai">Bilgisayara Karşı</button>
+</div>
+<div id="end" class="ov" hidden>
+  <h1 id="endText"></h1>
+  <button id="again">Tekrar Oyna</button>
+  <button id="toMenu">Menü</button>
+</div>
+<script>
+const W = 400, H = 640, L = 20, R = 380, TOP = 30, BOT = 610; // tahta ve saha sınırları
+const GL = 145, GR = 255;            // kale direkleri (x)
+const CR = 14, NR = 5;               // para ve çivi yarıçapı
+// Ayar düğmeleri: oyunun hissi bunlarla değişir
+const DECEL = 320;                   // tahtanın sürtünmesi
+const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
+const FLING = 0.55, MAX_V = 1100, MIN_V = 80; // fırlatma gücü
+const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
+const AI_ERR = 0.08;                 // bilgisayarın nişan hatası (radyan)
+const DT = 1 / 240, WIN = 5;
+
+// Çiviler: [y, x'ler, takım] (0 = kırmızı, aşağıda; 1 = mavi). Üst yarı simetrik.
+const nails = [];
+for (const [y, xs, t] of [[585, [200], 0], [520, [110, 200, 290], 0], [455, [80, 200, 320], 1], [385, [65, 155, 245, 335], 0]])
+  for (const x of xs) nails.push({ x, y, t }, { x: W - x, y: H - y, t: 1 - t });
+for (const y of [TOP, BOT]) nails.push({ x: GL, y, t: 2 }, { x: GR, y, t: 2 });
+
+let hitV = 0;
+// Fizik adımı; gol olursa 'top' (kırmızının golü) ya da 'bottom' (mavinin golü) döner
+function step(c) {
+  const s = Math.hypot(c.vx, c.vy);
+  if (s) { const k = Math.max(0, s - DECEL * DT) / s; c.vx *= k; c.vy *= k; }
+  c.x += c.vx * DT; c.y += c.vy * DT;
+  for (const n of nails) {
+    const dx = c.x - n.x, dy = c.y - n.y, d = Math.hypot(dx, dy), m = CR + NR;
+    if (d >= m) continue;
+    const nx = d ? dx / d : 0, ny = d ? dy / d : 1, vn = c.vx * nx + c.vy * ny;
+    c.x = n.x + nx * m; c.y = n.y + ny * m;
+    if (vn < 0) { c.vx -= (1 + E_NAIL) * vn * nx; c.vy -= (1 + E_NAIL) * vn * ny; hitV = Math.max(hitV, -vn); }
+  }
+  if (c.x < L + CR) { c.x = L + CR; if (c.vx < 0) { hitV = Math.max(hitV, -c.vx); c.vx *= -E_WALL; } }
+  if (c.x > R - CR) { c.x = R - CR; if (c.vx > 0) { hitV = Math.max(hitV, c.vx); c.vx *= -E_WALL; } }
+  if (c.x > GL && c.x < GR) {        // kale ağzı: paranın merkezi çizgiyi geçerse gol
+    if (c.y < TOP) return 'top';
+    if (c.y > BOT) return 'bottom';
+  } else {
+    if (c.y < TOP + CR) { c.y = TOP + CR; if (c.vy < 0) { hitV = Math.max(hitV, -c.vy); c.vy *= -E_WALL; } }
+    if (c.y > BOT - CR) { c.y = BOT - CR; if (c.vy > 0) { hitV = Math.max(hitV, c.vy); c.vy *= -E_WALL; } }
+  }
+}
+
+const $ = id => document.getElementById(id);
+const cv = $('c'), ctx = cv.getContext('2d'), board = document.createElement('canvas');
+let mode, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1;
+const names = () => ['Kırmızı', mode === 'ai' ? 'Bilgisayar' : 'Mavi'];
+
+function newGame(m) {
+  mode = m; score = [0, 0]; clearTimeout(aiTimer);
+  try { ac = ac || new AudioContext(); } catch {}
+  $('menu').hidden = $('end').hidden = $('gol').hidden = true;
+  $('nB').textContent = names()[1];
+  kickoff(0);
+}
+function kickoff(t) { coin = { x: W / 2, y: H / 2, vx: 0, vy: 0 }; turn = t; aim(); }
+function aim() {
+  state = 'aim'; hud();
+  if (mode === 'ai' && turn) aiTimer = setTimeout(aiShoot, 700);
+}
+function hud() {
+  $('sA').textContent = score[0]; $('sB').textContent = score[1];
+  $('turn').className = turn ? 'b' : 'r';
+  $('turn').textContent = state !== 'aim' ? '' : mode === 'ai' && turn ? 'Bilgisayar düşünüyor…' : `Sıra: ${names()[turn]} — paraya bas, sürükle, fırlat`;
+}
+function shoot(vx, vy) { coin.vx = vx; coin.vy = vy; state = 'moving'; hud(); }
+function goal(side) {
+  const s = side === 'top' ? 0 : 1;  // kırmızı yukarı, mavi aşağı atar
+  score[s]++; state = 'goal'; hud();
+  $('gol').className = s ? 'b' : 'r'; $('gol').hidden = false;
+  tik(0.25, 520, 0.5);
+  setTimeout(() => {
+    $('gol').hidden = true;
+    if (state !== 'goal') return;
+    if (score[s] < WIN) return kickoff(1 - s);
+    state = 'over';
+    $('endText').textContent = mode === 'ai' ? (s ? 'Bilgisayar kazandı' : 'Kazandın!') : `${names()[s]} kazandı!`;
+    $('end').hidden = false;
+  }, 1300);
+}
+
+// Bilgisayar: her yön ve güçte atışı simüle eder, gol ya da kırmızı kaleye en yakın duruşu seçer
+function aiShoot() {
+  if (state !== 'aim' || mode !== 'ai' || !turn) return;
+  let best = { sc: -Infinity };
+  for (let i = 0; i < 120; i++) for (const sp of [300, 450, 600, 750, 900, 1050]) {
+    const a = i / 120 * 2 * Math.PI, c = { x: coin.x, y: coin.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp };
+    let g; for (let k = 0; k < 2400 && !g && (c.vx || c.vy); k++) g = step(c);
+    const sc = g === 'bottom' ? 1e4 : g === 'top' ? -1e4 : c.y;
+    if (sc > best.sc) best = { sc, a, sp };
+  }
+  const a = best.a + (Math.random() - .5) * AI_ERR, sp = best.sp * (0.95 + Math.random() * 0.1);
+  shoot(Math.cos(a) * sp, Math.sin(a) * sp);
+}
+
+// Dokunma / fare: paraya bas, tutup sürükle, bırak. Hız = parmağın son ~90 ms'deki hızı.
+function pos(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale, t: e.timeStamp }; }
+cv.onpointerdown = e => {
+  if (state !== 'aim' || (mode === 'ai' && turn) || hold) return;
+  const p = pos(e);
+  if (Math.hypot(p.x - coin.x, p.y - coin.y) > CR * 2.2) return;
+  cv.setPointerCapture(e.pointerId);
+  hold = { ax: coin.x, ay: coin.y, ox: p.x - coin.x, oy: p.y - coin.y, pts: [p] };
+};
+cv.onpointermove = e => {
+  if (!hold) return;
+  const p = pos(e); hold.pts.push(p);
+  const dx = p.x - hold.ox - hold.ax, dy = p.y - hold.oy - hold.ay;
+  if (Math.hypot(dx, dy) > CARRY) return release(p.t);   // para elden çıktı
+  const c = { x: hold.ax + dx, y: hold.ay + dy, vx: 0, vy: 0 };
+  if (step(c)) return release(p.t);                      // elle kaleye sokulmaz
+  coin.x = c.x; coin.y = c.y;
+};
+cv.onpointerup = cv.onpointercancel = e => hold && release(e.timeStamp);
+function release(now) {
+  const h = hold, pts = h.pts.filter(q => now - q.t < 90);
+  hold = null;
+  let vx = 0, vy = 0;
+  if (pts.length > 1) {
+    const a = pts[0], b = pts[pts.length - 1], dt = (b.t - a.t) / 1000;
+    if (dt > 0) { vx = (b.x - a.x) / dt * FLING; vy = (b.y - a.y) / dt * FLING; }
+  }
+  const s = Math.hypot(vx, vy);
+  if (s < MIN_V) { coin.x = h.ax; coin.y = h.ay; return; } // yavaş bırakıldı, atış sayılmaz
+  if (s > MAX_V) { vx *= MAX_V / s; vy *= MAX_V / s; }
+  shoot(vx, vy);
+}
+
+function tik(vol, f, d) {
+  if (!ac) return;
+  const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+  o.type = 'triangle'; o.frequency.value = f;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(1e-3, t + d);
+  o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d);
+}
+
+function drawBoard(g) {
+  g.fillStyle = '#4a2a12'; g.fillRect(0, 0, W, H);                      // çerçeve
+  for (const y of [TOP - 24, BOT]) {                                     // kale fileleri
+    g.fillStyle = '#1c120a'; g.fillRect(GL, y, GR - GL, 24);
+    g.strokeStyle = '#fff3'; g.lineWidth = 1; g.beginPath();
+    for (let x = GL; x <= GR; x += 8) { g.moveTo(x, y); g.lineTo(x, y + 24); }
+    for (let yy = y; yy <= y + 24; yy += 8) { g.moveTo(GL, yy); g.lineTo(GR, yy); }
+    g.stroke();
+  }
+  const wood = g.createLinearGradient(L, 0, R, 0);
+  wood.addColorStop(0, '#c48a52'); wood.addColorStop(.5, '#d9a468'); wood.addColorStop(1, '#c08650');
+  g.fillStyle = wood; g.fillRect(L, TOP, R - L, BOT - TOP);
+  g.strokeStyle = '#7a45181f'; g.lineWidth = 1.5;                       // ahşap damarları
+  for (let i = 0; i < 34; i++) {
+    const x0 = L + (i * 53) % (R - L); g.beginPath();
+    for (let y = TOP; y <= BOT; y += 10) g.lineTo(x0 + Math.sin(y / (40 + i % 7 * 9) + i) * (3 + i % 4), y);
+    g.stroke();
+  }
+  const cx = W / 2, cy = H / 2;                                          // saha çizgileri
+  g.strokeStyle = '#ffffffa0'; g.lineWidth = 2; g.beginPath();
+  g.rect(L, TOP, R - L, BOT - TOP);
+  g.moveTo(L, cy); g.lineTo(R, cy);
+  g.moveTo(cx + 45, cy); g.arc(cx, cy, 45, 0, 7);
+  g.rect(95, TOP, 210, 70); g.rect(95, BOT - 70, 210, 70);
+  g.rect(130, TOP, 140, 26); g.rect(130, BOT - 26, 140, 26);
+  g.stroke();
+  g.fillStyle = '#ffffffa0'; g.beginPath(); g.arc(cx, cy, 3, 0, 7); g.fill();
+  for (const n of nails) {                                               // çiviler
+    g.fillStyle = '#0006'; g.beginPath(); g.arc(n.x + 1.5, n.y + 2, NR, 0, 7); g.fill();
+    g.fillStyle = ['#d8392b', '#2b6fd8', '#cfd3d6'][n.t]; g.beginPath(); g.arc(n.x, n.y, NR, 0, 7); g.fill();
+    g.strokeStyle = '#0008'; g.lineWidth = 1; g.stroke();
+    g.fillStyle = '#fff9'; g.beginPath(); g.arc(n.x - 1.5, n.y - 1.5, 1.5, 0, 7); g.fill();
+  }
+}
+
+function draw(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(board, 0, 0);
+  ctx.setTransform(K, 0, 0, K, 0, 0);
+  if (!coin) return;
+  const { x, y } = coin;
+  if (hold) {
+    ctx.setLineDash([4, 5]); ctx.strokeStyle = '#fff8'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(hold.ax, hold.ay, CARRY, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  } else if (state === 'aim') {
+    ctx.globalAlpha = .55 + .4 * Math.sin(t / 200); ctx.strokeStyle = turn ? '#5aa8ff' : '#ff6a5c'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, CR + 6, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  ctx.fillStyle = '#0005'; ctx.beginPath(); ctx.arc(x + 2, y + 3, CR, 0, 7); ctx.fill();
+  const g = ctx.createRadialGradient(x - 5, y - 5, 1, x, y, CR);
+  g.addColorStop(0, '#fff4c2'); g.addColorStop(.5, '#e3b444'); g.addColorStop(1, '#a5741a');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, CR, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#8a5c12'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = '#8a5c1288'; ctx.beginPath(); ctx.arc(x, y, CR - 4, 0, 7); ctx.stroke();
+  ctx.fillStyle = '#7a4f0e'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('1', x, y + .5);
+}
+
+function resize() {
+  const r = $('wrap').getBoundingClientRect();
+  scale = Math.min((r.width - 16) / W, (r.height - 8) / H); K = scale * (devicePixelRatio || 1);
+  cv.style.width = W * scale + 'px'; cv.style.height = H * scale + 'px';
+  board.width = cv.width = Math.round(W * K); board.height = cv.height = Math.round(H * K);
+  const g = board.getContext('2d'); g.setTransform(K, 0, 0, K, 0, 0); drawBoard(g);
+}
+addEventListener('resize', resize); resize();
+
+let last = 0, acc = 0;
+function frame(t) {
+  const dt = Math.min(0.05, (t - last) / 1000); last = t;
+  if (state === 'moving') {
+    hitV = 0; acc += dt;
+    for (; acc >= DT && state === 'moving'; acc -= DT) {
+      const g = step(coin);
+      if (g) goal(g);
+      else if (!coin.vx && !coin.vy) { turn = 1 - turn; aim(); }
+    }
+    if (hitV > 40) tik(Math.min(.3, hitV / 3000), 1700, .05);
+  } else acc = 0;
+  draw(t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+$('p2').onclick = () => newGame('2p');
+$('ai').onclick = () => newGame('ai');
+$('again').onclick = () => newGame(mode);
+$('toMenu').onclick = $('menuBtn').onclick = () => {
+  clearTimeout(aiTimer); hold = null; state = 'menu';
+  $('end').hidden = true; $('menu').hidden = false; hud();
+};
+</script>
+</body>
+</html>
