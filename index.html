@@ -105,14 +105,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
   --cut: 18px; display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center;
   background: linear-gradient(135deg, var(--plate), var(--night-2)); padding: 20px 28px 20px 22px;
 }
-.marble {
-  width: 110px; height: 110px; border-radius: 50%;
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255,255,255,.95) 0 7%, rgba(255,255,255,0) 18%),
-    conic-gradient(from 40deg at 55% 55%, rgba(59,178,115,0) 0 18%, rgba(59,178,115,.95) 22% 30%, rgba(59,178,115,0) 34% 52%, rgba(255,90,110,.9) 56% 63%, rgba(255,90,110,0) 67% 80%, rgba(255,197,49,.9) 84% 90%, rgba(255,197,49,0) 94%),
-    radial-gradient(circle at 50% 50%, #E8FBFF, #9FE3F2 60%, #3AA9C8);
-  box-shadow: inset -10px -14px 22px rgba(4,18,30,.4), inset 6px 8px 14px rgba(255,255,255,.5), 0 16px 26px -12px rgba(0,0,0,.6);
-}
+.marble { display: block; width: 110px; height: 110px; border-radius: 22%; box-shadow: 0 16px 26px -12px rgba(0,0,0,.6); }
 .strip h3 { font-size: 28px; font-weight: 700; }
 .strip p { margin: 4px 0 8px; color: var(--steel-dim); }
 .strip .legal { font-size: 14px; display: flex; gap: 6px 14px; flex-wrap: wrap; }
@@ -198,7 +191,7 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
       <p>Cihazınıza indirerek internet bağlantısı olmadan da oynayabileceğiniz uygulamalar.</p>
     </div>
     <article class="strip cut">
-      <div class="marble" role="img" aria-label="Cam misket"></div>
+      <img class="marble" src="assets/misket-klasik.webp" alt="Misket Klasik" width="110" height="110">
       <div>
         <h3>Misket Klasik</h3>
         <p>Geleneksel sokak misket oyunu, cam misketlerle. Arkadaşlarınızla aynı cihazda veya Oda Kodu ile uzaktan oynayabilirsiniz.</p>
