@@ -8,7 +8,7 @@
 <meta property="og:title" content="Ridsgames">
 <meta property="og:description" content="Klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları.">
 <meta property="og:image" content="https://ridsgames.github.io/assets/sulu-halka.jpg">
-<meta name="theme-color" content="#0A1220">
+<meta name="theme-color" content="#07080B">
 <meta name="color-scheme" content="dark">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -17,10 +17,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* Stüdyo: jenerikten gelen koyu zemin + çelik */
-  --night: #0A1220;
-  --night-2: #101B2E;
-  --plate: #16233A;
+  /* Stüdyo: jenerikteki siyah zemin + grafit/çelik */
+  --night: #07080B;
+  --night-2: #0E1116;
+  --plate: #171C24;
   --steel: #C9D2DF;
   --steel-dim: #8D9AB0;
   --line: rgba(201, 210, 223, 0.16);
@@ -37,7 +37,7 @@ html { -webkit-text-size-adjust: 100%; background: var(--night); }
 body {
   margin: 0;
   background:
-    radial-gradient(120% 60% at 80% -10%, rgba(54, 197, 232, 0.10), transparent 60%),
+    radial-gradient(90% 55% at 50% 0%, rgba(150, 165, 185, 0.10), transparent 70%),
     var(--night);
   color: var(--steel);
   font: 17px/1.55 var(--body);
@@ -51,8 +51,9 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.08; margin: 0; color: #
 .cut { clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
 
 /* Üst çubuk */
-.bar { display: flex; align-items: center; justify-content: space-between; padding-top: 18px; padding-bottom: 18px; }
-.logo img { display: block; height: 52px; width: auto; }
+.bar { display: flex; justify-content: flex-end; padding-top: 16px; }
+.hero { display: flex; justify-content: center; padding: 28px 20px 52px; }
+.hero img { display: block; width: min(520px, 78vw); height: auto; filter: drop-shadow(0 18px 30px rgba(0,0,0,.7)); }
 .bar nav { display: flex; gap: 22px; font-family: var(--display); font-weight: 600; font-size: 16px; }
 .bar nav a { text-decoration: none; color: var(--steel-dim); }
 .bar nav a:hover { color: #fff; }
@@ -74,6 +75,7 @@ section.shelf { padding-top: 56px; padding-bottom: 56px; border-top: 1px solid v
 .shelf-head h1, .shelf-head h2 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; }
 section.shelf.first { border-top: 0; padding-top: 20px; }
 .shelf-head h1 { font-size: clamp(32px, 5vw, 48px); }
+.shelf-head h2 { color: #EEF3F9; }
 .shelf-head p { margin: 0; color: var(--steel-dim); max-width: 28em; }
 
 .games { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 18px; }
@@ -131,7 +133,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
 
 footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: calc(44px + env(safe-area-inset-bottom)); color: var(--steel-dim); font-size: 14px; }
 .foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.foot img { display: block; height: 72px; width: auto; }
+.foot img { display: block; height: 48px; width: auto; }
 
 @media (max-width: 880px) {
   .games { grid-template-columns: 1fr 1fr; }
@@ -142,8 +144,8 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
 @media (max-width: 560px) {
   body { font-size: 16px; }
   .wrap { padding-left: 16px; padding-right: 16px; }
-  .bar { padding-top: 14px; padding-bottom: 10px; }
-  .logo img { height: 48px; }
+  .bar { justify-content: center; padding-top: 14px; }
+  .hero { padding: 22px 16px 36px; }
   .bar nav { gap: 16px; font-size: 15px; }
   .games { grid-template-columns: 1fr; }
   .slot { min-height: 0; }
@@ -151,7 +153,6 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
   .marble { width: 72px; height: 72px; }
   .strip h3 { font-size: 23px; }
   .strip .soon { grid-column: 1 / -1; justify-self: start; }
-  .foot img { height: 60px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .btn { transition: none; }
@@ -160,17 +161,17 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
 </head>
 <body>
 <header class="wrap bar">
-  <a class="logo" href="./" aria-label="Ridsgames ana sayfa"><img src="assets/logo-compact-dark.svg" alt="Ridsgames" height="52" width="113"></a>
   <nav aria-label="Bölümler">
     <a href="#basit-oyunlar">Oyunlar</a>
     <a href="#destek">Destek</a>
   </nav>
 </header>
+<div class="hero"><h1 style="margin:0"><img src="assets/logo-dark.svg" alt="Ridsgames" width="520" height="240"></h1></div>
 
 <main>
   <section class="shelf first wrap" id="basit-oyunlar" aria-labelledby="h-basit">
     <div class="shelf-head">
-      <h1 id="h-basit">Basit tarayıcı oyunları</h1>
+      <h2 id="h-basit">Basit tarayıcı oyunları</h2>
     </div>
     <div class="games">
       <a class="game cut" href="sulu-halka/">
@@ -231,7 +232,7 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
   </section>
 </main>
 
-<footer class="wrap foot"><img src="assets/logo-dark.svg" alt="Ridsgames" width="155" height="72"><span>© 2026 Ridsgames. Tüm hakları saklıdır.</span></footer>
+<footer class="wrap foot"><img src="assets/logo-compact-dark.svg" alt="Ridsgames" width="134" height="48"><span>© 2026 Ridsgames. Tüm hakları saklıdır.</span></footer>
 
 </body>
 </html>
