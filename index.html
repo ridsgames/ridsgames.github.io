@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ridsgames: Oyunlar</title>
-<meta name="description" content="Ridsgames, misket ve sulu halka gibi klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları geliştirir.">
+<meta name="description" content="Ridsgames, misket, sulu halka ve solo test gibi klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları geliştirir.">
 <meta property="og:title" content="Ridsgames">
 <meta property="og:description" content="Klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları.">
 <meta property="og:image" content="https://ridsgames.github.io/assets/sulu-halka.jpg">
@@ -89,6 +89,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
   color: #fff; text-decoration: none;
 }
 .game.civi { background: #1F9D4B url("assets/civi-futbolu.jpg") center 30% / cover; }
+.game.solo { background: #090D16 url("assets/solo-test.jpg") center top / cover; }
 .game::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,18,32,0) 25%, rgba(10,18,32,.6) 50%, rgba(10,18,32,.95) 80%); }
 .game > * { position: relative; }
 .game .info { padding: 24px; }
@@ -97,15 +98,6 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
 .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
 .tag { --cut: 6px; font-size: 13px; font-weight: 600; padding: 4px 10px; background: rgba(255,255,255,.16); }
 .game .btn { align-self: flex-start; padding: 11px 24px; font-size: 17px; }
-
-.slot {
-  border: 1.5px dashed var(--line); min-height: 380px;
-  display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 26px;
-  color: var(--steel-dim);
-}
-.slot .shape { width: 46px; height: 46px; margin-bottom: 6px; color: var(--steel-dim); opacity: .7; }
-.slot h3 { font-size: 21px; font-weight: 600; color: var(--steel); }
-.slot p { margin: 0; font-size: 15px; }
 
 .strip {
   --cut: 18px; display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center;
@@ -134,7 +126,6 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
 @media (max-width: 880px) {
   .games { grid-template-columns: 1fr 1fr; }
   .games .game:first-child { grid-column: 1 / -1; min-height: 420px; }
-  .slot { min-height: 200px; }
   .contact { grid-template-columns: 1fr; gap: 24px; }
 }
 @media (max-width: 560px) {
@@ -144,7 +135,6 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
   .logo img { height: 48px; }
   .bar nav { gap: 16px; font-size: 15px; }
   .games { grid-template-columns: 1fr; }
-  .slot { min-height: 0; }
   .strip { grid-template-columns: auto 1fr; padding: 18px; gap: 14px 16px; }
   .marble { width: 72px; height: 72px; }
   .strip h3 { font-size: 23px; }
@@ -187,11 +177,14 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
           <span class="btn" data-i18n="play">Oyna</span>
         </div>
       </a>
-      <div class="slot">
-        <svg class="shape" viewBox="0 0 64 64" aria-hidden="true"><path d="M20 12 H52 V44 L44 52 H12 V20 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="7 6"/></svg>
-        <h3 data-i18n="soon">Yakında</h3>
-        <p data-i18n="suggest">Oyun önerilerinizi bizimle paylaşabilirsiniz.</p>
-      </div>
+      <a class="game solo cut" href="solo-test/">
+        <div class="info">
+          <h3 data-i18n="soloName">Solo Test</h3>
+          <p data-i18n="soloDesc">Piyonu komşusunun üzerinden boş deliğe atlatın, tablada tek piyon bırakmaya çalışın.</p>
+          <div class="tags"><span class="tag cut" data-i18n="tagModeCount">3 mod</span><span class="tag cut" data-i18n="tagHint">İpucu ve geri al</span><span class="tag cut" data-i18n="tagThemes">4 tema</span></div>
+          <span class="btn" data-i18n="play">Oyna</span>
+        </div>
+      </a>
     </div>
   </section>
 
@@ -243,7 +236,8 @@ const I18N_EN = {
   tagModes: 'Kids and adult modes', tagGyro: 'Gyroscope support', tagThemes: '4 themes',
   civiName: 'Nail Football', civiDesc: 'Flick the coin between the nails on the board and score in the opponent’s goal.',
   tag2p: '2 players, one device', tagCpu: 'Play against the computer',
-  soon: 'Coming soon', suggest: 'Feel free to share your game ideas with us.',
+  soloName: 'Peg Solitaire', soloDesc: 'Jump a peg over its neighbour into an empty hole and try to leave just one peg on the board.',
+  tagModeCount: '3 modes', tagHint: 'Hints and undo',
   mobileGames: 'Mobile games', mobileDesc: 'Apps you can download to your device and play even without an internet connection.',
   misketDesc: 'The traditional street marbles game, with glass marbles. Play with friends on the same device or remotely with a Room Code.',
   soonPlay: 'Coming soon to Google Play',
