@@ -56,6 +56,11 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.08; margin: 0; color: #
 .bar nav { display: flex; gap: 22px; font-family: var(--display); font-weight: 600; font-size: 16px; }
 .bar nav a { text-decoration: none; color: var(--steel-dim); }
 .bar nav a:hover { color: #fff; }
+.langs { display: flex; align-items: center; gap: 4px; color: var(--line); }
+.langs button { background: none; border: 0; padding: 2px 4px; font: inherit; color: var(--steel-dim); cursor: pointer; }
+.langs button[aria-pressed="true"] { color: var(--water); }
+.langs button:hover { color: #fff; }
+[hidden] { display: none !important; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
@@ -152,73 +157,74 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
 </head>
 <body>
 <header class="wrap bar">
-  <a class="logo" href="./" aria-label="Ridsgames ana sayfa"><img src="assets/logo.webp" alt="Ridsgames" height="52" width="112"></a>
-  <nav aria-label="Bölümler">
-    <a href="#basit-oyunlar">Oyunlar</a>
-    <a href="#destek">Destek</a>
+  <a class="logo" href="./" aria-label="Ridsgames ana sayfa" data-i18n-aria="home"><img src="assets/logo.webp" alt="Ridsgames" height="52" width="112"></a>
+  <nav aria-label="Bölümler" data-i18n-aria="sections">
+    <a href="#basit-oyunlar" data-i18n="games">Oyunlar</a>
+    <a href="#destek" data-i18n="support">Destek</a>
+    <span class="langs"><button type="button" data-set-lang="tr" lang="tr">TR</button>|<button type="button" data-set-lang="en" lang="en">EN</button></span>
   </nav>
 </header>
 
 <main>
   <section class="shelf first wrap" id="basit-oyunlar" aria-labelledby="h-basit">
     <div class="shelf-head">
-      <h1 id="h-basit">Basit tarayıcı oyunları</h1>
+      <h1 id="h-basit" data-i18n="browserGames">Basit tarayıcı oyunları</h1>
     </div>
     <div class="games">
       <a class="game cut" href="sulu-halka/">
         <div class="info">
-          <h3>Sulu Halka</h3>
-          <p>Su jetiyle halkaları yükseltin ve çubuklara geçirin. Yetişkinler için gerçekçi fiziğe sahip zorlu bir mod da sunulmaktadır.</p>
-          <div class="tags"><span class="tag cut">Çocuk ve yetişkin modu</span><span class="tag cut">Jiroskop desteği</span><span class="tag cut">4 tema</span></div>
-          <span class="btn">Oyna</span>
+          <h3 data-i18n="suluName">Sulu Halka</h3>
+          <p data-i18n="suluDesc">Su jetiyle halkaları yükseltin ve çubuklara geçirin. Yetişkinler için gerçekçi fiziğe sahip zorlu bir mod da sunulmaktadır.</p>
+          <div class="tags"><span class="tag cut" data-i18n="tagModes">Çocuk ve yetişkin modu</span><span class="tag cut" data-i18n="tagGyro">Jiroskop desteği</span><span class="tag cut" data-i18n="tagThemes">4 tema</span></div>
+          <span class="btn" data-i18n="play">Oyna</span>
         </div>
       </a>
       <a class="game civi cut" href="civi-futbolu/">
         <div class="info">
           <h3>Çivi Futbolu</h3>
-          <p>Parayı fırlatın, tahtaya çakılı çivilerin arasından geçirip rakip kaleye gol atın.</p>
-          <div class="tags"><span class="tag cut">Aynı cihazda 2 kişi</span><span class="tag cut">Bilgisayara karşı</span></div>
-          <span class="btn">Oyna</span>
+          <p data-i18n="civiDesc">Parayı fırlatın, tahtaya çakılı çivilerin arasından geçirip rakip kaleye gol atın.</p>
+          <div class="tags"><span class="tag cut" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag cut" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag cut" data-lang="en" lang="en" hidden>Turkish only</span></div>
+          <span class="btn" data-i18n="play">Oyna</span>
         </div>
       </a>
       <div class="slot">
         <svg class="shape" viewBox="0 0 64 64" aria-hidden="true"><path d="M20 12 H52 V44 L44 52 H12 V20 Z" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="7 6"/></svg>
-        <h3>Yakında</h3>
-        <p>Oyun önerilerinizi bizimle paylaşabilirsiniz.</p>
+        <h3 data-i18n="soon">Yakında</h3>
+        <p data-i18n="suggest">Oyun önerilerinizi bizimle paylaşabilirsiniz.</p>
       </div>
     </div>
   </section>
 
   <section class="shelf wrap" id="mobil-oyunlar" aria-labelledby="h-mobil">
     <div class="shelf-head">
-      <h2 id="h-mobil">Mobil oyunlar</h2>
-      <p>Cihazınıza indirerek internet bağlantısı olmadan da oynayabileceğiniz uygulamalar.</p>
+      <h2 id="h-mobil" data-i18n="mobileGames">Mobil oyunlar</h2>
+      <p data-i18n="mobileDesc">Cihazınıza indirerek internet bağlantısı olmadan da oynayabileceğiniz uygulamalar.</p>
     </div>
     <article class="strip cut">
       <img class="marble" src="assets/misket-klasik.webp" alt="Misket Klasik" width="110" height="110">
       <div>
         <h3>Misket Klasik</h3>
-        <p>Geleneksel sokak misket oyunu, cam misketlerle. Arkadaşlarınızla aynı cihazda veya Oda Kodu ile uzaktan oynayabilirsiniz.</p>
-        <div class="legal"><a href="gizlilik.html">Gizlilik Politikası</a><a href="sartlar.html">Kullanım Şartları</a><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Use</a></div>
+        <p data-i18n="misketDesc">Geleneksel sokak misket oyunu, cam misketlerle. Arkadaşlarınızla aynı cihazda veya Oda Kodu ile uzaktan oynayabilirsiniz.</p>
+        <div class="legal"><a href="gizlilik.html" data-lang="tr">Gizlilik Politikası</a><a href="sartlar.html" data-lang="tr">Kullanım Şartları</a><a href="privacy.html" data-lang="en" lang="en" hidden>Privacy Policy</a><a href="terms.html" data-lang="en" lang="en" hidden>Terms of Use</a></div>
       </div>
-      <span class="soon cut">Yakında Google Play'de</span>
+      <span class="soon cut" data-i18n="soonPlay">Yakında Google Play'de</span>
     </article>
   </section>
 
   <section class="shelf wrap contact" id="destek" aria-labelledby="h-destek">
     <div>
-      <h2 id="h-destek">Destek</h2>
-      <p>Soru, öneri ve hata bildirimleriniz için bize e-posta ile ulaşabilirsiniz.</p>
+      <h2 id="h-destek" data-i18n="support">Destek</h2>
+      <p data-i18n="supportDesc">Soru, öneri ve hata bildirimleriniz için bize e-posta ile ulaşabilirsiniz.</p>
       <a class="mail" href="mailto:ridsgames.destek@gmail.com">ridsgames.destek@gmail.com</a>
     </div>
     <div class="docs">
-      <h3>Misket Klasik belgeleri</h3>
-      <ul>
+      <h3 data-lang="tr">Misket Klasik belgeleri</h3>
+      <ul data-lang="tr">
         <li><a href="gizlilik.html">Gizlilik Politikası</a></li>
         <li><a href="sartlar.html">Kullanım Şartları</a></li>
       </ul>
-      <h3 lang="en">Misket Klasik documents</h3>
-      <ul lang="en">
+      <h3 data-lang="en" lang="en" hidden>Misket Klasik documents</h3>
+      <ul data-lang="en" lang="en" hidden>
         <li><a href="privacy.html">Privacy Policy</a></li>
         <li><a href="terms.html">Terms of Use</a></li>
       </ul>
@@ -226,7 +232,48 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
   </section>
 </main>
 
-<footer class="wrap foot"><span>© 2026 Ridsgames. Tüm hakları saklıdır.</span></footer>
+<footer class="wrap foot"><span>© 2026 Ridsgames. <span data-i18n="rights">Tüm hakları saklıdır.</span></span></footer>
+
+<script>
+// Dil: ?lang=en|tr adresten, yoksa kayıtlı seçim, yoksa tarayıcı dili (tr dışı her dil İngilizce). Türkçe metinler HTML'de durur.
+const I18N_EN = {
+  title: 'Ridsgames: Games', home: 'Ridsgames home', sections: 'Sections', games: 'Games', support: 'Support',
+  browserGames: 'Simple browser games', play: 'Play', suluName: 'Water Ring Toss',
+  suluDesc: 'Lift the rings with a water jet and land them on the pegs. A challenging mode with realistic physics is also available for adults.',
+  tagModes: 'Kids and adult modes', tagGyro: 'Gyroscope support', tagThemes: '4 themes',
+  civiDesc: 'Flick the coin between the nails on the board and score in the opponent’s goal.',
+  tag2p: '2 players, one device', tagCpu: 'Play against the computer',
+  soon: 'Coming soon', suggest: 'Feel free to share your game ideas with us.',
+  mobileGames: 'Mobile games', mobileDesc: 'Apps you can download to your device and play even without an internet connection.',
+  misketDesc: 'The traditional street marbles game, with glass marbles. Play with friends on the same device or remotely with a Room Code.',
+  soonPlay: 'Coming soon to Google Play',
+  supportDesc: 'Send us your questions, suggestions and bug reports by email.', rights: 'All rights reserved.'
+};
+const TR = { title: document.title };
+function setLang(lang) {
+  const en = lang === 'en';
+  document.documentElement.lang = lang;
+  document.title = en ? I18N_EN.title : TR.title;
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.dataset.tr ??= el.textContent;
+    el.textContent = en ? I18N_EN[el.dataset.i18n] : el.dataset.tr;
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+    el.dataset.trAria ??= el.getAttribute('aria-label');
+    el.setAttribute('aria-label', en ? I18N_EN[el.dataset.i18nAria] : el.dataset.trAria);
+  });
+  document.querySelectorAll('[data-lang]').forEach((el) => { el.hidden = el.dataset.lang !== lang; });
+  document.querySelectorAll('a.game').forEach((a) => { a.href = a.getAttribute('href').split('?')[0] + '?lang=' + lang; });
+  document.querySelectorAll('[data-set-lang]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.setLang === lang));
+}
+let saved = null;
+try { saved = localStorage.getItem('lang'); } catch (e) {}
+setLang(/^tr/i.test(new URLSearchParams(location.search).get('lang') || saved || navigator.language || 'tr') ? 'tr' : 'en');
+document.querySelectorAll('[data-set-lang]').forEach((b) => b.addEventListener('click', () => {
+  setLang(b.dataset.setLang);
+  try { localStorage.setItem('lang', b.dataset.setLang); } catch (e) {}
+}));
+</script>
 
 </body>
 </html>
