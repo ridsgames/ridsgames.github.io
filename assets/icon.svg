@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="st" x1="0" y1="45" x2="0" y2="415" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#E2E9F2"/><stop offset=".55" stop-color="#9DADC3"/><stop offset="1" stop-color="#62738E"/></linearGradient></defs>
+<rect width="512" height="512" rx="112" fill="#14294A"/>
+<g transform="translate(256 256) scale(0.98) translate(-172 -230)"><path d="M45 75 L75 45 L118 45 L118 415 L45 415 Z M125 45 L265 45 L305 85 L305 215 L125 215 L125 160 L225 160 L240 145 L240 125 L225 110 L125 110 Z M128 247 L208 247 L298 415 L222 415 Z" fill="url(#st)" fill-rule="evenodd"/><path d="M45 75 L75 45 L118 45 L118 415 L45 415 Z M125 45 L265 45 L305 85 L305 215 L125 215 L125 160 L225 160 L240 145 L240 125 L225 110 L125 110 Z M128 247 L208 247 L298 415 L222 415 Z" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="4"/></g>
+</svg>
