@@ -25,26 +25,26 @@
 <body>
 <div id="hud">
   <button id="menuBtn" aria-label="Menü">☰</button>
-  <span class="r">Kırmızı <span id="sA">0</span></span>
+  <span class="r"><span data-i18n="red">Kırmızı</span> <span id="sA">0</span></span>
   <span>:</span>
   <span class="b"><span id="sB">0</span> <span id="nB">Mavi</span></span>
 </div>
 <div id="turn"></div>
 <div id="wrap"><canvas id="c"></canvas></div>
-<div id="gol" hidden>GOL!</div>
+<div id="gol" hidden data-i18n="goal">GOL!</div>
 <div id="menu" class="ov">
-  <h1>Çivi Futbolu</h1>
-  <p>Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı yukarıdaki, Mavi aşağıdaki kaleye atar. Sıra her atışta değişir, 5 gol atan kazanır.</p>
-  <button id="p2">2 Oyuncu</button>
-  <p>Bilgisayara karşı:</p>
-  <button class="lv">Kolay</button>
-  <button class="lv">Orta</button>
-  <button class="lv">Zor</button>
+  <h1 data-i18n="title">Çivi Futbolu</h1>
+  <p data-i18n="help">Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı yukarıdaki, Mavi aşağıdaki kaleye atar. Sıra her atışta değişir, 5 gol atan kazanır.</p>
+  <button id="p2" data-i18n="p2">2 Oyuncu</button>
+  <p data-i18n="vsCpu">Bilgisayara karşı:</p>
+  <button class="lv" data-i18n="easy">Kolay</button>
+  <button class="lv" data-i18n="medium">Orta</button>
+  <button class="lv" data-i18n="hard">Zor</button>
 </div>
 <div id="end" class="ov" hidden>
   <h1 id="endText"></h1>
-  <button id="again">Tekrar Oyna</button>
-  <button id="toMenu">Menü</button>
+  <button id="again" data-i18n="again">Tekrar Oyna</button>
+  <button id="toMenu" data-i18n="menu">Menü</button>
 </div>
 <script>
 const W = 400, H = 640, L = 16, R = 384, TOP = 46, BOT = 594; // tahta ve saha sınırları
@@ -96,7 +96,22 @@ function step(c) {
 const $ = id => document.getElementById(id);
 const cv = $('c'), ctx = cv.getContext('2d'), board = document.createElement('canvas'), pins = document.createElement('canvas');
 let mode, level = 2, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1, coinImg;
-const names = () => ['Kırmızı', mode === 'ai' ? 'Bilgisayar' : 'Mavi'];
+// Dil: ?lang=en|tr adresten, yoksa tarayıcı dili (tr dışı her dil İngilizce). Türkçe metinler HTML'de durur.
+const LANG = /^tr/i.test(new URLSearchParams(location.search).get('lang') || navigator.language || 'tr') ? 'tr' : 'en';
+const I18N_EN = {
+  title: 'Nail Football', red: 'Red', blue: 'Blue', cpu: 'Computer', goal: 'GOAL!', menu: 'Menu',
+  help: 'Press on the coin, hold and drag, then flick it. Red shoots at the top goal, Blue at the bottom one. Turns switch after every shot; first to 5 goals wins.',
+  p2: '2 Players', vsCpu: 'Against the computer:', easy: 'Easy', medium: 'Medium', hard: 'Hard', again: 'Play Again',
+  thinking: 'Computer is thinking…', turn: 'Turn', aim: 'press the coin, drag, flick',
+  cpuWins: 'Computer wins', youWin: 'You win!', wins: 'wins!'
+};
+function t(key, trText) { return LANG === 'en' ? I18N_EN[key] : trText; }
+if (LANG === 'en') {
+  document.documentElement.lang = 'en'; document.title = I18N_EN.title;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = I18N_EN[el.dataset.i18n]; });
+  $('menuBtn').setAttribute('aria-label', I18N_EN.menu);
+}
+const names = () => [t('red', 'Kırmızı'), mode === 'ai' ? t('cpu', 'Bilgisayar') : t('blue', 'Mavi')];
 
 function newGame(m) {
   mode = m; score = [0, 0]; clearTimeout(aiTimer);
@@ -113,7 +128,8 @@ function aim() {
 function hud() {
   $('sA').textContent = score[0]; $('sB').textContent = score[1];
   $('turn').className = turn ? 'b' : 'r';
-  $('turn').textContent = state !== 'aim' ? '' : mode === 'ai' && turn ? 'Bilgisayar düşünüyor…' : `Sıra: ${names()[turn]} ${turn ? '↓' : '↑'} — paraya bas, sürükle, fırlat`;
+  $('turn').textContent = state !== 'aim' ? '' : mode === 'ai' && turn ? t('thinking', 'Bilgisayar düşünüyor…')
+    : `${t('turn', 'Sıra')}: ${names()[turn]} ${turn ? '↓' : '↑'} — ${t('aim', 'paraya bas, sürükle, fırlat')}`;
 }
 function shoot(vx, vy) { coin.vx = vx; coin.vy = vy; state = 'moving'; hud(); }
 function goal(side) {
@@ -127,7 +143,7 @@ function goal(side) {
     if (state !== 'goal') return;
     if (score[s] < WIN) return kickoff(1 - s);
     state = 'over';
-    $('endText').textContent = mode === 'ai' ? (s ? 'Bilgisayar kazandı' : 'Kazandın!') : `${names()[s]} kazandı!`;
+    $('endText').textContent = mode === 'ai' ? (s ? t('cpuWins', 'Bilgisayar kazandı') : t('youWin', 'Kazandın!')) : `${names()[s]} ${t('wins', 'kazandı!')}`;
     $('end').hidden = false;
   }, 1300);
 }
