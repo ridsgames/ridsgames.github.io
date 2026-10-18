@@ -10,7 +10,7 @@
 <meta property="og:image" content="https://ridsgames.github.io/assets/sulu-halka.jpg">
 <meta name="theme-color" content="#07080B">
 <meta name="color-scheme" content="dark">
-<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,7 +53,7 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.08; margin: 0; color: #
 /* Üst çubuk */
 .bar { display: flex; justify-content: flex-end; padding-top: 16px; }
 .hero { display: flex; justify-content: center; padding: 28px 20px 52px; }
-.hero img { display: block; width: min(520px, 78vw); height: auto; filter: drop-shadow(0 18px 30px rgba(0,0,0,.7)); }
+.hero img { display: block; width: min(520px, 78vw); height: auto; mix-blend-mode: lighten; }
 .bar nav { display: flex; gap: 22px; font-family: var(--display); font-weight: 600; font-size: 16px; }
 .bar nav a { text-decoration: none; color: var(--steel-dim); }
 .bar nav a:hover { color: #fff; }
@@ -133,7 +133,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
 
 footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: calc(44px + env(safe-area-inset-bottom)); color: var(--steel-dim); font-size: 14px; }
 .foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.foot img { display: block; height: 48px; width: auto; }
+.foot img { display: block; height: 48px; width: auto; mix-blend-mode: lighten; }
 
 @media (max-width: 880px) {
   .games { grid-template-columns: 1fr 1fr; }
@@ -166,7 +166,7 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
     <a href="#destek">Destek</a>
   </nav>
 </header>
-<div class="hero"><h1 style="margin:0"><img src="assets/logo-dark.svg" alt="Ridsgames" width="520" height="240"></h1></div>
+<div class="hero"><h1 style="margin:0"><img src="assets/logo.webp" alt="Ridsgames" width="520" height="241"></h1></div>
 
 <main>
   <section class="shelf first wrap" id="basit-oyunlar" aria-labelledby="h-basit">
@@ -232,7 +232,7 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
   </section>
 </main>
 
-<footer class="wrap foot"><img src="assets/logo-compact-dark.svg" alt="Ridsgames" width="134" height="48"><span>© 2026 Ridsgames. Tüm hakları saklıdır.</span></footer>
+<footer class="wrap foot"><img src="assets/logo-rids.webp" alt="Ridsgames" width="133" height="48"><span>© 2026 Ridsgames. Tüm hakları saklıdır.</span></footer>
 
 </body>
 </html>
