@@ -46,7 +46,8 @@
 <script>
 const W = 400, H = 640, L = 16, R = 384, TOP = 46, BOT = 594; // tahta ve saha sınırları
 const GL = 140, GR = 260, GD = 34;   // kale direkleri (x) ve file derinliği
-const CR = 16, NR = 3;               // para ve çivi yarıçapı
+const CR = 13, NR = 2;               // para (1 TL ≈ 26 mm) ve çivi gövdesi yarıçapı
+const NH = 7, HR = 3.2, GH = 9;      // eğik bakış: çivi boyu, çivi başı, kale yüksekliği
 // Ayar düğmeleri: oyunun hissi bunlarla değişir
 const DECEL = 320;                   // tahtanın sürtünmesi
 const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
@@ -89,8 +90,8 @@ function step(c) {
 }
 
 const $ = id => document.getElementById(id);
-const cv = $('c'), ctx = cv.getContext('2d'), board = document.createElement('canvas');
-let mode, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1;
+const cv = $('c'), ctx = cv.getContext('2d'), board = document.createElement('canvas'), pins = document.createElement('canvas');
+let mode, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1, coinImg;
 const names = () => ['Kırmızı', mode === 'ai' ? 'Bilgisayar' : 'Mavi'];
 
 function newGame(m) {
@@ -187,7 +188,29 @@ function tik(vol, f, d) {
   o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d);
 }
 
-function drawBoard(g) {
+// Eğik bakış: yerden h yüksekteki nokta ekranda h yukarı kayar, gölgesi sağ alta düşer (ışık sol üstten)
+const up = (x, y, h) => [x, y - h], shade = (x, y, h) => [x + h * .85, y + h];
+const GOALS = [[TOP, -1, '#1f6fe5', '#a9cfff'], [BOT, 1, '#e0262b', '#ffaaa5']]; // üstte Mavi'nin, altta Kırmızı'nın kalesi
+function goalPath(g, y0, d, f) {      // kale borularının iskeleti; f kaleyi ya da gölgesini çizer
+  const y1 = y0 + d * GD; g.beginPath();
+  for (const [x, y, z, X, Y, Z] of [[GL, y0, 0, GL, y0, 1], [GR, y0, 0, GR, y0, 1], [GL, y1, 0, GL, y1, 1], [GR, y1, 0, GR, y1, 1],
+    [GL, y0, 1, GR, y0, 1], [GL, y1, 1, GR, y1, 1], [GL, y0, 1, GL, y1, 1], [GR, y0, 1, GR, y1, 1], [GL, y1, 0, GR, y1, 0]]) {
+    g.moveTo(...f(x, y, z * GH)); g.lineTo(...f(X, Y, Z * GH));
+  }
+}
+function drawGoal(g, [y0, d, col, net]) {
+  const y1 = y0 + d * GD, ya = Math.min(y0, y1) - GH;
+  g.strokeStyle = net + '99'; g.lineWidth = .7; g.beginPath();           // file: tavan ve arka
+  for (let x = GL; x <= GR; x += 6) { g.moveTo(x, ya); g.lineTo(x, ya + GD); g.moveTo(x, y1); g.lineTo(x, y1 - GH); }
+  for (let k = 6; k < GD; k += 6) { g.moveTo(GL, ya + k); g.lineTo(GR, ya + k); }
+  for (let k = 3; k < GH; k += 3) { g.moveTo(GL, y1 - k); g.lineTo(GR, y1 - k); }
+  g.stroke();
+  g.lineCap = g.lineJoin = 'round';
+  g.strokeStyle = col; g.lineWidth = 2.6; goalPath(g, y0, d, up); g.stroke();
+  g.save(); g.translate(-.5, -.5); g.strokeStyle = '#ffffff70'; g.lineWidth = .8; goalPath(g, y0, d, up); g.stroke(); g.restore();
+}
+
+function drawBoard(g, p) {
   g.fillStyle = '#b3201c'; g.fillRect(0, 0, W, H);                      // kırmızı çerçeve
   if (tex.cerceve.naturalWidth) g.drawImage(tex.cerceve, 0, 0, W, H);
   g.fillStyle = '#2a000030'; g.fillRect(0, 0, W, H);                    // dokudaki parlamayı bastır
@@ -199,8 +222,8 @@ function drawBoard(g) {
   if (tex.zemin.naturalWidth) g.drawImage(tex.zemin, L, TOP - GD, R - L, BOT - TOP + 2 * GD);
   g.strokeStyle = '#00000059'; g.lineWidth = 6; g.strokeRect(L, TOP, R - L, BOT - TOP); // çerçeve gölgesi
   g.restore();
-  const cx = W / 2, cy = H / 2, a = Math.asin(.6);                       // siyah saha çizgileri
-  g.strokeStyle = '#141414'; g.lineWidth = 2; g.beginPath();
+  const cx = W / 2, cy = H / 2, a = Math.asin(.6);                       // beyaz saha çizgileri
+  g.strokeStyle = '#ffffffe0'; g.lineWidth = 2; g.beginPath();
   g.rect(L + 6, TOP, R - L - 12, BOT - TOP);
   g.moveTo(L + 6, cy); g.lineTo(R - 6, cy);
   g.moveTo(cx + 50, cy); g.arc(cx, cy, 50, 0, 7);
@@ -213,65 +236,88 @@ function drawBoard(g) {
     }
   }
   g.stroke();
-  g.fillStyle = '#141414'; g.beginPath(); g.arc(cx, cy, 2.5, 0, 7); g.fill();
-  for (const [y0, d] of [[TOP, -1], [BOT, 1]]) {                         // kırmızı tel kaleler
-    const y1 = y0 + d * GD;
-    g.strokeStyle = '#ff8a8090'; g.lineWidth = .8; g.beginPath();
-    for (let x = GL; x <= GR; x += 6) { g.moveTo(x, y0); g.lineTo(x, y1); }
-    for (let k = 6; k < GD; k += 6) { g.moveTo(GL, y0 + d * k); g.lineTo(GR, y0 + d * k); }
-    g.stroke();
-    g.strokeStyle = '#d32f2f'; g.lineWidth = 3.5; g.lineJoin = 'round'; g.beginPath();
-    g.moveTo(GL, y0); g.lineTo(GL, y1); g.lineTo(GR, y1); g.lineTo(GR, y0); g.lineTo(GL, y0);
-    g.stroke();
+  g.fillStyle = '#ffffffe0'; g.beginPath(); g.arc(cx, cy, 2.5, 0, 7); g.fill();
+  for (const G of GOALS) {                                               // kalenin gölgesi, sonra kale
+    g.fillStyle = '#0000001a'; g.fillRect(GL + GH * .85, Math.min(G[0], G[0] + G[1] * GD) + GH, GR - GL, GD);
+    g.strokeStyle = '#00000045'; g.lineWidth = 2.6; goalPath(g, G[0], G[1], shade); g.stroke();
+    drawGoal(g, G);
   }
-  g.lineCap = 'round';
   for (const n of nails) {
-    if (n.post) {                                                        // kale direkleri
-      g.fillStyle = '#d32f2f'; g.beginPath(); g.arc(n.x, n.y, NR + 1.5, 0, 7); g.fill();
-      g.strokeStyle = '#7a1210'; g.lineWidth = 1; g.stroke(); continue;
-    }
-    g.strokeStyle = '#0000004d'; g.lineWidth = 2.5;                      // çivinin gölgesi
-    g.beginPath(); g.moveTo(n.x, n.y); g.lineTo(n.x + 6, n.y + 8); g.stroke();
-    const head = g.createRadialGradient(n.x - 1, n.y - 1, .2, n.x, n.y, NR);  // metal çivi başı
-    head.addColorStop(0, '#b8b8b8'); head.addColorStop(.45, '#4a4a4a'); head.addColorStop(1, '#111');
-    g.fillStyle = head; g.beginPath(); g.arc(n.x, n.y, NR, 0, 7); g.fill();
+    if (n.post) continue;                                                // direkler kaleyle çizildi
+    const [sx, sy] = shade(n.x, n.y, NH), b = g.createRadialGradient(sx, sy, 0, sx, sy, HR + 1);
+    g.strokeStyle = '#0000005a'; g.lineWidth = 1.6;                      // tahtaya düşen gölge
+    g.beginPath(); g.moveTo(n.x, n.y); g.lineTo(sx, sy); g.stroke();
+    b.addColorStop(0, '#00000066'); b.addColorStop(1, '#0000');
+    g.fillStyle = b; g.beginPath(); g.arc(sx, sy, HR + 1, 0, 7); g.fill();
+    g.fillStyle = '#00000080'; g.beginPath(); g.ellipse(n.x, n.y, NR, NR * .6, 0, 0, 7); g.fill(); // girdiği delik
+    const ty = n.y - NH, s = p.createLinearGradient(n.x - 1, 0, n.x + 1, 0); // p: paranın üstünde kalan gövde ve baş
+    s.addColorStop(0, '#e8e8e8'); s.addColorStop(.5, '#8c8c8c'); s.addColorStop(1, '#2e2e2e');
+    p.strokeStyle = s; p.lineWidth = 1.8; p.beginPath(); p.moveTo(n.x, n.y); p.lineTo(n.x, ty); p.stroke();
+    p.fillStyle = '#262626'; p.beginPath(); p.ellipse(n.x, ty + .8, HR, HR * .6, 0, 0, 7); p.fill();
+    const hd = p.createRadialGradient(n.x - 1.2, ty - .8, .2, n.x, ty, HR);
+    hd.addColorStop(0, '#fdfdfd'); hd.addColorStop(.35, '#b9b9b9'); hd.addColorStop(1, '#4a4a4a');
+    p.fillStyle = hd; p.beginPath(); p.ellipse(n.x, ty, HR, HR * .6, 0, 0, 7); p.fill();
   }
+}
+
+// Para: kalın kenar, kabarık çerçeve ve kabartma Ridsgames logosu; her boyutlanmada bir kez çizilir
+const COIN = CR + 6;                                                     // görselin yarı boyu (gölge payıyla)
+function tint(col, w, h) {
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  c.width = Math.ceil(w * K); c.height = Math.ceil(h * K);
+  g.drawImage(logo, 0, 0, c.width, c.height); g.globalCompositeOperation = 'source-in';
+  g.setTransform(K, 0, 0, K, c.width / 2, c.height / 2); g.fillStyle = col; g.fillRect(-w, -h, 2 * w, 2 * h);
+  return c;
+}
+function makeCoin() {
+  const c = document.createElement('canvas'), g = c.getContext('2d'), T = 1.3; // T: paranın kalınlığı
+  c.width = c.height = Math.ceil(2 * COIN * K); g.setTransform(K, 0, 0, K, c.width / 2, c.height / 2);
+  g.shadowColor = '#0009'; g.shadowBlur = 3 * K; g.shadowOffsetX = 1.5 * K; g.shadowOffsetY = 2.5 * K;
+  g.fillStyle = '#6e4f0f'; g.beginPath(); g.arc(0, 0, CR, 0, 7); g.fill(); g.shadowColor = '#0000';
+  g.translate(0, -T);
+  const face = g.createRadialGradient(-4, -5, 1, 0, 0, CR);
+  face.addColorStop(0, '#fff2c2'); face.addColorStop(.55, '#ddb043'); face.addColorStop(1, '#a3761a');
+  g.fillStyle = face; g.beginPath(); g.arc(0, 0, CR, 0, 7); g.fill();
+  const lit = (a, b) => { const l = g.createLinearGradient(-CR, -CR, CR, CR); l.addColorStop(0, a); l.addColorStop(1, b); return l; };
+  g.lineWidth = 2; g.strokeStyle = lit('#fff7d6', '#7a5610'); g.beginPath(); g.arc(0, 0, CR - 1.2, 0, 7); g.stroke();
+  g.lineWidth = .6; g.strokeStyle = lit('#7a5610', '#fff3c8'); g.beginPath(); g.arc(0, 0, CR - 2.4, 0, 7); g.stroke();
+  if (logo.naturalWidth) {                                               // gölge, ışık, yüz: kabartma
+    const w = CR * 1.4, h = w * logo.naturalHeight / logo.naturalWidth;
+    for (const [o, col] of [[.5, '#5f430b'], [-.5, '#fff8dc'], [0, face]]) g.drawImage(tint(col, w, h), o - w / 2, o - h / 2, w, h);
+  }
+  return c;
 }
 
 function draw(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(board, 0, 0);
   ctx.setTransform(K, 0, 0, K, 0, 0);
-  if (!coin) return;
-  const { x, y } = coin;
-  if (hold) {
-    ctx.setLineDash([4, 5]); ctx.strokeStyle = '#fff8'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(hold.ax, hold.ay, CARRY, 0, 7); ctx.stroke(); ctx.setLineDash([]);
-  } else if (state === 'aim') {
-    ctx.globalAlpha = .55 + .4 * Math.sin(t / 200); ctx.strokeStyle = turn ? '#5aa8ff' : '#ff6a5c'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(x, y, CR + 6, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
+  if (coin) {
+    const { x, y } = coin;
+    if (hold) {
+      ctx.setLineDash([4, 5]); ctx.strokeStyle = '#fff8'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(hold.ax, hold.ay, CARRY, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    } else if (state === 'aim') {
+      ctx.globalAlpha = .55 + .4 * Math.sin(t / 200); ctx.strokeStyle = turn ? '#5aa8ff' : '#ff6a5c'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(x, y, CR + 6, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    ctx.drawImage(coinImg, x - COIN, y - COIN, 2 * COIN, 2 * COIN);
+    if (y < TOP || y > BOT) drawGoal(ctx, GOALS[y < TOP ? 0 : 1]);      // para filede: file ve borular önde
   }
-  ctx.fillStyle = '#0005'; ctx.beginPath(); ctx.arc(x + 2, y + 3, CR, 0, 7); ctx.fill();
-  const gold = ctx.createRadialGradient(x - 6, y - 6, 1, x, y, CR);   // iki renkli 1 TL
-  gold.addColorStop(0, '#fff1b8'); gold.addColorStop(.6, '#d9a92f'); gold.addColorStop(1, '#9c6f12');
-  ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(x, y, CR, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#7d5810'; ctx.lineWidth = 1; ctx.stroke();
-  const silver = ctx.createRadialGradient(x - 4, y - 4, 1, x, y, CR * .62);
-  silver.addColorStop(0, '#fff'); silver.addColorStop(.6, '#c9ccd1'); silver.addColorStop(1, '#8d9299');
-  ctx.fillStyle = silver; ctx.beginPath(); ctx.arc(x, y, CR * .62, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#6f747b'; ctx.stroke();
-  ctx.fillStyle = '#4b5057'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('1', x, y + .5);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(pins, 0, 0);        // çiviler paranın önünde durur
 }
 
 function resize() {
   const r = $('wrap').getBoundingClientRect();
   scale = Math.min((r.width - 16) / W, (r.height - 8) / H); K = scale * (devicePixelRatio || 1);
   cv.style.width = W * scale + 'px'; cv.style.height = H * scale + 'px';
-  board.width = cv.width = Math.round(W * K); board.height = cv.height = Math.round(H * K);
-  const g = board.getContext('2d'); g.setTransform(K, 0, 0, K, 0, 0); drawBoard(g);
+  board.width = cv.width = pins.width = Math.round(W * K); board.height = cv.height = pins.height = Math.round(H * K);
+  const g = board.getContext('2d'), p = pins.getContext('2d');
+  g.setTransform(K, 0, 0, K, 0, 0); p.setTransform(K, 0, 0, K, 0, 0); drawBoard(g, p);
+  coinImg = makeCoin();
 }
-const tex = {};                                                          // Antigravity'nin ürettiği dokular
+const tex = {}, logo = new Image();                                      // Antigravity'nin ürettiği dokular, para logosu
 for (const n of ['zemin', 'cerceve']) { tex[n] = new Image(); tex[n].onload = resize; tex[n].src = n + '.jpg'; }
+logo.onload = resize; logo.src = 'para-logo.png';
 addEventListener('resize', resize); resize();
 
 let last = 0, acc = 0;
