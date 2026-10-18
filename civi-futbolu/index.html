@@ -55,11 +55,10 @@ const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
 const AI_ERR = 0.08;                 // bilgisayarın nişan hatası (radyan)
 const DT = 1 / 240, WIN = 5;
 
-// Çiviler: şaşırtmalı sıralar (5 ve 4 çivi, 36 birim arayla); kale alanlarının içi boş
+// Çiviler: şaşırtmalı sıralar (4 ve 3 çivi, 48 birim arayla)
 const nails = [];
-for (let k = -7; k <= 7; k++)
-  for (const x of k % 2 ? [56, 128, 200, 272, 344] : [92, 164, 236, 308])
-    if (Math.abs(k) < 7 || x !== 200) nails.push({ x, y: H / 2 + 36 * k });
+for (let k = -5; k <= 5; k++)
+  for (const x of k % 2 ? [110, 200, 290] : [65, 155, 245, 335]) nails.push({ x, y: H / 2 + 48 * k });
 for (const y of [TOP, BOT]) nails.push({ x: GL, y, post: 1 }, { x: GR, y, post: 1 });
 
 let hitV = 0;
@@ -131,11 +130,16 @@ function goal(side) {
 // Bilgisayar: her yön ve güçte atışı simüle eder, gol ya da kırmızı kaleye en yakın duruşu seçer
 function aiShoot() {
   if (state !== 'aim' || mode !== 'ai' || !turn) return;
+  const run = (a, sp) => {
+    const c = { x: coin.x, y: coin.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp };
+    let g; for (let k = 0; k < 2400 && !g && (c.vx || c.vy); k++) g = step(c);
+    return g === 'bottom' ? 1e4 : g === 'top' ? -1e4 : c.y;
+  };
   let best = { sc: -Infinity };
   for (let i = 0; i < 120; i++) for (const sp of [300, 450, 600, 750, 900, 1050]) {
-    const a = i / 120 * 2 * Math.PI, c = { x: coin.x, y: coin.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp };
-    let g; for (let k = 0; k < 2400 && !g && (c.vx || c.vy); k++) g = step(c);
-    const sc = g === 'bottom' ? 1e4 : g === 'top' ? -1e4 : c.y;
+    const a = i / 120 * 2 * Math.PI;
+    let sc = run(a, sp);
+    if (sc === 1e4) for (const d of [-.03, -.015, .015, .03]) if (run(a + d, sp) === 1e4) sc += 100; // nişan kaysa da gol olanı seç
     if (sc > best.sc) best = { sc, a, sp };
   }
   const a = best.a + (Math.random() - .5) * AI_ERR, sp = best.sp * (0.95 + Math.random() * 0.1);
@@ -185,15 +189,16 @@ function tik(vol, f, d) {
 
 function drawBoard(g) {
   g.fillStyle = '#b3201c'; g.fillRect(0, 0, W, H);                      // kırmızı çerçeve
-  g.strokeStyle = '#7a1210'; g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
-  g.fillStyle = '#1f9d4b';                                               // yeşil boyalı tahta ve kale cepleri
-  g.fillRect(L, TOP, R - L, BOT - TOP);
-  g.fillRect(GL, TOP - GD, GR - GL, GD); g.fillRect(GL, BOT, GR - GL, GD);
-  let seed = 7; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
-  for (let i = 0; i < 1400; i++) {                                       // boya izleri
-    g.fillStyle = rnd() < .5 ? '#ffffff07' : '#00000009';
-    g.beginPath(); g.arc(L + rnd() * (R - L), TOP + rnd() * (BOT - TOP), 1.5 + rnd() * 4, 0, 7); g.fill();
-  }
+  if (tex.cerceve.naturalWidth) g.drawImage(tex.cerceve, 0, 0, W, H);
+  g.fillStyle = '#2a000030'; g.fillRect(0, 0, W, H);                    // dokudaki parlamayı bastır
+  g.strokeStyle = '#5a0d0b'; g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
+  g.save(); g.beginPath();                                               // yeşil boyalı tahta ve kale cepleri
+  g.rect(L, TOP, R - L, BOT - TOP); g.rect(GL, TOP - GD, GR - GL, GD); g.rect(GL, BOT, GR - GL, GD);
+  g.clip();
+  g.fillStyle = '#1f9d4b'; g.fillRect(L, TOP - GD, R - L, BOT - TOP + 2 * GD);
+  if (tex.zemin.naturalWidth) g.drawImage(tex.zemin, L, TOP - GD, R - L, BOT - TOP + 2 * GD);
+  g.strokeStyle = '#00000059'; g.lineWidth = 6; g.strokeRect(L, TOP, R - L, BOT - TOP); // çerçeve gölgesi
+  g.restore();
   const cx = W / 2, cy = H / 2, a = Math.asin(.6);                       // siyah saha çizgileri
   g.strokeStyle = '#141414'; g.lineWidth = 2; g.beginPath();
   g.rect(L + 6, TOP, R - L - 12, BOT - TOP);
@@ -227,8 +232,9 @@ function drawBoard(g) {
     }
     g.strokeStyle = '#0000004d'; g.lineWidth = 2.5;                      // çivinin gölgesi
     g.beginPath(); g.moveTo(n.x, n.y); g.lineTo(n.x + 6, n.y + 8); g.stroke();
-    g.fillStyle = '#1b1b1b'; g.beginPath(); g.arc(n.x, n.y, NR, 0, 7); g.fill();
-    g.fillStyle = '#8a8a8a'; g.beginPath(); g.arc(n.x - 1, n.y - 1, 1, 0, 7); g.fill();
+    const head = g.createRadialGradient(n.x - 1, n.y - 1, .2, n.x, n.y, NR);  // metal çivi başı
+    head.addColorStop(0, '#b8b8b8'); head.addColorStop(.45, '#4a4a4a'); head.addColorStop(1, '#111');
+    g.fillStyle = head; g.beginPath(); g.arc(n.x, n.y, NR, 0, 7); g.fill();
   }
 }
 
@@ -264,6 +270,8 @@ function resize() {
   board.width = cv.width = Math.round(W * K); board.height = cv.height = Math.round(H * K);
   const g = board.getContext('2d'); g.setTransform(K, 0, 0, K, 0, 0); drawBoard(g);
 }
+const tex = {};                                                          // Antigravity'nin ürettiği dokular
+for (const n of ['zemin', 'cerceve']) { tex[n] = new Image(); tex[n].onload = resize; tex[n].src = n + '.jpg'; }
 addEventListener('resize', resize); resize();
 
 let last = 0, acc = 0;
