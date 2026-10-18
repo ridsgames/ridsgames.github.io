@@ -7,13 +7,13 @@
 <style>
   * { box-sizing: border-box; margin: 0; }
   html, body { height: 100%; }
-  body { display: flex; flex-direction: column; background: #1f2a1c; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  body { display: flex; flex-direction: column; background: #16191d; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; }
   #hud { position: relative; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 8px 12px 0; font-size: 20px; font-weight: 800; }
   #turn { text-align: center; font-size: 14px; height: 22px; line-height: 22px; }
   .r { color: #ff6a5c; } .b { color: #5aa8ff; }
   #wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 8px 8px; }
   canvas { display: block; touch-action: none; border-radius: 10px; box-shadow: 0 8px 30px #0008; }
-  .ov { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; text-align: center; background: #0e170cd9; }
+  .ov { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; text-align: center; background: #0b0d10d9; }
   .ov p { max-width: 330px; font-size: 14px; line-height: 1.5; opacity: .85; }
   h1 { font-size: 40px; }
   button { font: inherit; font-size: 18px; font-weight: 700; min-width: 220px; padding: 12px 24px; border: 0; border-radius: 12px; background: #e9b44c; color: #2b1a05; cursor: pointer; }
@@ -34,7 +34,7 @@
 <div id="gol" hidden>GOL!</div>
 <div id="menu" class="ov">
   <h1>Çivi Futbolu</h1>
-  <p>Paranın üstüne bas, tutup sürükle ve fırlat. Çivilerin arasından geçirip rakip kaleye sokarsan gol! Sıra her atışta değişir, 5 gol atan kazanır.</p>
+  <p>Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı yukarıdaki, Mavi aşağıdaki kaleye atar. Sıra her atışta değişir, 5 gol atan kazanır.</p>
   <button id="p2">2 Oyuncu</button>
   <button id="ai">Bilgisayara Karşı</button>
 </div>
@@ -44,9 +44,9 @@
   <button id="toMenu">Menü</button>
 </div>
 <script>
-const W = 400, H = 640, L = 20, R = 380, TOP = 30, BOT = 610; // tahta ve saha sınırları
-const GL = 145, GR = 255;            // kale direkleri (x)
-const CR = 14, NR = 5;               // para ve çivi yarıçapı
+const W = 400, H = 640, L = 16, R = 384, TOP = 46, BOT = 594; // tahta ve saha sınırları
+const GL = 140, GR = 260, GD = 34;   // kale direkleri (x) ve file derinliği
+const CR = 16, NR = 3;               // para ve çivi yarıçapı
 // Ayar düğmeleri: oyunun hissi bunlarla değişir
 const DECEL = 320;                   // tahtanın sürtünmesi
 const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
@@ -55,11 +55,12 @@ const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
 const AI_ERR = 0.08;                 // bilgisayarın nişan hatası (radyan)
 const DT = 1 / 240, WIN = 5;
 
-// Çiviler: [y, x'ler, takım] (0 = kırmızı, aşağıda; 1 = mavi). Üst yarı simetrik.
+// Çiviler: şaşırtmalı sıralar (5 ve 4 çivi, 36 birim arayla); kale alanlarının içi boş
 const nails = [];
-for (const [y, xs, t] of [[585, [200], 0], [520, [110, 200, 290], 0], [455, [80, 200, 320], 1], [385, [65, 155, 245, 335], 0]])
-  for (const x of xs) nails.push({ x, y, t }, { x: W - x, y: H - y, t: 1 - t });
-for (const y of [TOP, BOT]) nails.push({ x: GL, y, t: 2 }, { x: GR, y, t: 2 });
+for (let k = -7; k <= 7; k++)
+  for (const x of k % 2 ? [56, 128, 200, 272, 344] : [92, 164, 236, 308])
+    if (Math.abs(k) < 7 || x !== 200) nails.push({ x, y: H / 2 + 36 * k });
+for (const y of [TOP, BOT]) nails.push({ x: GL, y, post: 1 }, { x: GR, y, post: 1 });
 
 let hitV = 0;
 // Fizik adımı; gol olursa 'top' (kırmızının golü) ya da 'bottom' (mavinin golü) döner
@@ -67,8 +68,11 @@ function step(c) {
   const s = Math.hypot(c.vx, c.vy);
   if (s) { const k = Math.max(0, s - DECEL * DT) / s; c.vx *= k; c.vy *= k; }
   c.x += c.vx * DT; c.y += c.vy * DT;
+  const m = CR + NR;
   for (const n of nails) {
-    const dx = c.x - n.x, dy = c.y - n.y, d = Math.hypot(dx, dy), m = CR + NR;
+    const dx = c.x - n.x, dy = c.y - n.y;
+    if (dx >= m || dx <= -m || dy >= m || dy <= -m) continue;
+    const d = Math.hypot(dx, dy);
     if (d >= m) continue;
     const nx = d ? dx / d : 0, ny = d ? dy / d : 1, vn = c.vx * nx + c.vy * ny;
     c.x = n.x + nx * m; c.y = n.y + ny * m;
@@ -105,12 +109,13 @@ function aim() {
 function hud() {
   $('sA').textContent = score[0]; $('sB').textContent = score[1];
   $('turn').className = turn ? 'b' : 'r';
-  $('turn').textContent = state !== 'aim' ? '' : mode === 'ai' && turn ? 'Bilgisayar düşünüyor…' : `Sıra: ${names()[turn]} — paraya bas, sürükle, fırlat`;
+  $('turn').textContent = state !== 'aim' ? '' : mode === 'ai' && turn ? 'Bilgisayar düşünüyor…' : `Sıra: ${names()[turn]} ${turn ? '↓' : '↑'} — paraya bas, sürükle, fırlat`;
 }
 function shoot(vx, vy) { coin.vx = vx; coin.vy = vy; state = 'moving'; hud(); }
 function goal(side) {
   const s = side === 'top' ? 0 : 1;  // kırmızı yukarı, mavi aşağı atar
   score[s]++; state = 'goal'; hud();
+  coin.x = Math.min(GR - CR, Math.max(GL + CR, coin.x)); coin.y = s ? BOT + GD / 2 : TOP - GD / 2; // para filede
   $('gol').className = s ? 'b' : 'r'; $('gol').hidden = false;
   tik(0.25, 520, 0.5);
   setTimeout(() => {
@@ -179,37 +184,51 @@ function tik(vol, f, d) {
 }
 
 function drawBoard(g) {
-  g.fillStyle = '#4a2a12'; g.fillRect(0, 0, W, H);                      // çerçeve
-  for (const y of [TOP - 24, BOT]) {                                     // kale fileleri
-    g.fillStyle = '#1c120a'; g.fillRect(GL, y, GR - GL, 24);
-    g.strokeStyle = '#fff3'; g.lineWidth = 1; g.beginPath();
-    for (let x = GL; x <= GR; x += 8) { g.moveTo(x, y); g.lineTo(x, y + 24); }
-    for (let yy = y; yy <= y + 24; yy += 8) { g.moveTo(GL, yy); g.lineTo(GR, yy); }
-    g.stroke();
+  g.fillStyle = '#b3201c'; g.fillRect(0, 0, W, H);                      // kırmızı çerçeve
+  g.strokeStyle = '#7a1210'; g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
+  g.fillStyle = '#1f9d4b';                                               // yeşil boyalı tahta ve kale cepleri
+  g.fillRect(L, TOP, R - L, BOT - TOP);
+  g.fillRect(GL, TOP - GD, GR - GL, GD); g.fillRect(GL, BOT, GR - GL, GD);
+  let seed = 7; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  for (let i = 0; i < 1400; i++) {                                       // boya izleri
+    g.fillStyle = rnd() < .5 ? '#ffffff07' : '#00000009';
+    g.beginPath(); g.arc(L + rnd() * (R - L), TOP + rnd() * (BOT - TOP), 1.5 + rnd() * 4, 0, 7); g.fill();
   }
-  const wood = g.createLinearGradient(L, 0, R, 0);
-  wood.addColorStop(0, '#c48a52'); wood.addColorStop(.5, '#d9a468'); wood.addColorStop(1, '#c08650');
-  g.fillStyle = wood; g.fillRect(L, TOP, R - L, BOT - TOP);
-  g.strokeStyle = '#7a45181f'; g.lineWidth = 1.5;                       // ahşap damarları
-  for (let i = 0; i < 34; i++) {
-    const x0 = L + (i * 53) % (R - L); g.beginPath();
-    for (let y = TOP; y <= BOT; y += 10) g.lineTo(x0 + Math.sin(y / (40 + i % 7 * 9) + i) * (3 + i % 4), y);
-    g.stroke();
+  const cx = W / 2, cy = H / 2, a = Math.asin(.6);                       // siyah saha çizgileri
+  g.strokeStyle = '#141414'; g.lineWidth = 2; g.beginPath();
+  g.rect(L + 6, TOP, R - L - 12, BOT - TOP);
+  g.moveTo(L + 6, cy); g.lineTo(R - 6, cy);
+  g.moveTo(cx + 50, cy); g.arc(cx, cy, 50, 0, 7);
+  for (const [y, d] of [[TOP, 1], [BOT, -1]]) {
+    g.rect(85, y, 230, d * 82); g.rect(130, y, 140, d * 30);            // ceza sahası, kale alanı
+    const py = y + d * 58, a0 = d > 0 ? a : Math.PI + a, a1 = d > 0 ? Math.PI - a : -a;
+    g.moveTo(cx + 40 * Math.cos(a0), py + 40 * Math.sin(a0)); g.arc(cx, py, 40, a0, a1); // ceza yayı
+    for (const [x, q] of [[L + 6, d > 0 ? 0 : -Math.PI / 2], [R - 6, d > 0 ? Math.PI / 2 : Math.PI]]) {
+      g.moveTo(x + 10 * Math.cos(q), y + 10 * Math.sin(q)); g.arc(x, y, 10, q, q + Math.PI / 2); // korner
+    }
   }
-  const cx = W / 2, cy = H / 2;                                          // saha çizgileri
-  g.strokeStyle = '#ffffffa0'; g.lineWidth = 2; g.beginPath();
-  g.rect(L, TOP, R - L, BOT - TOP);
-  g.moveTo(L, cy); g.lineTo(R, cy);
-  g.moveTo(cx + 45, cy); g.arc(cx, cy, 45, 0, 7);
-  g.rect(95, TOP, 210, 70); g.rect(95, BOT - 70, 210, 70);
-  g.rect(130, TOP, 140, 26); g.rect(130, BOT - 26, 140, 26);
   g.stroke();
-  g.fillStyle = '#ffffffa0'; g.beginPath(); g.arc(cx, cy, 3, 0, 7); g.fill();
-  for (const n of nails) {                                               // çiviler
-    g.fillStyle = '#0006'; g.beginPath(); g.arc(n.x + 1.5, n.y + 2, NR, 0, 7); g.fill();
-    g.fillStyle = ['#d8392b', '#2b6fd8', '#cfd3d6'][n.t]; g.beginPath(); g.arc(n.x, n.y, NR, 0, 7); g.fill();
-    g.strokeStyle = '#0008'; g.lineWidth = 1; g.stroke();
-    g.fillStyle = '#fff9'; g.beginPath(); g.arc(n.x - 1.5, n.y - 1.5, 1.5, 0, 7); g.fill();
+  g.fillStyle = '#141414'; g.beginPath(); g.arc(cx, cy, 2.5, 0, 7); g.fill();
+  for (const [y0, d] of [[TOP, -1], [BOT, 1]]) {                         // kırmızı tel kaleler
+    const y1 = y0 + d * GD;
+    g.strokeStyle = '#ff8a8090'; g.lineWidth = .8; g.beginPath();
+    for (let x = GL; x <= GR; x += 6) { g.moveTo(x, y0); g.lineTo(x, y1); }
+    for (let k = 6; k < GD; k += 6) { g.moveTo(GL, y0 + d * k); g.lineTo(GR, y0 + d * k); }
+    g.stroke();
+    g.strokeStyle = '#d32f2f'; g.lineWidth = 3.5; g.lineJoin = 'round'; g.beginPath();
+    g.moveTo(GL, y0); g.lineTo(GL, y1); g.lineTo(GR, y1); g.lineTo(GR, y0); g.lineTo(GL, y0);
+    g.stroke();
+  }
+  g.lineCap = 'round';
+  for (const n of nails) {
+    if (n.post) {                                                        // kale direkleri
+      g.fillStyle = '#d32f2f'; g.beginPath(); g.arc(n.x, n.y, NR + 1.5, 0, 7); g.fill();
+      g.strokeStyle = '#7a1210'; g.lineWidth = 1; g.stroke(); continue;
+    }
+    g.strokeStyle = '#0000004d'; g.lineWidth = 2.5;                      // çivinin gölgesi
+    g.beginPath(); g.moveTo(n.x, n.y); g.lineTo(n.x + 6, n.y + 8); g.stroke();
+    g.fillStyle = '#1b1b1b'; g.beginPath(); g.arc(n.x, n.y, NR, 0, 7); g.fill();
+    g.fillStyle = '#8a8a8a'; g.beginPath(); g.arc(n.x - 1, n.y - 1, 1, 0, 7); g.fill();
   }
 }
 
@@ -226,12 +245,15 @@ function draw(t) {
     ctx.beginPath(); ctx.arc(x, y, CR + 6, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
   }
   ctx.fillStyle = '#0005'; ctx.beginPath(); ctx.arc(x + 2, y + 3, CR, 0, 7); ctx.fill();
-  const g = ctx.createRadialGradient(x - 5, y - 5, 1, x, y, CR);
-  g.addColorStop(0, '#fff4c2'); g.addColorStop(.5, '#e3b444'); g.addColorStop(1, '#a5741a');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, CR, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#8a5c12'; ctx.lineWidth = 1.2; ctx.stroke();
-  ctx.strokeStyle = '#8a5c1288'; ctx.beginPath(); ctx.arc(x, y, CR - 4, 0, 7); ctx.stroke();
-  ctx.fillStyle = '#7a4f0e'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const gold = ctx.createRadialGradient(x - 6, y - 6, 1, x, y, CR);   // iki renkli 1 TL
+  gold.addColorStop(0, '#fff1b8'); gold.addColorStop(.6, '#d9a92f'); gold.addColorStop(1, '#9c6f12');
+  ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(x, y, CR, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#7d5810'; ctx.lineWidth = 1; ctx.stroke();
+  const silver = ctx.createRadialGradient(x - 4, y - 4, 1, x, y, CR * .62);
+  silver.addColorStop(0, '#fff'); silver.addColorStop(.6, '#c9ccd1'); silver.addColorStop(1, '#8d9299');
+  ctx.fillStyle = silver; ctx.beginPath(); ctx.arc(x, y, CR * .62, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#6f747b'; ctx.stroke();
+  ctx.fillStyle = '#4b5057'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('1', x, y + .5);
 }
 
