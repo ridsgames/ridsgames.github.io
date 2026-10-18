@@ -36,7 +36,10 @@
   <h1>Çivi Futbolu</h1>
   <p>Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı yukarıdaki, Mavi aşağıdaki kaleye atar. Sıra her atışta değişir, 5 gol atan kazanır.</p>
   <button id="p2">2 Oyuncu</button>
-  <button id="ai">Bilgisayara Karşı</button>
+  <p>Bilgisayara karşı:</p>
+  <button class="lv">Kolay</button>
+  <button class="lv">Orta</button>
+  <button class="lv">Zor</button>
 </div>
 <div id="end" class="ov" hidden>
   <h1 id="endText"></h1>
@@ -53,7 +56,8 @@ const DECEL = 320;                   // tahtanın sürtünmesi
 const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
 const FLING = 0.55, MAX_V = 1100, MIN_V = 80; // fırlatma gücü
 const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
-const AI_ERR = 0.08;                 // bilgisayarın nişan hatası (radyan)
+// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı atış başına ~%11, ~%26, ~%51
+const AI_ERR = [[.9, .6], [.26, .22], [.08, .1]];
 const DT = 1 / 240, WIN = 5;
 
 // Çiviler: şaşırtmalı sıralar (4 ve 3 çivi, 48 birim arayla)
@@ -91,7 +95,7 @@ function step(c) {
 
 const $ = id => document.getElementById(id);
 const cv = $('c'), ctx = cv.getContext('2d'), board = document.createElement('canvas'), pins = document.createElement('canvas');
-let mode, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1, coinImg;
+let mode, level = 2, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1, coinImg;
 const names = () => ['Kırmızı', mode === 'ai' ? 'Bilgisayar' : 'Mavi'];
 
 function newGame(m) {
@@ -143,7 +147,7 @@ function aiShoot() {
     if (sc === 1e4) for (const d of [-.03, -.015, .015, .03]) if (run(a + d, sp) === 1e4) sc += 100; // nişan kaysa da gol olanı seç
     if (sc > best.sc) best = { sc, a, sp };
   }
-  const a = best.a + (Math.random() - .5) * AI_ERR, sp = best.sp * (0.95 + Math.random() * 0.1);
+  const [ea, es] = AI_ERR[level], a = best.a + (Math.random() - .5) * ea, sp = best.sp * (1 + (Math.random() - .5) * es);
   shoot(Math.cos(a) * sp, Math.sin(a) * sp);
 }
 
@@ -308,7 +312,9 @@ function draw(t) {
 
 function resize() {
   const r = $('wrap').getBoundingClientRect();
-  scale = Math.min((r.width - 16) / W, (r.height - 8) / H); K = scale * (devicePixelRatio || 1);
+  const s = Math.min((r.width - 16) / W, (r.height - 8) / H);
+  if (s <= 0) return;                                                    // sayfa henüz boyutsuz (gizli sekme)
+  scale = s; K = scale * (devicePixelRatio || 1);
   cv.style.width = W * scale + 'px'; cv.style.height = H * scale + 'px';
   board.width = cv.width = pins.width = Math.round(W * K); board.height = cv.height = pins.height = Math.round(H * K);
   const g = board.getContext('2d'), p = pins.getContext('2d');
@@ -338,7 +344,7 @@ function frame(t) {
 requestAnimationFrame(frame);
 
 $('p2').onclick = () => newGame('2p');
-$('ai').onclick = () => newGame('ai');
+document.querySelectorAll('.lv').forEach((b, i) => b.onclick = () => { level = i; newGame('ai'); });
 $('again').onclick = () => newGame(mode);
 $('toMenu').onclick = $('menuBtn').onclick = () => {
   clearTimeout(aiTimer); hold = null; state = 'menu';
