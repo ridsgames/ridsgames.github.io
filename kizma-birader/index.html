@@ -27,7 +27,7 @@ html, body { margin: 0; height: 100%; }
 body {
   display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
   font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
-  background: radial-gradient(circle at 50% 12%, #162238 0%, #090d16 68%, #06090f 100%);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("masa.webp") center / cover, #1a0f08;
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
 button { font: inherit; color: inherit; cursor: pointer; }
@@ -599,7 +599,8 @@ function layout() {
   U = S / 12; PX = U * DPR; layerKey = '';
   dock.style.maxWidth = Math.max(S, 320) + 'px';
 }
-function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function rrAdd(c, x, y, w, h, r) { c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function rr(c, x, y, w, h, r) { c.beginPath(); rrAdd(c, x, y, w, h, r); }
 function circ(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); }
 function hole(c, x, y, r, fill, ring) {
   c.save(); c.shadowColor = 'rgba(0,0,0,.25)'; c.shadowBlur = r * 0.35 * PX; c.shadowOffsetY = r * 0.12 * PX;
@@ -613,6 +614,16 @@ function shade(hex, t) {
   const n = parseInt(hex.slice(1), 16), f = (v) => Math.max(0, Math.min(255, Math.round(t < 0 ? v * (1 + t) : v + (255 - v) * t)));
   return '#' + [n >> 16, (n >> 8) & 255, n & 255].map((v) => f(v).toString(16).padStart(2, '0')).join('');
 }
+// Dokular: çerçeve (meşe), karton zemin (kağıt). Yüklenince tahta yeniden çizilir; yüklenmezse düz renkler kalır.
+const TEX = {};
+for (const [k, src] of [['wood', 'cerceve.webp'], ['paper', 'zemin.webp']]) {
+  const im = new Image(); im.onload = () => { TEX[k] = im; layerKey = ''; render(); }; im.src = src;
+}
+function texPattern(c, im, units, rep) { // dokunun bir karesi tahtada 'units' birim kaplar
+  const pat = c.createPattern(im, rep), k = units / im.width;
+  pat.setTransform(new DOMMatrix([k, 0, 0, k, 0, 0]));
+  return pat;
+}
 // Durağan tahta katmanı (yalnızca boyut ya da sıra değişince yeniden çizilir)
 function paintBoard() {
   const key = S + ':' + (G ? G.turn + G.seats.join() : '') + lang;
@@ -622,16 +633,23 @@ function paintBoard() {
   layer.width = layer.height = Math.round(S * DPR);
   const c = layer.getContext('2d'); c.setTransform(DPR * U, 0, 0, DPR * U, 0, 0);
   c.clearRect(0, 0, 12, 12);
-  // ahşap çerçeve ve krem zemin
-  let g = c.createLinearGradient(0, 0, 12, 12); g.addColorStop(0, '#a8692f'); g.addColorStop(0.5, '#8a5224'); g.addColorStop(1, '#6b3c18');
+  // ahşap çerçeve: meşe dokusu tahtanın tamamına tek parça yayılır (tekrar etmez, dikiş olmaz)
+  let g;
+  if (TEX.wood) { rr(c, 0, 0, 12, 12, 0.7); c.fillStyle = texPattern(c, TEX.wood, 12, 'no-repeat'); c.fill(); }
+  else { g = c.createLinearGradient(0, 0, 12, 12); g.addColorStop(0, '#a8692f'); g.addColorStop(1, '#6b3c18'); rr(c, 0, 0, 12, 12, 0.7); c.fillStyle = g; c.fill(); }
+  g = c.createLinearGradient(0, 0, 12, 12); // cila ışığı: sol üst parlak, sağ alt gölgede
+  g.addColorStop(0, 'rgba(255,240,210,.28)'); g.addColorStop(0.45, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(40,15,0,.35)');
   rr(c, 0, 0, 12, 12, 0.7); c.fillStyle = g; c.fill();
-  c.save(); rr(c, 0, 0, 12, 12, 0.7); c.clip(); // damarlar çerçevenin dışına taşmasın
-  c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 0.04;
-  for (let k = 0; k < 18; k++) { c.beginPath(); c.moveTo(0, k * 0.7 + 0.2); c.bezierCurveTo(4, k * 0.7 - 0.2, 8, k * 0.7 + 0.5, 12, k * 0.7); c.stroke(); }
-  c.restore();
-  g = c.createRadialGradient(6, 5, 1, 6, 6, 9); g.addColorStop(0, '#fffaf0'); g.addColorStop(1, '#f1e2c2');
+  rr(c, 0.03, 0.03, 11.94, 11.94, 0.68); c.strokeStyle = 'rgba(255,230,190,.35)'; c.lineWidth = 0.05; c.stroke();
+  // krem baskılı karton: kağıt dokusu döşenir, ortası hafif aydınlık
+  rr(c, 0.28, 0.28, 11.44, 11.44, 0.5); c.fillStyle = TEX.paper ? texPattern(c, TEX.paper, 6, 'repeat') : '#f6ead0'; c.fill();
+  g = c.createRadialGradient(6, 5, 1, 6, 6, 9); g.addColorStop(0, 'rgba(255,252,240,.45)'); g.addColorStop(1, 'rgba(150,110,60,.18)');
   rr(c, 0.28, 0.28, 11.44, 11.44, 0.5); c.fillStyle = g; c.fill();
-  c.strokeStyle = 'rgba(80,45,15,.35)'; c.lineWidth = 0.05; c.stroke();
+  c.save(); rr(c, 0.28, 0.28, 11.44, 11.44, 0.5); c.clip(); // çerçevenin kartona düşen iç gölgesi
+  c.shadowColor = 'rgba(60,30,5,.45)'; c.shadowBlur = 0.25 * PX; c.shadowOffsetX = 0.04 * PX; c.shadowOffsetY = 0.07 * PX;
+  c.beginPath(); rrAdd(c, -1, -1, 14, 14, 1); rrAdd(c, 0.28, 0.28, 11.44, 11.44, 0.5); c.fillStyle = '#000'; c.fill('evenodd'); // yalnız gölgesi içeri düşer
+  c.restore();
+  rr(c, 0.28, 0.28, 11.44, 11.44, 0.5); c.strokeStyle = 'rgba(80,45,15,.35)'; c.lineWidth = 0.05; c.stroke();
   // bahçeler
   for (let p = 0; p < 4; p++) {
     const [ax, ay] = YARD_C[p], on = G && G.seats[p] !== 'none';
@@ -640,6 +658,10 @@ function paintBoard() {
     if (G && G.turn === p && on) { c.shadowColor = COL[p].base; c.shadowBlur = 0.6 * PX; }
     rr(c, x - 1.62, y - 1.62, 3.24, 3.24, 0.55); c.fillStyle = on ? COL[p].pad : '#ece7dc'; c.fill();
     c.restore();
+    if (TEX.paper) { // renk kağıda basılmış gibi: doku çarpılarak işlenir
+      c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.55;
+      rr(c, x - 1.62, y - 1.62, 3.24, 3.24, 0.55); c.fillStyle = texPattern(c, TEX.paper, 6, 'repeat'); c.fill(); c.restore();
+    }
     rr(c, x - 1.62, y - 1.62, 3.24, 3.24, 0.55); c.strokeStyle = on ? COL[p].base : '#c9c2b2'; c.lineWidth = G && G.turn === p ? 0.12 : 0.06; c.stroke();
     for (let i = 0; i < 4; i++) { const [hx, hy] = yardSlot(p, i); hole(c, hx, hy, 0.4, on ? COL[p].light : '#ddd6c6', on ? shade(COL[p].base, -0.1) : '#bdb5a3'); }
     if (G && on) { // oyuncu adı, tahtanın dış kenarına yakın şeritte
