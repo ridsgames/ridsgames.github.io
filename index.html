@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ridsgames: Oyunlar</title>
-<meta name="description" content="Ridsgames, misket, sulu halka ve solo test gibi klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları geliştirir.">
+<meta name="description" content="Ridsgames, misket, sulu halka, solo test ve kızma birader gibi klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları geliştirir.">
 <meta property="og:title" content="Ridsgames">
 <meta property="og:description" content="Klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları.">
 <meta property="og:image" content="https://ridsgames.github.io/assets/sulu-halka.jpg">
@@ -81,23 +81,26 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
 .shelf-head h1 { font-size: clamp(32px, 5vw, 48px); }
 .shelf-head p { margin: 0; color: var(--steel-dim); max-width: 28em; }
 
-.games { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 18px; }
+.games { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .game {
-  --cut: 18px; position: relative; min-height: 380px;
-  display: flex; flex-direction: column; justify-content: flex-end;
+  --cut: 18px; position: relative;
+  /* Aynı sıradaki kartlar satırları paylaşır: başlık, açıklama, etiketler ve düğme yan yana hizalı kalır */
+  display: grid; grid-row: span 5; grid-template-rows: subgrid; row-gap: 0; padding: 0 24px 24px;
   background: #36C5E8 url("assets/sulu-halka.jpg") center top / cover;
   color: #fff; text-decoration: none;
 }
+.game::after { content: ""; grid-row: 1; min-height: 190px; }
 .game.civi { background: #1F9D4B url("assets/civi-futbolu.jpg") center 30% / cover; }
 .game.solo { background: #090D16 url("assets/solo-test.jpg") center top / cover; }
+.game.kizma { background: #070B14 url("assets/kizma-birader.jpg") center top / cover; }
 .game::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,18,32,0) 25%, rgba(10,18,32,.6) 50%, rgba(10,18,32,.95) 80%); }
-.game > * { position: relative; }
-.game .info { padding: 24px; }
+.game .info { display: contents; }
+.game .info > * { position: relative; }
 .game h3 { font-size: 32px; font-weight: 700; color: #fff; }
 .game p { margin: 6px 0 14px; color: #D3E2F0; font-size: 16px; max-width: 24em; }
 .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
 .tag { --cut: 6px; font-size: 13px; font-weight: 600; padding: 4px 10px; background: rgba(255,255,255,.16); }
-.game .btn { align-self: flex-start; padding: 11px 24px; font-size: 17px; }
+.game .btn { justify-self: start; align-self: end; padding: 11px 24px; font-size: 17px; }
 
 .strip {
   --cut: 18px; display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center;
@@ -124,8 +127,6 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
 .foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
 @media (max-width: 880px) {
-  .games { grid-template-columns: 1fr 1fr; }
-  .games .game:first-child { grid-column: 1 / -1; min-height: 420px; }
   .contact { grid-template-columns: 1fr; gap: 24px; }
 }
 @media (max-width: 560px) {
@@ -135,6 +136,7 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
   .logo img { height: 48px; }
   .bar nav { gap: 16px; font-size: 15px; }
   .games { grid-template-columns: 1fr; }
+  .game::after { min-height: 60px; }
   .strip { grid-template-columns: auto 1fr; padding: 18px; gap: 14px 16px; }
   .marble { width: 72px; height: 72px; }
   .strip h3 { font-size: 23px; }
@@ -182,6 +184,14 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
           <h3 data-i18n="soloName">Solo Test</h3>
           <p data-i18n="soloDesc">Piyonu komşusunun üzerinden boş deliğe atlatın, tablada tek piyon bırakmaya çalışın.</p>
           <div class="tags"><span class="tag cut" data-i18n="tagModeCount">3 mod</span><span class="tag cut" data-i18n="tagHint">İpucu ve geri al</span><span class="tag cut" data-i18n="tagThemes">4 tema</span></div>
+          <span class="btn" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game kizma cut" href="kizma-birader/">
+        <div class="info">
+          <h3 data-i18n="kizmaName">Kızma Birader</h3>
+          <p data-i18n="kizmaDesc">Zarı atın, piyonlarınızı evine götürün, yolunuzdaki rakibi başa gönderin. 2-4 kişilik klasik kutu oyunu.</p>
+          <div class="tags"><span class="tag cut" data-i18n="tag24">2-4 oyuncu</span><span class="tag cut" data-i18n="tagSame">Aynı cihazda</span><span class="tag cut" data-i18n="tagCpu">Bilgisayara karşı</span></div>
           <span class="btn" data-i18n="play">Oyna</span>
         </div>
       </a>
@@ -238,6 +248,8 @@ const I18N_EN = {
   tag2p: '2 players, one device', tagCpu: 'Play against the computer',
   soloName: 'Peg Solitaire', soloDesc: 'Jump a peg over its neighbour into an empty hole and try to leave just one peg on the board.',
   tagModeCount: '3 modes', tagHint: 'Hints and undo',
+  kizmaName: 'Ludo', kizmaDesc: 'Roll the die, bring your pieces home and send rivals back to start. The classic board game for 2-4 players.',
+  tag24: '2-4 players', tagSame: 'Same device',
   mobileGames: 'Mobile games', mobileDesc: 'Apps you can download to your device and play even without an internet connection.',
   misketDesc: 'The traditional street marbles game, with glass marbles. Play with friends on the same device or remotely with a Room Code.',
   soonPlay: 'Coming soon to Google Play',
