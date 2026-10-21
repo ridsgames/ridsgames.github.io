@@ -89,8 +89,19 @@ canvas { display: block; touch-action: manipulation; border-radius: 18px; }
 .f2 { transform: rotateX(90deg) translateZ(26px); }
 .f5 { transform: rotateX(-90deg) translateZ(26px); }
 .f1 i { grid-area: 2 / 2; background: radial-gradient(circle at 35% 35%, #ff6b6b, #c92a2a 70%); width: 13px; height: 13px; }
+.dice .shadow { position: absolute; left: 14px; right: 14px; bottom: 2px; height: 10px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent); }
 .dice.shake .cube { animation: hop .75s ease-out; }
-@keyframes hop { 0% { translate: 0 0; } 30% { translate: 0 -14px; } 60% { translate: 0 0; } 75% { translate: 0 -4px; } 100% { translate: 0 0; } }
+.dice.shake .shadow { animation: shrink .75s ease-out; }
+@keyframes hop {
+  0% { translate: 0 0; scale: 1; } 30% { translate: 0 -16px; scale: 1; } 58% { translate: 0 0; scale: 1; }
+  66% { translate: 0 2px; scale: 1.1 .86; } 78% { translate: 0 -5px; scale: .96 1.05; } 90% { translate: 0 0; scale: 1.03 .97; } 100% { translate: 0 0; scale: 1; }
+}
+@keyframes shrink { 0%, 100% { scale: 1; opacity: 1; } 30% { scale: .55; opacity: .45; } 58% { scale: 1.1; opacity: 1; } }
+.dice.six .face { animation: glow 1.1s ease-out; }
+@keyframes glow { 0% { box-shadow: 0 0 0 0 rgba(255, 214, 10, .9), inset 0 0 0 1.5px rgba(0, 0, 0, .08); } 100% { box-shadow: 0 0 0 16px rgba(255, 214, 10, 0), inset 0 0 0 1.5px rgba(0, 0, 0, .08); } }
+.chip.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .4; } 100% { scale: 1; } }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
 
 footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
 
@@ -172,7 +183,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
       <div class="t"><div id="turnName"></div><div id="turnMsg"></div></div>
     </div>
     <button id="dice" class="dice" type="button" aria-label="Zar at">
-      <span class="halo"></span>
+      <span class="halo"></span><span class="shadow"></span>
       <span class="cube" id="cube">
         <span class="face f1"><i></i></span>
         <span class="face f2"><i style="grid-area:1/3"></i><i style="grid-area:3/1"></i></span>
@@ -187,6 +198,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 
 <footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
 <div class="toast" id="toast"></div>
+<canvas id="confetti" hidden></canvas>
 
 <!-- Kurulum -->
 <div class="ov" id="setupOv">
@@ -403,6 +415,7 @@ function rollDice() {
   phase = 'rolling'; busy = true;
   const v = 1 + Math.floor(Math.random() * 6);
   dieVal = v; spinCube(v); Sfx.roll(); buzz(12);
+  if (v === 6) setTimeout(() => { const d = $('dice'); d.classList.remove('six'); void d.offsetWidth; d.classList.add('six'); }, 700);
   render();
   setTimeout(() => { busy = false; afterRoll(v); }, 780);
 }
@@ -430,15 +443,18 @@ function doMove(m) {
   anims.push({ p, i: m.i, pts: [start, ...steps], t0: performance.now(), dur: m.from === -1 ? 260 : 150 * steps.length, step: m.from === -1 ? 260 : 150 });
   G.pieces[p][m.i] = m.to; // çizimde canlandırma konumu kullanılır
   const total = m.from === -1 ? 260 : 150 * steps.length;
-  if (m.from === -1) Sfx.out();
+  if (m.from === -1) { Sfx.out(); sparks(...start, COL[p].light, 10, 0.6); }
   setTimeout(() => {
+    const [tx, ty] = piecePt(p, m.i);
+    landed(p, m.i);
     if (m.cap) {
       const [q, j] = m.cap, from = piecePt(q, j);
       G.pieces[q][j] = -1;
-      anims.push({ p: q, i: j, pts: [from, piecePt(q, j, -1)], t0: performance.now(), dur: 420, step: 420, fly: true });
+      anims.push({ p: q, i: j, pts: [from, piecePt(q, j, -1)], t0: performance.now(), dur: 520, step: 520, fly: true });
+      sparks(tx, ty, COL[q].base, 22, 1.4); sparks(tx, ty, '#ffffff', 10, 1.1); shake = performance.now();
       Sfx.capture(); buzz([30, 40, 60]); toast(T().captured(T().colors[q]), COL[q].base);
-    } else if (m.to >= 40 && m.from < 40) { Sfx.home(); toast(T().home, COL[p].base); }
-    else Sfx.land();
+    } else if (m.to >= 40 && m.from < 40) { stars(tx, ty); Sfx.home(); toast(T().home, COL[p].base); }
+    else { ring(tx, ty, COL[p].base); Sfx.land(); }
     setTimeout(() => afterMove(p), m.cap ? 440 : 120);
   }, total);
 }
@@ -450,7 +466,7 @@ function afterMove(p) {
 function gameOver(p) {
   phase = 'over'; render();
   try { localStorage.removeItem('rids_kizma_game'); } catch (e) {}
-  Sfx.win(); buzz([60, 60, 120]);
+  Sfx.win(); buzz([60, 60, 120]); confetti(p);
   const t = T(), solo = humans() === 1 && G.seats[p] === 'human';
   $('winTitle').textContent = solo ? t.youWin : t.wins(shortName(p));
   $('winSub').textContent = t.winSub;
@@ -506,6 +522,68 @@ const Sfx = (() => {
   };
 })();
 const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Efektler ----------
+const fx = [], landT = new Map();
+let shake = -1e9, lastTurn = -1;
+function ring(x, y, color) { fx.push({ k: 'ring', x, y, color, t0: performance.now(), dur: 420 }); }
+function sparks(x, y, color, n, power) {
+  const t0 = performance.now();
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = (0.8 + Math.random() * 1.6) * power;
+    fx.push({ k: 'spark', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 0.8 * power, color, r: 0.06 + Math.random() * 0.08, t0, dur: 450 + Math.random() * 350 });
+  }
+}
+function stars(x, y) { // eve giriş: altın yıldız patlaması
+  const t0 = performance.now();
+  fx.push({ k: 'ring', x, y, color: '#ffd43b', t0, dur: 600, big: true });
+  for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5 + Math.random() * 0.3; fx.push({ k: 'star', x, y, vx: Math.cos(a) * 2.2, vy: Math.sin(a) * 2.2 - 0.6, t0, dur: 700, rot: Math.random() * 6 }); }
+}
+function landed(p, i) { landT.set(p * 4 + i, performance.now()); }
+function starPath(c, x, y, R, rot) {
+  c.beginPath();
+  for (let k = 0; k < 10; k++) { const a = rot + k * Math.PI / 5, r = k % 2 ? R * 0.45 : R; c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); }
+  c.closePath();
+}
+function drawFx(now, top) { // top: piyonların üstünde çizilenler (kıvılcım, yıldız); altta: dalga halkası
+  for (let k = fx.length - 1; k >= 0; k--) {
+    const f = fx[k], t = (now - f.t0) / f.dur;
+    if (t >= 1) { if (top) fx.splice(k, 1); continue; }
+    if (t < 0) continue;
+    const isTop = f.k !== 'ring';
+    if (isTop !== top) continue;
+    if (f.k === 'ring') {
+      circ(cx, f.x, f.y, 0.3 + t * (f.big ? 1.3 : 0.75)); cx.strokeStyle = f.color; cx.globalAlpha = (1 - t) * 0.85; cx.lineWidth = 0.1 * (1 - t) + 0.02; cx.stroke(); cx.globalAlpha = 1;
+    } else if (f.k === 'spark') {
+      const e = t * f.dur / 1000, x = f.x + f.vx * e, y = f.y + f.vy * e + 2.4 * e * e;
+      circ(cx, x, y, f.r * (1 - t * 0.6)); cx.fillStyle = f.color; cx.globalAlpha = 1 - t; cx.fill(); cx.globalAlpha = 1;
+    } else {
+      const e = t * f.dur / 1000, x = f.x + f.vx * e, y = f.y + f.vy * e + 1.6 * e * e;
+      starPath(cx, x, y, 0.2 * (1 - t * 0.5), f.rot + t * 4); cx.fillStyle = '#ffd43b'; cx.globalAlpha = 1 - t * t; cx.fill();
+      cx.strokeStyle = '#f08c00'; cx.lineWidth = 0.03; cx.stroke(); cx.globalAlpha = 1;
+    }
+  }
+}
+function confetti(winner) { // oyun sonu: ekranı kaplayan renkli kağıtlar
+  const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
+  k.hidden = false; k.width = innerWidth * d; k.height = innerHeight * d;
+  const cols = [COL[winner].base, COL[winner].light, '#ffd43b', '#ffffff', ...active().map((q) => COL[q].base)];
+  const bits = Array.from({ length: 170 }, () => ({
+    x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160,
+    w: 6 + Math.random() * 6, h: 9 + Math.random() * 8, a: Math.random() * 6, va: (Math.random() - 0.5) * 10, col: cols[Math.floor(Math.random() * cols.length)]
+  }));
+  let last = performance.now(); const end = last + 4200;
+  (function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) {
+      b.vy += 220 * dt; b.vy = Math.min(b.vy, 260); b.x += (b.vx + Math.sin(now / 300 + b.a) * 40) * dt; b.y += b.vy * dt; b.a += b.va * dt;
+      c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(Math.cos(b.a * 1.7), 1);
+      c.fillStyle = b.col; c.globalAlpha = Math.min(1, (end - now) / 600); c.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); c.restore();
+    }
+    if (now < end) requestAnimationFrame(tick); else { c.clearRect(0, 0, k.width, k.height); k.hidden = true; }
+  })(last);
+}
 
 // ---------- Çizim ----------
 const cv = $('board'), cx = cv.getContext('2d');
@@ -598,11 +676,14 @@ function arrow(c, x, y, k) { // çıkış karesinde gidiş yönü
   c.save(); c.translate(x, y); c.rotate(a); c.beginPath(); c.moveTo(0.2, 0); c.lineTo(-0.12, -0.17); c.lineTo(-0.12, 0.17); c.closePath();
   c.fillStyle = 'rgba(255,255,255,.95)'; c.fill(); c.restore();
 }
-function pawn(c, x, y, s, col, lift = 0, alpha = 1) {
+function pawn(c, x, y, s, col, lift = 0, alpha = 1, rot = 0, squash = 0) {
   c.save(); c.globalAlpha = alpha;
   const sh = 1 + lift * 0.18;
-  c.fillStyle = `rgba(0,0,0,${0.32 - lift * 0.12})`; c.beginPath(); c.ellipse(x + 0.04 + lift * 0.1, y + s * 0.3 + lift * 0.05, s * 0.36 * sh, s * 0.14 * sh, 0, 0, Math.PI * 2); c.fill();
-  y -= lift * 0.32; s *= 1 + lift * 0.12;
+  c.fillStyle = `rgba(0,0,0,${Math.max(0.06, 0.32 - lift * 0.12)})`; c.beginPath(); c.ellipse(x + 0.04 + lift * 0.1, y + s * 0.3 + lift * 0.05, s * 0.36 * sh, s * 0.14 * sh, 0, 0, Math.PI * 2); c.fill();
+  // uçarken döner; inişte basılıp esner (gövde tabanından)
+  c.translate(x, y - lift * 0.32); c.rotate(rot);
+  if (squash) { c.translate(0, s * 0.26); c.scale(1 + squash * 0.18, 1 - squash * 0.22); c.translate(0, -s * 0.26); }
+  x = 0; y = 0; s *= 1 + lift * 0.12;
   // gövde
   let g = c.createLinearGradient(x - s * 0.34, 0, x + s * 0.34, 0);
   g.addColorStop(0, shade(col.base, 0.22)); g.addColorStop(0.45, col.base); g.addColorStop(1, shade(col.base, -0.38));
@@ -621,22 +702,31 @@ function pawn(c, x, y, s, col, lift = 0, alpha = 1) {
 function animPos(a, now) {
   // kare zamanı canlandırmanın başladığı andan biraz önce olabilir: sıfırın altına düşmesin
   const t = Math.max(0, Math.min(1, (now - a.t0) / a.dur)), n = a.pts.length - 1;
-  if (a.fly) { const e = t * t * (3 - 2 * t); const [x0, y0] = a.pts[0], [x1, y1] = a.pts[1]; return [x0 + (x1 - x0) * e, y0 + (y1 - y0) * e, Math.sin(Math.PI * t) * 2.2, t >= 1]; }
+  if (a.fly) { const e = t * t * (3 - 2 * t); const [x0, y0] = a.pts[0], [x1, y1] = a.pts[1]; return [x0 + (x1 - x0) * e, y0 + (y1 - y0) * e, Math.sin(Math.PI * t) * 2.2, t >= 1, e * Math.PI * 3]; }
   const f = t * n, k = Math.max(0, Math.min(n - 1, Math.floor(f))), u = f - k;
   const [x0, y0] = a.pts[k], [x1, y1] = a.pts[k + 1];
   if (a.last !== k) { a.last = k; if (k > 0) Sfx.step(); }
-  return [x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, Math.sin(Math.PI * u), t >= 1];
+  return [x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, Math.sin(Math.PI * u), t >= 1, 0];
 }
 function render() { dirty = true; updateDock(); }
 let dirty = true;
 function frame(now) {
   requestAnimationFrame(frame);
   if (!G) { if (dirty) { dirty = false; paintBoard(); cx.setTransform(1, 0, 0, 1, 0, 0); cx.drawImage(layer, 0, 0); } return; }
-  if (!dirty && !anims.length && phase !== 'move') return;
   dirty = false;
   paintBoard();
-  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); cx.drawImage(layer, 0, 0);
-  cx.setTransform(DPR * U, 0, 0, DPR * U, 0, 0);
+  // rakip vurulunca tahta kısa bir an sarsılır
+  const sk = Math.max(0, 1 - (now - shake) / 320), sx = sk ? Math.sin(now / 18) * sk * 0.09 : 0, sy = sk ? Math.cos(now / 23) * sk * 0.07 : 0;
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); cx.drawImage(layer, sx * U * DPR, sy * U * DPR);
+  cx.setTransform(DPR * U, 0, 0, DPR * U, sx * U * DPR, sy * U * DPR);
+  // sırası gelenin bölmesi nabız gibi parlar
+  if (phase !== 'over') {
+    const [ax, ay] = YARD_C[G.turn], gl = 0.5 + 0.5 * Math.sin(now / 260);
+    cx.save(); cx.shadowColor = COL[G.turn].base; cx.shadowBlur = (0.3 + gl * 0.6) * PX;
+    rr(cx, ax - 1.62, ay - 1.62, 3.24, 3.24, 0.55); cx.strokeStyle = COL[G.turn].base; cx.globalAlpha = 0.35 + gl * 0.5; cx.lineWidth = 0.1; cx.stroke();
+    cx.restore();
+  }
+  drawFx(now, false);
   const moving = new Map();
   for (let k = anims.length - 1; k >= 0; k--) {
     const a = anims[k], r = animPos(a, now);
@@ -651,9 +741,12 @@ function frame(now) {
   }
   const list = [];
   for (const p of active()) for (let i = 0; i < 4; i++) {
-    const r = moving.get(p * 4 + i);
+    const r = moving.get(p * 4 + i), land = landT.get(p * 4 + i);
     const [x, y] = r ? [r[0], r[1]] : piecePt(p, i);
-    list.push({ p, i, x, y, lift: r ? r[2] : 0 });
+    let lift = r ? r[2] : 0, squash = 0;
+    if (!r && land) { const u = (now - land) / 260; if (u < 1) squash = Math.sin(u * Math.PI) * (1 - u); else landT.delete(p * 4 + i); }
+    if (phase === 'over' && p === G.order[0]) lift = Math.abs(Math.sin(now / 210 + i * 0.8)) * 0.7; // kazananın piyonları sevinçten zıplar
+    list.push({ p, i, x, y, lift, rot: r ? r[4] : 0, squash });
   }
   list.sort((a, b) => a.lift - b.lift || a.y - b.y);
   for (const o of list) {
@@ -661,8 +754,9 @@ function frame(now) {
       circ(cx, o.x, o.y, 0.42 + pulse * 0.08); cx.strokeStyle = `rgba(255,255,255,${0.55 + pulse * 0.45})`; cx.lineWidth = 0.09; cx.stroke();
       circ(cx, o.x, o.y, 0.42 + pulse * 0.08); cx.strokeStyle = COL[o.p].base; cx.lineWidth = 0.04; cx.stroke();
     }
-    pawn(cx, o.x, o.y, 0.95, COL[o.p], o.lift);
+    pawn(cx, o.x, o.y, 0.95, COL[o.p], o.lift, 1, o.rot, o.squash);
   }
+  drawFx(now, true);
 }
 requestAnimationFrame(frame);
 
@@ -672,6 +766,7 @@ function updateDock() {
   if (!G) return;
   const t = T(), p = G.turn, human = G.seats[p] === 'human';
   document.documentElement.style.setProperty('--turn', COL[p].base);
+  if (lastTurn !== p) { lastTurn = p; const ch = document.querySelector('.chip'); ch.classList.remove('pop'); void ch.offsetWidth; ch.classList.add('pop'); }
   $('turnName').textContent = human && humans() === 1 ? t.yourTurn : t.turnOf(shortName(p));
   const ready = phase === 'roll' && human;
   $('dice').classList.toggle('ready', ready); $('dice').disabled = !ready;
