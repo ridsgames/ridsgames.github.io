@@ -125,7 +125,6 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 .seg.two { grid-template-columns: repeat(2, 1fr); }
 .row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
 .row .seg { width: 170px; }
-.note { min-height: 20px; margin: 8px 0 0; font-size: 13px; color: #fca5a5; text-align: center; }
 .btns { display: grid; gap: 10px; margin-top: 12px; }
 .big {
   height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
@@ -210,9 +209,9 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
     <h2 id="setupTitle">Kızma Birader</h2>
     <p class="sub" id="setupSub">Kimler oynuyor? Her renk için seç.</p>
+    <div class="row"><span id="countLbl">Oyuncu sayısı</span><div class="seg" id="countSeg"><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button></div></div>
     <div id="seats"></div>
     <div class="row"><span id="lvlLbl">Bilgisayar</span><div class="seg two" id="lvlSeg"><button type="button" data-lvl="easy">Kolay</button><button type="button" data-lvl="hard">Zor</button></div></div>
-    <p class="note" id="setupNote"></p>
     <div class="btns">
       <button class="big" id="startBtn" type="button">Başla</button>
       <button class="big alt" id="resumeBtn" type="button" hidden>Kaldığın yerden devam et</button>
@@ -249,16 +248,16 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 const STR = {
   tr: {
     title: 'Kızma Birader | Ridsgames', home: 'Ridsgames ana sayfa', game: 'Kızma Birader', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', rights: 'Tüm hakları saklıdır.',
-    colors: ['Kırmızı', 'Mavi', 'Yeşil', 'Sarı'], animals: ['Tilki', 'Balina', 'Kurbağa', 'Civciv'], human: 'İnsan', cpu: 'Bilgisayar', none: 'Yok', you: 'Sen', easy: 'Kolay', hard: 'Zor',
-    setupSub: 'Kimler oynuyor? Her renk için seç.', start: 'Başla', resume: 'Kaldığın yerden devam et', needTwo: 'En az iki oyuncu gerekli.',
+    colors: ['Kırmızı', 'Mavi', 'Yeşil', 'Sarı'], animals: ['Tilki', 'Balina', 'Kurbağa', 'Civciv'], human: 'İnsan', cpu: 'Bilgisayar', you: 'Sen', easy: 'Kolay', hard: 'Zor',
+    setupSub: 'Kaç kişi oynuyor? Her renk için seç.', start: 'Başla', resume: 'Kaldığın yerden devam et', count: 'Oyuncu sayısı',
     rollTap: 'Zar atmak için zara dokun', rollCpu: 'Zar atıyor…', thinking: 'Düşünüyor…', pick: 'Oynatacağın piyona dokun',
-    noMove: 'Oynayacak hamle yok', tryN: (n) => `6 gelmedi, bir daha dene (${n}/3)`, six: '6 geldi, bir daha at!', yourTurn: 'Sıra sende',
+    noMove: 'Oynayacak hamle yok', noSix: '6 gelmedi, sıra geçti', six: '6 geldi, bir daha at!', yourTurn: 'Sıra sende',
     turnOf: (n) => `${n} oynuyor`, captured: (b) => `Kızma birader! ${b} piyon başa döndü`, home: 'Eve girdi!',
     wins: (n) => `${n} kazandı!`, youWin: 'Kazandın!', winSub: 'Dört piyon da evde.', again: 'Tekrar oyna', toMenu: 'Oyuncuları değiştir',
     rulesTitle: 'Nasıl oynanır?', rulesSub: 'Dört piyonunu da ilk evine götüren kazanır.', ok: 'Tamam', inHome: (n) => `${n}/4 evde`, rollAria: 'Zar at', board: 'Kızma Birader tahtası',
     ruleList: [
       ['🎲', '<b>6 gelince</b> başlangıç bölmesinden bir piyon çıkarabilirsin. 6 atan bir daha atar.'],
-      ['🔁', 'Dışarıda oynayabileceğin piyonun yoksa <b>6 için 3 deneme</b> hakkın var.'],
+      ['🎯', 'Her turda <b>tek atış</b> hakkın var. Oynayacak piyonun yoksa ve 6 gelmezse sıra geçer.'],
       ['➡️', 'Piyonlar saat yönünde, zar kadar ilerler. Kendi piyonunun üstüne gelemezsin.'],
       ['💥', 'Rakibin bulunduğu kareye gelirsen onu <b>başa yollarsın</b>: Kızma birader!'],
       ['🏠', 'Tur bitince piyon kendi renkli evine girer. Eve <b>tam sayıyla</b> girilir, evde kendi piyonunun üstünden atlanmaz.'],
@@ -267,16 +266,16 @@ const STR = {
   },
   en: {
     title: 'Ludo | Ridsgames', home: 'Ridsgames home', game: 'Ludo', newGame: 'New game', rules: 'Rules', sound: 'Sound', rights: 'All rights reserved.',
-    colors: ['Red', 'Blue', 'Green', 'Yellow'], animals: ['Fox', 'Whale', 'Frog', 'Chick'], human: 'Human', cpu: 'Computer', none: 'Off', you: 'You', easy: 'Easy', hard: 'Hard',
-    setupSub: 'Who is playing? Choose for each colour.', start: 'Start', resume: 'Continue where you left off', needTwo: 'At least two players are needed.',
+    colors: ['Red', 'Blue', 'Green', 'Yellow'], animals: ['Fox', 'Whale', 'Frog', 'Chick'], human: 'Human', cpu: 'Computer', you: 'You', easy: 'Easy', hard: 'Hard',
+    setupSub: 'How many are playing? Choose for each colour.', start: 'Start', resume: 'Continue where you left off', count: 'Players',
     rollTap: 'Tap the die to roll', rollCpu: 'Rolling…', thinking: 'Thinking…', pick: 'Tap the piece you want to move',
-    noMove: 'No move possible', tryN: (n) => `No 6, try again (${n}/3)`, six: 'A 6, roll again!', yourTurn: 'Your turn',
+    noMove: 'No move possible', noSix: 'No 6, the turn passes', six: 'A 6, roll again!', yourTurn: 'Your turn',
     turnOf: (n) => `${n} to play`, captured: (b) => `${b} piece sent back to start!`, home: 'Home!',
     wins: (n) => `${n} wins!`, youWin: 'You win!', winSub: 'All four pieces are home.', again: 'Play again', toMenu: 'Change players',
     rulesTitle: 'How to play', rulesSub: 'Be the first to bring all four pieces home.', ok: 'OK', inHome: (n) => `${n}/4 home`, rollAria: 'Roll the die', board: 'Ludo board',
     ruleList: [
       ['🎲', 'Roll a <b>6</b> to bring a piece out of your start area. A 6 also gives you another roll.'],
-      ['🔁', 'With no piece you can move on the board, you get <b>3 tries</b> to roll a 6.'],
+      ['🎯', 'You get <b>one roll</b> per turn. If no piece can move and you roll no 6, the turn passes.'],
       ['➡️', 'Pieces move clockwise by the number rolled. You cannot land on your own piece.'],
       ['💥', 'Land on an opponent and you <b>send it back</b> to its start area.'],
       ['🏠', 'After a full lap a piece enters its coloured home row. You need the <b>exact number</b> and cannot jump your own pieces there.'],
@@ -315,11 +314,14 @@ const cellPt = ([c, r]) => [c + 1, r + 1]; // tahta birimi: 12 birimlik tahtada 
 // ---------- Durum ----------
 // piyon konumu: -1 bahçede, 0..39 kendi çıkışından itibaren tur, 40..43 ev
 let G = null;
-let setup = { seats: ['human', 'cpu', 'cpu', 'cpu'], level: 'hard' };
-let phase = 'setup', dieVal = 1, moves = [], tries = 0, busy = false, sixes = 0;
+// Oyuncu sayısına göre oynayan renkler: ikide karşılıklı köşeler
+const SEATS_FOR = { 2: [0, 2], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
+let setup = { count: 4, roles: ['human', 'cpu', 'cpu', 'cpu'], level: 'hard' };
+const seatsOf = (st) => [0, 1, 2, 3].map((p) => (SEATS_FOR[st.count].includes(p) ? st.roles[p] : 'none'));
+let phase = 'setup', dieVal = 1, moves = [], busy = false, sixes = 0;
 const anims = []; // { p, i, pts, t0, dur }
 let soundOn = true;
-try { setup = JSON.parse(localStorage.getItem('rids_kizma_setup')) || setup; } catch (e) {}
+try { const st = JSON.parse(localStorage.getItem('rids_kizma_setup')); if (st && st.roles && SEATS_FOR[st.count]) setup = st; } catch (e) {}
 try { soundOn = localStorage.getItem('rids_kizma_sound') !== '0'; } catch (e) {}
 
 const active = () => G.seats.map((s, p) => (s !== 'none' ? p : -1)).filter((p) => p >= 0);
@@ -355,13 +357,6 @@ function legalMoves(p, v) {
     out.push({ i, from: pos, to, cap });
   });
   return out;
-}
-// Tahtada oynayabileceği piyon yoksa (hepsi bahçede ya da evin sonuna dizili) 6 için 3 hakkı var
-function threeTries(p) {
-  const mine = G.pieces[p];
-  if (mine.some((pos) => pos >= 0 && pos < 40)) return false;
-  const home = mine.filter((pos) => pos >= 40).sort((a, b) => b - a);
-  return home.every((pos, k) => pos === 43 - k);
 }
 const finished = (p) => G.pieces[p].every((pos) => pos >= 40);
 
@@ -402,9 +397,9 @@ function newGame(seats, level) {
   closeAll(); startTurn(G.turn); save();
 }
 function startTurn(p) {
-  G.turn = p; tries = 0; sixes = 0; moves = [];
+  G.turn = p; sixes = 0; moves = [];
   phase = 'roll'; render(); save();
-  if (G.seats[p] === 'cpu') later(rollDice, 650);
+  if (G.seats[p] === 'cpu') later(rollDice, 1000);
 }
 function nextPlayer() {
   const a = active(); let k = a.indexOf(G.turn);
@@ -425,14 +420,14 @@ function afterRoll(v) {
   const p = G.turn;
   moves = legalMoves(p, v);
   if (!moves.length) {
-    if (threeTries(p) && tries < 2) { tries++; phase = 'roll'; msg(T().tryN(tries + 1)); render(); if (G.seats[p] === 'cpu') later(rollDice, 600); return; }
-    phase = 'wait'; msg(T().noMove); render();
-    later(() => nextPlayer(), 900);
+    // her turda tek atış: hamle yoksa sıra geçer
+    phase = 'wait'; msg(G.pieces[p].some((pos) => pos >= 0 && pos < 40) ? T().noMove : T().noSix); render();
+    later(() => nextPlayer(), 1300);
     return;
   }
   phase = 'move'; render();
-  if (G.seats[p] === 'cpu') { msg(T().thinking); later(() => doMove(chooseMove(p, moves)), 520); }
-  else if (moves.length === 1) later(() => doMove(moves[0]), 420);
+  if (G.seats[p] === 'cpu') { msg(T().thinking); later(() => doMove(chooseMove(p, moves)), 850); }
+  else if (moves.length === 1) later(() => doMove(moves[0]), 600);
   else msg(T().pick);
 }
 function doMove(m) {
@@ -442,9 +437,10 @@ function doMove(m) {
   if (m.from === -1) steps.push(piecePt(p, m.i, 0));
   else for (let k = m.from + 1; k <= m.to; k++) steps.push(piecePt(p, m.i, k));
   const start = piecePt(p, m.i);
-  anims.push({ p, i: m.i, pts: [start, ...steps], t0: performance.now(), dur: m.from === -1 ? 260 : 150 * steps.length, step: m.from === -1 ? 260 : 150 });
+  const STEP = 240, OUT = 380; // kare başına ms: piyon her kareye ayrı ayrı zıplar
+  anims.push({ p, i: m.i, pts: [start, ...steps], t0: performance.now(), dur: m.from === -1 ? OUT : STEP * steps.length, step: m.from === -1 ? OUT : STEP });
   G.pieces[p][m.i] = m.to; // çizimde canlandırma konumu kullanılır
-  const total = m.from === -1 ? 260 : 150 * steps.length;
+  const total = m.from === -1 ? OUT : STEP * steps.length;
   if (m.from === -1) { Sfx.out(); sparks(...start, COL[p].light, 10, 0.6); }
   setTimeout(() => {
     const [tx, ty] = piecePt(p, m.i);
@@ -452,17 +448,17 @@ function doMove(m) {
     if (m.cap) {
       const [q, j] = m.cap, from = piecePt(q, j);
       G.pieces[q][j] = -1;
-      anims.push({ p: q, i: j, pts: [from, piecePt(q, j, -1)], t0: performance.now(), dur: 520, step: 520, fly: true });
+      anims.push({ p: q, i: j, pts: [from, piecePt(q, j, -1)], t0: performance.now(), dur: 700, step: 700, fly: true });
       sparks(tx, ty, COL[q].base, 22, 1.4); sparks(tx, ty, '#ffffff', 10, 1.1); shake = performance.now();
       Sfx.capture(); buzz([30, 40, 60]); toast(T().captured(T().colors[q]), COL[q].base);
     } else if (m.to >= 40 && m.from < 40) { stars(tx, ty); Sfx.home(); toast(T().home, COL[p].base); }
     else { ring(tx, ty, COL[p].base); Sfx.land(); }
-    setTimeout(() => afterMove(p), m.cap ? 440 : 120);
+    setTimeout(() => afterMove(p), m.cap ? 720 : 260);
   }, total);
 }
 function afterMove(p) {
   if (finished(p)) { G.order.push(p); return gameOver(p); }
-  if (dieVal === 6) { sixes++; tries = 0; phase = 'roll'; msg(T().six); render(); save(); if (G.seats[p] === 'cpu') later(rollDice, 650); return; }
+  if (dieVal === 6) { sixes++; phase = 'roll'; msg(T().six); render(); save(); if (G.seats[p] === 'cpu') later(rollDice, 1000); return; }
   nextPlayer();
 }
 function gameOver(p) {
@@ -811,7 +807,7 @@ function updateDock() {
   $('turnName').textContent = human && humans() === 1 ? t.yourTurn : t.turnOf(shortName(p));
   const ready = phase === 'roll' && human;
   $('dice').classList.toggle('ready', ready); $('dice').disabled = !ready;
-  if (phase === 'roll') msg(human ? (tries ? t.tryN(tries + 1) : sixes ? t.six : t.rollTap) : t.rollCpu);
+  if (phase === 'roll') msg(human ? (sixes ? t.six : t.rollTap) : t.rollCpu);
 }
 let toastT = null;
 function toast(s, color) {
@@ -821,11 +817,11 @@ function toast(s, color) {
 function closeAll() { for (const id of ['setupOv', 'rulesOv', 'winOv']) $(id).hidden = true; }
 function renderSetup() {
   const t = T();
-  $('seats').innerHTML = [0, 1, 2, 3].map((p) => `<div class="seat"><span class="dot ava" style="background-position:${avaPos(p)}" title="${t.colors[p]}"></span>
-    <div class="seg" role="group" aria-label="${t.colors[p]}">${['human', 'cpu', 'none'].map((k) => `<button type="button" data-p="${p}" data-k="${k}" aria-pressed="${setup.seats[p] === k}">${t[k]}</button>`).join('')}</div></div>`).join('');
+  $('seats').innerHTML = SEATS_FOR[setup.count].map((p) => `<div class="seat"><span class="dot ava" style="background-position:${avaPos(p)}" title="${t.colors[p]}"></span>
+    <div class="seg two" role="group" aria-label="${t.colors[p]}">${['human', 'cpu'].map((k) => `<button type="button" data-p="${p}" data-k="${k}" aria-pressed="${setup.roles[p] === k}">${t[k]}</button>`).join('')}</div></div>`).join('');
+  document.querySelectorAll('#countSeg button').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.n === setup.count));
+  $('countLbl').textContent = t.count;
   document.querySelectorAll('#lvlSeg button').forEach((b) => { b.setAttribute('aria-pressed', b.dataset.lvl === setup.level); b.textContent = t[b.dataset.lvl]; });
-  const n = setup.seats.filter((s) => s !== 'none').length;
-  $('startBtn').disabled = n < 2; $('setupNote').textContent = n < 2 ? t.needTwo : '';
   $('resumeBtn').hidden = !loadSaved();
 }
 function openSetup() { clearTimeout(timer); renderSetup(); closeAll(); $('setupOv').hidden = false; }
@@ -869,12 +865,13 @@ addEventListener('keydown', (e) => {
 });
 $('seats').addEventListener('click', (e) => {
   const b = e.target.closest('button[data-p]'); if (!b) return;
-  setup.seats[+b.dataset.p] = b.dataset.k; renderSetup();
+  setup.roles[+b.dataset.p] = b.dataset.k; renderSetup();
 });
+$('countSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-n]'); if (b) { setup.count = +b.dataset.n; renderSetup(); } });
 $('lvlSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-lvl]'); if (b) { setup.level = b.dataset.lvl; renderSetup(); } });
 $('startBtn').addEventListener('click', () => {
   Sfx.unlock(); try { localStorage.setItem('rids_kizma_setup', JSON.stringify(setup)); } catch (e) {}
-  newGame(setup.seats, setup.level);
+  newGame(seatsOf(setup), setup.level);
 });
 $('resumeBtn').addEventListener('click', () => {
   Sfx.unlock(); const s = loadSaved(); if (!s) return;
