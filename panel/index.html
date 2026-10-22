@@ -291,7 +291,7 @@ const store = {
 let key = store.get('rids_panel_key');
 let days = +(store.get('rids_panel_days') || 7);
 if (![1, 7, 30, 90].includes(days)) days = 7;
-let loadId = 0;
+let loadId = 0, lastOk = 0;
 const CACHE_V = 2; // veri biçimi değişince eski önbellek kullanılmaz
 
 // ---------- Zaman aralığı (yerel saatle; GoatCounter saat başına yuvarlanmış zaman ister) ----------
@@ -306,23 +306,28 @@ function range(n) {
   return { start, end, pStart, pEnd, list };
 }
 
-// ---------- API: saniyede en fazla 4 istek (GoatCounter sınırı), sırayla ----------
+// ---------- API ----------
+// GoatCounter saniyede 4 istek kabul eder; tarayıcı anahtarlı her istekten önce bir izin sorgusu (OPTIONS) da
+// gönderdiği için her veri isteği iki sayılır. İstekler sırayla ve en az 650 ms arayla gider. Sınıra takılan izin
+// sorgusu tarayıcıda bağlantı hatası gibi görünür; bu ve geçici sunucu hataları birkaç kez yeniden denenir.
 let lastCall = 0;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function get(path, params) {
-  for (let attempt = 0; attempt < 4; attempt++) {
-    const wait = lastCall + 300 - Date.now(); if (wait > 0) await sleep(wait);
+async function get(path, params, what) {
+  let last = '';
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (attempt) await sleep(800 * attempt);
+    const wait = lastCall + 650 - Date.now(); if (wait > 0) await sleep(wait);
     lastCall = Date.now();
     let r;
-    try { r = await fetch(`${API}${path}?${new URLSearchParams(params)}`, { headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' } }); }
-    catch (e) { throw Object.assign(new Error('Bağlantı kurulamadı. İnternetini kontrol edip yenile.'), { net: true }); }
-    if (r.status === 429) { await sleep(1100); continue; }
+    try { r = await fetch(`${API}${path}?${new URLSearchParams(params)}`, { headers: { Authorization: 'Bearer ' + key } }); }
+    catch (e) { last = 'bağlantı'; continue; }
     if (r.status === 401) throw Object.assign(new Error('Anahtar geçersiz. Yeni bir anahtar oluşturup tekrar gir.'), { auth: true });
     if (r.status === 403) throw Object.assign(new Error('Anahtarın istatistik okuma izni yok. Oluştururken "Read statistics" işaretli olmalı.'), { auth: true });
-    if (!r.ok) throw new Error(`GoatCounter hata verdi (${r.status}).`);
+    if (r.status === 429 || r.status === 404 || r.status >= 500) { last = String(r.status); continue; }
+    if (!r.ok) throw new Error(`GoatCounter ${what} verisini vermedi (${r.status}).`);
     return r.json();
   }
-  throw new Error('GoatCounter çok sık istek aldı, biraz sonra yenile.');
+  throw new Error(last === 'bağlantı' ? `GoatCounter'a bağlanılamadı (${what}). İnternetini kontrol edip yenile.` : `GoatCounter ${what} verisini vermedi (${last}). Biraz sonra yenile.`);
 }
 // sayfalar ve olaylar 100'er 100'er gelir: hepsi toplanana kadar alınanlar dışarıda bırakılarak sorulur
 async function allHits(span, id) {
@@ -330,7 +335,7 @@ async function allHits(span, id) {
   for (let page = 0; page < 6; page++) {
     const q = { ...span, limit: 100, daily: true };
     if (seen.length) q.exclude_paths = seen.join(',');
-    const r = await get('/stats/hits', q);
+    const r = await get('/stats/hits', q, 'sayfa ve oyun');
     if (id !== loadId) return null;
     for (const h of r.hits || []) { out.push(h); seen.push(h.path_id); }
     if (!r.more || !(r.hits || []).length) break;
@@ -582,14 +587,18 @@ async function load() {
     const hits = await allHits(span, id); if (!hits) return;
     const prevHits = await allHits(pspan, id); if (!prevHits) return;
     const cur = summarize(hits, r.list), prev = summarize(prevHits, []);
-    const lists = { refs: [], camps: [], locs: [], sizes: [], systems: [] };
-    for (const [k, page] of [['refs', 'toprefs'], ['camps', 'campaigns'], ['locs', 'locations'], ['sizes', 'sizes'], ['systems', 'systems']]) {
-      lists[k] = (await get('/stats/' + page, { ...span, limit: 20 })).stats || [];
+    // yan listelerden biri gelmezse ana veriler yine gösterilir, eksik olan hata kutusunda yazılır
+    const lists = { refs: [], camps: [], locs: [], sizes: [], systems: [] }, missing = [];
+    for (const [k, page, what] of [['refs', 'toprefs', 'kaynak'], ['camps', 'campaigns', 'kampanya'], ['locs', 'locations', 'ülke'], ['sizes', 'sizes', 'cihaz'], ['systems', 'systems', 'sistem']]) {
+      try { lists[k] = (await get('/stats/' + page, { ...span, limit: 20 }, what)).stats || []; }
+      catch (e) { if (e.auth) throw e; missing.push(what); }
       if (id !== loadId) return;
     }
     const data = { v: CACHE_V, days, cur, prev, lists, at: Date.now() };
-    store.set(cacheKey, JSON.stringify(data));
+    if (!missing.length) store.set(cacheKey, JSON.stringify(data));
     $('dash').classList.remove('loading'); render(data);
+    if (missing.length) { $('err').textContent = `Şu listeler alınamadı: ${missing.join(', ')}. Yenileyince tekrar denenir.`; $('err').hidden = false; }
+    lastOk = Date.now();
   } catch (e) {
     if (id !== loadId) return;
     $('dash').classList.remove('loading');
@@ -627,7 +636,8 @@ addEventListener('resize', () => {
   if (Math.abs(innerWidth - lastW) < 40) return; lastW = innerWidth;
   try { const c = JSON.parse(store.get('rids_panel_cache_' + days)); if (c && c.v === CACHE_V && !$('dash').hidden) render(c); } catch (e) {}
 });
-document.addEventListener('visibilitychange', () => { if (!document.hidden && key && !$('dash').hidden) load(); });
+// uygulamaya geri dönünce en fazla dakikada bir kendiliğinden yenilenir
+document.addEventListener('visibilitychange', () => { if (!document.hidden && key && !$('dash').hidden && Date.now() - lastOk > 60000) load(); });
 if (key) showDash(); else showKey();
 </script>
 </body>
