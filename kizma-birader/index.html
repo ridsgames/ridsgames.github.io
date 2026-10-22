@@ -35,7 +35,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 [hidden] { display: none !important; }
 
 /* Üst çubuk: diğer oyunlarla aynı */
-.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); z-index: 5; }
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; } /* pencerelerin (20) üstünde: logo ve düğmeler her ekranda dokunulabilir */
 .top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
@@ -51,6 +51,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pill .ico { font-size: 16px; line-height: 1; }
 .pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
 @media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+/* Tam ekranda logo gizlenir, düğmeler sağda kalır */
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
 
 /* Oyun alanı */
 main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 10px 10px 8px; }
@@ -177,6 +180,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
       <button id="menuBtn" class="pill" type="button"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
       <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
       <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
       <button id="langBtn" class="pill lang" type="button">TR | EN</button>
     </div>
   </div>
@@ -250,7 +254,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 // ---------- Dil ----------
 const STR = {
   tr: {
-    title: 'Kızma Birader | Ridsgames', home: 'Ridsgames ana sayfa', game: 'Kızma Birader', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', rights: 'Tüm hakları saklıdır.',
+    title: 'Kızma Birader | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Kızma Birader', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', rights: 'Tüm hakları saklıdır.',
     colors: ['Kırmızı', 'Mavi', 'Yeşil', 'Sarı'], animals: ['Tilki', 'Balina', 'Kurbağa', 'Civciv'], human: 'İnsan', cpu: 'Bilgisayar', you: 'Sen', easy: 'Kolay', hard: 'Zor',
     setupSub: 'Kaç kişi oynuyor? Her renk için seç.', start: 'Başla', resume: 'Kaldığın yerden devam et', count: 'Oyuncu sayısı',
     rollTap: 'Zar atmak için zara dokun', rollCpu: 'Zar atıyor…', thinking: 'Düşünüyor…', pick: 'Oynatacağın piyona dokun',
@@ -268,7 +272,7 @@ const STR = {
     ]
   },
   en: {
-    title: 'Ludo | Ridsgames', home: 'Ridsgames home', game: 'Ludo', newGame: 'New game', rules: 'Rules', sound: 'Sound', rights: 'All rights reserved.',
+    title: 'Ludo | Ridsgames', homeLabel: 'Ridsgames home', game: 'Ludo', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', rights: 'All rights reserved.',
     colors: ['Red', 'Blue', 'Green', 'Yellow'], animals: ['Fox', 'Whale', 'Frog', 'Chick'], human: 'Human', cpu: 'Computer', you: 'You', easy: 'Easy', hard: 'Hard',
     setupSub: 'How many are playing? Choose for each colour.', start: 'Start', resume: 'Continue where you left off', count: 'Players',
     rollTap: 'Tap the die to roll', rollCpu: 'Rolling…', thinking: 'Thinking…', pick: 'Tap the piece you want to move',
@@ -834,9 +838,9 @@ function openSetup() { clearTimeout(timer); renderSetup(); closeAll(); $('setupO
 function applyLang() {
   const t = T();
   document.documentElement.lang = lang; document.title = t.title;
-  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.home);
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
   $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
-  $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound);
+  $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs);
   $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
   $('lvlLbl').textContent = t.cpu; $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume;
   $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
@@ -891,6 +895,13 @@ $('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $
 $('againBtn').addEventListener('click', () => newGame(G.seats, G.level));
 $('toMenuBtn').addEventListener('click', openSetup);
 $('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem('rids_kizma_sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+// Tam ekran: desteklemeyen tarayıcıda (iPhone Safari) düğme gizlenir
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
 $('langBtn').addEventListener('click', () => {
   lang = lang === 'tr' ? 'en' : 'tr';
   try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}

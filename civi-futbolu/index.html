@@ -20,17 +20,36 @@
   #menuBtn { position: absolute; left: 8px; min-width: 0; padding: 2px 10px; background: none; color: #fff; font-size: 22px; }
   #gol { position: fixed; left: 0; right: 0; top: 42%; text-align: center; font-size: 72px; font-weight: 900; text-shadow: 0 4px 16px #000; pointer-events: none; }
   [hidden] { display: none !important; }
+  /* Üst çubuk: logo ana sayfaya döner (diğer oyunlardaki gibi), sağda tam ekran düğmesi; tam ekranda logo gizlenir */
+  .home-bar { flex: none; width: 100%; position: relative; z-index: 30; background: rgba(2, 6, 23, .85); border-bottom: 1px solid rgba(30, 41, 59, .8); }
+  .home-bar .in { max-width: 72rem; height: 52px; margin: 0 auto; padding: 0 12px; display: flex; align-items: center; }
+  .home-bar a { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .home-bar img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+  .home-bar .gname { font: 12px Inter, system-ui, sans-serif; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+  @media (max-width: 520px) { .home-bar .in { height: 46px; } .home-bar img { height: 28px; } .home-bar .gname { display: none; } }
+  .home-bar #fsBtn { margin-left: auto; min-width: 34px; height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, .4); background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); color: #e2e8f0; font-size: 16px; font-weight: 600; }
+  :root:fullscreen #homeLink { display: none; }
+  :root:-webkit-full-screen #homeLink { display: none; }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
+<header class="home-bar">
+  <div class="in">
+    <a id="homeLink" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" data-i18n="title">Çivi Futbolu</span>
+    </a>
+    <button id="fsBtn" aria-label="Tam ekran">⛶</button>
+  </div>
+</header>
 <div id="hud">
   <button id="menuBtn" aria-label="Menü">☰</button>
   <span class="r"><span data-i18n="red">Kırmızı</span> <span id="sA">0</span></span>
   <span>:</span>
-  <span class="b"><span id="sB">0</span> <span id="nB">Mavi</span></span>
+  <span class="b"><span id="sB">0</span> <span id="nB" data-i18n="blue">Mavi</span></span>
 </div>
 <div id="turn"></div>
 <div id="wrap"><canvas id="c"></canvas></div>
@@ -102,7 +121,7 @@ let mode, level = 2, score = [0, 0], turn = 0, coin, state = 'menu', hold = null
 // Dil: ?lang=en|tr adresten, yoksa tarayıcı dili (tr dışı her dil İngilizce). Türkçe metinler HTML'de durur.
 const LANG = /^tr/i.test(new URLSearchParams(location.search).get('lang') || navigator.language || 'tr') ? 'tr' : 'en';
 const I18N_EN = {
-  title: 'Nail Football', red: 'Red', blue: 'Blue', cpu: 'Computer', goal: 'GOAL!', menu: 'Menu',
+  title: 'Nail Football', red: 'Red', blue: 'Blue', cpu: 'Computer', goal: 'GOAL!', menu: 'Menu', fs: 'Full screen',
   help: 'Press on the coin, hold and drag, then flick it. Red shoots at the top goal, Blue at the bottom one. Turns switch after every shot; first to 5 goals wins.',
   p2: '2 Players', vsCpu: 'Against the computer:', easy: 'Easy', medium: 'Medium', hard: 'Hard', again: 'Play Again',
   thinking: 'Computer is thinking…', turn: 'Turn', aim: 'press the coin, drag, flick',
@@ -113,7 +132,10 @@ if (LANG === 'en') {
   document.documentElement.lang = 'en'; document.title = I18N_EN.title;
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = I18N_EN[el.dataset.i18n]; });
   $('menuBtn').setAttribute('aria-label', I18N_EN.menu);
+  $('homeLink').setAttribute('aria-label', 'Ridsgames home');
+  $('fsBtn').setAttribute('aria-label', I18N_EN.fs);
 }
+$('homeLink').href = '../?lang=' + LANG;
 const names = () => [t('red', 'Kırmızı'), mode === 'ai' ? t('cpu', 'Bilgisayar') : t('blue', 'Mavi')];
 
 // Sayaç: oyun başlatma ve bitirme olayları (GoatCounter yüklenmediyse sessizce geçer)
@@ -367,6 +389,13 @@ requestAnimationFrame(frame);
 $('p2').onclick = () => newGame('2p');
 document.querySelectorAll('.lv').forEach((b, i) => b.onclick = () => { level = i; newGame('ai'); });
 $('again').onclick = () => newGame(mode);
+// Tam ekran: desteklemeyen tarayıcıda (iPhone Safari) düğme gizlenir
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').onclick = () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+};
 $('toMenu').onclick = $('menuBtn').onclick = () => {
   clearTimeout(aiTimer); hold = null; state = 'menu';
   $('end').hidden = true; $('menu').hidden = false; hud();

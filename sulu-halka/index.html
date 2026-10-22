@@ -23,6 +23,15 @@
       height: 100dvh;
       width: 100vw;
     }
+    /* Üst çubuk: logo ana sayfaya döner (diğer oyunlardaki gibi); tam ekranda gizlenir */
+    .home-bar { flex: none; width: 100%; position: relative; z-index: 30; background: rgba(2, 6, 23, .85); border-bottom: 1px solid rgba(30, 41, 59, .8); }
+    .home-bar .in { max-width: 72rem; height: 52px; margin: 0 auto; padding: 0 12px; display: flex; align-items: center; }
+    .home-bar a { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .home-bar img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+    .home-bar .gname { font: 12px Inter, system-ui, sans-serif; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+    @media (max-width: 520px) { .home-bar .in { height: 46px; } .home-bar img { height: 28px; } .home-bar .gname { display: none; } }
+    :root:fullscreen .home-bar { display: none; }
+    :root:-webkit-full-screen .home-bar { display: none; }
     .font-game {
       font-family: 'Fredoka', sans-serif;
     }
@@ -189,10 +198,19 @@
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
-<body class="flex items-center justify-center">
+<body class="flex flex-col items-center justify-center">
+
+  <header class="home-bar">
+    <div class="in">
+      <a id="homeLink" href="../" aria-label="Ridsgames ana sayfa">
+        <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+        <span class="gname" id="homeGameName">Sulu Halka</span>
+      </a>
+    </div>
+  </header>
 
   <!-- Main Outer Container -->
-  <div id="app-wrapper" class="w-full h-full flex items-center justify-center p-0 sm:p-3">
+  <div id="app-wrapper" class="w-full flex-1 min-h-0 flex items-center justify-center p-0 sm:p-3">
     <div id="casing-shell" class="casing-shell">
       <div class="inner-chamber">
 
@@ -475,7 +493,10 @@
       document.querySelectorAll('[data-i18n]').forEach((el) => { el.innerHTML = I18N_EN[el.dataset.i18n]; });
       document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = I18N_EN[el.dataset.i18nTitle]; });
       document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', I18N_EN[el.dataset.i18nAria]); });
+      document.getElementById('homeLink').setAttribute('aria-label', 'Ridsgames home');
+      document.getElementById('homeGameName').textContent = 'Water Ring Toss';
     }
+    document.getElementById('homeLink').href = '../?lang=' + LANG;
   </script>
   <script>
     (function () {

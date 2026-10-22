@@ -41,6 +41,11 @@
       border: 1px solid rgba(34, 211, 238, 0.35);
       box-shadow: 0 0 18px rgba(6, 182, 212, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
+    /* Tam ekranda logo gizlenir, düğmeler sağda kalır */
+    :root:fullscreen #homeLink { display: none; }
+    :root:fullscreen #homeLink + div { margin-left: auto; }
+    :root:-webkit-full-screen #homeLink { display: none; }
+    :root:-webkit-full-screen #homeLink + div { margin-left: auto; }
     .btn-rids {
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(10, 15, 29, 0.95) 100%);
       border: 1px solid rgba(34, 211, 238, 0.4);
@@ -119,6 +124,11 @@
         <button id="rulesBtn" type="button" class="btn-rids rounded-lg w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 text-xs sm:text-sm font-medium flex items-center justify-center gap-1 shrink-0" title="Unvan Tablosu ve Kurallar">
           <span>🏆</span>
           <span id="rulesBtnText" class="hidden sm:inline">Unvanlar</span>
+        </button>
+
+        <!-- Tam ekran -->
+        <button id="fsBtn" type="button" class="btn-rids rounded-lg w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1 shrink-0" title="Tam ekran">
+          <span>⛶</span>
         </button>
 
         <!-- Dil Değiştirici (TR | EN) -->
@@ -291,6 +301,7 @@
           rights: "Tüm hakları saklıdır.",
           modeLabel: "Oyun Modu",
           soundTitle: "Ses Efektleri",
+          fsTitle: "Tam ekran",
           ranksTitle: "Unvan Tablosu ve Kurallar",
           close: "Kapat",
           time: "SÜRE",
@@ -345,6 +356,7 @@
           rights: "All rights reserved.",
           modeLabel: "Game Mode",
           soundTitle: "Sound Effects",
+          fsTitle: "Full screen",
           ranksTitle: "Rank Scale and Rules",
           close: "Close",
           time: "TIME",
@@ -504,6 +516,7 @@
       const soundLabel = document.getElementById("soundLabel");
       const rulesBtn = document.getElementById("rulesBtn");
       const langBtn = document.getElementById("langBtn");
+      const fsBtn = document.getElementById("fsBtn");
 
       const timerValueEl = document.getElementById("timerValue");
       const movesTextEl = document.getElementById("movesText");
@@ -806,6 +819,7 @@
         modeSelect.setAttribute("aria-label", t.modeLabel);
         soundBtn.title = t.soundTitle;
         rulesBtn.title = t.ranksTitle;
+        fsBtn.title = t.fsTitle;
         closeModalBtn.setAttribute("aria-label", t.close);
 
         document.getElementById("lblTime").textContent = t.time;
@@ -1533,6 +1547,14 @@
         soundEnabled = !soundEnabled;
         soundIcon.textContent = soundEnabled ? "🔊" : "🔇";
         if (soundEnabled) playSound("select");
+      });
+
+      // Tam ekran: desteklemeyen tarayıcıda (iPhone Safari) düğme gizlenir
+      if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) fsBtn.classList.add("hidden");
+      fsBtn.addEventListener("click", () => {
+        const d = document, el = d.documentElement;
+        const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+        if (r && r.catch) r.catch(() => {});
       });
 
       langBtn.addEventListener("click", () => {
