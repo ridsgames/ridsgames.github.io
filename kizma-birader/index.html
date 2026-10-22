@@ -162,6 +162,9 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 }
 @media (prefers-reduced-motion: reduce) { .dice.ready .halo { animation: none; } }
 </style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <header class="top">
@@ -359,6 +362,8 @@ function legalMoves(p, v) {
   return out;
 }
 const finished = (p) => G.pieces[p].every((pos) => pos >= 40);
+// Sayaç: oyun başlatma ve bitirme olayları (GoatCounter yüklenmediyse sessizce geçer)
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'kizma-birader/' + olay, title: 'Kızma Birader: ' + ad, event: true }); } catch (e) {} };
 
 // ---------- Bilgisayar ----------
 function risk(p, abs) { // bu kareyi bir sonraki turda vurabilecek rakip sayısı
@@ -392,6 +397,7 @@ function chooseMove(p, list) {
 
 // ---------- Akış ----------
 function newGame(seats, level) {
+  sayac('basladi', 'oyun başladı');
   G = { seats: seats.slice(), level, pieces: [0, 1, 2, 3].map(() => [-1, -1, -1, -1]), turn: 0, order: [] };
   G.turn = active()[0];
   closeAll(); startTurn(G.turn); save();
@@ -462,7 +468,7 @@ function afterMove(p) {
   nextPlayer();
 }
 function gameOver(p) {
-  phase = 'over'; render();
+  phase = 'over'; render(); sayac('bitti', 'oyun bitti');
   try { localStorage.removeItem('rids_kizma_game'); } catch (e) {}
   Sfx.win(); buzz([60, 60, 120]); confetti(p);
   const t = T(), solo = humans() === 1 && G.seats[p] === 'human';

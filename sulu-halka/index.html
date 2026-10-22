@@ -185,6 +185,9 @@
       backdrop-filter: blur(8px);
     }
   </style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body class="flex items-center justify-center">
 
@@ -753,7 +756,15 @@
         }
       }
 
+      // Sayaç: oyun ilk su fışkırtmasıyla başlamış, bütün halkalar takılınca bitmiş sayılır (GoatCounter yüklenmediyse sessizce geçer)
+      let started = false;
+      function sayac(olay, ad) {
+        try { window.goatcounter.count({ path: 'sulu-halka/' + olay, title: 'Sulu Halka: ' + ad, event: true }); } catch (e) {}
+      }
+      function markStart() { if (!started) { started = true; sayac('basladi', 'oyun başladı'); } }
+
       function restartGame() {
+        started = false;
         computeFixedRods();
         createRings();
         bubbles = [];
@@ -771,6 +782,7 @@
       // ==========================================
       function triggerWaterJet(biasX) {
         if (gameWon) return;
+        markStart();
         playWaterJetSound();
 
         const floorY = H * FLOOR_NORM;
@@ -806,6 +818,7 @@
 
       function shakeToy() {
         if (gameWon) return;
+        markStart();
         playWaterJetSound();
         spawnAmbientBubbles(18, true, 0);
         rings.forEach((ring) => {
@@ -1100,6 +1113,7 @@
 
         if (!gameWon && hookedCount === totalRingsCount && totalRingsCount > 0) {
           gameWon = true;
+          sayac('bitti', 'oyun bitti');
           playVictorySound();
           saveBestTime(elapsedSeconds);
           const best = getBestTime() || elapsedSeconds;

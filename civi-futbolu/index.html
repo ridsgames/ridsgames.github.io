@@ -21,6 +21,9 @@
   #gol { position: fixed; left: 0; right: 0; top: 42%; text-align: center; font-size: 72px; font-weight: 900; text-shadow: 0 4px 16px #000; pointer-events: none; }
   [hidden] { display: none !important; }
 </style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <div id="hud">
@@ -113,8 +116,10 @@ if (LANG === 'en') {
 }
 const names = () => [t('red', 'Kırmızı'), mode === 'ai' ? t('cpu', 'Bilgisayar') : t('blue', 'Mavi')];
 
+// Sayaç: oyun başlatma ve bitirme olayları (GoatCounter yüklenmediyse sessizce geçer)
+function sayac(olay, ad) { try { window.goatcounter.count({ path: 'civi-futbolu/' + olay, title: 'Çivi Futbolu: ' + ad, event: true }); } catch {} }
 function newGame(m) {
-  mode = m; score = [0, 0]; clearTimeout(aiTimer);
+  mode = m; score = [0, 0]; clearTimeout(aiTimer); sayac('basladi', 'oyun başladı');
   try { ac = ac || new AudioContext(); } catch {}
   $('menu').hidden = $('end').hidden = $('gol').hidden = true;
   $('nB').textContent = names()[1];
@@ -142,7 +147,7 @@ function goal(side) {
     $('gol').hidden = true;
     if (state !== 'goal') return;
     if (score[s] < WIN) return kickoff(1 - s);
-    state = 'over';
+    state = 'over'; sayac('bitti', 'oyun bitti');
     $('endText').textContent = mode === 'ai' ? (s ? t('cpuWins', 'Bilgisayar kazandı') : t('youWin', 'Kazandın!')) : `${names()[s]} ${t('wins', 'kazandı!')}`;
     $('end').hidden = false;
   }, 1300);
