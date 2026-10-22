@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Ridsgames: Panel</title>
+<meta name="theme-color" content="#07080B">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Özel panel: GoatCounter verilerini API anahtarıyla okur. Anahtar yalnızca bu tarayıcıda saklanır, sayfada veri yoktur. -->
+<style>
+:root {
+  /* Ana sayfayla aynı dil: gece zemini, çelik yazı, su mavisi vurgu, kesik köşeler */
+  --night: #07080B;
+  --night-2: #0E1116;
+  --plate: #151A22;
+  --plate-2: #1B212B;
+  --steel: #C9D2DF;
+  --steel-dim: #8D9AB0;
+  --line: rgba(201, 210, 223, 0.14);
+  --water: #36C5E8;
+  --water-deep: #0F6E9C;
+  --play: #FFB547;
+  --good: #4ADE80;
+  --bad: #F87171;
+  --ink-on-water: #04121E;
+  --cut: 12px;
+  --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--night); }
+body {
+  margin: 0; min-height: 100dvh;
+  background: radial-gradient(90% 40% at 50% 0%, rgba(54, 197, 232, 0.08), transparent 70%), var(--night);
+  color: var(--steel); font: 16px/1.5 var(--body);
+}
+a { color: inherit; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--water); outline-offset: 3px; }
+[hidden] { display: none !important; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #EEF3F9; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+.cut { clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
+.num { font-family: var(--display); font-variant-numeric: tabular-nums; }
+
+/* Üst çubuk */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; padding-bottom: 12px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand img { display: block; height: 44px; width: auto; mix-blend-mode: lighten; }
+.brand span { --cut: 6px; font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: .04em; padding: 3px 10px; color: var(--water); background: rgba(54, 197, 232, .12); }
+.icon-btn { --cut: 8px; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border: 0; background: var(--plate-2); color: var(--steel); font-family: var(--display); font-weight: 600; font-size: 15px; }
+.icon-btn:hover { color: #fff; }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn.spin svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Aralık seçici */
+.ranges { --cut: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; background: var(--plate); margin: 6px 0 18px; }
+.ranges button { --cut: 7px; height: 40px; border: 0; background: none; font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--steel-dim); }
+.ranges button[aria-pressed="true"] { background: var(--water); color: var(--ink-on-water); }
+
+/* Özet kartları */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+.kpi { --cut: 14px; position: relative; padding: 16px 18px 15px; background: linear-gradient(160deg, var(--plate-2), var(--plate)); }
+.kpi .lbl { font-size: 14px; font-weight: 600; color: var(--steel-dim); display: flex; align-items: center; gap: 8px; }
+.kpi .lbl i { width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--water)); box-shadow: 0 0 10px var(--c, var(--water)); }
+.kpi .val { font-size: 38px; font-weight: 700; color: #fff; line-height: 1.1; margin-top: 6px; }
+.kpi .delta { font-size: 13px; font-weight: 600; color: var(--steel-dim); margin-top: 2px; min-height: 1.4em; }
+.delta .up { color: var(--good); } .delta .down { color: var(--bad); }
+
+/* Kartlar */
+.card { --cut: 16px; background: linear-gradient(160deg, var(--plate-2), var(--plate)); padding: 18px 18px 16px; margin-bottom: 14px; }
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.card-head h2 { font-size: 20px; }
+.legend { display: flex; gap: 14px; font-size: 14px; color: var(--steel-dim); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
+.legend i.line { height: 3px; border-radius: 2px; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: 210px; overflow: visible; }
+.chart .tip { margin-top: 8px; font-size: 14px; color: var(--steel-dim); min-height: 1.5em; }
+.chart .tip b { color: #fff; font-weight: 600; }
+.axis { fill: var(--steel-dim); font: 12px var(--body); }
+.grid-line { stroke: var(--line); stroke-width: 1; }
+
+/* Oyun kartları */
+.section-title { font-size: 22px; margin: 26px 0 12px; }
+.games { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+.game { --cut: 16px; display: flex; flex-direction: column; background: var(--plate); overflow: hidden; }
+.game .cover { position: relative; height: 104px; background: var(--night-2) center / cover; }
+.game .cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14, 17, 22, 0) 30%, rgba(21, 26, 34, .96)); }
+.game .cover h3 { position: absolute; left: 14px; bottom: 8px; z-index: 1; font-size: 21px; text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
+.game .rank { position: absolute; right: 10px; top: 10px; z-index: 1; --cut: 6px; font-family: var(--display); font-weight: 700; font-size: 13px; padding: 2px 8px; background: rgba(7, 8, 11, .75); color: var(--steel); }
+.game .body { padding: 10px 14px 14px; display: grid; gap: 10px; }
+.game .nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.game .nums div { display: grid; }
+.game .nums b { font-family: var(--display); font-size: 22px; font-weight: 700; color: #fff; line-height: 1.15; }
+.game .nums small { font-size: 12.5px; color: var(--steel-dim); }
+.game .rate { display: grid; gap: 5px; font-size: 13px; color: var(--steel-dim); }
+.game .rate .track { height: 6px; border-radius: 3px; background: rgba(201, 210, 223, .1); overflow: hidden; }
+.game .rate .fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--water-deep), var(--water)); }
+.game svg.spark { display: block; width: 100%; height: 34px; }
+.game .body h3.m { display: none; font-size: 18px; } /* telefonda ad kapak yerine burada */
+
+/* Listeler */
+.lists { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lists .card { margin-bottom: 0; }
+.rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.rows li { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 7px 10px; font-size: 15px; z-index: 0; }
+.rows li::before { content: ""; position: absolute; inset: 0; width: var(--w); border-radius: 6px; background: rgba(54, 197, 232, .14); z-index: -1; }
+.rows li .n { font-family: var(--display); font-weight: 600; color: #fff; }
+.rows li .n small { font-family: var(--body); font-weight: 500; color: var(--steel-dim); margin-left: 6px; }
+.rows .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.empty { color: var(--steel-dim); font-size: 14px; padding: 6px 2px; }
+
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: space-between; color: var(--steel-dim); font-size: 14px; padding: 20px 0 calc(28px + env(safe-area-inset-bottom)); }
+.meta a, .meta button { color: var(--steel-dim); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+.meta a:hover, .meta button:hover { color: #fff; }
+.note { --cut: 10px; font-size: 14px; color: var(--steel); background: rgba(255, 181, 71, .1); border-left: 3px solid var(--play); padding: 10px 14px; margin-bottom: 14px; }
+
+/* Anahtar girişi */
+.key { --cut: 18px; max-width: 560px; margin: 24px auto; padding: 26px 24px 24px; background: linear-gradient(160deg, var(--plate-2), var(--plate)); }
+.key h1 { font-size: 30px; margin-bottom: 8px; }
+.key p { margin: 0 0 16px; color: var(--steel-dim); }
+.key ol { margin: 0 0 18px; padding-left: 22px; display: grid; gap: 6px; }
+.key ol b { color: #fff; }
+.key form { display: grid; gap: 10px; }
+.key input { --cut: 8px; height: 48px; padding: 0 14px; border: 1px solid var(--line); background: var(--night-2); color: #fff; font: 16px var(--body); }
+.key input:focus { outline: 2px solid var(--water); outline-offset: 0; }
+.btn { --cut: 10px; height: 48px; border: 0; background: var(--water); color: var(--ink-on-water); font-family: var(--display); font-weight: 700; font-size: 17px; }
+.btn:hover { filter: brightness(1.08); }
+.err { --cut: 10px; margin: 0 0 14px; padding: 12px 14px; background: rgba(248, 113, 113, .12); border-left: 3px solid var(--bad); color: #fecaca; font-size: 15px; }
+
+/* Yüklenirken */
+.loading .kpi .val, .loading .game .nums b { color: transparent; background: linear-gradient(90deg, rgba(201,210,223,.08), rgba(201,210,223,.18), rgba(201,210,223,.08)); background-size: 200% 100%; border-radius: 6px; animation: shimmer 1.2s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 900px) {
+  .games { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .lists { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .wrap { padding-left: 14px; padding-right: 14px; }
+  .brand img { height: 38px; }
+  .icon-btn .t { display: none; }
+  .kpi { padding: 13px 14px 12px; }
+  .kpi .val { font-size: 32px; }
+  .card { padding: 15px 14px 14px; }
+  .chart svg { height: 180px; }
+  .games { grid-template-columns: 1fr; }
+  .game { display: grid; grid-template-columns: 112px 1fr; }
+  .game .cover { height: auto; min-height: 100%; }
+  .game .cover::after { background: linear-gradient(90deg, rgba(14, 17, 22, 0) 40%, rgba(21, 26, 34, .9)); }
+  .game .cover h3 { display: none; }
+  .game .body { padding: 10px 12px 12px; gap: 8px; }
+  .game .body h3.m { display: block; }
+  .game .nums b { font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .icon-btn.spin svg, .loading * { animation: none !important; } }
+</style>
+</head>
+<body>
+<header class="wrap bar">
+  <a class="brand" href="../" aria-label="Ridsgames ana sayfa"><img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52"><span>PANEL</span></a>
+  <button id="refresh" class="icon-btn" type="button" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span class="t">Yenile</span>
+  </button>
+</header>
+
+<main class="wrap">
+  <!-- Anahtar girişi: ilk açılışta ya da anahtar geçersizse -->
+  <section id="keyBox" class="key cut" hidden>
+    <h1>Oyun istatistikleri</h1>
+    <p>Bu panel GoatCounter verilerini okur. Bir kez API anahtarı girmen yeterli, anahtar yalnızca bu tarayıcıda saklanır.</p>
+    <ol>
+      <li><b>ridsgames.goatcounter.com</b> sayfasında sağ üstteki kullanıcı adına dokun, sonra <b>API</b> sekmesini aç.</li>
+      <li>Yeni anahtar oluştur. İzinlerden yalnızca <b>Read statistics</b> işaretli olsun.</li>
+      <li>Oluşan anahtarı kopyalayıp aşağıya yapıştır.</li>
+    </ol>
+    <div id="keyErr" class="err cut" hidden></div>
+    <form id="keyForm">
+      <input id="keyInput" class="cut" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="API anahtarı" aria-label="API anahtarı" required>
+      <button class="btn cut" type="submit">Kaydet ve aç</button>
+    </form>
+  </section>
+
+  <section id="dash" hidden>
+    <div class="ranges cut" id="ranges" role="group" aria-label="Zaman aralığı">
+      <button type="button" data-d="1">Bugün</button>
+      <button type="button" data-d="7">7 gün</button>
+      <button type="button" data-d="30">30 gün</button>
+      <button type="button" data-d="90">90 gün</button>
+    </div>
+    <div id="err" class="err cut" hidden></div>
+
+    <div class="kpis">
+      <div class="kpi cut" style="--c: var(--water)"><div class="lbl"><i></i>Ziyaret</div><div class="val num" id="kVisits">0</div><div class="delta" id="dVisits"></div></div>
+      <div class="kpi cut" style="--c: var(--play)"><div class="lbl"><i></i>Başlatılan oyun</div><div class="val num" id="kStarts">0</div><div class="delta" id="dStarts"></div></div>
+      <div class="kpi cut" style="--c: var(--good)"><div class="lbl"><i></i>Bitirilen oyun</div><div class="val num" id="kEnds">0</div><div class="delta" id="dEnds"></div></div>
+      <div class="kpi cut" style="--c: #C084FC"><div class="lbl"><i></i>Bitirme oranı</div><div class="val num" id="kRate">%0</div><div class="delta" id="dRate"></div></div>
+    </div>
+
+    <div class="card cut chart">
+      <div class="card-head">
+        <h2 id="chartTitle">Günlük</h2>
+        <div class="legend"><span><i style="--c: var(--water)"></i>Ziyaret</span><span><i class="line" style="--c: var(--play)"></i>Başlatılan oyun</span></div>
+      </div>
+      <svg id="chart" role="img" aria-label="Ziyaret ve başlatılan oyun grafiği"></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+
+    <h2 class="section-title">Oyunlar</h2>
+    <div class="games" id="games"></div>
+
+    <div class="lists">
+      <div class="card cut"><div class="card-head"><h2>Nereden geliyorlar</h2></div><ul class="rows" id="refs"></ul></div>
+      <div class="card cut"><div class="card-head"><h2>Ülkeler</h2></div><ul class="rows" id="locs"></ul></div>
+      <div class="card cut"><div class="card-head"><h2>Cihaz</h2></div><ul class="rows" id="sizes"></ul></div>
+      <div class="card cut"><div class="card-head"><h2>Sistem</h2></div><ul class="rows" id="systems"></ul></div>
+    </div>
+
+    <div class="meta">
+      <span id="updated"></span>
+      <span><a href="https://ridsgames.goatcounter.com/" target="_blank" rel="noopener">GoatCounter'da aç</a> · <button id="forget" type="button">Anahtarı sil</button></span>
+    </div>
+  </section>
+</main>
+
+<script>
+const API = 'https://ridsgames.goatcounter.com/api/v0';
+const GAMES = [
+  { slug: 'kizma-birader', name: 'Kızma Birader', img: '../assets/kizma-birader.jpg' },
+  { slug: 'civi-futbolu', name: 'Çivi Futbolu', img: '../assets/civi-futbolu.jpg' },
+  { slug: 'solo-test', name: 'Solo Test', img: '../assets/solo-test.jpg' },
+  { slug: 'sulu-halka', name: 'Sulu Halka', img: '../assets/sulu-halka.jpg' }
+];
+const SIZES = { phone: 'Telefon', tablet: 'Tablet', desktop: 'Bilgisayar', desktophd: 'Büyük ekran', unknown: 'Bilinmiyor' };
+const $ = (id) => document.getElementById(id);
+const fmt = new Intl.NumberFormat('tr-TR');
+const dayFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' });
+const longDay = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
+let regionName = null;
+try { regionName = new Intl.DisplayNames(['tr'], { type: 'region' }); } catch (e) {}
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+let key = store.get('rids_panel_key');
+let days = +(store.get('rids_panel_days') || 7);
+if (![1, 7, 30, 90].includes(days)) days = 7;
+let loadId = 0;
+
+// ---------- Zaman aralığı (yerel saatle; GoatCounter saat başına yuvarlanmış zaman ister) ----------
+const iso = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function range(n) {
+  const now = new Date(), start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (n - 1));
+  const end = new Date(now); end.setMinutes(0, 0, 0); end.setHours(end.getHours() + 1);
+  // önceki dönem aynı uzunlukta ve aynı saate kadar: bugün 15:00 ise dün 15:00'e kadar
+  const pStart = new Date(start.getFullYear(), start.getMonth(), start.getDate() - n), pEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate() - n, end.getHours());
+  const list = []; for (let i = 0; i < n; i++) list.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+  return { start, end, pStart, pEnd, list };
+}
+
+// ---------- API: saniyede en fazla 4 istek (GoatCounter sınırı), sırayla ----------
+let lastCall = 0;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function get(path, params) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const wait = lastCall + 300 - Date.now(); if (wait > 0) await sleep(wait);
+    lastCall = Date.now();
+    let r;
+    try { r = await fetch(`${API}${path}?${new URLSearchParams(params)}`, { headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' } }); }
+    catch (e) { throw Object.assign(new Error('Bağlantı kurulamadı. İnternetini kontrol edip yenile.'), { net: true }); }
+    if (r.status === 429) { await sleep(1100); continue; }
+    if (r.status === 401) throw Object.assign(new Error('Anahtar geçersiz. Yeni bir anahtar oluşturup tekrar gir.'), { auth: true });
+    if (r.status === 403) throw Object.assign(new Error('Anahtarın istatistik okuma izni yok. Oluştururken "Read statistics" işaretli olmalı.'), { auth: true });
+    if (!r.ok) throw new Error(`GoatCounter hata verdi (${r.status}).`);
+    return r.json();
+  }
+  throw new Error('GoatCounter çok sık istek aldı, biraz sonra yenile.');
+}
+
+// ---------- Veriyi oyunlara göre topla ----------
+const clean = (p) => String(p || '').replace(/^\/+|\/+$/g, '');
+function summarize(hits, list) {
+  const g = {}; for (const x of GAMES) g[x.slug] = { opens: 0, starts: 0, ends: 0, startDays: {} };
+  const visitDays = {}, startDays = {}, visitHours = new Array(24).fill(0), startHours = new Array(24).fill(0);
+  let visits = 0, starts = 0, ends = 0;
+  for (const h of hits || []) {
+    const p = clean(h.path), [slug, ev] = p.split('/');
+    const add = (days, hours, perGame) => {
+      for (const s of h.stats || []) {
+        days[s.day] = (days[s.day] || 0) + (s.daily || 0);
+        if (perGame) perGame[s.day] = (perGame[s.day] || 0) + (s.daily || 0);
+        if (list.length === 1 && s.day === dayKey(list[0])) (s.hourly || []).forEach((v, i) => { hours[i] += v || 0; });
+      }
+    };
+    if (h.event) {
+      if (!g[slug]) continue;
+      if (ev === 'basladi') { g[slug].starts += h.count; starts += h.count; add(startDays, startHours, g[slug].startDays); }
+      else if (ev === 'bitti') { g[slug].ends += h.count; ends += h.count; }
+    } else {
+      visits += h.count; add(visitDays, visitHours);
+      if (g[p]) g[p].opens += h.count;
+    }
+  }
+  return { g, visits, starts, ends, visitDays, startDays, visitHours, startHours };
+}
+
+// ---------- Çizim ----------
+function delta(el, cur, prev, isRate) {
+  if (prev == null) { el.textContent = ''; return; }
+  if (!prev && !cur) { el.innerHTML = 'önceki dönemde de yok'; return; }
+  if (!prev) { el.innerHTML = '<span class="up">yeni</span> · önceki dönem 0'; return; }
+  const d = isRate ? Math.round((cur - prev) * 100) : Math.round((cur - prev) / prev * 100);
+  const cls = d > 0 ? 'up' : d < 0 ? 'down' : '';
+  const sign = d > 0 ? '▲ ' : d < 0 ? '▼ ' : '';
+  el.innerHTML = `<span class="${cls}">${sign}${isRate ? Math.abs(d) + ' puan' : '%' + Math.abs(d)}</span> · önceki: ${isRate ? '%' + Math.round(prev * 100) : fmt.format(prev)}`;
+}
+function countUp(el, to, pre = '') {
+  const from = +(el.dataset.v || 0); el.dataset.v = to;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || from === to) { el.textContent = pre + fmt.format(to); return; }
+  const t0 = performance.now();
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / 600), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = pre + fmt.format(Math.round(from + (to - from) * e));
+    if (k < 1) requestAnimationFrame(step);
+  })(t0);
+}
+function drawChart(cur, list) {
+  const svg = $('chart'), hourly = list.length === 1;
+  const W = Math.max(280, svg.clientWidth || 600), H = svg.clientHeight || 200, padL = 30, padB = 22, padT = 8;
+  const labels = hourly ? Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0') + ':00') : list.map((d) => dayFmt.format(d));
+  const vis = hourly ? cur.visitHours : list.map((d) => cur.visitDays[dayKey(d)] || 0);
+  const sta = hourly ? cur.startHours : list.map((d) => cur.startDays[dayKey(d)] || 0);
+  const n = vis.length, max = Math.max(1, ...vis, ...sta), top = niceMax(max);
+  const cw = (W - padL) / n, bw = Math.max(2, Math.min(28, cw * 0.62)), ih = H - padB - padT;
+  const y = (v) => padT + ih - (v / top) * ih, x = (i) => padL + cw * i + cw / 2;
+  let s = '';
+  for (const f of [0, 0.5, 1]) { const yy = y(top * f); s += `<line class="grid-line" x1="${padL}" x2="${W}" y1="${yy}" y2="${yy}"/><text class="axis" x="${padL - 6}" y="${yy + 4}" text-anchor="end">${fmt.format(Math.round(top * f))}</text>`; }
+  vis.forEach((v, i) => { const h = Math.max(v ? 2 : 0, (v / top) * ih); s += `<rect x="${x(i) - bw / 2}" y="${padT + ih - h}" width="${bw}" height="${h}" rx="${Math.min(4, bw / 3)}" fill="url(#gv)"/>`; });
+  const pts = sta.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+  s += `<polyline points="${pts}" fill="none" stroke="var(--play)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  if (n <= 31) sta.forEach((v, i) => { if (v) s += `<circle cx="${x(i)}" cy="${y(v)}" r="3.2" fill="var(--play)" stroke="#151A22" stroke-width="1.5"/>`; });
+  // alt eksende en fazla 4 (telefon) ya da 7 etiket, eşit aralıkla
+  const every = Math.ceil(n / (W < 420 ? 4 : 7));
+  labels.forEach((l, i) => { if (i % every === 0) s += `<text class="axis" x="${x(i)}" y="${H - 4}" text-anchor="middle">${l}</text>`; });
+  s += `<g id="hits">${vis.map((_, i) => `<rect x="${padL + cw * i}" y="0" width="${cw}" height="${H - padB}" fill="transparent" data-i="${i}"/>`).join('')}</g><rect id="hover" x="0" y="${padT}" width="${cw}" height="${ih}" fill="rgba(255,255,255,.06)" visibility="hidden"/>`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = `<defs><linearGradient id="gv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#36C5E8"/><stop offset="1" stop-color="#0F6E9C"/></linearGradient></defs>` + s;
+  const tip = $('tip'), hover = svg.querySelector('#hover');
+  const show = (i) => {
+    hover.setAttribute('x', padL + cw * i); hover.setAttribute('visibility', 'visible');
+    const when = hourly ? labels[i] : longDay.format(list[i]);
+    tip.innerHTML = `${when}: <b>${fmt.format(vis[i])}</b> ziyaret · <b>${fmt.format(sta[i])}</b> oyun`;
+  };
+  svg.querySelectorAll('#hits rect').forEach((r) => { r.addEventListener('pointerenter', () => show(+r.dataset.i)); r.addEventListener('pointerdown', () => show(+r.dataset.i)); });
+  // dokunmatikte parmak kalkınca da 'leave' gelir; seçili gün yalnız fare çıkınca sıfırlanır
+  svg.onpointerleave = (e) => { if (e.pointerType !== 'mouse') return; hover.setAttribute('visibility', 'hidden'); tip.innerHTML = defaultTip; };
+  const total = vis.reduce((a, b) => a + b, 0), totalS = sta.reduce((a, b) => a + b, 0);
+  const defaultTip = `Toplam <b>${fmt.format(total)}</b> ziyaret · <b>${fmt.format(totalS)}</b> oyun. Ayrıntı için grafiğe dokun.`;
+  tip.innerHTML = defaultTip;
+  $('chartTitle').textContent = hourly ? 'Bugün, saat saat' : 'Günlük';
+}
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
+function spark(series) {
+  const n = series.length, max = Math.max(1, ...series), W = 200, H = 34;
+  if (n < 2) return '';
+  const pts = series.map((v, i) => `${(i / (n - 1)) * W},${H - 3 - (v / max) * (H - 6)}`);
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,${H} ${pts.join(' ')} ${W},${H}" fill="rgba(255,181,71,.12)" stroke="none"/><polyline points="${pts.join(' ')}" fill="none" stroke="var(--play)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function drawGames(cur, list) {
+  const order = GAMES.map((x) => ({ ...x, ...cur.g[x.slug] })).sort((a, b) => b.starts - a.starts || b.opens - a.opens);
+  $('games').innerHTML = order.map((x, k) => {
+    const rate = x.starts ? Math.round(x.ends / x.starts * 100) : 0;
+    const series = list.length > 1 ? list.map((d) => x.startDays[dayKey(d)] || 0) : [];
+    return `<article class="game cut">
+      <div class="cover" style="background-image:url('${x.img}')"><h3>${esc(x.name)}</h3>${x.starts ? `<span class="rank cut">${k + 1}.</span>` : ''}</div>
+      <div class="body">
+        <h3 class="m">${esc(x.name)}</h3>
+        <div class="nums"><div><b>${fmt.format(x.opens)}</b><small>açılış</small></div><div><b>${fmt.format(x.starts)}</b><small>başlatma</small></div><div><b>${fmt.format(x.ends)}</b><small>bitirme</small></div></div>
+        <div class="rate"><span>Bitirme oranı: <b style="color:#fff">%${rate}</b></span><div class="track"><div class="fill" style="width:${Math.min(100, rate)}%"></div></div></div>
+        ${spark(series)}
+      </div>
+    </article>`;
+  }).join('');
+}
+function rows(el, items, total) {
+  if (!items.length) { el.innerHTML = '<li class="empty">Bu aralıkta veri yok.</li>'; return; }
+  const max = Math.max(...items.map((i) => i.count), 1), sum = total || items.reduce((a, b) => a + b.count, 0) || 1;
+  el.innerHTML = items.map((i) => `<li style="--w:${Math.max(4, i.count / max * 100)}%"><span class="name">${i.label}</span><span class="n">${fmt.format(i.count)}<small>%${Math.round(i.count / sum * 100)}</small></span></li>`).join('');
+}
+const flag = (code) => /^[A-Za-z]{2}$/.test(code) ? String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1F1E6 + c.charCodeAt(0) - 65)) + ' ' : '';
+function refLabel(name) {
+  const n = String(name || '').trim();
+  if (!n || n === '(no data)') return 'Doğrudan veya bilinmiyor';
+  if (/^ridsgames\.github\.io/.test(n)) return 'Site içinden';
+  return esc(n.replace(/^https?:\/\//, ''));
+}
+function drawLists(refs, locs, sizes, systems) {
+  const merged = {};
+  for (const r of refs) { const l = refLabel(r.name); merged[l] = (merged[l] || 0) + r.count; }
+  rows($('refs'), Object.entries(merged).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count).slice(0, 8));
+  rows($('locs'), locs.slice(0, 8).map((l) => {
+    const code = String(l.id || '').slice(0, 2);
+    let nm = l.name || code || 'Bilinmiyor';
+    try { if (regionName && /^[A-Z]{2}$/i.test(code)) nm = regionName.of(code.toUpperCase()) || nm; } catch (e) {}
+    return { label: flag(code) + esc(nm || 'Bilinmiyor'), count: l.count };
+  }));
+  rows($('sizes'), sizes.filter((s) => s.count).map((s) => ({ label: SIZES[s.id] || esc(s.name || s.id), count: s.count })));
+  rows($('systems'), systems.slice(0, 6).map((s) => ({ label: esc(s.name || 'Bilinmiyor'), count: s.count })));
+}
+function render(data) {
+  const { cur, prev, lists, at } = data, list = range(days).list;
+  countUp($('kVisits'), cur.visits); countUp($('kStarts'), cur.starts); countUp($('kEnds'), cur.ends);
+  const rate = cur.starts ? cur.ends / cur.starts : 0, pRate = prev && prev.starts ? prev.ends / prev.starts : null;
+  countUp($('kRate'), Math.round(rate * 100), '%');
+  delta($('dVisits'), cur.visits, prev && prev.visits); delta($('dStarts'), cur.starts, prev && prev.starts); delta($('dEnds'), cur.ends, prev && prev.ends);
+  if (pRate == null) $('dRate').textContent = ''; else delta($('dRate'), rate, pRate, true);
+  drawChart(cur, list); drawGames(cur, list); drawLists(lists.refs, lists.locs, lists.sizes, lists.systems);
+  const t = new Date(at);
+  $('updated').textContent = 'Son güncelleme: ' + t.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) + (Date.now() - at > 60000 ? ' (kayıtlı veri, yenileniyor…)' : '');
+}
+
+// ---------- Yükleme ----------
+async function load() {
+  const id = ++loadId, r = range(days), cacheKey = 'rids_panel_cache_' + days;
+  $('err').hidden = true; $('refresh').classList.add('spin');
+  let cached = null; try { cached = JSON.parse(store.get(cacheKey)); } catch (e) {}
+  if (cached && cached.days === days) render(cached); else $('dash').classList.add('loading');
+  try {
+    const span = { start: iso(r.start), end: iso(r.end) }, pspan = { start: iso(r.pStart), end: iso(r.pEnd) };
+    const hits = await get('/stats/hits', { ...span, limit: 100, daily: true });
+    if (id !== loadId) return;
+    const cur = summarize(hits.hits, r.list);
+    const lists = { refs: [], locs: [], sizes: [], systems: [] };
+    const prevHits = await get('/stats/hits', { ...pspan, limit: 100, daily: true });
+    const prev = summarize(prevHits.hits, []);
+    for (const [k, page] of [['refs', 'toprefs'], ['locs', 'locations'], ['sizes', 'sizes'], ['systems', 'systems']]) {
+      if (id !== loadId) return;
+      lists[k] = (await get('/stats/' + page, { ...span, limit: 20 })).stats || [];
+    }
+    if (id !== loadId) return;
+    const data = { days, cur, prev, lists, at: Date.now() };
+    store.set(cacheKey, JSON.stringify(data));
+    $('dash').classList.remove('loading'); render(data);
+  } catch (e) {
+    if (id !== loadId) return;
+    $('dash').classList.remove('loading');
+    if (e.auth) { store.del('rids_panel_key'); key = null; showKey(e.message); return; }
+    $('err').textContent = e.message; $('err').hidden = false;
+  } finally { if (id === loadId) $('refresh').classList.remove('spin'); }
+}
+function showKey(msg) {
+  $('dash').hidden = true; $('refresh').hidden = true; $('keyBox').hidden = false;
+  $('keyErr').textContent = msg || ''; $('keyErr').hidden = !msg;
+}
+function showDash() {
+  $('keyBox').hidden = true; $('dash').hidden = false; $('refresh').hidden = false;
+  document.querySelectorAll('#ranges button').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.d === days));
+  load();
+}
+$('keyForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = $('keyInput').value.trim(); if (!v) return;
+  key = v; store.set('rids_panel_key', v); $('keyInput').value = ''; showDash();
+});
+$('ranges').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-d]'); if (!b) return;
+  days = +b.dataset.d; store.set('rids_panel_days', days);
+  document.querySelectorAll('#ranges button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+  load();
+});
+$('refresh').addEventListener('click', load);
+$('forget').addEventListener('click', () => {
+  store.del('rids_panel_key'); for (const d of [1, 7, 30, 90]) store.del('rids_panel_cache_' + d);
+  key = null; showKey();
+});
+let lastW = innerWidth;
+addEventListener('resize', () => { if (Math.abs(innerWidth - lastW) < 40) return; lastW = innerWidth; const c = store.get('rids_panel_cache_' + days); if (c && !$('dash').hidden) { try { render(JSON.parse(c)); } catch (e) {} } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && key && !$('dash').hidden) load(); });
+if (key) showDash(); else showKey();
+</script>
+</body>
+</html>
