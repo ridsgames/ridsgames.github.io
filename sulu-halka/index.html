@@ -197,6 +197,8 @@
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="sulu-halka" data-name="Sulu Halka"></script>
 </head>
 <body class="flex flex-col items-center justify-center">
 
@@ -782,9 +784,15 @@
       function sayac(olay, ad) {
         try { window.goatcounter.count({ path: 'sulu-halka/' + olay, title: 'Sulu Halka: ' + ad, event: true }); } catch (e) {}
       }
-      function markStart() { if (!started) { started = true; sayac('basladi', 'oyun başladı'); } }
+      function markStart() {
+        if (started) return;
+        started = true; sayac('basladi', 'oyun başladı');
+        const m = gameMode === 'adult' ? 'yetiskin' : 'cocuk';
+        sayac('mod/' + m + '-' + totalRingsCount, 'mod: ' + (m === 'cocuk' ? 'çocuk' : 'yetişkin') + ', ' + totalRingsCount + ' halka');
+      }
 
       function restartGame() {
+        if (gameWon) sayac('tekrar', 'bitirdikten sonra yeni oyun');
         started = false;
         computeFixedRods();
         createRings();

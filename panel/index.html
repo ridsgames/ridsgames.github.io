@@ -106,6 +106,22 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
 .game .rate .track { height: 6px; border-radius: 3px; background: rgba(201, 210, 223, .1); overflow: hidden; }
 .game .rate .fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--water-deep), var(--water)); }
 .game svg.spark { display: block; width: 100%; height: 34px; }
+.game .facts { display: grid; gap: 5px; font-size: 13.5px; border-top: 1px solid var(--line); padding-top: 9px; }
+.game .facts div { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.game .facts span { color: var(--steel-dim); white-space: nowrap; }
+.game .facts b { color: #fff; font-weight: 600; text-align: right; }
+.game .facts b small { color: var(--steel-dim); font-weight: 500; }
+.game .facts b.bad { color: var(--bad); }
+.kpis.time .val { font-size: 30px; }
+.card-head .sub-h { font-size: 13px; color: var(--steel-dim); }
+.rows li .name small { display: block; font-size: 12.5px; color: var(--steel-dim); white-space: normal; }
+.rows li.ok { color: var(--good); font-weight: 600; }
+.rows li.ok::before { display: none; }
+.rows li.bad::before { background: rgba(248, 113, 113, .16); }
+.chip { --cut: 5px; display: inline-block; font-size: 11px; font-weight: 700; padding: 0 6px; margin-left: 6px; vertical-align: 1px; background: rgba(255, 181, 71, .16); color: var(--play); }
+.hint { font-size: 14px; color: var(--steel-dim); margin: 6px 2px 0; }
+.hint code { font-size: 13px; color: var(--water); background: rgba(54, 197, 232, .1); padding: 1px 5px; border-radius: 4px; word-break: break-all; }
+.lists .rows + .rows { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .game .body h3.m { display: none; font-size: 18px; } /* telefonda ad kapak yerine burada */
 
 /* Listeler */
@@ -154,6 +170,7 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
   .icon-btn .t { display: none; }
   .kpi { padding: 13px 14px 12px; }
   .kpi .val { font-size: 32px; }
+  .kpis.time .val { font-size: 25px; }
   .card { padding: 15px 14px 14px; }
   .chart svg { height: 180px; }
   .games { grid-template-columns: 1fr; }
@@ -208,6 +225,12 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
       <div class="kpi cut" style="--c: var(--good)"><div class="lbl"><i></i>Bitirilen oyun</div><div class="val num" id="kEnds">0</div><div class="delta" id="dEnds"></div></div>
       <div class="kpi cut" style="--c: #C084FC"><div class="lbl"><i></i>Bitirme oranı</div><div class="val num" id="kRate">%0</div><div class="delta" id="dRate"></div></div>
     </div>
+    <div class="kpis time">
+      <div class="kpi cut" style="--c: #38BDF8"><div class="lbl"><i></i>Sitede geçen süre</div><div class="val num" id="kSite">0</div><div class="delta" id="dSite"></div></div>
+      <div class="kpi cut" style="--c: #38BDF8"><div class="lbl"><i></i>Ziyaret başına</div><div class="val num" id="kSiteAvg">0</div><div class="delta" id="dSiteAvg"></div></div>
+      <div class="kpi cut" style="--c: var(--play)"><div class="lbl"><i></i>Oyunda geçen süre</div><div class="val num" id="kGame">0</div><div class="delta" id="dGame"></div></div>
+      <div class="kpi cut" style="--c: var(--play)"><div class="lbl"><i></i>Oyuncu başına</div><div class="val num" id="kGameAvg">0</div><div class="delta" id="dGameAvg"></div></div>
+    </div>
 
     <div class="card cut chart">
       <div class="card-head">
@@ -222,10 +245,13 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
     <div class="games" id="games"></div>
 
     <div class="lists">
+      <div class="card cut"><div class="card-head"><h2>Oyunda kalma süresi</h2><span class="sub-h">oyun açılışlarına göre</span></div><ul class="rows" id="dist"></ul></div>
+      <div class="card cut"><div class="card-head"><h2>Hatalar</h2></div><ul class="rows" id="errs"></ul></div>
       <div class="card cut"><div class="card-head"><h2>Nereden geliyorlar</h2></div><ul class="rows" id="refs"></ul></div>
+      <div class="card cut"><div class="card-head"><h2>Kampanyalar</h2></div><ul class="rows" id="camps"></ul>
+        <p class="hint">Paylaştığın bağlantının sonuna <code>?ref=youtube&amp;campaign=kizma-video</code> gibi bir etiket eklersen buradan hangi paylaşımın oyuncu getirdiğini görürsün.</p></div>
       <div class="card cut"><div class="card-head"><h2>Ülkeler</h2></div><ul class="rows" id="locs"></ul></div>
-      <div class="card cut"><div class="card-head"><h2>Cihaz</h2></div><ul class="rows" id="sizes"></ul></div>
-      <div class="card cut"><div class="card-head"><h2>Sistem</h2></div><ul class="rows" id="systems"></ul></div>
+      <div class="card cut"><div class="card-head"><h2>Cihaz ve sistem</h2></div><ul class="rows" id="sizes"></ul><ul class="rows" id="systems"></ul></div>
     </div>
 
     <div class="meta">
@@ -238,19 +264,25 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
 <script>
 const API = 'https://ridsgames.goatcounter.com/api/v0';
 const GAMES = [
-  { slug: 'kizma-birader', name: 'Kızma Birader', img: '../assets/kizma-birader.jpg' },
-  { slug: 'civi-futbolu', name: 'Çivi Futbolu', img: '../assets/civi-futbolu.jpg' },
-  { slug: 'solo-test', name: 'Solo Test', img: '../assets/solo-test.jpg' },
+  { slug: 'kizma-birader', name: 'Kızma Birader', img: '../assets/kizma-birader.jpg', rules: true, cpu: true },
+  { slug: 'civi-futbolu', name: 'Çivi Futbolu', img: '../assets/civi-futbolu.jpg', cpu: true },
+  { slug: 'solo-test', name: 'Solo Test', img: '../assets/solo-test.jpg', rules: true, solo: true },
   { slug: 'sulu-halka', name: 'Sulu Halka', img: '../assets/sulu-halka.jpg' }
 ];
+const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka' };
 const SIZES = { phone: 'Telefon', tablet: 'Tablet', desktop: 'Bilgisayar', desktophd: 'Büyük ekran', unknown: 'Bilinmiyor' };
+// Süre dilimleri (olcum.js ile aynı): yol dilimin üst sınırını taşır, toplamda dilimin ortası kullanılır
+const MID = { 1: 0.5, 2: 1.5, 3: 2.5, 5: 4, 7: 6, 10: 8.5, 15: 12.5, 20: 17.5, 30: 25, 45: 37.5, 60: 52.5, 90: 75, 120: 105 };
+const GROUPS = [['1 dakikadan az', [1]], ['1-3 dakika', [2, 3]], ['3-10 dakika', [5, 7, 10]], ['10-30 dakika', [15, 20, 30]], ['30 dakikadan fazla', [45, 60, 90, 120]]];
 const $ = (id) => document.getElementById(id);
 const fmt = new Intl.NumberFormat('tr-TR');
+const dec = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 1 });
 const dayFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' });
 const longDay = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
 let regionName = null;
 try { regionName = new Intl.DisplayNames(['tr'], { type: 'region' }); } catch (e) {}
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
@@ -260,6 +292,7 @@ let key = store.get('rids_panel_key');
 let days = +(store.get('rids_panel_days') || 7);
 if (![1, 7, 30, 90].includes(days)) days = 7;
 let loadId = 0;
+const CACHE_V = 2; // veri biçimi değişince eski önbellek kullanılmaz
 
 // ---------- Zaman aralığı (yerel saatle; GoatCounter saat başına yuvarlanmış zaman ister) ----------
 const iso = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -291,43 +324,87 @@ async function get(path, params) {
   }
   throw new Error('GoatCounter çok sık istek aldı, biraz sonra yenile.');
 }
+// sayfalar ve olaylar 100'er 100'er gelir: hepsi toplanana kadar alınanlar dışarıda bırakılarak sorulur
+async function allHits(span, id) {
+  const out = [], seen = [];
+  for (let page = 0; page < 6; page++) {
+    const q = { ...span, limit: 100, daily: true };
+    if (seen.length) q.exclude_paths = seen.join(',');
+    const r = await get('/stats/hits', q);
+    if (id !== loadId) return null;
+    for (const h of r.hits || []) { out.push(h); seen.push(h.path_id); }
+    if (!r.more || !(r.hits || []).length) break;
+  }
+  return out;
+}
 
 // ---------- Veriyi oyunlara göre topla ----------
 const clean = (p) => String(p || '').replace(/^\/+|\/+$/g, '');
+const blank = () => ({ opens: 0, starts: 0, ends: 0, again: 0, rules: 0, errors: 0, errMsg: '', modes: {}, results: {}, time: 0, visits: 0, extra: 0, dist: {}, startDays: {} });
 function summarize(hits, list) {
-  const g = {}; for (const x of GAMES) g[x.slug] = { opens: 0, starts: 0, ends: 0, startDays: {} };
-  const visitDays = {}, startDays = {}, visitHours = new Array(24).fill(0), startHours = new Array(24).fill(0);
-  let visits = 0, starts = 0, ends = 0;
+  const g = {}; for (const x of [...GAMES.map((x) => x.slug), 'ana-sayfa']) g[x] = blank();
+  const pageDays = {}, entryDays = {}, startDays = {}, pageHours = new Array(24).fill(0), entryHours = new Array(24).fill(0), startHours = new Array(24).fill(0);
+  let pageviews = 0, entries = 0, starts = 0, ends = 0;
+  const today = list.length === 1 ? dayKey(list[0]) : null;
+  const add = (h, days, hours, extra) => {
+    for (const s of h.stats || []) {
+      days[s.day] = (days[s.day] || 0) + (s.daily || 0);
+      if (extra) extra[s.day] = (extra[s.day] || 0) + (s.daily || 0);
+      if (today && s.day === today) (s.hourly || []).forEach((v, i) => { hours[i] += v || 0; });
+    }
+  };
   for (const h of hits || []) {
-    const p = clean(h.path), [slug, ev] = p.split('/');
-    const add = (days, hours, perGame) => {
-      for (const s of h.stats || []) {
-        days[s.day] = (days[s.day] || 0) + (s.daily || 0);
-        if (perGame) perGame[s.day] = (perGame[s.day] || 0) + (s.daily || 0);
-        if (list.length === 1 && s.day === dayKey(list[0])) (s.hourly || []).forEach((v, i) => { hours[i] += v || 0; });
+    const p = clean(h.path), parts = p.split('/'), slug = parts[0], kind = parts[1], val = parts.slice(2).join('/');
+    if (!h.event) { pageviews += h.count; add(h, pageDays, pageHours); if (g[p]) g[p].opens += h.count; continue; }
+    if (p === 'site/giris') { entries += h.count; add(h, entryDays, entryHours); continue; }
+    const x = g[slug]; if (!x) continue;
+    switch (kind) {
+      case 'basladi': x.starts += h.count; starts += h.count; add(h, startDays, startHours, x.startDays); break;
+      case 'bitti': x.ends += h.count; ends += h.count; break;
+      case 'tekrar': x.again += h.count; break;
+      case 'kurallar': x.rules += h.count; break;
+      case 'hata': x.errors += h.count; x.errMsg = String(h.title || '').replace(/^[^:]*:\s*/, ''); break;
+      case 'mod': x.modes[val] = (x.modes[val] || 0) + h.count; break;
+      case 'sonuc': x.results[val] = (x.results[val] || 0) + h.count; break;
+      case 'sure': case 'ek': {
+        const m = MID[+val]; if (m == null) break;
+        x.time += m * h.count;
+        if (kind === 'sure') { x.visits += h.count; x.dist[+val] = (x.dist[+val] || 0) + h.count; } else x.extra += h.count;
+        break;
       }
-    };
-    if (h.event) {
-      if (!g[slug]) continue;
-      if (ev === 'basladi') { g[slug].starts += h.count; starts += h.count; add(startDays, startHours, g[slug].startDays); }
-      else if (ev === 'bitti') { g[slug].ends += h.count; ends += h.count; }
-    } else {
-      visits += h.count; add(visitDays, visitHours);
-      if (g[p]) g[p].opens += h.count;
     }
   }
-  return { g, visits, starts, ends, visitDays, startDays, visitHours, startHours };
+  // ziyaret: yeni site ziyareti olayı varsa o, yoksa (eski veriler) sayfa görüntüleme
+  const useEntries = entries > 0;
+  const games = GAMES.map((x) => g[x.slug]);
+  const gameTime = games.reduce((a, x) => a + x.time, 0), gameVisits = games.reduce((a, x) => a + x.visits, 0);
+  const siteTime = gameTime + g['ana-sayfa'].time;
+  const visits = useEntries ? entries : pageviews;
+  return {
+    g, visits, pageviews, starts, ends, useEntries,
+    visitDays: useEntries ? entryDays : pageDays, visitHours: useEntries ? entryHours : pageHours, startDays, startHours,
+    gameTime, gameAvg: gameVisits ? gameTime / gameVisits : 0, siteTime, siteAvg: visits ? siteTime / visits : 0, hasTime: siteTime > 0
+  };
 }
 
-// ---------- Çizim ----------
-function delta(el, cur, prev, isRate) {
+// ---------- Biçim ----------
+function dur(min) {
+  if (!min) return '0 dk';
+  if (min < 1) return Math.max(1, Math.round(min * 60)) + ' sn';
+  if (min < 10) return dec.format(Math.round(min * 2) / 2) + ' dk';
+  if (min < 60) return Math.round(min) + ' dk';
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  if (h >= 10) return fmt.format(Math.round(min / 60)) + ' sa'; // uzun sürelerde dakika gürültü olur
+  return h + ' sa' + (m ? ' ' + m + ' dk' : '');
+}
+function delta(el, cur, prev, kind) {
   if (prev == null) { el.textContent = ''; return; }
-  if (!prev && !cur) { el.innerHTML = 'önceki dönemde de yok'; return; }
+  if (!prev && !cur) { el.textContent = 'önceki dönemde de yok'; return; }
   if (!prev) { el.innerHTML = '<span class="up">yeni</span> · önceki dönem 0'; return; }
-  const d = isRate ? Math.round((cur - prev) * 100) : Math.round((cur - prev) / prev * 100);
-  const cls = d > 0 ? 'up' : d < 0 ? 'down' : '';
-  const sign = d > 0 ? '▲ ' : d < 0 ? '▼ ' : '';
-  el.innerHTML = `<span class="${cls}">${sign}${isRate ? Math.abs(d) + ' puan' : '%' + Math.abs(d)}</span> · önceki: ${isRate ? '%' + Math.round(prev * 100) : fmt.format(prev)}`;
+  const d = kind === 'rate' ? Math.round((cur - prev) * 100) : Math.round((cur - prev) / prev * 100);
+  const cls = d > 0 ? 'up' : d < 0 ? 'down' : '', sign = d > 0 ? '▲ ' : d < 0 ? '▼ ' : '';
+  const was = kind === 'rate' ? '%' + Math.round(prev * 100) : kind === 'time' ? dur(prev) : fmt.format(prev);
+  el.innerHTML = `<span class="${cls}">${sign}${kind === 'rate' ? Math.abs(d) + ' puan' : '%' + Math.abs(d)}</span> · önceki: ${was}`;
 }
 function countUp(el, to, pre = '') {
   const from = +(el.dataset.v || 0); el.dataset.v = to;
@@ -339,20 +416,22 @@ function countUp(el, to, pre = '') {
     if (k < 1) requestAnimationFrame(step);
   })(t0);
 }
+
+// ---------- Grafik ----------
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
 function drawChart(cur, list) {
   const svg = $('chart'), hourly = list.length === 1;
   const W = Math.max(280, svg.clientWidth || 600), H = svg.clientHeight || 200, padL = 30, padB = 22, padT = 8;
   const labels = hourly ? Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0') + ':00') : list.map((d) => dayFmt.format(d));
   const vis = hourly ? cur.visitHours : list.map((d) => cur.visitDays[dayKey(d)] || 0);
   const sta = hourly ? cur.startHours : list.map((d) => cur.startDays[dayKey(d)] || 0);
-  const n = vis.length, max = Math.max(1, ...vis, ...sta), top = niceMax(max);
+  const n = vis.length, top = niceMax(Math.max(1, ...vis, ...sta));
   const cw = (W - padL) / n, bw = Math.max(2, Math.min(28, cw * 0.62)), ih = H - padB - padT;
   const y = (v) => padT + ih - (v / top) * ih, x = (i) => padL + cw * i + cw / 2;
   let s = '';
   for (const f of [0, 0.5, 1]) { const yy = y(top * f); s += `<line class="grid-line" x1="${padL}" x2="${W}" y1="${yy}" y2="${yy}"/><text class="axis" x="${padL - 6}" y="${yy + 4}" text-anchor="end">${fmt.format(Math.round(top * f))}</text>`; }
   vis.forEach((v, i) => { const h = Math.max(v ? 2 : 0, (v / top) * ih); s += `<rect x="${x(i) - bw / 2}" y="${padT + ih - h}" width="${bw}" height="${h}" rx="${Math.min(4, bw / 3)}" fill="url(#gv)"/>`; });
-  const pts = sta.map((v, i) => `${x(i)},${y(v)}`).join(' ');
-  s += `<polyline points="${pts}" fill="none" stroke="var(--play)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += `<polyline points="${sta.map((v, i) => `${x(i)},${y(v)}`).join(' ')}" fill="none" stroke="var(--play)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
   if (n <= 31) sta.forEach((v, i) => { if (v) s += `<circle cx="${x(i)}" cy="${y(v)}" r="3.2" fill="var(--play)" stroke="#151A22" stroke-width="1.5"/>`; });
   // alt eksende en fazla 4 (telefon) ya da 7 etiket, eşit aralıkla
   const every = Math.ceil(n / (W < 420 ? 4 : 7));
@@ -361,77 +440,135 @@ function drawChart(cur, list) {
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = `<defs><linearGradient id="gv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#36C5E8"/><stop offset="1" stop-color="#0F6E9C"/></linearGradient></defs>` + s;
   const tip = $('tip'), hover = svg.querySelector('#hover');
+  const total = vis.reduce((a, b) => a + b, 0), totalS = sta.reduce((a, b) => a + b, 0);
+  const defaultTip = `Toplam <b>${fmt.format(total)}</b> ziyaret · <b>${fmt.format(totalS)}</b> oyun. Ayrıntı için grafiğe dokun.`;
   const show = (i) => {
     hover.setAttribute('x', padL + cw * i); hover.setAttribute('visibility', 'visible');
-    const when = hourly ? labels[i] : longDay.format(list[i]);
-    tip.innerHTML = `${when}: <b>${fmt.format(vis[i])}</b> ziyaret · <b>${fmt.format(sta[i])}</b> oyun`;
+    tip.innerHTML = `${hourly ? labels[i] : longDay.format(list[i])}: <b>${fmt.format(vis[i])}</b> ziyaret · <b>${fmt.format(sta[i])}</b> oyun`;
   };
   svg.querySelectorAll('#hits rect').forEach((r) => { r.addEventListener('pointerenter', () => show(+r.dataset.i)); r.addEventListener('pointerdown', () => show(+r.dataset.i)); });
   // dokunmatikte parmak kalkınca da 'leave' gelir; seçili gün yalnız fare çıkınca sıfırlanır
   svg.onpointerleave = (e) => { if (e.pointerType !== 'mouse') return; hover.setAttribute('visibility', 'hidden'); tip.innerHTML = defaultTip; };
-  const total = vis.reduce((a, b) => a + b, 0), totalS = sta.reduce((a, b) => a + b, 0);
-  const defaultTip = `Toplam <b>${fmt.format(total)}</b> ziyaret · <b>${fmt.format(totalS)}</b> oyun. Ayrıntı için grafiğe dokun.`;
   tip.innerHTML = defaultTip;
   $('chartTitle').textContent = hourly ? 'Bugün, saat saat' : 'Günlük';
 }
-function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
 function spark(series) {
   const n = series.length, max = Math.max(1, ...series), W = 200, H = 34;
   if (n < 2) return '';
   const pts = series.map((v, i) => `${(i / (n - 1)) * W},${H - 3 - (v / max) * (H - 6)}`);
   return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,${H} ${pts.join(' ')} ${W},${H}" fill="rgba(255,181,71,.12)" stroke="none"/><polyline points="${pts.join(' ')}" fill="none" stroke="var(--play)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
 }
+
+// ---------- Oyun kartları ----------
+const LV = { kolay: 'kolay', orta: 'orta', zor: 'zor' };
+function modeLabel(slug, m) {
+  const p = m.split('-');
+  if (slug === 'kizma-birader') return `${p[0]} kişi · ${p[1] === 'insan' ? 'aynı telefonda' : 'bilgisayara karşı, ' + (p[2] || '')}`;
+  if (slug === 'civi-futbolu') return p[0] === '2' ? '2 oyuncu' : 'bilgisayara karşı, ' + (p[1] || '');
+  if (slug === 'solo-test') return { klasik: 'Klasik', elmas: 'Elmas ısınma', hizli: 'Hızlı bulmaca' }[m] || m;
+  if (slug === 'sulu-halka') return `${p[0] === 'yetiskin' ? 'Yetişkin' : 'Çocuk'} · ${p[1] || ''} halka`;
+  return m;
+}
+function topMode(x, slug) {
+  const e = Object.entries(x.modes).sort((a, b) => b[1] - a[1]); if (!e.length) return '';
+  const all = e.reduce((a, [, c]) => a + c, 0);
+  return `${esc(modeLabel(slug, e[0][0]))} <small>%${pct(e[0][1], all)}</small>`;
+}
+function winRate(x) { // bilgisayara karşı: insanın kazandığı oyunların oranı, zorluk zorluk
+  let win = 0, all = 0; const lv = {};
+  for (const [k, c] of Object.entries(x.results)) {
+    const [who, level] = k.split('-'); all += c; if (who === 'insan') win += c;
+    lv[level] = lv[level] || [0, 0]; lv[level][1] += c; if (who === 'insan') lv[level][0] += c;
+  }
+  if (!all) return '';
+  const parts = Object.keys(LV).filter((l) => lv[l]).map((l) => `${l} %${pct(lv[l][0], lv[l][1])}`);
+  return `%${pct(win, all)}` + (parts.length > 1 ? ` <small>(${parts.join(' · ')})</small>` : '');
+}
+function soloRate(x) { // tek piyonla bitirme oranı
+  let one = 0, all = 0; for (const [k, c] of Object.entries(x.results)) { all += c; if (/-1$/.test(k)) one += c; }
+  return all ? `%${pct(one, all)} <small>(${fmt.format(one)}/${fmt.format(all)})</small>` : '';
+}
 function drawGames(cur, list) {
-  const order = GAMES.map((x) => ({ ...x, ...cur.g[x.slug] })).sort((a, b) => b.starts - a.starts || b.opens - a.opens);
+  const order = GAMES.map((x) => ({ ...x, d: cur.g[x.slug] })).sort((a, b) => b.d.starts - a.d.starts || b.d.opens - a.d.opens);
   $('games').innerHTML = order.map((x, k) => {
-    const rate = x.starts ? Math.round(x.ends / x.starts * 100) : 0;
-    const series = list.length > 1 ? list.map((d) => x.startDays[dayKey(d)] || 0) : [];
+    const d = x.d, rate = pct(d.ends, d.starts);
+    const series = list.length > 1 ? list.map((day) => d.startDays[dayKey(day)] || 0) : [];
+    const facts = [];
+    if (d.time) facts.push(['Toplam süre', `${dur(d.time)}`], ['Oyuncu başına', d.visits ? dur(d.time / d.visits) : '']);
+    if (x.cpu) { const w = winRate(d); if (w) facts.push(['Bilgisayarı yenme', w]); }
+    if (x.solo) { const w = soloRate(d); if (w) facts.push(['Tek piyonla bitirme', w]); }
+    if (d.ends) facts.push(['Tekrar oynama', `%${pct(d.again, d.ends)}`]);
+    if (x.rules && d.opens) facts.push(['Kurallara bakan', `%${pct(d.rules, d.opens)}`]);
+    const tm = topMode(d, x.slug); if (tm) facts.push(['En çok seçilen', tm]);
+    if (d.errors) facts.push(['Hata', `<b class="bad">${fmt.format(d.errors)}</b>`]);
     return `<article class="game cut">
-      <div class="cover" style="background-image:url('${x.img}')"><h3>${esc(x.name)}</h3>${x.starts ? `<span class="rank cut">${k + 1}.</span>` : ''}</div>
+      <div class="cover" style="background-image:url('${x.img}')"><h3>${esc(x.name)}</h3>${d.starts ? `<span class="rank cut">${k + 1}.</span>` : ''}</div>
       <div class="body">
         <h3 class="m">${esc(x.name)}</h3>
-        <div class="nums"><div><b>${fmt.format(x.opens)}</b><small>açılış</small></div><div><b>${fmt.format(x.starts)}</b><small>başlatma</small></div><div><b>${fmt.format(x.ends)}</b><small>bitirme</small></div></div>
+        <div class="nums"><div><b>${fmt.format(d.opens)}</b><small>açılış</small></div><div><b>${fmt.format(d.starts)}</b><small>başlatma</small></div><div><b>${fmt.format(d.ends)}</b><small>bitirme</small></div></div>
         <div class="rate"><span>Bitirme oranı: <b style="color:#fff">%${rate}</b></span><div class="track"><div class="fill" style="width:${Math.min(100, rate)}%"></div></div></div>
+        ${facts.length ? `<div class="facts">${facts.filter((f) => f[1]).map(([l, v]) => `<div><span>${l}</span>${v.startsWith('<b') ? v : `<b>${v}</b>`}</div>`).join('')}</div>` : ''}
         ${spark(series)}
       </div>
     </article>`;
   }).join('');
 }
-function rows(el, items, total) {
-  if (!items.length) { el.innerHTML = '<li class="empty">Bu aralıkta veri yok.</li>'; return; }
-  const max = Math.max(...items.map((i) => i.count), 1), sum = total || items.reduce((a, b) => a + b.count, 0) || 1;
-  el.innerHTML = items.map((i) => `<li style="--w:${Math.max(4, i.count / max * 100)}%"><span class="name">${i.label}</span><span class="n">${fmt.format(i.count)}<small>%${Math.round(i.count / sum * 100)}</small></span></li>`).join('');
+
+// ---------- Listeler ----------
+function rows(el, items, opts = {}) {
+  if (!items.length) { el.innerHTML = `<li class="empty">${opts.empty || 'Bu aralıkta veri yok.'}</li>`; return; }
+  const max = Math.max(...items.map((i) => i.count), 1), sum = opts.total || items.reduce((a, b) => a + b.count, 0) || 1;
+  el.innerHTML = items.map((i) => `<li class="${i.cls || ''}" style="--w:${Math.max(4, i.count / max * 100)}%"><span class="name">${i.label}</span><span class="n">${fmt.format(i.count)}${opts.noPct ? '' : `<small>%${Math.round(i.count / sum * 100)}</small>`}</span></li>`).join('');
 }
 const flag = (code) => /^[A-Za-z]{2}$/.test(code) ? String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1F1E6 + c.charCodeAt(0) - 65)) + ' ' : '';
-function refLabel(name) {
+const KNOWN = [[/youtu/i, 'YouTube'], [/instagram/i, 'Instagram'], [/tiktok/i, 'TikTok'], [/facebook|fb\./i, 'Facebook'], [/whatsapp/i, 'WhatsApp'], [/^(x\.com|t\.co|twitter)/i, 'X (Twitter)'], [/google/i, 'Google'], [/bing/i, 'Bing'], [/yandex/i, 'Yandex']];
+function refLabel(name, scheme) {
   const n = String(name || '').trim();
   if (!n || n === '(no data)') return 'Doğrudan veya bilinmiyor';
   if (/^ridsgames\.github\.io/.test(n)) return 'Site içinden';
-  return esc(n.replace(/^https?:\/\//, ''));
+  const k = KNOWN.find(([re]) => re.test(n));
+  const label = k ? k[1] : esc(n.replace(/^https?:\/\//, ''));
+  return scheme === 'c' ? label + '<span class="chip cut">etiketli</span>' : label;
 }
-function drawLists(refs, locs, sizes, systems) {
+function drawLists(cur, lists) {
+  // kalma süresi dağılımı: oyun sayfası ziyaretleri (ilk çıkış), dört oyun birlikte
+  const dist = {}; let distAll = 0;
+  for (const x of GAMES) for (const [b, c] of Object.entries(cur.g[x.slug].dist)) { dist[b] = (dist[b] || 0) + c; distAll += c; }
+  rows($('dist'), distAll ? GROUPS.map(([label, bs]) => ({ label, count: bs.reduce((a, b) => a + (dist[b] || 0), 0) })) : [], { empty: 'Henüz süre verisi yok. Ölçüm bu güncellemeyle başladı.' });
+  // hatalar
+  const errs = Object.entries(cur.g).filter(([, x]) => x.errors).map(([slug, x]) => ({ label: `${PAGES[slug] || slug}<small>${esc(x.errMsg)}</small>`, count: x.errors, cls: 'bad' }));
+  if (errs.length) rows($('errs'), errs, { noPct: true }); else $('errs').innerHTML = '<li class="ok">✓ Bu aralıkta hata yok.</li>';
+  // kaynaklar
   const merged = {};
-  for (const r of refs) { const l = refLabel(r.name); merged[l] = (merged[l] || 0) + r.count; }
+  for (const r of lists.refs) { const l = refLabel(r.name, r.ref_scheme); merged[l] = (merged[l] || 0) + r.count; }
   rows($('refs'), Object.entries(merged).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count).slice(0, 8));
-  rows($('locs'), locs.slice(0, 8).map((l) => {
+  rows($('camps'), lists.camps.slice(0, 8).map((c) => ({ label: esc(c.name || c.id), count: c.count })), { empty: 'Henüz etiketli paylaşım yok.' });
+  rows($('locs'), lists.locs.slice(0, 8).map((l) => {
     const code = String(l.id || '').slice(0, 2);
     let nm = l.name || code || 'Bilinmiyor';
     try { if (regionName && /^[A-Z]{2}$/i.test(code)) nm = regionName.of(code.toUpperCase()) || nm; } catch (e) {}
     return { label: flag(code) + esc(nm || 'Bilinmiyor'), count: l.count };
   }));
-  rows($('sizes'), sizes.filter((s) => s.count).map((s) => ({ label: SIZES[s.id] || esc(s.name || s.id), count: s.count })));
-  rows($('systems'), systems.slice(0, 6).map((s) => ({ label: esc(s.name || 'Bilinmiyor'), count: s.count })));
+  rows($('sizes'), lists.sizes.filter((s) => s.count).map((s) => ({ label: SIZES[s.id] || esc(s.name || s.id), count: s.count })));
+  rows($('systems'), lists.systems.slice(0, 6).map((s) => ({ label: esc(s.name || 'Bilinmiyor'), count: s.count })));
 }
+
+// ---------- Hepsi ----------
+function setDur(id, min, has) { const el = $(id); el.textContent = has ? dur(min) : '–'; }
 function render(data) {
   const { cur, prev, lists, at } = data, list = range(days).list;
   countUp($('kVisits'), cur.visits); countUp($('kStarts'), cur.starts); countUp($('kEnds'), cur.ends);
   const rate = cur.starts ? cur.ends / cur.starts : 0, pRate = prev && prev.starts ? prev.ends / prev.starts : null;
   countUp($('kRate'), Math.round(rate * 100), '%');
   delta($('dVisits'), cur.visits, prev && prev.visits); delta($('dStarts'), cur.starts, prev && prev.starts); delta($('dEnds'), cur.ends, prev && prev.ends);
-  if (pRate == null) $('dRate').textContent = ''; else delta($('dRate'), rate, pRate, true);
-  drawChart(cur, list); drawGames(cur, list); drawLists(lists.refs, lists.locs, lists.sizes, lists.systems);
-  const t = new Date(at);
-  $('updated').textContent = 'Son güncelleme: ' + t.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) + (Date.now() - at > 60000 ? ' (kayıtlı veri, yenileniyor…)' : '');
+  if (pRate == null) $('dRate').textContent = ''; else delta($('dRate'), rate, pRate, 'rate');
+  setDur('kSite', cur.siteTime, cur.hasTime); setDur('kSiteAvg', cur.siteAvg, cur.hasTime); setDur('kGame', cur.gameTime, cur.hasTime); setDur('kGameAvg', cur.gameAvg, cur.hasTime);
+  const ph = prev && prev.hasTime;
+  for (const [id, k] of [['dSite', 'siteTime'], ['dSiteAvg', 'siteAvg'], ['dGame', 'gameTime'], ['dGameAvg', 'gameAvg']]) {
+    if (!cur.hasTime) $(id).textContent = 'ölçüm yeni başladı'; else delta($(id), cur[k], ph ? prev[k] : null, 'time');
+  }
+  drawChart(cur, list); drawGames(cur, list); drawLists(cur, lists);
+  $('updated').textContent = 'Son güncelleme: ' + new Date(at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) + (Date.now() - at > 60000 ? ' (kayıtlı veri, yenileniyor…)' : '');
 }
 
 // ---------- Yükleme ----------
@@ -439,21 +576,18 @@ async function load() {
   const id = ++loadId, r = range(days), cacheKey = 'rids_panel_cache_' + days;
   $('err').hidden = true; $('refresh').classList.add('spin');
   let cached = null; try { cached = JSON.parse(store.get(cacheKey)); } catch (e) {}
-  if (cached && cached.days === days) render(cached); else $('dash').classList.add('loading');
+  if (cached && cached.days === days && cached.v === CACHE_V) render(cached); else $('dash').classList.add('loading');
   try {
     const span = { start: iso(r.start), end: iso(r.end) }, pspan = { start: iso(r.pStart), end: iso(r.pEnd) };
-    const hits = await get('/stats/hits', { ...span, limit: 100, daily: true });
-    if (id !== loadId) return;
-    const cur = summarize(hits.hits, r.list);
-    const lists = { refs: [], locs: [], sizes: [], systems: [] };
-    const prevHits = await get('/stats/hits', { ...pspan, limit: 100, daily: true });
-    const prev = summarize(prevHits.hits, []);
-    for (const [k, page] of [['refs', 'toprefs'], ['locs', 'locations'], ['sizes', 'sizes'], ['systems', 'systems']]) {
-      if (id !== loadId) return;
+    const hits = await allHits(span, id); if (!hits) return;
+    const prevHits = await allHits(pspan, id); if (!prevHits) return;
+    const cur = summarize(hits, r.list), prev = summarize(prevHits, []);
+    const lists = { refs: [], camps: [], locs: [], sizes: [], systems: [] };
+    for (const [k, page] of [['refs', 'toprefs'], ['camps', 'campaigns'], ['locs', 'locations'], ['sizes', 'sizes'], ['systems', 'systems']]) {
       lists[k] = (await get('/stats/' + page, { ...span, limit: 20 })).stats || [];
+      if (id !== loadId) return;
     }
-    if (id !== loadId) return;
-    const data = { days, cur, prev, lists, at: Date.now() };
+    const data = { v: CACHE_V, days, cur, prev, lists, at: Date.now() };
     store.set(cacheKey, JSON.stringify(data));
     $('dash').classList.remove('loading'); render(data);
   } catch (e) {
@@ -489,7 +623,10 @@ $('forget').addEventListener('click', () => {
   key = null; showKey();
 });
 let lastW = innerWidth;
-addEventListener('resize', () => { if (Math.abs(innerWidth - lastW) < 40) return; lastW = innerWidth; const c = store.get('rids_panel_cache_' + days); if (c && !$('dash').hidden) { try { render(JSON.parse(c)); } catch (e) {} } });
+addEventListener('resize', () => {
+  if (Math.abs(innerWidth - lastW) < 40) return; lastW = innerWidth;
+  try { const c = JSON.parse(store.get('rids_panel_cache_' + days)); if (c && c.v === CACHE_V && !$('dash').hidden) render(c); } catch (e) {}
+});
 document.addEventListener('visibilitychange', () => { if (!document.hidden && key && !$('dash').hidden) load(); });
 if (key) showDash(); else showKey();
 </script>

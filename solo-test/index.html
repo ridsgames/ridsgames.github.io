@@ -94,6 +94,8 @@
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="solo-test" data-name="Solo Test"></script>
 </head>
 <body class="flex flex-col h-[100dvh] lg:min-h-screen lg:h-auto overflow-hidden lg:overflow-x-hidden lg:overflow-y-auto justify-between">
 
@@ -879,7 +881,9 @@
         try { window.goatcounter.count({ path: "solo-test/" + olay, title: "Solo Test: " + ad, event: true }); } catch (e) {}
       }
 
+      const MODE_SLUG = { classic: "klasik", diamond: "elmas", cross: "hizli" };
       function initGame() {
+        if (counted.end) sayac("tekrar", "bitirdikten sonra yeni oyun");
         counted = { start: false, end: false };
         stopTimer();
         timerSeconds = 0;
@@ -900,7 +904,7 @@
 
       // --- HAMLE YAPMA ---
       function executeJump(jump) {
-        if (!counted.start) { counted.start = true; sayac("basladi", "oyun başladı"); }
+        if (!counted.start) { counted.start = true; sayac("basladi", "oyun başladı"); sayac("mod/" + MODE_SLUG[currentMode], "mod: " + MODE_SLUG[currentMode]); }
         startTimerIfNeeded();
         activeHint = null;
         selectedCell = null;
@@ -1015,8 +1019,11 @@
 
         isGameOver = true;
         stopTimer();
-        if (!counted.end) { counted.end = true; sayac("bitti", "oyun bitti"); }
         const pegsLeft = countRemainingPegs();
+        if (!counted.end) {
+          counted.end = true; sayac("bitti", "oyun bitti");
+          sayac("sonuc/" + MODE_SLUG[currentMode] + "-" + Math.min(pegsLeft, 10), "sonuç: " + MODE_SLUG[currentMode] + ", " + (pegsLeft >= 10 ? "10+" : pegsLeft) + " piyon kaldı");
+        }
         saveBestScore(pegsLeft, timerSeconds);
         updateUI();
 
@@ -1565,6 +1572,7 @@
       });
 
       rulesBtn.addEventListener("click", () => {
+        sayac("kurallar", "kurallar açıldı");
         openRulesModal();
       });
 

@@ -168,6 +168,8 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="kizma-birader" data-name="Kızma Birader"></script>
 </head>
 <body>
 <header class="top">
@@ -368,6 +370,8 @@ function legalMoves(p, v) {
 const finished = (p) => G.pieces[p].every((pos) => pos >= 40);
 // Sayaç: oyun başlatma ve bitirme olayları (GoatCounter yüklenmediyse sessizce geçer)
 const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'kizma-birader/' + olay, title: 'Kızma Birader: ' + ad, event: true }); } catch (e) {} };
+let bitenVar = false; // bitirdikten sonra açılan yeni oyun "tekrar" sayılır
+const lvAd = (lv) => (lv === 'easy' ? 'kolay' : 'zor');
 
 // ---------- Bilgisayar ----------
 function risk(p, abs) { // bu kareyi bir sonraki turda vurabilecek rakip sayısı
@@ -402,6 +406,9 @@ function chooseMove(p, list) {
 // ---------- Akış ----------
 function newGame(seats, level) {
   sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  const n = seats.filter((s) => s !== 'none').length, cpu = seats.includes('cpu');
+  sayac(`mod/${n}-${cpu ? 'bilgisayar-' + lvAd(level) : 'insan'}`, `mod: ${n} oyuncu, ${cpu ? 'bilgisayara karşı, ' + lvAd(level) : 'aynı telefonda'}`);
   G = { seats: seats.slice(), level, pieces: [0, 1, 2, 3].map(() => [-1, -1, -1, -1]), turn: 0, order: [] };
   G.turn = active()[0];
   closeAll(); startTurn(G.turn); save();
@@ -472,7 +479,8 @@ function afterMove(p) {
   nextPlayer();
 }
 function gameOver(p) {
-  phase = 'over'; render(); sayac('bitti', 'oyun bitti');
+  phase = 'over'; render(); sayac('bitti', 'oyun bitti'); bitenVar = true;
+  if (G.seats.includes('cpu') && G.seats.includes('human')) { const w = G.seats[p] === 'human' ? 'insan' : 'bilgisayar'; sayac(`sonuc/${w}-${lvAd(G.level)}`, `sonuç: ${w} kazandı (${lvAd(G.level)})`); }
   try { localStorage.removeItem('rids_kizma_game'); } catch (e) {}
   Sfx.win(); buzz([60, 60, 120]); confetti(p);
   const t = T(), solo = humans() === 1 && G.seats[p] === 'human';
@@ -889,7 +897,7 @@ $('resumeBtn').addEventListener('click', () => {
   closeAll(); layerKey = ''; startTurn(G.turn);
 });
 $('menuBtn').addEventListener('click', openSetup);
-$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; });
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; sayac('kurallar', 'kurallar açıldı'); });
 $('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
 $('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
 $('againBtn').addEventListener('click', () => newGame(G.seats, G.level));

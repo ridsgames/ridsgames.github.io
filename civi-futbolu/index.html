@@ -34,6 +34,8 @@
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="civi-futbolu" data-name="Çivi Futbolu"></script>
 </head>
 <body>
 <header class="home-bar">
@@ -140,8 +142,12 @@ const names = () => [t('red', 'Kırmızı'), mode === 'ai' ? t('cpu', 'Bilgisaya
 
 // Sayaç: oyun başlatma ve bitirme olayları (GoatCounter yüklenmediyse sessizce geçer)
 function sayac(olay, ad) { try { window.goatcounter.count({ path: 'civi-futbolu/' + olay, title: 'Çivi Futbolu: ' + ad, event: true }); } catch {} }
+let bitenVar = false;                                                    // bitirdikten sonra açılan yeni oyun "tekrar" sayılır
+const LV = ['kolay', 'orta', 'zor'];
 function newGame(m) {
   mode = m; score = [0, 0]; clearTimeout(aiTimer); sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(m === 'ai' ? 'mod/bilgisayar-' + LV[level] : 'mod/2-oyuncu', m === 'ai' ? 'mod: bilgisayara karşı, ' + LV[level] : 'mod: 2 oyuncu');
   try { ac = ac || new AudioContext(); } catch {}
   $('menu').hidden = $('end').hidden = $('gol').hidden = true;
   $('nB').textContent = names()[1];
@@ -169,7 +175,8 @@ function goal(side) {
     $('gol').hidden = true;
     if (state !== 'goal') return;
     if (score[s] < WIN) return kickoff(1 - s);
-    state = 'over'; sayac('bitti', 'oyun bitti');
+    state = 'over'; sayac('bitti', 'oyun bitti'); bitenVar = true;
+    if (mode === 'ai') sayac(`sonuc/${s ? 'bilgisayar' : 'insan'}-${LV[level]}`, `sonuç: ${s ? 'bilgisayar' : 'insan'} kazandı (${LV[level]})`);
     $('endText').textContent = mode === 'ai' ? (s ? t('cpuWins', 'Bilgisayar kazandı') : t('youWin', 'Kazandın!')) : `${names()[s]} ${t('wins', 'kazandı!')}`;
     $('end').hidden = false;
   }, 1300);
