@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Ridsgames: Panel</title>
+<title>Ridsgames</title>
 <meta name="theme-color" content="#07080B">
 <meta name="color-scheme" content="dark">
 <link rel="icon" href="../assets/icon.png" type="image/png">
@@ -12,7 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Özel panel: GoatCounter verilerini API anahtarıyla okur. Anahtar yalnızca bu tarayıcıda saklanır, sayfada veri yoktur. -->
+<!-- Özel panel: GoatCounter verilerini API anahtarıyla okur. Anahtar yalnızca bu tarayıcıda saklanır, sayfada veri yoktur.
+     Anahtarı olmayan "Sayfa bulunamadı" görür; anahtar girişi yalnızca /panel/#giris adresinde açılır. -->
 <style>
 :root {
   /* Ana sayfayla aynı dil: gece zemini, çelik yazı, su mavisi vurgu, kesik köşeler */
@@ -151,6 +152,7 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
 .key input:focus { outline: 2px solid var(--water); outline-offset: 0; }
 .btn { --cut: 10px; height: 48px; border: 0; background: var(--water); color: var(--ink-on-water); font-family: var(--display); font-weight: 700; font-size: 17px; }
 .btn:hover { filter: brightness(1.08); }
+a.btn { display: inline-flex; align-items: center; padding: 0 22px; text-decoration: none; }
 .err { --cut: 10px; margin: 0 0 14px; padding: 12px 14px; background: rgba(248, 113, 113, .12); border-left: 3px solid var(--bad); color: #fecaca; font-size: 15px; }
 
 /* Yüklenirken */
@@ -187,14 +189,21 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
 </head>
 <body>
 <header class="wrap bar">
-  <a class="brand" href="../" aria-label="Ridsgames ana sayfa"><img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52"><span>PANEL</span></a>
+  <a class="brand" href="../" aria-label="Ridsgames ana sayfa"><img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52"><span id="tag" hidden>PANEL</span></a>
   <button id="refresh" class="icon-btn" type="button" hidden>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span class="t">Yenile</span>
   </button>
 </header>
 
 <main class="wrap">
-  <!-- Anahtar girişi: ilk açılışta ya da anahtar geçersizse -->
+  <!-- Anahtarı olmayan ziyaretçiye görünen sayfa -->
+  <section id="nf" class="key cut" hidden>
+    <h1>Sayfa bulunamadı</h1>
+    <p>Aradığın sayfa burada değil.</p>
+    <a class="btn cut" href="../">Ana sayfaya dön</a>
+  </section>
+
+  <!-- Anahtar girişi: /panel/#giris adresinde ya da anahtar geçersizse -->
   <section id="keyBox" class="key cut" hidden>
     <h1>Oyun istatistikleri</h1>
     <p>Bu panel GoatCounter verilerini okur. Bir kez API anahtarı girmen yeterli, anahtar yalnızca bu tarayıcıda saklanır.</p>
@@ -606,19 +615,27 @@ async function load() {
     $('err').textContent = e.message; $('err').hidden = false;
   } finally { if (id === loadId) $('refresh').classList.remove('spin'); }
 }
+function panelMode(on) {
+  $('nf').hidden = on; $('tag').hidden = !on; document.title = on ? 'Ridsgames: Panel' : 'Ridsgames';
+}
+function showNotFound() {
+  panelMode(false); $('dash').hidden = true; $('refresh').hidden = true; $('keyBox').hidden = true;
+}
 function showKey(msg) {
-  $('dash').hidden = true; $('refresh').hidden = true; $('keyBox').hidden = false;
+  panelMode(true); $('dash').hidden = true; $('refresh').hidden = true; $('keyBox').hidden = false;
   $('keyErr').textContent = msg || ''; $('keyErr').hidden = !msg;
 }
 function showDash() {
-  $('keyBox').hidden = true; $('dash').hidden = false; $('refresh').hidden = false;
+  panelMode(true); $('keyBox').hidden = true; $('dash').hidden = false; $('refresh').hidden = false;
   document.querySelectorAll('#ranges button').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.d === days));
   load();
 }
 $('keyForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const v = $('keyInput').value.trim(); if (!v) return;
-  key = v; store.set('rids_panel_key', v); $('keyInput').value = ''; showDash();
+  key = v; store.set('rids_panel_key', v); $('keyInput').value = '';
+  if (location.hash) history.replaceState(null, '', location.pathname);
+  showDash();
 });
 $('ranges').addEventListener('click', (e) => {
   const b = e.target.closest('button[data-d]'); if (!b) return;
@@ -638,7 +655,10 @@ addEventListener('resize', () => {
 });
 // uygulamaya geri dönünce en fazla dakikada bir kendiliğinden yenilenir
 document.addEventListener('visibilitychange', () => { if (!document.hidden && key && !$('dash').hidden && Date.now() - lastOk > 60000) load(); });
-if (key) showDash(); else showKey();
+// anahtar yoksa sayfa yokmuş gibi görünür; giriş formu yalnızca #giris ile açılır
+const wantsKey = () => location.hash === '#giris';
+addEventListener('hashchange', () => { if (!key) (wantsKey() ? showKey() : showNotFound()); });
+if (key) showDash(); else if (wantsKey()) showKey(); else showNotFound();
 </script>
 </body>
 </html>
