@@ -1,7 +1,7 @@
-// Ortak sıralama tablosu (Firebase Realtime Database, SDK'sız REST). Solo Test, Sulu Halka ve Mangala kullanır.
+// Ortak sıralama tablosu (Firebase Realtime Database, SDK'sız REST). Solo Test, Sulu Halka, Mangala ve Yılan Merdiven kullanır.
 // Okuma herkese açık. Oyuncu ilk kez sıralamaya girerken bir takma ad seçer, anonim oturum o an açılır;
 // e-posta ya da gerçek kimlik istenmez. Kurallar: firebase/database.rules.json (Realtime Database > Rules).
-// Kayıt: lb/<pano>/all/<uid> ve lb/<pano>/w/<hafta>/<uid> = { n: ad, s: sıra puanı (düşük iyi), d: süre (sn/10), p?: piyon ya da taş, t: sunucu zamanı }
+// Kayıt: lb/<pano>/all/<uid> ve lb/<pano>/w/<hafta>/<uid> = { n: ad, s: sıra puanı (düşük iyi), d: süre (sn/10), p?: piyon, taş ya da zar atışı, t: sunucu zamanı }
 // Kullanım:
 //   const lb = RidsSiralama({ panolar: [{ id, tr, en }], dil: () => 'tr', bicim: (kayit, dil) => '01:02.3', olay: (ad) => {} });
 //   lb.ac(panoId)                      sıralama penceresini açar

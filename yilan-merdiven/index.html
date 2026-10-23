@@ -141,6 +141,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 .rank li .n { color: var(--dim); font-weight: 800; }
 .rank li .d { width: 26px; height: 26px; }
 .rank li .s { color: var(--dim); font-weight: 600; font-size: 13px; }
+#lbSlot:not(:empty) { margin: 10px 0 2px; }
 .rank li.first { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
 .toast {
   position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
@@ -164,6 +165,8 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
 <script src="../assets/olcum.js" data-page="yilan-merdiven" data-name="Yılan Merdiven"></script>
+<!-- Ortak sıralama tablosu (Firebase) -->
+<script src="../assets/siralama.js"></script>
 </head>
 <body>
 <header class="top">
@@ -175,6 +178,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
     <div class="tools">
       <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
       <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="lbBtn" class="pill" type="button" aria-label="Sıralama"><span class="ico">🏆</span><span class="lbl" id="lbLbl">Sıralama</span></button>
       <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
       <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
       <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
@@ -238,6 +242,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
     <h2 id="winTitle"></h2>
     <p class="sub" id="winSub"></p>
     <ol class="rank" id="rankList"></ol>
+    <div id="lbSlot"></div>
     <div class="btns">
       <button class="big" id="againBtn" type="button">Tekrar oyna</button>
       <button class="big alt" id="toMenuBtn" type="button">Oyuncuları değiştir</button>
@@ -249,7 +254,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 // ---------- Dil ----------
 const STR = {
   tr: {
-    title: 'Yılan Merdiven | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Yılan Merdiven', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    title: 'Yılan Merdiven | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Yılan Merdiven', newGame: 'Yeni oyun', lb: 'Sıralama', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
     colors: ['Kırmızı', 'Mavi', 'Yeşil', 'Sarı'], animals: ['Tilki', 'Balina', 'Kurbağa', 'Civciv'], human: 'İnsan', cpu: 'Bilgisayar', you: 'Sen',
     setupSub: 'Kaç kişi oynuyor? Her renk için seç.', start: 'Başla', resume: 'Kaldığın yerden devam et', count: 'Oyuncu sayısı',
     rollTap: 'Zar atmak için zara dokun', rollCpu: 'Zar atıyor…', yourTurn: 'Sıra sende', turnOf: (n) => `${n} oynuyor`,
@@ -264,11 +269,12 @@ const STR = {
       ['🐍', 'Bir <b>yılanın</b> başına gelirsen kuyruğuna kadar kayarsın.'],
       ['🎯', '100\'e <b>tam sayıyla</b> girilir. Zar fazla gelirse piyon yerinde kalır ve sıra geçer.'],
       ['6️⃣', '<b>6</b> gelince bir daha atarsın. Üst üste üçüncü 6\'da hamle yapılmaz ve sıra geçer.'],
-      ['🏆', '100\'e ilk ulaşan kazanır.']
+      ['🏆', '100\'e ilk ulaşan kazanır.'],
+      ['🥇', 'Bilgisayara karşı tek başına oynayıp kazanırsan <b>sıralamaya</b> girersin: 100\'e en az zar atışıyla ulaşan önde.']
     ]
   },
   en: {
-    title: 'Snakes and Ladders | Ridsgames', homeLabel: 'Ridsgames home', game: 'Snakes and Ladders', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    title: 'Snakes and Ladders | Ridsgames', homeLabel: 'Ridsgames home', game: 'Snakes and Ladders', newGame: 'New game', lb: 'Leaderboard', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
     colors: ['Red', 'Blue', 'Green', 'Yellow'], animals: ['Fox', 'Whale', 'Frog', 'Chick'], human: 'Human', cpu: 'Computer', you: 'You',
     setupSub: 'How many are playing? Choose for each colour.', start: 'Start', resume: 'Continue where you left off', count: 'Players',
     rollTap: 'Tap the die to roll', rollCpu: 'Rolling…', yourTurn: 'Your turn', turnOf: (n) => `${n} to play`,
@@ -283,7 +289,8 @@ const STR = {
       ['🐍', 'Land on a <b>snake\'s head</b> and you slide down to its tail.'],
       ['🎯', 'You must reach 100 with an <b>exact roll</b>. If the roll is too high, the piece stays and the turn passes.'],
       ['6️⃣', 'A <b>6</b> gives you another roll. A third 6 in a row means no move and the turn passes.'],
-      ['🏆', 'The first to reach 100 wins.']
+      ['🏆', 'The first to reach 100 wins.'],
+      ['🥇', 'Play alone against the computer and win to enter the <b>leaderboard</b>: the fewest rolls to reach 100 ranks highest.']
     ]
   }
 };
@@ -312,7 +319,7 @@ function playRoll(pos, v, sixes) {
 // RULES-END
 
 // ---------- Durum ----------
-let G = null; // { seats, pos: [4], turn }
+let G = null; // { seats, pos: [4], turn, rolls: [4] zar atışı sayısı, ms: oyunda geçen süre }
 const COLS = ['#e03131', '#1c7ed6', '#2f9e44', '#f5b301'];
 const SEATS_FOR = { 2: [0, 1], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
 let setup = { count: 2, roles: ['human', 'cpu', 'cpu', 'cpu'] };
@@ -329,6 +336,13 @@ const shortName = (p) => (G.seats[p] === 'cpu' ? T().animals[p] : humans() === 1
 const avaPos = (p) => `${p * 100 / 3}% 0`;
 // Sayaç: oyun başlatma ve bitirme olayları (GoatCounter yüklenmediyse sessizce geçer)
 const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'yilan-merdiven/' + olay, title: 'Yılan Merdiven: ' + ad, event: true }); } catch (e) {} };
+// Sıralama: bilgisayara karşı tek başına kazanan; az zar atışı iyi, eşitlikte kısa süre (s = atış * 100000 + süre/10 sn)
+const lb = RidsSiralama({
+  panolar: [{ id: 'yilan-merdiven', tr: 'Bilgisayara karşı', en: 'Vs computer' }],
+  dil: () => lang,
+  bicim: (k, dil) => k.p + (dil === 'en' ? ' rolls' : ' atış') + ' · ' + RidsSiralama.sure(k.d),
+  olay: (ad) => sayac('siralama/' + ad, 'sıralama: ' + ad),
+});
 
 // ---------- Tahta geometrisi (dünya birimi: bir kare = 1) ----------
 const M = 0.32, STRIP = 1.15, WW = 10 + 2 * M, HH = 10 + 2 * M + STRIP;
@@ -378,11 +392,11 @@ function newGame(seats) {
   const n = seats.filter((s) => s !== 'none').length, cpu = seats.includes('cpu');
   sayac(`mod/${n}-${cpu ? 'bilgisayar' : 'insan'}`, `mod: ${n} oyuncu, ${cpu ? 'bilgisayarlı' : 'aynı cihazda'}`);
   clearTimeout(timer); for (const k in anims) delete anims[k]; busy = false;
-  G = { seats: seats.slice(), pos: [0, 0, 0, 0], turn: 0 };
+  G = { seats: seats.slice(), pos: [0, 0, 0, 0], turn: 0, rolls: [0, 0, 0, 0], ms: 0 };
   G.turn = active()[0];
-  closeAll(); startTurn(G.turn); save();
+  closeAll(); lb.bosalt($('lbSlot')); startTurn(G.turn);
 }
-function startTurn(p) { G.turn = p; sixes = 0; beginRoll(p); save(); }
+function startTurn(p, sx = 0) { G.turn = p; sixes = sx; beginRoll(p); commit(G.pos, p, sx); }
 function beginRoll(p) {
   phase = 'roll'; render();
   if (G.seats[p] === 'cpu') later(rollDice, 1000);
@@ -394,6 +408,11 @@ function rollDice() {
   if (phase !== 'roll' || busy) return;
   phase = 'rolling'; busy = true;
   const v = forced || 1 + Math.floor(Math.random() * 6); forced = 0;
+  // sonuç zar atılır atılmaz kaydedilir: sayfayı yenileyip kötü zarı geri almak olmaz
+  const p = G.turn, r = playRoll(G.pos[p], v, sixes);
+  if (G.rolls) G.rolls[p]++;
+  if (r.win) { snap = null; try { localStorage.removeItem(KEY + 'game'); } catch (e) {} }
+  else { const pos = G.pos.slice(), a = active(); pos[p] = r.final; if (r.again) commit(pos, p, r.sixes); else commit(pos, a[(a.indexOf(p) + 1) % a.length], 0); }
   spinCube(v); Sfx.roll(); buzz(12);
   if (v === 6) setTimeout(() => { const d = $('dice'); d.classList.remove('six'); void d.offsetWidth; d.classList.add('six'); }, 700 / SPD);
   render();
@@ -459,15 +478,19 @@ function gameOver(p) {
   try { localStorage.removeItem(KEY + 'game'); } catch (e) {}
   Sfx.win(); buzz([60, 60, 120]); confetti();
   const t = T(), solo = humans() === 1 && G.seats[p] === 'human';
+  if (solo && G.seats.includes('cpu') && G.rolls) { const n = G.rolls[p], d = Math.min(99999, Math.floor(G.ms / 100)); lb.bitti($('lbSlot'), 'yilan-merdiven', { s: n * 100000 + d, d, p: n }); }
+  else lb.bosalt($('lbSlot'));
   $('winTitle').textContent = solo ? t.youWin : t.wins(shortName(p));
   $('winSub').textContent = t.winSub;
   const order = active().sort((a, b) => (a === p ? -1 : b === p ? 1 : G.pos[b] - G.pos[a]));
   $('rankList').innerHTML = order.map((q, k) => `<li class="${k ? '' : 'first'}"><span class="n">${k + 1}</span><span class="d ava" style="background-position:${avaPos(q)}"></span><span>${shortName(q)}${G.seats[q] === 'cpu' ? ' · ' + t.cpu : ''}</span><span class="s">${t.atSquare(G.pos[q])}</span></li>`).join('');
   later(() => { $('winOv').hidden = false; }, 700);
 }
+let snap = null; // son kesinleşen durum: kayıt bunu yazar, canlandırma ortasındaki konumu değil
+function commit(pos, turn, sx) { snap = { seats: G.seats, pos: pos.slice(), turn, sixes: sx, rolls: G.rolls && G.rolls.slice() }; save(); }
 function save() {
-  if (!G || phase === 'over') return;
-  try { localStorage.setItem(KEY + 'game', JSON.stringify({ seats: G.seats, pos: G.pos, turn: G.turn })); } catch (e) {}
+  if (!G || phase === 'over' || !snap) return;
+  try { localStorage.setItem(KEY + 'game', JSON.stringify({ ...snap, ms: Math.round(G.ms) })); } catch (e) {}
 }
 function loadSaved() { try { const s = JSON.parse(localStorage.getItem(KEY + 'game')); return s && s.pos && s.seats ? s : null; } catch (e) { return null; } }
 
@@ -666,8 +689,12 @@ function drawStrip(c, now) {
     c.font = '800 0.3px Inter, system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = cur ? '#fff' : '#5b3a1c'; c.fillText(String(G.pos[p]), px + pw / 2, cy + 0.02);
   });
 }
+let lastNow = 0;
 function frame(now) {
   requestAnimationFrame(frame);
+  // oyun süresi kurulum penceresi kapalıyken sayılır; sekme gizliyken kare gelmez, dönüşteki ilk kare en çok 1 sn sayılır
+  if (G && phase !== 'over' && $('setupOv').hidden) G.ms += Math.min(1000, Math.max(0, now - lastNow));
+  lastNow = now;
   paintLayer();
   cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); cx.drawImage(layer, 0, 0);
   if (!G) return;
@@ -713,13 +740,13 @@ function renderSetup() {
   $('countLbl').textContent = t.count;
   $('resumeBtn').hidden = !loadSaved();
 }
-function openSetup() { clearTimeout(timer); busy = false; for (const k in anims) delete anims[k]; renderSetup(); closeAll(); $('setupOv').hidden = false; }
+function openSetup() { save(); clearTimeout(timer); busy = false; for (const k in anims) delete anims[k]; renderSetup(); closeAll(); $('setupOv').hidden = false; }
 function applyLang() {
   const t = T();
   document.documentElement.lang = lang; document.title = t.title;
   $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
-  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
-  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('lbLbl').textContent = t.lb; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('lbBtn').setAttribute('aria-label', t.lb); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
   $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
   $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume;
   $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
@@ -749,11 +776,12 @@ $('startBtn').addEventListener('click', () => {
 });
 $('resumeBtn').addEventListener('click', () => {
   Sfx.unlock(); const s = loadSaved(); if (!s) return;
-  G = { seats: s.seats, pos: s.pos, turn: s.turn };
+  G = { seats: s.seats, pos: s.pos, turn: s.turn, rolls: Array.isArray(s.rolls) ? s.rolls : null, ms: Math.max(0, +s.ms || 0) };
   clearTimeout(timer); for (const k in anims) delete anims[k]; busy = false;
-  closeAll(); startTurn(G.turn);
+  closeAll(); lb.bosalt($('lbSlot')); startTurn(G.turn, Math.min(2, Math.max(0, s.sixes | 0)));
 });
 $('menuBtn').addEventListener('click', openSetup);
+$('lbBtn').addEventListener('click', () => lb.ac('yilan-merdiven'));
 $('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; sayac('kurallar', 'kurallar açıldı'); });
 $('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
 $('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
@@ -779,7 +807,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) save(
 
 // Test kancası: hızlandırma, zarı zorlama, konum atama (oyun akışını değiştirmez)
 window.__rids = {
-  speed(k) { SPD = k; }, force(v) { forced = v; }, setPos(p, n) { G.pos[p] = n; }, get G() { return G; }, get phase() { return phase; },
+  speed(k) { SPD = k; }, force(v) { forced = v; }, setPos(p, n) { G.pos[p] = n; }, setRolls(p, n) { G.rolls[p] = n; }, setMs(ms) { G.ms = ms; }, get G() { return G; }, get phase() { return phase; },
   spots: pieceSpots, get anims() { return anims; }, vt, layoutNow: layout, playRoll
 };
 
