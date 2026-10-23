@@ -93,6 +93,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
 .game.civi { background: #1F9D4B url("assets/civi-futbolu.jpg") center 30% / cover; }
 .game.solo { background: #090D16 url("assets/solo-test.jpg") center top / cover; }
 .game.kizma { background: #070B14 url("assets/kizma-birader.jpg") center top / cover; }
+.game.yilan { background: #1A0F08 url("assets/yilan-merdiven.jpg") center top / cover; }
 .game::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,18,32,0) 25%, rgba(10,18,32,.6) 50%, rgba(10,18,32,.95) 80%); }
 .game .info { display: contents; }
 .game .info > * { position: relative; }
@@ -200,6 +201,14 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
           <span class="btn" data-i18n="play">Oyna</span>
         </div>
       </a>
+      <a class="game yilan cut" href="yilan-merdiven/">
+        <div class="info">
+          <h3 data-i18n="yilanName">Yılan Merdiven</h3>
+          <p data-i18n="yilanDesc">Zarı atın, merdivenlerle yukarı tırmanın, yılanlara yakalanmadan 100'e ilk siz ulaşın.</p>
+          <div class="tags"><span class="tag cut" data-i18n="tag24">2-4 oyuncu</span><span class="tag cut" data-i18n="tagSame">Aynı cihazda</span><span class="tag cut" data-i18n="tagCpu">Bilgisayara karşı</span></div>
+          <span class="btn" data-i18n="play">Oyna</span>
+        </div>
+      </a>
     </div>
   </section>
 
@@ -263,6 +272,7 @@ const I18N_EN = {
   tagModeCount: '3 modes', tagHint: 'Hints and undo',
   kizmaName: 'Ludo', kizmaDesc: 'Roll the die, bring your pieces home and send rivals back to start. The classic board game for 2-4 players.',
   tag24: '2-4 players', tagSame: 'Same device',
+  yilanName: 'Snakes and Ladders', yilanDesc: 'Roll the die, climb the ladders, dodge the snakes and be the first to reach 100.',
   mobileGames: 'Mobile games', mobileDesc: 'Apps you can download to your device and play even without an internet connection.',
   misketDesc: 'The traditional street marbles game, with glass marbles. Play with friends on the same device or remotely with a Room Code.',
   soonPlay: 'Coming soon to Google Play',

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Yılan Merdiven | Ridsgames</title>
+<meta name="description" content="Klasik Yılan Merdiven: zarı at, merdivenlerle tırman, yılanlardan kaç, 100. kareye ilk sen ulaş. 2-4 oyuncu, aynı cihazda ya da bilgisayara karşı.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --turn: #22d3ee;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; } /* pencerelerin (20) üstünde: logo ve düğmeler her ekranda dokunulabilir */
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+/* Tam ekranda logo gizlenir, düğmeler sağda kalır */
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 10px 10px 8px; }
+#boardWrap { flex: none; width: 100%; display: flex; align-items: center; justify-content: center; }
+canvas { display: block; touch-action: manipulation; }
+
+/* Sıra paneli + zar: keçeli ahşap tepsi */
+.dock {
+  flex: none; width: 100%; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
+  border-style: solid; border-width: 20px 17px 24px; border-image: url("../kizma-birader/tepsi.webp") 60 50 72 50 fill / 20px 17px 24px stretch;
+  padding: 0 4px 0 8px; background: none;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .5)) drop-shadow(0 0 7px color-mix(in srgb, var(--turn) 60%, transparent));
+  transition: filter .3s;
+}
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ava { flex: none; display: inline-block; border-radius: 50%; background: url("../kizma-birader/karakterler.webp") 0 0 / 400% 100%; }
+.chip { width: 46px; height: 46px; box-shadow: 0 3px 8px rgba(0, 0, 0, .45); }
+.who .t { min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+#turnName { font-size: 17px; font-weight: 800; line-height: 1.2; color: #fff; }
+#turnMsg { font-size: 14px; color: #d8f3dc; line-height: 1.3; margin-top: 2px; min-height: 1.3em; }
+
+.dice { width: 72px; height: 72px; padding: 0; border: 0; background: none; perspective: 420px; position: relative; flex: none; }
+.dice:disabled { cursor: default; }
+.dice .halo { position: absolute; inset: -3px; border-radius: 20px; border: 2px solid var(--turn); opacity: 0; transition: opacity .2s; }
+.dice.ready .halo { opacity: 1; animation: pulse 1.1s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.07); opacity: .35; } }
+.cube { position: absolute; left: 10px; top: 10px; width: 52px; height: 52px; transform-style: preserve-3d; transition: transform .75s cubic-bezier(.2, .75, .25, 1); }
+.face {
+  position: absolute; inset: 0; border-radius: 11px; background: linear-gradient(145deg, #ffffff, #e9edf2);
+  box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, .08), inset -3px -4px 8px rgba(0, 0, 0, .12);
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 7px; backface-visibility: hidden;
+}
+.face i { width: 10px; height: 10px; border-radius: 50%; place-self: center; background: radial-gradient(circle at 35% 35%, #4b5563, #0f172a 70%); }
+.f1 { transform: rotateY(0deg) translateZ(26px); }
+.f6 { transform: rotateY(180deg) translateZ(26px); }
+.f3 { transform: rotateY(90deg) translateZ(26px); }
+.f4 { transform: rotateY(-90deg) translateZ(26px); }
+.f2 { transform: rotateX(90deg) translateZ(26px); }
+.f5 { transform: rotateX(-90deg) translateZ(26px); }
+.f1 i { grid-area: 2 / 2; background: radial-gradient(circle at 35% 35%, #ff6b6b, #c92a2a 70%); width: 13px; height: 13px; }
+.dice .shadow { position: absolute; left: 14px; right: 14px; bottom: 2px; height: 10px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent); }
+.dice.shake .cube { animation: hop .75s ease-out; }
+.dice.shake .shadow { animation: shrink .75s ease-out; }
+@keyframes hop {
+  0% { translate: 0 0; scale: 1; } 30% { translate: 0 -16px; scale: 1; } 58% { translate: 0 0; scale: 1; }
+  66% { translate: 0 2px; scale: 1.1 .86; } 78% { translate: 0 -5px; scale: .96 1.05; } 90% { translate: 0 0; scale: 1.03 .97; } 100% { translate: 0 0; scale: 1; }
+}
+@keyframes shrink { 0%, 100% { scale: 1; opacity: 1; } 30% { scale: .55; opacity: .45; } 58% { scale: 1.1; opacity: 1; } }
+.dice.six .face { animation: glow 1.1s ease-out; }
+@keyframes glow { 0% { box-shadow: 0 0 0 0 rgba(255, 214, 10, .9), inset 0 0 0 1.5px rgba(0, 0, 0, .08); } 100% { box-shadow: 0 0 0 16px rgba(255, 214, 10, 0), inset 0 0 0 1.5px rgba(0, 0, 0, .08); } }
+.chip.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .4; } 100% { scale: 1; } }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seat { display: grid; grid-template-columns: 32px 1fr; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid rgba(148, 163, 184, .12); }
+.seat .dot { width: 30px; height: 30px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding: 12px 0 8px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.row .seg { width: 170px; }
+.btns { display: grid; gap: 10px; margin-top: 12px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 22px 26px 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .n { color: var(--dim); font-weight: 800; }
+.rank li .d { width: 26px; height: 26px; }
+.rank li .s { color: var(--dim); font-weight: 600; font-size: 13px; }
+.rank li.first { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+@media (min-width: 900px) and (min-height: 760px) {
+  main { gap: 14px; padding-top: 16px; }
+  .dice { width: 80px; height: 80px; }
+  .cube { left: 12px; top: 12px; width: 56px; height: 56px; }
+  .face { padding: 8px; }
+  .f1 { transform: rotateY(0deg) translateZ(28px); } .f6 { transform: rotateY(180deg) translateZ(28px); }
+  .f3 { transform: rotateY(90deg) translateZ(28px); } .f4 { transform: rotateY(-90deg) translateZ(28px); }
+  .f2 { transform: rotateX(90deg) translateZ(28px); } .f5 { transform: rotateX(-90deg) translateZ(28px); }
+}
+@media (prefers-reduced-motion: reduce) { .dice.ready .halo { animation: none; } .cube { transition-duration: .05s; } .dice.shake .cube, .dice.shake .shadow, .chip.pop { animation: none; } }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="yilan-merdiven" data-name="Yılan Merdiven"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Yılan Merdiven</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="boardWrap"><canvas id="board" role="img" aria-label="Yılan Merdiven tahtası"></canvas></div>
+  <div class="dock" id="dock">
+    <div class="who">
+      <span class="chip ava" aria-hidden="true"></span>
+      <div class="t"><div id="turnName"></div><div id="turnMsg" aria-live="polite"></div></div>
+    </div>
+    <button id="dice" class="dice" type="button" aria-label="Zar at">
+      <span class="halo"></span><span class="shadow"></span>
+      <span class="cube" id="cube">
+        <span class="face f1"><i></i></span>
+        <span class="face f2"><i style="grid-area:1/3"></i><i style="grid-area:3/1"></i></span>
+        <span class="face f3"><i style="grid-area:1/3"></i><i style="grid-area:2/2"></i><i style="grid-area:3/1"></i></span>
+        <span class="face f4"><i style="grid-area:1/1"></i><i style="grid-area:1/3"></i><i style="grid-area:3/1"></i><i style="grid-area:3/3"></i></span>
+        <span class="face f5"><i style="grid-area:1/1"></i><i style="grid-area:1/3"></i><i style="grid-area:2/2"></i><i style="grid-area:3/1"></i><i style="grid-area:3/3"></i></span>
+        <span class="face f6"><i style="grid-area:1/1"></i><i style="grid-area:2/1"></i><i style="grid-area:3/1"></i><i style="grid-area:1/3"></i><i style="grid-area:2/3"></i><i style="grid-area:3/3"></i></span>
+      </span>
+    </button>
+  </div>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Yılan Merdiven</h2>
+    <p class="sub" id="setupSub">Kaç kişi oynuyor? Her renk için seç.</p>
+    <div class="row"><span id="countLbl">Oyuncu sayısı</span><div class="seg" id="countSeg"><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button></div></div>
+    <div id="seats"></div>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="resumeBtn" type="button" hidden>Kaldığın yerden devam et</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub">100. kareye ilk ulaşan kazanır.</p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <ol class="rank" id="rankList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="toMenuBtn" type="button">Oyuncuları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Dil ----------
+const STR = {
+  tr: {
+    title: 'Yılan Merdiven | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Yılan Merdiven', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    colors: ['Kırmızı', 'Mavi', 'Yeşil', 'Sarı'], animals: ['Tilki', 'Balina', 'Kurbağa', 'Civciv'], human: 'İnsan', cpu: 'Bilgisayar', you: 'Sen',
+    setupSub: 'Kaç kişi oynuyor? Her renk için seç.', start: 'Başla', resume: 'Kaldığın yerden devam et', count: 'Oyuncu sayısı',
+    rollTap: 'Zar atmak için zara dokun', rollCpu: 'Zar atıyor…', yourTurn: 'Sıra sende', turnOf: (n) => `${n} oynuyor`,
+    six: '6 geldi, bir daha at!', moved: (v) => `${v} geldi`, ladder: (a, b) => `Merdiven! ${a} → ${b}`, snake: (a, b) => `Yılan! ${a} → ${b}`,
+    over: (n) => `Tam sayı gerek: 100'e ${n} kaldı, sıra geçti`, triple: 'Üst üste üç kez 6: hamle yok, sıra geçti',
+    wins: (n) => `${n} kazandı!`, youWin: 'Kazandın!', winSub: '100. kareye ilk ulaşan oldu.', again: 'Tekrar oyna', toMenu: 'Oyuncuları değiştir',
+    atSquare: (n) => (n ? `${n}. kare` : 'Başlangıç'), rollAria: 'Zar at', board: 'Yılan Merdiven tahtası',
+    rulesTitle: 'Nasıl oynanır?', rulesSub: '100. kareye ilk ulaşan kazanır.', ok: 'Tamam',
+    ruleList: [
+      ['🎲', 'Herkes tahtanın dışından başlar. Sırayla zar atıp piyonunu <b>1\'den 100\'e</b> doğru ilerletirsin.'],
+      ['🪜', 'Bir <b>merdivenin</b> alt ucuna gelirsen yukarı tırmanırsın.'],
+      ['🐍', 'Bir <b>yılanın</b> başına gelirsen kuyruğuna kadar kayarsın.'],
+      ['🎯', '100\'e <b>tam sayıyla</b> girilir. Zar fazla gelirse piyon yerinde kalır ve sıra geçer.'],
+      ['6️⃣', '<b>6</b> gelince bir daha atarsın. Üst üste üçüncü 6\'da hamle yapılmaz ve sıra geçer.'],
+      ['🏆', '100\'e ilk ulaşan kazanır. 80. kareye gelen merdivenle doğrudan 100\'e çıkar.']
+    ]
+  },
+  en: {
+    title: 'Snakes and Ladders | Ridsgames', homeLabel: 'Ridsgames home', game: 'Snakes and Ladders', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    colors: ['Red', 'Blue', 'Green', 'Yellow'], animals: ['Fox', 'Whale', 'Frog', 'Chick'], human: 'Human', cpu: 'Computer', you: 'You',
+    setupSub: 'How many are playing? Choose for each colour.', start: 'Start', resume: 'Continue where you left off', count: 'Players',
+    rollTap: 'Tap the die to roll', rollCpu: 'Rolling…', yourTurn: 'Your turn', turnOf: (n) => `${n} to play`,
+    six: 'A 6, roll again!', moved: (v) => `Rolled ${v}`, ladder: (a, b) => `Ladder! ${a} → ${b}`, snake: (a, b) => `Snake! ${a} → ${b}`,
+    over: (n) => `Exact roll needed: ${n} to go, turn passes`, triple: 'Three 6s in a row: no move, turn passes',
+    wins: (n) => `${n} wins!`, youWin: 'You win!', winSub: 'First to reach square 100.', again: 'Play again', toMenu: 'Change players',
+    atSquare: (n) => (n ? `Square ${n}` : 'At start'), rollAria: 'Roll the die', board: 'Snakes and Ladders board',
+    rulesTitle: 'How to play', rulesSub: 'Be the first to reach square 100.', ok: 'OK',
+    ruleList: [
+      ['🎲', 'Everyone starts off the board. Take turns rolling and move your piece from <b>1 towards 100</b>.'],
+      ['🪜', 'Land at the bottom of a <b>ladder</b> and you climb up.'],
+      ['🐍', 'Land on a <b>snake\'s head</b> and you slide down to its tail.'],
+      ['🎯', 'You must reach 100 with an <b>exact roll</b>. If the roll is too high, the piece stays and the turn passes.'],
+      ['6️⃣', 'A <b>6</b> gives you another roll. A third 6 in a row means no move and the turn passes.'],
+      ['🏆', 'The first to reach 100 wins. Landing on square 80 takes the ladder straight to 100.']
+    ]
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_yilan-merdiven_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Kurallar (saf mantık) ----------
+// RULES-BEGIN
+const LADDERS = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100 };
+const SNAKES = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
+const jumpOf = (n) => (LADDERS[n] ? { type: 'ladder', from: n, to: LADDERS[n] } : SNAKES[n] ? { type: 'snake', from: n, to: SNAKES[n] } : null);
+// Bir atışın sonucu: pos mevcut kare (0 = tahta dışı), v zar, sixes bu turda önceki üst üste 6 sayısı
+function playRoll(pos, v, sixes) {
+  const s = v === 6 ? sixes + 1 : 0, none = { steps: [], to: pos, final: pos, jump: null, win: false, again: false, sixes: 0 };
+  if (v === 6 && s >= 3) return { kind: 'triple', ...none };      // üçüncü 6: hamle yok, sıra geçer
+  if (pos + v > 100) return { kind: 'over', ...none };            // tam sayı gerekir: piyon yerinde kalır
+  const steps = []; for (let i = 1; i <= v; i++) steps.push(pos + i);
+  const to = pos + v, jump = jumpOf(to), final = jump ? jump.to : to;
+  return { kind: 'move', steps, to, final, jump, win: final === 100, again: v === 6 && final !== 100, sixes: s };
+}
+// RULES-END
+
+// ---------- Durum ----------
+let G = null; // { seats, pos: [4], turn }
+const COLS = ['#e03131', '#1c7ed6', '#2f9e44', '#f5b301'];
+const SEATS_FOR = { 2: [0, 1], 3: [0, 1, 2], 4: [0, 1, 2, 3] };
+let setup = { count: 2, roles: ['human', 'cpu', 'cpu', 'cpu'] };
+const seatsOf = (st) => [0, 1, 2, 3].map((p) => (SEATS_FOR[st.count].includes(p) ? st.roles[p] : 'none'));
+let phase = 'setup', busy = false, sixes = 0, bitenVar = false, forced = 0, SPD = 1, lastTurn = -1;
+const anims = {}; // p -> { s: dilim, t0 }
+let soundOn = true;
+try { const st = JSON.parse(localStorage.getItem(KEY + 'setup')); if (st && st.roles && SEATS_FOR[st.count]) setup = st; } catch (e) {}
+try { soundOn = localStorage.getItem(KEY + 'sound') !== '0'; } catch (e) {}
+
+const active = () => G.seats.map((s, p) => (s !== 'none' ? p : -1)).filter((p) => p >= 0);
+const humans = () => G.seats.filter((s) => s === 'human').length;
+const shortName = (p) => (G.seats[p] === 'cpu' ? T().animals[p] : humans() === 1 ? T().you : T().colors[p]);
+const avaPos = (p) => `${p * 100 / 3}% 0`;
+// Sayaç: oyun başlatma ve bitirme olayları (GoatCounter yüklenmediyse sessizce geçer)
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'yilan-merdiven/' + olay, title: 'Yılan Merdiven: ' + ad, event: true }); } catch (e) {} };
+
+// ---------- Tahta geometrisi (dünya birimi: bir kare = 1) ----------
+const M = 0.32, STRIP = 1.15, WW = 10 + 2 * M, HH = 10 + 2 * M + STRIP;
+const sq = (n) => { const i = n - 1, r = Math.floor(i / 10), c = r % 2 ? 9 - i % 10 : i % 10; return [M + c + 0.5, M + 9 - r + 0.5]; };
+const TRAY = { x: M, y: M + 10 + 0.14, w: 2.95, h: STRIP - 0.28 };
+const trayPt = (p) => [TRAY.x + 0.5 + p * 0.65, TRAY.y + TRAY.h / 2 + 0.05];
+const ptOf = (p, n) => (n > 0 ? sq(n) : trayPt(p));
+const bez = (a, b, c, d, t) => { const u = 1 - t; return [u * u * u * a[0] + 3 * u * u * t * b[0] + 3 * u * t * t * c[0] + t * t * t * d[0], u * u * u * a[1] + 3 * u * u * t * b[1] + 3 * u * t * t * c[1] + t * t * t * d[1]]; };
+
+// Yılanlar: [baş, kuyruk, sapma1, sapma2, renk, desen]; sapma = baş-kuyruk doğrusuna dik, kare cinsinden
+const SNAKE_DEF = [
+  [16, 6, 0.5, -0.5, '#e0447c', 'dots'], [47, 26, 0.9, -0.9, '#7c4dd6', 'bands'], [49, 11, 1.1, -1.2, '#e8a317', 'diamonds'],
+  [56, 53, 0.6, -0.6, '#3bb273', 'dots'], [62, 19, -1.3, 1.3, '#17a2a2', 'diamonds'], [64, 60, 0.6, -0.6, '#e5603a', 'bands'],
+  [87, 24, 1.6, -1.2, '#2f80d8', 'bands'], [93, 73, 0.6, -0.6, '#f08c2a', 'diamonds'], [95, 75, -0.6, 0.6, '#9b59b6', 'dots'], [98, 78, 0.6, -0.6, '#8cc63f', 'bands']
+].map(([h, t, o1, o2, col, pat]) => {
+  const a = sq(h), d = sq(t), dx = d[0] - a[0], dy = d[1] - a[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+  const c1 = [a[0] + dx * 0.33 + nx * o1, a[1] + dy * 0.33 + ny * o1], c2 = [a[0] + dx * 0.66 + nx * o2, a[1] + dy * 0.66 + ny * o2];
+  const pts = [], N = 56; for (let i = 0; i <= N; i++) pts.push(bez(a, c1, c2, d, i / N));
+  const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  return { h, t, col, pat, pts, cum, len: cum[N] };
+});
+const snakeAt = (s, u) => { // eğri üzerinde yay uzunluğu oranına göre nokta
+  const target = u * s.len; let i = 1; while (i < s.pts.length - 1 && s.cum[i] < target) i++;
+  const k = (target - s.cum[i - 1]) / ((s.cum[i] - s.cum[i - 1]) || 1), a = s.pts[i - 1], b = s.pts[i];
+  return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+};
+const snakeOf = (head) => SNAKE_DEF.find((s) => s.h === head);
+
+// Aynı karedeki piyonlar: hepsi görünsün diye kaydırılır ve küçültülür
+const SPREAD = [[[0, 0]], [[-0.2, 0.06], [0.2, 0.06]], [[-0.24, 0.12], [0.24, 0.12], [0, -0.12]], [[-0.24, 0.14], [0.24, 0.14], [-0.24, -0.14], [0.24, -0.14]]];
+const SCALE = [0.82, 0.7, 0.62, 0.58];
+function pieceSpots() {
+  const out = [], groups = new Map();
+  for (const p of active()) { if (anims[p]) continue; const q = G.pos[p]; if (!groups.has(q)) groups.set(q, []); groups.get(q).push(p); }
+  for (const [q, ps] of groups) ps.forEach((p, k) => {
+    const [x, y] = ptOf(p, q), n = q === 0 ? 1 : ps.length, o = q === 0 ? [0, 0] : SPREAD[n - 1][k];
+    out.push({ p, x: x + o[0], y: y + o[1], s: q === 0 ? 0.7 : SCALE[n - 1], lift: 0, squash: 0 });
+  });
+  return out;
+}
+
+// ---------- Akış ----------
+let timer = null;
+const later = (f, ms) => { clearTimeout(timer); timer = setTimeout(f, Math.min(2e9, ms / SPD)); };
+function newGame(seats) {
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  const n = seats.filter((s) => s !== 'none').length, cpu = seats.includes('cpu');
+  sayac(`mod/${n}-${cpu ? 'bilgisayar' : 'insan'}`, `mod: ${n} oyuncu, ${cpu ? 'bilgisayarlı' : 'aynı cihazda'}`);
+  clearTimeout(timer); for (const k in anims) delete anims[k]; busy = false;
+  G = { seats: seats.slice(), pos: [0, 0, 0, 0], turn: 0 };
+  G.turn = active()[0];
+  closeAll(); startTurn(G.turn); save();
+}
+function startTurn(p) { G.turn = p; sixes = 0; beginRoll(p); save(); }
+function beginRoll(p) {
+  phase = 'roll'; render();
+  if (G.seats[p] === 'cpu') later(rollDice, 1000);
+}
+function nextPlayer() {
+  const a = active(), k = a.indexOf(G.turn); startTurn(a[(k + 1) % a.length]);
+}
+function rollDice() {
+  if (phase !== 'roll' || busy) return;
+  phase = 'rolling'; busy = true;
+  const v = forced || 1 + Math.floor(Math.random() * 6); forced = 0;
+  spinCube(v); Sfx.roll(); buzz(12);
+  if (v === 6) setTimeout(() => { const d = $('dice'); d.classList.remove('six'); void d.offsetWidth; d.classList.add('six'); }, 700 / SPD);
+  render();
+  later(() => { busy = false; resolve(v); }, 780);
+}
+function resolve(v) {
+  const p = G.turn, t = T(), r = playRoll(G.pos[p], v, sixes);
+  sixes = r.sixes;
+  if (r.kind === 'triple') { note(t.triple); Sfx.bad(); return later(nextPlayer, 1900); }
+  if (r.kind === 'over') { note(t.over(100 - G.pos[p])); Sfx.bad(); return later(nextPlayer, 1900); }
+  phase = 'move'; msg(t.moved(v));
+  const segs = []; let from = ptOf(p, G.pos[p]);
+  for (const n of r.steps) {
+    const to = sq(n), a = from;
+    segs.push({ k: 'hop', a, b: to, dur: 240, end: () => { G.pos[p] = n; landed(p); Sfx.step(); } });
+    from = to;
+  }
+  if (r.jump) {
+    const j = r.jump, a = sq(j.from), b = sq(j.to);
+    if (j.type === 'ladder') {
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      segs.push({ k: 'wait', dur: 380 });
+      segs.push({ k: 'ladder', a, b, len, dur: Math.max(800, Math.min(1500, len * 150)), start: () => { note(t.ladder(j.from, j.to)); Sfx.ladder(); }, end: () => { G.pos[p] = j.to; landed(p); } });
+    } else {
+      const s = snakeOf(j.from);
+      segs.push({ k: 'wait', dur: 380 });
+      segs.push({ k: 'snake', s, dur: Math.max(900, Math.min(1700, s.len * 230)), start: () => { note(t.snake(j.from, j.to)); Sfx.snake(); }, end: () => { G.pos[p] = j.to; landed(p); } });
+    }
+    segs.push({ k: 'wait', dur: 500 });
+  } else segs.push({ k: 'wait', dur: 250 });
+  runSegs(p, segs, () => {
+    if (r.win) return gameOver(p);
+    if (r.again) { beginRoll(p); return; }
+    nextPlayer();
+  });
+}
+// Dilimleri sırayla oynatır; her dilim bitince piyonun gerçek karesi güncellenir
+function runSegs(p, segs, done) {
+  let i = 0;
+  const next = () => {
+    if (i >= segs.length) { delete anims[p]; return done(); }
+    const s = segs[i++]; anims[p] = { s, t0: vt() };
+    if (s.start) s.start();
+    later(() => { if (s.end) s.end(); next(); }, s.dur);
+  };
+  next();
+}
+let vclock = 0, vlast = performance.now(); // oyun saati: hız kancasıyla ölçeklenir
+function vt() { const n = performance.now(); vclock += (n - vlast) * SPD; vlast = n; return vclock; }
+const ease = (u) => u * u * (3 - 2 * u);
+// Animasyondaki piyonun anlık konumu: [x, y, yükseklik]
+function animPos(a, now) {
+  const s = a.s, u = Math.max(0, Math.min(1, (now - a.t0) / s.dur));
+  if (s.k === 'hop') return [s.a[0] + (s.b[0] - s.a[0]) * u, s.a[1] + (s.b[1] - s.a[1]) * u, REDUCED ? 0 : Math.sin(Math.PI * u) * 0.5];
+  if (s.k === 'ladder') { const e = ease(u); return [s.a[0] + (s.b[0] - s.a[0]) * e, s.a[1] + (s.b[1] - s.a[1]) * e, REDUCED ? 0 : Math.abs(Math.sin(e * s.len * 4.2)) * 0.12]; }
+  if (s.k === 'snake') { const [x, y] = snakeAt(s.s, ease(u)); return [x, y, REDUCED ? 0 : 0.06]; }
+  return null;
+}
+function gameOver(p) {
+  phase = 'over'; render(); sayac('bitti', 'oyun bitti'); bitenVar = true;
+  if (G.seats.includes('cpu') && G.seats.includes('human')) { const w = G.seats[p] === 'human' ? 'insan' : 'bilgisayar'; sayac(`sonuc/${w}`, `sonuç: ${w} kazandı`); }
+  G.winner = p;
+  try { localStorage.removeItem(KEY + 'game'); } catch (e) {}
+  Sfx.win(); buzz([60, 60, 120]); confetti();
+  const t = T(), solo = humans() === 1 && G.seats[p] === 'human';
+  $('winTitle').textContent = solo ? t.youWin : t.wins(shortName(p));
+  $('winSub').textContent = t.winSub;
+  const order = active().sort((a, b) => (a === p ? -1 : b === p ? 1 : G.pos[b] - G.pos[a]));
+  $('rankList').innerHTML = order.map((q, k) => `<li class="${k ? '' : 'first'}"><span class="n">${k + 1}</span><span class="d ava" style="background-position:${avaPos(q)}"></span><span>${shortName(q)}${G.seats[q] === 'cpu' ? ' · ' + t.cpu : ''}</span><span class="s">${t.atSquare(G.pos[q])}</span></li>`).join('');
+  later(() => { $('winOv').hidden = false; }, 700);
+}
+function save() {
+  if (!G || phase === 'over') return;
+  try { localStorage.setItem(KEY + 'game', JSON.stringify({ seats: G.seats, pos: G.pos, turn: G.turn })); } catch (e) {}
+}
+function loadSaved() { try { const s = JSON.parse(localStorage.getItem(KEY + 'game')); return s && s.pos && s.seats ? s : null; } catch (e) { return null; } }
+
+// ---------- Zar ----------
+let rx = 0, ry = 0;
+const FACE_ROT = { 1: [0, 0], 6: [0, 180], 3: [0, -90], 4: [0, 90], 2: [-90, 0], 5: [90, 0] };
+function spinCube(v) {
+  const [tx, ty] = FACE_ROT[v];
+  rx = rx - (rx % 360) + 720 + tx; ry = ry - (ry % 360) + 720 + ty;
+  $('cube').style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  const d = $('dice'); d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
+}
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function knock(delay, vol = 0.25, freq = 2000) { // kısa, süzülmüş gürültü: tahta/zar vuruşu
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, len = 0.05, buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 1.6; g.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(g).connect(c.destination); s.start(t);
+  }
+  return {
+    unlock: ctx,
+    roll() { [0, 0.08, 0.17, 0.27, 0.4, 0.55, 0.66].forEach((d, k) => knock(d, 0.34 - k * 0.04, 900 + Math.random() * 700)); },
+    step() { knock(0, 0.22, 2600); tone(820, 640, 0.035, 0.05, 'triangle'); },
+    ladder() { [392, 494, 587, 784, 988].forEach((f, k) => tone(f, f * 1.01, 0.16, 0.1, 'triangle', k * 0.13)); },   // yükselen arpej
+    snake() { tone(700, 120, 0.9, 0.11, 'sawtooth'); tone(520, 90, 0.9, 0.06, 'sine', 0.05); },                      // alçalan kayış
+    bad() { tone(300, 180, 0.18, 0.1, 'triangle'); tone(220, 130, 0.22, 0.1, 'triangle', 0.14); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Konfeti ----------
+function confetti() {
+  if (REDUCED) return;
+  const c = $('confetti'), x = c.getContext('2d'); c.hidden = false; c.width = innerWidth; c.height = innerHeight;
+  const cols = ['#e03131', '#1c7ed6', '#2f9e44', '#f5b301', '#22d3ee', '#fff'];
+  const ps = Array.from({ length: 130 }, (_, i) => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * 0.6, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3.5, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, w: 6 + Math.random() * 6, h: 4 + Math.random() * 5, col: cols[i % cols.length] }));
+  const t0 = performance.now();
+  (function f(now) {
+    x.clearRect(0, 0, c.width, c.height);
+    for (const q of ps) { q.x += q.vx; q.y += q.vy; q.r += q.vr; x.save(); x.translate(q.x, q.y); x.rotate(q.r); x.fillStyle = q.col; x.fillRect(-q.w / 2, -q.h / 2, q.w, q.h); x.restore(); }
+    if (now - t0 < 3500) requestAnimationFrame(f); else c.hidden = true;
+  })(t0);
+}
+
+// ---------- Çizim ----------
+const cv = $('board'), cx = cv.getContext('2d');
+let K = 30, DPR = 1, layer = null, layerKey = '';
+function layout() {
+  // tahta, sıra paneliyle birlikte ana alana sığan en büyük boyut
+  const m = document.querySelector('main'), cs = getComputedStyle(m), dock = $('dock');
+  const w = m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const h = m.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - dock.offsetHeight - parseFloat(cs.rowGap || 10);
+  K = Math.max(14, Math.min(w / WW, h / HH, 56));
+  DPR = Math.min(3, window.devicePixelRatio || 1);
+  const cw = Math.floor(K * WW), ch = Math.floor(K * HH); K = cw / WW;
+  cv.width = Math.round(cw * DPR); cv.height = Math.round(ch * DPR); cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
+  dock.style.maxWidth = Math.max(cw, 320) + 'px'; layerKey = '';
+}
+function rrAdd(c, x, y, w, h, r) { c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function rr(c, x, y, w, h, r) { c.beginPath(); rrAdd(c, x, y, w, h, r); }
+function circ(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); }
+// Görseller: piyonlar ve karakterler (yüklenemezse düz şekillerle çizilir)
+const IMG = {};
+for (const [k, src] of [['pawns', '../kizma-birader/piyonlar.webp'], ['avatars', '../kizma-birader/karakterler.webp']]) {
+  const im = new Image(); im.onload = () => { IMG[k] = im; }; im.src = src;
+}
+const PASTEL = ['#f7ead2', '#f9dcc4', '#f6d3d6', '#e4d8f0', '#d4e0f0', '#d3ead9', '#ece9c6'];
+const sqColor = (n) => { const i = n - 1, r = Math.floor(i / 10), c = r % 2 ? 9 - i % 10 : i % 10; return PASTEL[(c * 2 + r * 3) % PASTEL.length]; };
+
+function paintWood(c, x, y, w, h, r) { // meşe çerçeve: degrade + ince damarlar
+  rr(c, x, y, w, h, r); const g = c.createLinearGradient(x, y, x + w, y + h);
+  g.addColorStop(0, '#c58a4b'); g.addColorStop(0.5, '#a56b33'); g.addColorStop(1, '#8a5527'); c.fillStyle = g; c.fill();
+  c.save(); rr(c, x, y, w, h, r); c.clip(); let sd = 7;
+  for (let i = 0; i < 70; i++) { sd = (sd * 9301 + 49297) % 233280; const yy = y + (sd / 233280) * h; sd = (sd * 9301 + 49297) % 233280; const a = 0.04 + (sd / 233280) * 0.07;
+    c.strokeStyle = `rgba(60,30,8,${a})`; c.lineWidth = 0.02 + a * 0.2; c.beginPath(); c.moveTo(x, yy); c.bezierCurveTo(x + w * 0.3, yy + 0.08, x + w * 0.6, yy - 0.08, x + w, yy + 0.03); c.stroke(); }
+  c.restore();
+  rr(c, x + 0.03, y + 0.03, w - 0.06, h - 0.06, r - 0.02); c.strokeStyle = 'rgba(255,225,170,.55)'; c.lineWidth = 0.04; c.stroke();
+}
+function drawLadder(c, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux, hw = 0.23;
+  const ends = (s) => [[a[0] + ux * s + nx * hw, a[1] + uy * s + ny * hw], [a[0] + ux * s - nx * hw, a[1] + uy * s - ny * hw]];
+  const pass = (ox, oy, rail, rung, rw) => {
+    c.lineCap = 'round';
+    for (const sd of [1, -1]) { c.beginPath(); c.moveTo(a[0] + ox + nx * hw * sd, a[1] + oy + ny * hw * sd); c.lineTo(b[0] + ox + nx * hw * sd, b[1] + oy + ny * hw * sd); c.strokeStyle = rail; c.lineWidth = rw; c.stroke(); }
+    const n = Math.max(2, Math.round(L / 0.34));
+    for (let i = 0; i <= n; i++) { const s = (i / n) * L, e = ends(s); c.beginPath(); c.moveTo(e[0][0] + ox, e[0][1] + oy); c.lineTo(e[1][0] + ox, e[1][1] + oy); c.strokeStyle = rung; c.lineWidth = rw * 0.72; c.stroke(); }
+  };
+  pass(0.05, 0.07, 'rgba(40,20,5,.28)', 'rgba(40,20,5,.28)', 0.125);
+  pass(0, 0, '#7a4a1f', '#8d5a28', 0.125);
+  pass(-0.012, -0.012, '#c88a4c', '#d9a05f', 0.06);
+}
+function drawSnake(c, s) {
+  const P = s.pts, N = P.length, L = [], R = [];
+  for (let i = 0; i < N; i++) {
+    const a = P[Math.max(0, i - 1)], b = P[Math.min(N - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1, u = i / (N - 1);
+    const w = 0.2 * (1 - 0.82 * Math.pow(u, 1.2)) + 0.012; // yarı kalınlık: boyundan kuyruğa incelir
+    L.push([P[i][0] - dy / d * w, P[i][1] + dx / d * w]); R.push([P[i][0] + dy / d * w, P[i][1] - dx / d * w]);
+  }
+  const poly = (off, pts) => { c.beginPath(); pts.forEach((q, i) => (i ? c.lineTo(q[0] + off, q[1] + off * 1.4) : c.moveTo(q[0] + off, q[1] + off * 1.4))); };
+  const body = (off) => { poly(off, L); for (let i = N - 1; i >= 0; i--) c.lineTo(R[i][0] + off, R[i][1] + off * 1.4); c.closePath(); };
+  body(0.05); c.fillStyle = 'rgba(40,20,5,.25)'; c.fill();
+  body(0); c.fillStyle = s.col; c.fill(); c.lineJoin = 'round'; c.strokeStyle = 'rgba(0,0,0,.4)'; c.lineWidth = 0.035; c.stroke();
+  c.save(); body(0); c.clip();
+  for (let i = 2; i < N - 1; i++) {
+    const u = i / N, w = 0.2 * (1 - 0.82 * Math.pow(u, 1.2));
+    if (s.pat === 'bands' && Math.floor(i / 3) % 2 === 0) { c.beginPath(); c.moveTo(...L[i]); c.lineTo(...L[i + 1]); c.lineTo(...R[i + 1]); c.lineTo(...R[i]); c.closePath(); c.fillStyle = 'rgba(255,255,255,.55)'; c.fill(); }
+    if (s.pat === 'dots' && i % 4 === 0) { circ(c, P[i][0], P[i][1], w * 0.42); c.fillStyle = 'rgba(255,255,255,.85)'; c.fill(); }
+    if (s.pat === 'diamonds' && i % 4 === 1) { c.beginPath(); const q = P[i], z = w * 0.9, a = P[i - 1], b = P[i + 1], ang = Math.atan2(b[1] - a[1], b[0] - a[0]); c.save(); c.translate(q[0], q[1]); c.rotate(ang); c.moveTo(-z * 1.1, 0); c.lineTo(0, -z); c.lineTo(z * 1.1, 0); c.lineTo(0, z); c.closePath(); c.restore(); c.fillStyle = 'rgba(255,255,255,.75)'; c.fill(); c.strokeStyle = 'rgba(0,0,0,.28)'; c.lineWidth = 0.02; c.stroke(); }
+  }
+  // sırt parlaklığı
+  c.beginPath(); P.forEach((q, i) => { const k = i / (N - 1), a = P[Math.max(0, i - 1)], b = P[Math.min(N - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1, w = 0.2 * (1 - 0.82 * Math.pow(k, 1.2)) * 0.45; const x = q[0] - dy / d * w, y = q[1] + dx / d * w; i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  c.strokeStyle = 'rgba(255,255,255,.22)'; c.lineWidth = 0.03; c.stroke();
+  c.restore();
+  // dil (baştan öne doğru çatallı)
+  const h = P[0], n2 = P[2], dh = Math.atan2(h[1] - n2[1], h[0] - n2[0]);
+  c.save(); c.translate(h[0], h[1]); c.rotate(dh);
+  c.beginPath(); c.moveTo(0.2, 0); c.lineTo(0.38, 0); c.moveTo(0.38, 0); c.lineTo(0.47, -0.06); c.moveTo(0.38, 0); c.lineTo(0.47, 0.06);
+  c.strokeStyle = '#e03131'; c.lineWidth = 0.035; c.lineCap = 'round'; c.stroke(); c.restore();
+  // kafa: yuvarlak, izleyiciye bakar
+  const g = c.createRadialGradient(h[0] - 0.07, h[1] - 0.09, 0.02, h[0], h[1], 0.27);
+  g.addColorStop(0, s.col); g.addColorStop(1, s.col);
+  circ(c, h[0], h[1], 0.285); c.fillStyle = s.col; c.fill(); c.strokeStyle = 'rgba(0,0,0,.4)'; c.lineWidth = 0.035; c.stroke();
+  circ(c, h[0] - 0.06, h[1] - 0.12, 0.1); c.fillStyle = 'rgba(255,255,255,.18)'; c.fill();
+  for (const ex of [-0.1, 0.1]) {
+    circ(c, h[0] + ex, h[1] - 0.04, 0.085); c.fillStyle = '#fff'; c.fill(); c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 0.02; c.stroke();
+    circ(c, h[0] + ex + 0.01, h[1] - 0.025, 0.045); c.fillStyle = '#1a1a2e'; c.fill();
+    circ(c, h[0] + ex + 0.025, h[1] - 0.045, 0.016); c.fillStyle = '#fff'; c.fill();
+  }
+  c.beginPath(); c.arc(h[0], h[1] + 0.07, 0.08, 0.15 * Math.PI, 0.85 * Math.PI); c.strokeStyle = 'rgba(60,10,10,.7)'; c.lineWidth = 0.03; c.lineCap = 'round'; c.stroke();
+}
+function drawStar(c, x, y, R, r) {
+  c.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r : R; c.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } c.closePath();
+}
+// Durağan katman: yalnızca boyut değişince yeniden çizilir
+function paintLayer() {
+  const key = cv.width + 'x' + cv.height; if (layer && layerKey === key) return; layerKey = key;
+  if (!layer) layer = document.createElement('canvas'); layer.width = cv.width; layer.height = cv.height;
+  const c = layer.getContext('2d'); c.setTransform(DPR * K, 0, 0, DPR * K, 0, 0); c.clearRect(0, 0, WW, HH);
+  c.save(); c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 0.35; c.shadowOffsetY = 0.1; paintWood(c, 0.04, 0.02, WW - 0.08, HH - 0.12, 0.38); c.restore();
+  paintWood(c, 0.04, 0.02, WW - 0.08, HH - 0.12, 0.38);
+  // kareler
+  for (let n = 1; n <= 100; n++) { const [x, y] = sq(n); c.fillStyle = n === 100 ? '#f8dc7a' : sqColor(n); c.fillRect(x - 0.5, y - 0.5, 1, 1); }
+  c.strokeStyle = 'rgba(120,80,40,.16)'; c.lineWidth = 0.02; c.beginPath();
+  for (let i = 0; i <= 10; i++) { c.moveTo(M + i, M); c.lineTo(M + i, M + 10); c.moveTo(M, M + i); c.lineTo(M + 10, M + i); } c.stroke();
+  c.strokeStyle = 'rgba(50,25,5,.7)'; c.lineWidth = 0.07; c.strokeRect(M, M, 10, 10);
+  // alt şerit: oyun dışı piyonların tepsisi
+  const sy = M + 10 + 0.06; c.fillStyle = 'rgba(60,30,8,.18)'; rr(c, M, sy, 10, STRIP - 0.06, 0.2); c.fill();
+  rr(c, TRAY.x, TRAY.y, TRAY.w, TRAY.h, 0.2); const tg = c.createLinearGradient(0, TRAY.y, 0, TRAY.y + TRAY.h); tg.addColorStop(0, '#1d6a3a'); tg.addColorStop(1, '#2a8a4d'); c.fillStyle = tg; c.fill();
+  c.strokeStyle = 'rgba(30,15,3,.65)'; c.lineWidth = 0.05; c.stroke();
+  // merdivenler, yılanlar
+  for (const [lo, hi] of Object.entries(LADDERS)) drawLadder(c, sq(+lo), sq(hi));
+  for (const s of SNAKE_DEF) drawSnake(c, s);
+  // 100. karedeki yıldız
+  const [sx, s2y] = sq(100); c.save(); c.shadowColor = 'rgba(0,0,0,.35)'; c.shadowBlur = 0.1; c.shadowOffsetY = 0.04;
+  drawStar(c, sx, s2y + 0.02, 0.5, 0.25); c.fillStyle = '#f5b400'; c.fill(); c.strokeStyle = '#b97800'; c.lineWidth = 0.04; c.lineJoin = 'round'; c.stroke(); c.restore();
+  // numaralar en üstte: çizgilerin ve yılanların üstünde de okunur
+  c.textBaseline = 'top'; c.font = '800 0.3px Inter, system-ui, sans-serif'; c.lineJoin = 'round'; c.textAlign = 'left';
+  for (let n = 1; n <= 100; n++) {
+    const [x, y] = sq(n);
+    if (n === 100) { c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '800 0.28px Inter, system-ui, sans-serif'; c.lineWidth = 0.09; c.strokeStyle = '#f5b400'; c.strokeText('100', x, y + 0.08); c.fillStyle = '#4a2a0a'; c.fillText('100', x, y + 0.08); continue; }
+    c.lineWidth = 0.1; c.strokeStyle = 'rgba(255,250,238,.95)'; c.strokeText(n, x - 0.45, y - 0.46); c.fillStyle = '#5b3a1c'; c.fillText(n, x - 0.45, y - 0.46);
+  }
+}
+// Piyon: plastik görsel; tabanı karenin ortasına oturur
+function pawn(c, x, y, s, p, lift = 0, squash = 0) {
+  c.save();
+  c.fillStyle = `rgba(0,0,0,${Math.max(0.08, 0.32 - lift * 0.4)})`; c.beginPath(); c.ellipse(x, y + s * 0.3, s * 0.34, s * 0.12, 0, 0, Math.PI * 2); c.fill();
+  c.translate(x, y - lift);
+  if (squash) { c.translate(0, s * 0.3); c.scale(1 + squash * 0.18, 1 - squash * 0.22); c.translate(0, -s * 0.3); }
+  const im = IMG.pawns;
+  if (im) { const fw = im.width / 4, h = s * 1.16, w = h * fw / im.height; c.drawImage(im, p * fw, 0, fw, im.height, -w / 2, s * 0.33 - h, w, h); }
+  else { c.fillStyle = COLS[p]; c.strokeStyle = 'rgba(0,0,0,.4)'; c.lineWidth = 0.03; c.beginPath(); c.moveTo(-s * 0.3, s * 0.3); c.quadraticCurveTo(-s * 0.1, -s * 0.1, 0, -s * 0.1); c.quadraticCurveTo(s * 0.1, -s * 0.1, s * 0.3, s * 0.3); c.closePath(); c.fill(); c.stroke(); circ(c, 0, -s * 0.22, s * 0.2); c.fill(); c.stroke(); }
+  c.restore();
+}
+function avatar(c, p, x, y, r) {
+  c.save(); circ(c, x, y, r); c.clip();
+  if (IMG.avatars) { const w = IMG.avatars.width / 4; c.drawImage(IMG.avatars, p * w, 0, w, IMG.avatars.height, x - r, y - r, r * 2, r * 2); } else { c.fillStyle = COLS[p]; c.fill(); }
+  c.restore();
+}
+const landT = new Map(); // piyon inişinde kısa ezilme
+function landed(p) { landT.set(p, vclock); }
+function drawStrip(c, now) {
+  const a = active(), x0 = M + 3.25, cellW = (10 - 3.25) / a.length, cy = M + 10 + STRIP / 2 + 0.03;
+  a.forEach((p, k) => {
+    const cur = p === G.turn && phase !== 'over', cxp = x0 + cellW * (k + 0.5), gw = 1.62, ax = cxp - gw / 2 + 0.4, px = ax + 0.5, pw = 0.8;
+    if (cur) { c.save(); c.shadowColor = COLS[p]; c.shadowBlur = 0.3 + 0.2 * Math.sin(now / 260); circ(c, ax, cy, 0.46); c.fillStyle = COLS[p]; c.fill(); c.restore(); }
+    avatar(c, p, ax, cy, 0.37); circ(c, ax, cy, 0.37); c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 0.04; c.stroke();
+    rr(c, px, cy - 0.2, pw, 0.4, 0.2); c.fillStyle = cur ? COLS[p] : '#f3e6cc'; c.fill(); c.strokeStyle = cur ? '#fff' : 'rgba(80,50,20,.5)'; c.lineWidth = 0.035; c.stroke();
+    c.font = '800 0.3px Inter, system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = cur ? '#fff' : '#5b3a1c'; c.fillText(String(G.pos[p]), px + pw / 2, cy + 0.02);
+  });
+}
+function frame(now) {
+  requestAnimationFrame(frame);
+  paintLayer();
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height); cx.drawImage(layer, 0, 0);
+  if (!G) return;
+  cx.setTransform(DPR * K, 0, 0, DPR * K, 0, 0);
+  drawStrip(cx, now);
+  const v = vt(), list = pieceSpots();
+  for (const o of list) { const t = landT.get(o.p); if (t !== undefined && !REDUCED) { const u = (v - t) / 260; if (u < 1) o.squash = Math.sin(u * Math.PI) * (1 - u); else landT.delete(o.p); } }
+  for (const p of active()) if (anims[p]) { const r = animPos(anims[p], v); if (r) list.push({ p, x: r[0], y: r[1], s: 0.82, lift: r[2], squash: 0 }); }
+  if (phase === 'over') for (const o of list) if (o.p === G.winner) o.lift = REDUCED ? 0 : Math.abs(Math.sin(now / 210 + o.p)) * 0.5;
+  list.sort((a, b) => a.y - b.y);
+  for (const o of list) {
+    if (o.p === G.turn && phase !== 'over') { circ(cx, o.x, o.y + o.s * 0.3, o.s * 0.48 + 0.03 * Math.sin(now / 200)); cx.strokeStyle = COLS[o.p]; cx.globalAlpha = 0.55; cx.lineWidth = 0.05; cx.stroke(); cx.globalAlpha = 1; }
+    pawn(cx, o.x, o.y, o.s, o.p, o.lift, o.squash);
+  }
+}
+requestAnimationFrame(frame);
+
+// ---------- Arayüz ----------
+function msg(s) { $('turnMsg').textContent = s; }
+function note(s) { msg(s); toast(s, COLS[G.turn]); }
+function updateDock() {
+  if (!G) return;
+  const t = T(), p = G.turn, human = G.seats[p] === 'human';
+  document.documentElement.style.setProperty('--turn', COLS[p]);
+  if (lastTurn !== p) { lastTurn = p; const ch = document.querySelector('.chip'); ch.style.backgroundPosition = avaPos(p); ch.classList.remove('pop'); void ch.offsetWidth; ch.classList.add('pop'); }
+  $('turnName').textContent = human && humans() === 1 ? t.yourTurn : t.turnOf(shortName(p));
+  const ready = phase === 'roll' && human;
+  $('dice').classList.toggle('ready', ready); $('dice').disabled = !ready;
+  if (phase === 'roll') msg(human ? (sixes ? t.six : t.rollTap) : t.rollCpu);
+}
+function render() { updateDock(); }
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+function closeAll() { for (const id of ['setupOv', 'rulesOv', 'winOv']) $(id).hidden = true; }
+function renderSetup() {
+  const t = T();
+  $('seats').innerHTML = SEATS_FOR[setup.count].map((p) => `<div class="seat"><span class="dot ava" style="background-position:${avaPos(p)}" title="${t.colors[p]}"></span>
+    <div class="seg two" role="group" aria-label="${t.colors[p]}">${['human', 'cpu'].map((k) => `<button type="button" data-p="${p}" data-k="${k}" aria-pressed="${setup.roles[p] === k}">${t[k]}</button>`).join('')}</div></div>`).join('');
+  document.querySelectorAll('#countSeg button').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.n === setup.count));
+  $('countLbl').textContent = t.count;
+  $('resumeBtn').hidden = !loadSaved();
+}
+function openSetup() { clearTimeout(timer); busy = false; for (const k in anims) delete anims[k]; renderSetup(); closeAll(); $('setupOv').hidden = false; }
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('toMenuBtn').textContent = t.toMenu;
+  $('dice').setAttribute('aria-label', t.rollAria); cv.setAttribute('aria-label', t.board);
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  renderSetup(); render();
+  if (G && phase === 'over') { /* sonuç listesi dile bağlı: yeniden yaz */ $('winTitle').textContent = (humans() === 1 && G.seats[G.winner] === 'human') ? t.youWin : t.wins(shortName(G.winner)); $('winSub').textContent = t.winSub; }
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+$('dice').addEventListener('click', () => { Sfx.unlock(); if (G && G.seats[G.turn] === 'human') rollDice(); });
+addEventListener('keydown', (e) => {
+  if (!G || !$('setupOv').hidden || !$('rulesOv').hidden || !$('winOv').hidden) return;
+  if (e.key === ' ' && document.activeElement === $('dice')) return; // düğme kendi tıklamasını verir
+  if ((e.key === ' ' || e.key === 'Enter') && phase === 'roll' && G.seats[G.turn] === 'human' && !(document.activeElement && document.activeElement.tagName === 'BUTTON')) { e.preventDefault(); rollDice(); }
+});
+$('seats').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-p]'); if (!b) return;
+  setup.roles[+b.dataset.p] = b.dataset.k; renderSetup();
+});
+$('countSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-n]'); if (b) { setup.count = +b.dataset.n; renderSetup(); } });
+$('startBtn').addEventListener('click', () => {
+  Sfx.unlock(); try { localStorage.setItem(KEY + 'setup', JSON.stringify(setup)); } catch (e) {}
+  newGame(seatsOf(setup));
+});
+$('resumeBtn').addEventListener('click', () => {
+  Sfx.unlock(); const s = loadSaved(); if (!s) return;
+  G = { seats: s.seats, pos: s.pos, turn: s.turn };
+  clearTimeout(timer); for (const k in anims) delete anims[k]; busy = false;
+  closeAll(); startTurn(G.turn);
+});
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => newGame(G.seats));
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem(KEY + 'sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+// Tam ekran: desteklemeyen tarayıcıda (iPhone Safari) düğme gizlenir
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+addEventListener('resize', () => layout());
+document.addEventListener('fullscreenchange', () => layout()); document.addEventListener('webkitfullscreenchange', () => layout());
+if (window.ResizeObserver) new ResizeObserver(() => layout()).observe(document.querySelector('main'));
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+// Test kancası: hızlandırma, zarı zorlama, konum atama (oyun akışını değiştirmez)
+window.__rids = {
+  speed(k) { SPD = k; }, force(v) { forced = v; }, setPos(p, n) { G.pos[p] = n; }, get G() { return G; }, get phase() { return phase; },
+  spots: pieceSpots, get anims() { return anims; }, vt, layoutNow: layout, playRoll
+};
+
+layout(); applyLang(); applySound(); openSetup(); render();
+</script>
+</body>
+</html>
