@@ -1595,11 +1595,11 @@
 
       window.addEventListener("resize", resizeCanvas);
 
-      window.addEventListener("load", () => {
-        // Önce tahta kurulmalı: resizeCanvas çizim yapar ve boş tahtada hata verir
-        initGame();
-        resizeCanvas();
-      });
+      // Tahta hemen kurulur: sayfa yüklenmesi (yazı tipi, sayaç) gecikirken gelen boyut değişimi,
+      // dil ya da tema dokunuşu boş tahtada hata veriyordu. Yükleme bitince ölçüler yeniden alınır.
+      initGame();
+      resizeCanvas();
+      window.addEventListener("load", resizeCanvas);
     })();
   </script>
 </body>
