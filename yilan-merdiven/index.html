@@ -338,17 +338,16 @@ const trayPt = (p) => [TRAY.x + 0.5 + p * 0.65, TRAY.y + TRAY.h / 2 + 0.05];
 const ptOf = (p, n) => (n > 0 ? sq(n) : trayPt(p));
 const bez = (a, b, c, d, t) => { const u = 1 - t; return [u * u * u * a[0] + 3 * u * u * t * b[0] + 3 * u * t * t * c[0] + t * t * t * d[0], u * u * u * a[1] + 3 * u * u * t * b[1] + 3 * u * t * t * c[1] + t * t * t * d[1]]; };
 
-// Yılanlar: [baş, kuyruk, sapma1, sapma2, renk, desen]; sapma = baş-kuyruk doğrusuna dik, kare cinsinden
+// Yılanlar: [baş, kuyruk, sapma1, sapma2, renk]; sapma = baş-kuyruk doğrusuna dik, kare cinsinden
 const SNAKE_DEF = [
-  [17, 7, 0.5, -0.5, '#e0447c', 'dots'], [54, 34, -1.0, 0.5, '#e8a317', 'diamonds'], [62, 19, -1.3, 1.3, '#17a2a2', 'diamonds'],
-  [64, 60, 0.6, -0.6, '#e5603a', 'bands'], [87, 24, 1.6, -1.2, '#2f80d8', 'bands'], [93, 73, -1.0, 0.3, '#f08c2a', 'diamonds'],
-  [95, 75, 0.7, -0.6, '#9b59b6', 'dots'], [99, 78, -0.7, 0.6, '#8cc63f', 'bands']
-].map(([h, t, o1, o2, col, pat]) => {
+  [17, 7, 0.5, -0.5, '#e0447c'], [54, 34, -1.0, 0.5, '#e8a317'], [62, 19, -1.3, 1.3, '#17a2a2'], [64, 60, 0.6, -0.6, '#e5603a'],
+  [87, 24, 1.6, -1.2, '#2f80d8'], [93, 73, -1.0, 0.3, '#f08c2a'], [95, 75, 0.7, -0.6, '#9b59b6'], [99, 78, -0.7, 0.6, '#8cc63f']
+].map(([h, t, o1, o2, col]) => {
   const a = sq(h), d = sq(t), dx = d[0] - a[0], dy = d[1] - a[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
   const c1 = [a[0] + dx * 0.33 + nx * o1, a[1] + dy * 0.33 + ny * o1], c2 = [a[0] + dx * 0.66 + nx * o2, a[1] + dy * 0.66 + ny * o2];
   const pts = [], N = 56; for (let i = 0; i <= N; i++) pts.push(bez(a, c1, c2, d, i / N));
   const cum = [0]; for (let i = 1; i <= N; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
-  return { h, t, col, pat, pts, cum, len: cum[N] };
+  return { h, t, col, pts, cum, len: cum[N] };
 });
 const snakeAt = (s, u) => { // eğri üzerinde yay uzunluğu oranına göre nokta
   const target = u * s.len; let i = 1; while (i < s.pts.length - 1 && s.cum[i] < target) i++;
@@ -586,21 +585,14 @@ function drawSnake(c, s) {
   body(0.05); c.fillStyle = 'rgba(40,20,5,.25)'; c.fill();
   body(0); c.fillStyle = s.col; c.fill(); c.lineJoin = 'round'; c.strokeStyle = 'rgba(0,0,0,.4)'; c.lineWidth = 0.035; c.stroke();
   c.save(); body(0); c.clip();
-  for (let i = 2; i < N - 1; i++) {
-    const u = i / N, w = 0.2 * (1 - 0.82 * Math.pow(u, 1.2));
-    if (s.pat === 'bands' && Math.floor(i / 3) % 2 === 0) { c.beginPath(); c.moveTo(...L[i]); c.lineTo(...L[i + 1]); c.lineTo(...R[i + 1]); c.lineTo(...R[i]); c.closePath(); c.fillStyle = 'rgba(255,255,255,.55)'; c.fill(); }
-    if (s.pat === 'dots' && i % 4 === 0) { circ(c, P[i][0], P[i][1], w * 0.42); c.fillStyle = 'rgba(255,255,255,.85)'; c.fill(); }
-    if (s.pat === 'diamonds' && i % 4 === 1) { c.beginPath(); const q = P[i], z = w * 0.9, a = P[i - 1], b = P[i + 1], ang = Math.atan2(b[1] - a[1], b[0] - a[0]); c.save(); c.translate(q[0], q[1]); c.rotate(ang); c.moveTo(-z * 1.1, 0); c.lineTo(0, -z); c.lineTo(z * 1.1, 0); c.lineTo(0, z); c.closePath(); c.restore(); c.fillStyle = 'rgba(255,255,255,.75)'; c.fill(); c.strokeStyle = 'rgba(0,0,0,.28)'; c.lineWidth = 0.02; c.stroke(); }
+  for (let i = 2; i < N - 1; i++) { // halka desen
+    if (Math.floor(i / 3) % 2 === 0) { c.beginPath(); c.moveTo(...L[i]); c.lineTo(...L[i + 1]); c.lineTo(...R[i + 1]); c.lineTo(...R[i]); c.closePath(); c.fillStyle = 'rgba(255,255,255,.55)'; c.fill(); }
   }
   // sırt parlaklığı
   c.beginPath(); P.forEach((q, i) => { const k = i / (N - 1), a = P[Math.max(0, i - 1)], b = P[Math.min(N - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1, w = 0.2 * (1 - 0.82 * Math.pow(k, 1.2)) * 0.45; const x = q[0] - dy / d * w, y = q[1] + dx / d * w; i ? c.lineTo(x, y) : c.moveTo(x, y); });
   c.strokeStyle = 'rgba(255,255,255,.22)'; c.lineWidth = 0.03; c.stroke();
   c.restore();
-  // dil (baştan öne doğru çatallı)
-  const h = P[0], n2 = P[2], dh = Math.atan2(h[1] - n2[1], h[0] - n2[0]);
-  c.save(); c.translate(h[0], h[1]); c.rotate(dh);
-  c.beginPath(); c.moveTo(0.2, 0); c.lineTo(0.38, 0); c.moveTo(0.38, 0); c.lineTo(0.47, -0.06); c.moveTo(0.38, 0); c.lineTo(0.47, 0.06);
-  c.strokeStyle = '#e03131'; c.lineWidth = 0.035; c.lineCap = 'round'; c.stroke(); c.restore();
+  const h = P[0];
   // kafa: yuvarlak, izleyiciye bakar
   const g = c.createRadialGradient(h[0] - 0.07, h[1] - 0.09, 0.02, h[0], h[1], 0.27);
   g.addColorStop(0, s.col); g.addColorStop(1, s.col);
