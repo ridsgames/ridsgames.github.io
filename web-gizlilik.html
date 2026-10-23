@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="color-scheme" content="dark">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gizlilik Politikası - Web Oyunları</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --water:#07080B; --ink:#C9D2DF; --ink-soft:#8D9AB0; --surface:#111419; --line:rgba(201,210,223,.16); --head:#1A1F27; --coral:#36C5E8; --aqua:#36C5E8; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--water); color: var(--ink); font: 16px/1.7 "Barlow", "Segoe UI", system-ui, sans-serif; }
+.bar { max-width: 760px; margin: 0 auto; padding: 18px 20px; }
+.logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font: 700 22px "Chakra Petch", "Segoe UI", system-ui, sans-serif; }
+.logo img { display: block; height: 40px; width: auto; mix-blend-mode: lighten; }
+main { max-width: 760px; margin: 0 auto 56px; padding: 32px 28px 40px; background: var(--surface); --cut: 18px; clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
+h1, h2, th { color: #EEF3F9; }
+h1 { font: 700 clamp(30px, 6vw, 40px)/1.15 "Chakra Petch", "Segoe UI", system-ui, sans-serif; margin: 0 0 14px; }
+h2 { font: 600 22px/1.25 "Chakra Petch", "Segoe UI", system-ui, sans-serif; margin: 34px 0 10px; padding-top: 22px; border-top: 2px dashed var(--line); }
+p { margin: 12px 0; }
+strong { color: var(--ink); }
+ul { padding-left: 22px; }
+li { margin: 6px 0; }
+table { border-collapse: separate; border-spacing: 0; width: 100%; margin: 16px 0; font-size: 15px; border: 2px solid var(--line); border-radius: 16px; overflow: hidden; }
+th, td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+th { background: var(--head); font-weight: 700; }
+hr { border: 0; border-top: 2px dashed var(--line); margin: 28px 0; }
+a { color: var(--aqua); }
+:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; border-radius: 6px; }
+footer { margin-top: 40px; padding-top: 18px; border-top: 2px dashed var(--line); font-size: 14px; color: var(--ink-soft); }
+.dil { float: right; font-size: 15px; }
+@media (max-width: 560px) { main { margin: 0 12px 40px; padding: 24px 18px 30px; } .bar { padding: 14px 16px; } table { font-size: 14px; } }
+</style>
+</head>
+<body>
+<header class="bar"><a class="logo" href="./" aria-label="Ridsgames ana sayfa"><img src="assets/logo.webp" alt="Ridsgames" height="40" width="86"></a></header>
+<main>
+<a class="dil" href="#en" lang="en">English</a>
+<h1>Gizlilik Politikası</h1>
+<ul><li><strong>Kapsam:</strong> ridsgames.github.io adresindeki tarayıcı oyunları (Sulu Halka, Çivi Futbolu, Solo Test, Kızma Birader)</li><li><strong>Geliştirici:</strong> Ridsgame</li><li><strong>Yürürlük tarihi:</strong> 23 Ekim 2026</li><li><strong>İletişim:</strong> ridsgames.destek@gmail.com</li></ul>
+<p>Misket Klasik mobil uygulamasının politikası ayrıdır: <a href="gizlilik.html">gizlilik.html</a></p>
+<h2>Kısaca</h2>
+<ul><li>Hesap açmanız gerekmez. Çerez kullanmayız, reklam göstermeyiz.</li><li>Oyun ayarlarınız ve rekorlarınız yalnızca tarayıcınızda durur.</li><li>Kaç kişinin hangi oyunu ne kadar oynadığını kişiyi tanımadan sayarız (GoatCounter).</li><li>Solo Test ve Sulu Halka sıralamasına katılmayı seçerseniz yazdığınız takma ad ve skorunuz herkese açık tabloda görünür. Kayıtlarınızı oyundan tek dokunuşla silebilirsiniz.</li></ul>
+<h2>Tarayıcınızda duran veriler</h2>
+<table><thead><tr><th>Veri</th><th>Neden</th></tr></thead><tbody>
+<tr><td>Dil seçimi (<code>lang</code>)</td><td>Sayfaları seçtiğiniz dilde açmak için</td></tr>
+<tr><td>Kızma Birader yarım oyun, oyuncu ayarları ve ses tercihi (<code>rids_kizma_*</code>)</td><td>Oyunu kaldığınız yerden sürdürmek için</td></tr>
+<tr><td>Solo Test en iyi skorları (<code>rids_solotest_best_*</code>)</td><td>Rekorunuzu göstermek için</td></tr>
+<tr><td>Sulu Halka modu ve en iyi süreler (<code>sulu_halka_mode</code>, <code>sulu_halka_adult_best_*</code>, <code>ocean_wonderland_best_*</code>)</td><td>Tercihinizi ve rekorunuzu hatırlamak için</td></tr>
+<tr><td>Sıralama takma adınız, anonim kimlik anahtarları ve katıldığınız tabloların listesi (<code>rids_lb</code>)</td><td>Sıralamada sizi tanımak ve kayıtlarınızı silebilmek için</td></tr>
+<tr><td>Sekmenin bu oturumda sayılıp sayılmadığı (<code>rids_giris</code>, sekme kapanınca silinir)</td><td>Aynı ziyareti iki kez saymamak için</td></tr>
+</tbody></table>
+<p>Bunlar tarayıcınızın yerel depolamasında tutulur, çerez değildir ve sıralama dışında bize gönderilmez. Tarayıcınızdaki site verilerini temizleyerek silebilirsiniz.</p>
+<h2>Kullanım ölçümü (GoatCounter)</h2>
+<p>Hangi oyunların sevildiğini görmek için gizlilik odaklı GoatCounter hizmetini kullanırız. GoatCounter çerez ya da kalıcı kimlik kullanmaz, IP adresini saklamaz. Sayfa adresi, gelinen site, tarayıcı ve işletim sistemi türü, ekran boyutu ve IP adresinden çıkarılan ülke kaydedilir. Bunlara ek olarak oyunlardan şu olaylar gönderilir: oyun başlatma ve bitirme gibi oyun içi düğmeler, sayfada etkin geçen sürenin aralığı (ör. "10 dakikaya kadar"), sıralamanın açılması ve sayfada oluşan teknik hata mesajları. Bu veriler kişiyi tanımlamaz.</p>
+<p>GoatCounter gizlilik politikası: <a href="https://www.goatcounter.com/help/privacy">goatcounter.com/help/privacy</a></p>
+<h2>Sıralama (Solo Test ve Sulu Halka)</h2>
+<p>Bir oyunu bitirdiğinizde takma ad yazarsanız skorunuz sıralamaya gönderilir. Ad yazmazsanız hiçbir şey gönderilmez. Gönderilenler:</p>
+<ul><li>Yazdığınız takma ad (3-16 karakter).</li><li>Skorunuz: Solo Test'te kalan piyon sayısı ve süre, Sulu Halka'da süre.</li><li>Kaydın sunucu saati.</li><li>Tarayıcınız için rastgele oluşturulan anonim bir kimlik. Bu kimlik adınızla, e-postanızla veya herhangi bir hesabınızla ilişkili değildir.</li></ul>
+<p>Kayıtlar Google Firebase sunucularında (Avrupa, Belçika) tutulur. Takma ad, skor ve kayıt saati herkese açıktır; tabloda ad ve skor gösterilir. Haftalık tablo her pazartesi 00:00'da (Türkiye saati) yeniden başlar; eski haftaların kayıtları dahil tüm kayıtlarınız siz silene kadar durur.</p>
+<ul><li>Oyundaki <strong>Sıralama</strong> penceresinde <strong>Kayıtlarımı sil</strong> düğmesi tüm tablolardaki kayıtlarınızı ve anonim kimliğinizi siler.</li><li>Tarayıcı verilerini temizlediyseniz ya da başka bir cihazdan ulaşmak istiyorsanız takma adınızı ve tabloyu bize yazın, sileriz.</li><li>Uygunsuz takma adları ve gerçekçi olmayan skorları haber vermeden sileriz.</li></ul>
+<p>Takma ad olarak gerçek adınızı, soyadınızı veya sizi tanıtacak bir bilgi yazmamanızı öneririz.</p>
+<h2>Çocuklar</h2>
+<p>Oyunlar her yaşa uygundur. Çocuklardan bilerek kişisel veri toplamayız. Çocukların sıralamaya gerçek adlarını yazmamaları için ebeveynlerin yardımcı olmasını rica ederiz. Bir çocuğa ait bilginin sıralamaya girdiğini fark ederseniz bize yazın, hemen sileriz.</p>
+<h2>Sayfaların yüklendiği diğer hizmetler</h2>
+<table><thead><tr><th>Hizmet</th><th>Ne için</th></tr></thead><tbody>
+<tr><td>GitHub Pages</td><td>Sitenin barındırılması</td></tr>
+<tr><td>Google Fonts</td><td>Yazı tipleri</td></tr>
+<tr><td>Tailwind CSS (cdn.tailwindcss.com)</td><td>Sulu Halka sayfasının görünümü</td></tr>
+<tr><td>GoatCounter (gc.zgo.at)</td><td>Kullanım ölçümü</td></tr>
+<tr><td>Google Firebase</td><td>Sıralama sunucusu ve anonim kimlik</td></tr>
+</tbody></table>
+<p>Sayfa açılırken tarayıcınız bu hizmetlere bağlanır; bu sırada IP adresiniz ve tarayıcı bilgileriniz onlara ulaşır. Bunlar kendi gizlilik politikalarına tabidir. Verilerinizi bunların dışında kimseyle paylaşmayız ve satmayız. Bu hizmetlerin sunucuları Türkiye dışında olabilir.</p>
+<h2>Haklarınız</h2>
+<p>KVKK, GDPR ve benzeri yasalar kapsamında verileriniz hakkında bilgi alma, erişme, düzeltme, silme ve işlemeye itiraz etme haklarına sahipsiniz. Sıralama kayıtları için yukarıdaki silme yolunu ya da ridsgames.destek@gmail.com adresini kullanabilirsiniz; en geç 30 gün içinde yanıt veririz. Veri sorumlusu Ridsgame'dir. Şikâyetinizi bulunduğunuz ülkenin veri koruma kurumuna da iletebilirsiniz.</p>
+<h2>Değişiklikler</h2>
+<p>Bu politika değişirse güncel sürüm bu sayfada yayımlanır ve yürürlük tarihi güncellenir.</p>
+
+<hr id="en">
+<div lang="en">
+<h1>Privacy Policy</h1>
+<ul><li><strong>Scope:</strong> the browser games at ridsgames.github.io (Water Ring Toss, Nail Football, Peg Solitaire, Ludo)</li><li><strong>Developer:</strong> Ridsgame</li><li><strong>Effective date:</strong> 23 October 2026</li><li><strong>Contact:</strong> ridsgames.destek@gmail.com</li></ul>
+<p>The Misket Klasik mobile app has its own policy: <a href="privacy.html">privacy.html</a></p>
+<h2>In short</h2>
+<ul><li>No account is needed. We use no cookies and show no ads.</li><li>Your game settings and records stay in your browser.</li><li>We count which games are played and for how long without identifying anyone (GoatCounter).</li><li>If you choose to join the Peg Solitaire or Water Ring Toss leaderboard, the nickname you type and your score appear on a public table. You can delete your entries from the game with one tap.</li></ul>
+<h2>Data kept in your browser</h2>
+<p>Language choice (<code>lang</code>), Ludo saved game, player setup and sound setting (<code>rids_kizma_*</code>), Peg Solitaire best scores (<code>rids_solotest_best_*</code>), Water Ring Toss mode and best times (<code>sulu_halka_mode</code>, <code>sulu_halka_adult_best_*</code>, <code>ocean_wonderland_best_*</code>), your leaderboard nickname, anonymous identity keys and the list of tables you joined (<code>rids_lb</code>), and a per-tab visit flag (<code>rids_giris</code>, cleared when the tab closes). These are stored in your browser's local storage, are not cookies and are not sent to us except for the leaderboard. Clearing the site data in your browser removes them.</p>
+<h2>Usage measurement (GoatCounter)</h2>
+<p>We use the privacy-focused GoatCounter service. It sets no cookies, uses no persistent identifier and does not store IP addresses. It records the page address, referring site, browser and OS type, screen size and the country derived from the IP address. The games also send these events: in-game buttons such as starting or finishing a game, the range of active time on the page (e.g. "up to 10 minutes"), opening the leaderboard and technical error messages from the page. This data does not identify you. GoatCounter's policy: <a href="https://www.goatcounter.com/help/privacy">goatcounter.com/help/privacy</a></p>
+<h2>Leaderboard (Peg Solitaire and Water Ring Toss)</h2>
+<p>When you finish a game and type a nickname, your score is sent to the leaderboard. If you do not type a nickname, nothing is sent. We store your nickname (3-16 characters), your score (pegs left and time, or time), the server time of the entry, and a random anonymous identity created for your browser that is not linked to your name, email or any account. Entries are stored on Google Firebase servers (Europe, Belgium). Nickname, score and entry time are public; the table shows the nickname and score. The weekly table restarts every Monday 00:00 (Turkey time); all your entries, including past weeks, remain until you delete them.</p>
+<ul><li>The <strong>Delete my scores</strong> button in the game's <strong>Leaderboard</strong> window removes your entries from all tables and deletes your anonymous identity.</li><li>If you cleared your browser data or use another device, email us your nickname and the table and we will delete them.</li><li>We remove offensive nicknames and implausible scores without notice.</li></ul>
+<p>Please do not use your real name or anything that identifies you as a nickname.</p>
+<h2>Children</h2>
+<p>The games are suitable for all ages. We do not knowingly collect personal data from children. We ask parents to help children avoid typing their real names on the leaderboard. If you notice a child's information on the leaderboard, write to us and we will delete it promptly.</p>
+<h2>Other services the pages load</h2>
+<p>GitHub Pages (hosting), Google Fonts (fonts), Tailwind CSS from cdn.tailwindcss.com (Water Ring Toss styling), GoatCounter from gc.zgo.at (usage measurement) and Google Firebase (leaderboard server and anonymous identity). Your browser connects to these services when a page loads, which shares your IP address and browser details with them under their own privacy policies. We do not share or sell your data to anyone else. These services may have servers outside Turkey.</p>
+<h2>Your rights</h2>
+<p>Under the KVKK, the GDPR and similar laws you can ask for information about, access, correct and delete your data, and object to its processing. For leaderboard entries use the delete option above or email ridsgames.destek@gmail.com; we reply within 30 days. Ridsgame is the data controller. You may also complain to the data protection authority in your country.</p>
+<h2>Changes</h2>
+<p>If this policy changes, the current version is published on this page with an updated effective date.</p>
+</div>
+<footer>İletişim / Contact: ridsgames.destek@gmail.com · <a href="./">Ridsgames</a></footer>
+</main>
+</body>
+</html>

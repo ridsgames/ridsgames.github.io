@@ -29,7 +29,9 @@
     .home-bar a { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .home-bar img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
     .home-bar .gname { font: 12px Inter, system-ui, sans-serif; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
-    @media (max-width: 520px) { .home-bar .in { height: 46px; } .home-bar img { height: 28px; } .home-bar .gname { display: none; } }
+    .home-bar .lb-btn { margin-left: auto; display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, .4); background: rgba(15, 23, 42, .9); color: #e0f2fe; font: 600 13px Inter, system-ui, sans-serif; cursor: pointer; }
+    .home-bar .lb-btn:hover { border-color: #38bdf8; }
+    @media (max-width: 520px) { .home-bar .in { height: 46px; } .home-bar img { height: 28px; } .home-bar .gname { display: none; } .home-bar .lb-btn { height: 32px; padding: 0 10px; } }
     :root:fullscreen .home-bar { display: none; }
     :root:-webkit-full-screen .home-bar { display: none; }
     .font-game {
@@ -199,6 +201,8 @@
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
 <script src="../assets/olcum.js" data-page="sulu-halka" data-name="Sulu Halka"></script>
+<!-- Haftalık ve tüm zamanlar sıralaması (ortak) -->
+<script src="../assets/siralama.js"></script>
 </head>
 <body class="flex flex-col items-center justify-center">
 
@@ -208,6 +212,7 @@
         <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
         <span class="gname" id="homeGameName">Sulu Halka</span>
       </a>
+      <button id="btn-lb" type="button" class="lb-btn"><span>🥇</span><span data-i18n="lb">Sıralama</span></button>
     </div>
   </header>
 
@@ -313,6 +318,7 @@
                 <div id="win-best" class="font-game text-xl font-bold text-emerald-300">00:45</div>
               </div>
             </div>
+            <div id="lb-slot" class="mb-4"></div>
             <div class="flex gap-2">
               <button id="btn-win-bg" type="button" class="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-200 font-semibold text-sm border border-slate-600 transition" data-i18n="newBg">
                 🖼️ Yeni Arkaplan
@@ -486,7 +492,8 @@
       gyroOff: 'Gyroscope off', gyroHttps: 'The gyroscope needs the game to be opened over HTTPS.',
       gyroNone: 'No tilt sensor found on this device.', gyroDenied: 'Sensor permission was not granted.',
       gyroFail: 'Could not get sensor permission (HTTPS required).', gyroOn: 'Gyroscope on · tilt to slide, shake to stir',
-      customBg: 'Custom background', customBgSub: 'Your own image'
+      customBg: 'Custom background', customBgSub: 'Your own image',
+      lb: 'Leaderboard', lbFizik: 'Water jet power or gravity was changed, so this time does not count for the leaderboard.'
     };
     function t(key, trText) { return LANG === 'en' ? I18N_EN[key] : trText; }
     if (LANG === 'en') {
@@ -647,6 +654,8 @@
       const ADULT_SINK = 0.8;                     // daha yavaş çökme
       let jetPowerMultiplier = 1.0;
       let gravityMultiplier = 1.0;
+      // Sıralamaya yalnızca varsayılan su gücü ve yerçekimiyle oynanan oyunlar girer
+      let fizikTemiz = true;
       let tiltForceX = 0;
       // Gyro: telefon eğimi yerçekimi yönünü döndürür
       let gyroEnabled = false;
@@ -787,9 +796,21 @@
       function markStart() {
         if (started) return;
         started = true; sayac('basladi', 'oyun başladı');
+        startTime = Date.now(); // süre ilk su fışkırtmasıyla başlar
         const m = gameMode === 'adult' ? 'yetiskin' : 'cocuk';
         sayac('mod/' + m + '-' + totalRingsCount, 'mod: ' + (m === 'cocuk' ? 'çocuk' : 'yetişkin') + ', ' + totalRingsCount + ' halka');
       }
+
+      // Sıralama: mod ve halka sayısı başına bir tablo, kısa süre önde (süre onda bir saniye)
+      const lb = RidsSiralama({
+        panolar: [['cocuk', 'Çocuk', 'Kids'], ['yetiskin', 'Yetişkin', 'Adult']].flatMap(([m, tr, en]) =>
+          [10, 16, 24].map((h) => ({ id: 'sulu-' + m + '-' + h, tr: tr + ' · ' + h + ' halka', en: en + ' · ' + h + ' rings' }))),
+        dil: () => LANG,
+        bicim: (k) => RidsSiralama.sure(k.d),
+        olay: (ad) => sayac('siralama/' + ad, 'sıralama: ' + ad),
+        renk: '#38bdf8',
+      });
+      const panoId = () => 'sulu-' + (gameMode === 'adult' ? 'yetiskin' : 'cocuk') + '-' + totalRingsCount;
 
       function restartGame() {
         if (gameWon) sayac('tekrar', 'bitirdikten sonra yeni oyun');
@@ -802,6 +823,9 @@
         gameWon = false;
         startTime = Date.now();
         elapsedSeconds = 0;
+        fizikTemiz = jetPowerMultiplier === 1 && gravityMultiplier === 1;
+        const tEl = document.getElementById('timer-val');
+        if (tEl) tEl.textContent = formatTime(0);
         document.getElementById('victory-modal').classList.add('hidden');
         updateHUD();
       }
@@ -1144,11 +1168,24 @@
           gameWon = true;
           sayac('bitti', 'oyun bitti');
           playVictorySound();
+          const tenths = Math.min(99999, Math.floor((Date.now() - startTime) / 100));
+          elapsedSeconds = Math.floor(tenths / 10);
+          const tEl = document.getElementById('timer-val');
+          if (tEl) tEl.textContent = formatTime(elapsedSeconds);
           saveBestTime(elapsedSeconds);
           const best = getBestTime() || elapsedSeconds;
           document.getElementById('win-time').textContent = formatTime(elapsedSeconds);
           document.getElementById('win-best').textContent = formatTime(best);
           document.getElementById('victory-modal').classList.remove('hidden');
+          const slot = document.getElementById('lb-slot');
+          if (fizikTemiz) lb.bitti(slot, panoId(), { s: tenths, d: tenths });
+          else {
+            lb.bosalt(slot);
+            const not = document.createElement('p');
+            not.className = 'text-xs text-slate-400';
+            not.textContent = t('lbFizik', 'Su gücü ya da yerçekimi ayarı değiştirildiği için bu süre sıralamaya girmez.');
+            slot.appendChild(not);
+          }
         }
       }
 
@@ -1402,6 +1439,8 @@
 
         // Keyboard support (Space = Jet, Left/Right/A/D = Tilt)
         window.addEventListener('keydown', (e) => {
+          // sıralamada ad yazılırken ya da tablo seçilirken oyun tuşları çalışmaz (kaydırıcılar hariç)
+          if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLSelectElement) return;
           if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
             e.preventDefault();
             pushBtn.classList.add('pressed');
@@ -1702,12 +1741,16 @@
         // Physics sliders
         document.getElementById('jet-power-slider').addEventListener('input', (e) => {
           jetPowerMultiplier = parseInt(e.target.value, 10) / 100;
+          if (jetPowerMultiplier !== 1) fizikTemiz = false;
           document.getElementById('jet-power-val').textContent = jetPowerMultiplier.toFixed(1) + 'x';
         });
         document.getElementById('gravity-slider').addEventListener('input', (e) => {
           gravityMultiplier = parseInt(e.target.value, 10) / 100;
+          if (gravityMultiplier !== 1) fizikTemiz = false;
           document.getElementById('gravity-val').textContent = gravityMultiplier.toFixed(1) + 'x';
         });
+
+        document.getElementById('btn-lb').addEventListener('click', () => lb.ac(panoId()));
 
         // Victory modal buttons
         document.getElementById('btn-win-replay').addEventListener('click', restartGame);
@@ -1740,7 +1783,7 @@
 
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-          if (!gameWon) {
+          if (!gameWon && started) {
             elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
             const tEl = document.getElementById('timer-val');
             if (tEl) tEl.textContent = formatTime(elapsedSeconds);
