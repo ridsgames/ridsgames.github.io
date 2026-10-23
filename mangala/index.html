@@ -116,6 +116,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 .final span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; background: rgba(2, 6, 23, .55); }
 .final span.win { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
 .final .ava { width: 32px; height: 32px; }
+#lbSlot:not(:empty) { margin: -6px 0 2px; }
 
 @media (prefers-reduced-motion: reduce) { .chip.pop { animation: none; } .msg { transition: none; } }
 </style>
@@ -124,6 +125,8 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
 <script src="../assets/olcum.js" data-page="mangala" data-name="Mangala"></script>
+<!-- Ortak sıralama tablosu (Firebase) -->
+<script src="../assets/siralama.js"></script>
 </head>
 <body>
 <header class="top">
@@ -135,6 +138,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
     <div class="tools">
       <button id="menuBtn" class="pill" type="button"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
       <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="lbBtn" class="pill" type="button" aria-label="Sıralama"><span class="ico">🏆</span><span class="lbl" id="lbLbl">Sıralama</span></button>
       <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
       <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
       <button id="langBtn" class="pill lang" type="button" aria-label="Dili değiştir">TR | EN</button>
@@ -192,6 +196,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
     <h2 id="winTitle"></h2>
     <div class="final" id="final"></div>
     <p class="sub" id="winSub"></p>
+    <div id="lbSlot"></div>
     <div class="btns">
       <button class="big" id="againBtn" type="button"></button>
       <button class="big alt" id="toMenuBtn" type="button"></button>
@@ -329,7 +334,7 @@ function cpuMove(b, p, level, opts) { return level === 'hard' ? hardMove(b, p, o
 // ---------- Metinler ----------
 const STR = {
   tr: {
-    title: 'Mangala | Ridsgames', game: 'Mangala', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
+    title: 'Mangala | Ridsgames', game: 'Mangala', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', lb: 'Sıralama', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
     rights: 'Tüm hakları saklıdır.', board: 'Mangala tahtası. Sol sütun ve alttaki hazine birinci oyuncunun, sağ sütun ve üstteki hazine ikincinin.',
     setupSub: 'Taşları dağıt, çift yap, hazineni doldur.', modeLbl: 'Mod', modeCpu: 'Bilgisayara karşı', modeTwo: '2 oyuncu', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', hard: 'Zor',
     firstLbl: 'Kim başlasın?', me: 'Ben', cpu: 'Bilgisayar', rnd: 'Rastgele', p1: 'Oyuncu 1', p2: 'Oyuncu 2', start: 'Başla', resume: 'Kaldığın yerden devam et',
@@ -341,7 +346,8 @@ const STR = {
       ['🔁', 'Son taş <b>kendi hazineni</b> bulursa bir hamle daha yaparsın.'],
       ['✌️', 'Son taş <b>rakibin kuyusuna</b> düşer ve orada taş sayısı <b>çift</b> olursa, o kuyudaki taşların hepsi senin.'],
       ['🕳️', 'Son taş <b>kendi boş kuyuna</b> düşerse, o taşı ve karşısındaki kuyunun taşlarını alırsın. Karşısı boşsa bir şey olmaz.'],
-      ['🏁', 'Bir oyuncunun altı kuyusu da boşalınca oyun biter ve o oyuncu rakip tarafta kalan taşları da alır. <b>Daha çok taşı olan kazanır</b>, 24-24 berabere.']
+      ['🏁', 'Bir oyuncunun altı kuyusu da boşalınca oyun biter ve o oyuncu rakip tarafta kalan taşları da alır. <b>Daha çok taşı olan kazanır</b>, 24-24 berabere.'],
+      ['🏆', 'Bilgisayarı yenersen <b>sıralamaya</b> girersin: hazinesinde çok taş olan önde, eşitlikte oyunu kısa sürede bitiren.']
     ],
     turnYou: 'Sıra sende', turnCpu: 'Sıra bilgisayarda', turnP: (n) => `${n}. oyuncunun sırası`,
     hintYou: 'Taşlarını dağıtmak için kendi kuyunu seç', hintAgain: 'Bir hamle daha senin, kuyunu seç', hintThink: 'Bilgisayar düşünüyor...', hintSow: 'Taşlar dağıtılıyor...',
@@ -355,7 +361,7 @@ const STR = {
     again: 'Tekrar oyna', toMenu: 'Ayarları değiştir', score: 'Hazine', scoreAria: (a, b) => `Hazineler: ${a} ve ${b}`
   },
   en: {
-    title: 'Mangala | Ridsgames', game: 'Mangala', homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Fullscreen', langAria: 'Switch language',
+    title: 'Mangala | Ridsgames', game: 'Mangala', homeLabel: 'Ridsgames home', newGame: 'New game', lb: 'Leaderboard', rules: 'Rules', sound: 'Sound', fs: 'Fullscreen', langAria: 'Switch language',
     rights: 'All rights reserved.', board: 'Mangala board. The left column and the bottom store belong to player one, the right column and the top store to player two.',
     setupSub: 'Sow the stones, make evens, fill your store.', modeLbl: 'Mode', modeCpu: 'Vs computer', modeTwo: '2 players', lvlLbl: 'Computer level', easy: 'Easy', hard: 'Hard',
     firstLbl: 'Who starts?', me: 'Me', cpu: 'Computer', rnd: 'Random', p1: 'Player 1', p2: 'Player 2', start: 'Start', resume: 'Resume game',
@@ -367,7 +373,8 @@ const STR = {
       ['🔁', 'If your last stone lands in <b>your own store</b>, you move again.'],
       ['✌️', 'If your last stone lands in an <b>opponent pit</b> and makes its count <b>even</b>, you capture all stones in that pit.'],
       ['🕳️', 'If your last stone lands in <b>your own empty pit</b>, you take that stone plus the stones in the pit opposite. If the opposite pit is empty, nothing happens.'],
-      ['🏁', 'When all six pits of a player are empty the game ends and that player also takes the stones left on the other side. <b>Most stones wins</b>, 24-24 is a draw.']
+      ['🏁', 'When all six pits of a player are empty the game ends and that player also takes the stones left on the other side. <b>Most stones wins</b>, 24-24 is a draw.'],
+      ['🏆', 'Beat the computer to enter the <b>leaderboard</b>: more stones in your store ranks higher, ties go to the shorter game.']
     ],
     turnYou: 'Your turn', turnCpu: 'Computer\'s turn', turnP: (n) => `Player ${n}'s turn`,
     hintYou: 'Pick one of your pits to sow its stones', hintAgain: 'Move again, pick one of your pits', hintThink: 'The computer is thinking...', hintSow: 'Sowing the stones...',
@@ -389,7 +396,7 @@ const $ = (id) => document.getElementById(id);
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---------- Durum ----------
-// G: { mode: 'cpu' | 'two', level, b: 14 hücre, turn, over }. Oyuncu 0 solda (alt hazine), oyuncu 1 sağda (üst hazine).
+// G: { mode: 'cpu' | 'two', level, b: 14 hücre, turn, over, ms: oyunda geçen süre }. Oyuncu 0 solda (alt hazine), oyuncu 1 sağda (üst hazine).
 let G = null, setup = { mode: 'cpu', level: 'easy', first: 'me' };
 let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false;
 let hover = -1, press = -1, hilite = -1, hand = null;
@@ -400,6 +407,13 @@ try { soundOn = localStorage.getItem('rids_mangala_sound') !== '0'; } catch (e) 
 
 const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'mangala/' + olay, title: 'Mangala: ' + ad, event: true }); } catch (e) {} };
 const lvAd = (lv) => (lv === 'easy' ? 'kolay' : 'zor');
+// Sıralama: bilgisayarı yenen oyuncu; çok taş iyi, eşitlikte kısa süre (s = (48 - taş) * 100000 + süre/10 sn)
+const lb = RidsSiralama({
+  panolar: ['easy', 'hard'].map((k) => ({ id: 'mangala-' + lvAd(k), tr: STR.tr.cpu + ': ' + STR.tr[k], en: STR.en.cpu + ': ' + STR.en[k] })),
+  dil: () => lang,
+  bicim: (k, dil) => k.p + (dil === 'en' ? ' stones' : ' taş') + ' · ' + RidsSiralama.sure(k.d),
+  olay: (ad) => sayac('siralama/' + ad, 'sıralama: ' + ad),
+});
 const isCpu = (p) => G && G.mode === 'cpu' && p === 1;
 const avaIdx = (p) => (p === 0 ? 0 : G && G.mode === 'two' ? 2 : 1);   // tilki, balina, kurbağa
 const avaPos = (i) => `${i * 100 / 3}% 0`;
@@ -616,7 +630,11 @@ function draw(now) {
   if (a !== shown[0] || b !== shown[1]) { shown = [a, b]; $('sc0').textContent = a; $('sc1').textContent = b; $('skor').setAttribute('aria-label', T().scoreAria(a, b)); }
 }
 let shown = [-1, -1];
-const frame = (now) => { draw(now); requestAnimationFrame(frame); };
+let lastNow = 0;
+const frame = (now) => { // oyun süresi kurulum penceresi kapalıyken sayılır; sekme gizliyken kare gelmez
+  if (G && !G.over && $('setupOv').hidden) G.ms += Math.min(1000, Math.max(0, now - lastNow));
+  lastNow = now; draw(now); requestAnimationFrame(frame);
+};
 
 // ---------- Ses ----------
 const Sfx = (() => {
@@ -656,7 +674,7 @@ function say(s) {
   clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2800);
 }
 function save() {
-  try { if (G && !G.over) localStorage.setItem('rids_mangala_game', JSON.stringify({ mode: G.mode, level: G.level, b: G.b, turn: G.turn })); } catch (e) {}
+  try { if (G && !G.over) localStorage.setItem('rids_mangala_game', JSON.stringify({ mode: G.mode, level: G.level, b: G.b, turn: G.turn, ms: Math.round(G.ms) })); } catch (e) {}
 }
 function loadSaved() {
   try { const s = JSON.parse(localStorage.getItem('rids_mangala_game')); return s && Array.isArray(s.b) && s.b.length === 14 && s.b.reduce((x, y) => x + y, 0) === TOTAL && (s.turn === 0 || s.turn === 1) && s.mode ? s : null; } catch (e) { return null; }
@@ -729,6 +747,8 @@ function finish() {
   sayac('bitti', 'oyun bitti'); bitenVar = true;
   if (!two) { const k = w === 0 ? 'insan' : w === 1 ? 'bilgisayar' : 'berabere'; sayac(`sonuc/${k}-${lvAd(G.level)}`, `sonuç: ${k === 'berabere' ? 'berabere' : k + ' kazandı'} (${lvAd(G.level)})`); }
   const humanWon = w === 0 || (two && w === 1);
+  if (!two && w === 0) { const d = Math.min(99999, Math.floor(G.ms / 100)); lb.bitti($('lbSlot'), 'mangala-' + lvAd(G.level), { s: (48 - a) * 100000 + d, d, p: a }); }
+  else lb.bosalt($('lbSlot'));
   $('trophy').textContent = w < 0 ? '🤝' : humanWon ? '🏆' : '🐳';
   $('winTitle').textContent = w < 0 ? t.draw : two ? t.pWins(w + 1) : w === 0 ? t.youWin : t.cpuWins;
   $('winSub').textContent = t.winSub(w, a, b);
@@ -741,12 +761,12 @@ function newGame(mode, level, first) {
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
   sayac(`mod/${mode === 'cpu' ? 'bilgisayar-' + lvAd(level) : '2-oyuncu'}`, `mod: ${mode === 'cpu' ? 'bilgisayara karşı, ' + lvAd(level) : '2 oyuncu'}`);
   const p = first === 'me' ? 0 : first === 'other' ? 1 : Math.random() < .5 ? 0 : 1;
-  G = { mode, level, b: newBoard(), turn: p, over: false }; again = false; fx.length = 0;
+  G = { mode, level, b: newBoard(), turn: p, over: false, ms: 0 }; again = false; fx.length = 0; lb.bosalt($('lbSlot'));
   syncDisp(G.b); save(); applyLang(); nextAction();
 }
 function resume() {
   const s = loadSaved(); if (!s) return;
-  epoch++; closeAll(); G = { mode: s.mode, level: s.level, b: s.b, turn: s.turn, over: false }; again = false;
+  epoch++; closeAll(); G = { mode: s.mode, level: s.level, b: s.b, turn: s.turn, over: false, ms: Math.max(0, +s.ms || 0) }; again = false; lb.bosalt($('lbSlot'));
   syncDisp(G.b); applyLang(); nextAction();
 }
 function confetti() { // oyun sonu: ekranı kaplayan renkli kağıtlar
@@ -782,13 +802,13 @@ function renderSetup() {
   for (const id in cur) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.textContent = lab[b.dataset.v]; b.setAttribute('aria-pressed', b.dataset.v === cur[id]); });
   $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume; $('resumeBtn').hidden = !loadSaved();
 }
-function openSetup() { epoch++; sowP = -1; busy = true; hover = -1; hilite = -1; if (G && !G.over) syncDisp(G.b); closeAll(); renderSetup(); $('setupOv').hidden = false; $('startBtn').focus(); }
+function openSetup() { save(); epoch++; sowP = -1; busy = true; hover = -1; hilite = -1; if (G && !G.over) syncDisp(G.b); closeAll(); renderSetup(); $('setupOv').hidden = false; $('startBtn').focus(); }
 function applyLang() {
   const t = T();
   document.documentElement.lang = lang; document.title = t.title;
   $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
-  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
-  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langAria);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('lbLbl').textContent = t.lb; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('lbBtn').setAttribute('aria-label', t.lb); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langAria);
   $('rights').textContent = t.rights; $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
   $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
   $('againBtn').textContent = t.again; $('toMenuBtn').textContent = t.toMenu; cv.setAttribute('aria-label', t.board);
@@ -822,6 +842,7 @@ document.querySelectorAll('.seg').forEach((s) => s.addEventListener('click', (e)
 $('startBtn').addEventListener('click', () => { Sfx.unlock(); try { localStorage.setItem('rids_mangala_setup', JSON.stringify(setup)); } catch (e) {} newGame(setup.mode, setup.level, setup.first); });
 $('resumeBtn').addEventListener('click', () => { Sfx.unlock(); resume(); });
 $('menuBtn').addEventListener('click', openSetup);
+$('lbBtn').addEventListener('click', () => lb.ac('mangala-' + lvAd(G && G.mode === 'cpu' ? G.level : setup.level)));
 $('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
 $('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
 $('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
@@ -848,10 +869,10 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) save(
 // Deneme kancası: hızlandırma ve durum okuma (oyuncuya görünmez)
 window.__mangala = {
   setSpeed: (s) => { speed = s; }, setMaxH: (h) => { maxH = h; layout(); syncDisp(G ? G.b : newBoard()); },
-  state: () => ({ G, busy, over: G && G.over, turn: G && G.turn, canPlay: !!canPlay(), epoch }),
+  setMs: (ms) => { G.ms = ms; }, state: () => ({ G, busy, over: G && G.over, turn: G && G.turn, canPlay: !!canPlay(), epoch }),
   check: () => disp.every((a, i) => a.length === (G ? G.b[i] : 4) || i === (hand && hand.pit)) && flights.length === 0,
   pit: (i) => { const r = cv.getBoundingClientRect(); return [r.left + C[i].x, r.top + C[i].y]; },
-  setBoard: (b, turn) => { G = { mode: 'cpu', level: 'easy', b, turn, over: false }; syncDisp(b); updateDock(); },
+  setBoard: (b, turn, level = 'easy') => { G = { mode: 'cpu', level, b, turn, over: false, ms: 0 }; syncDisp(b); updateDock(); },
   disp: () => disp.map((a) => a.length)
 };
 
