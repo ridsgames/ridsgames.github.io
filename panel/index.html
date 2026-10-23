@@ -92,7 +92,7 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
 
 /* Oyun kartları */
 .section-title { font-size: 22px; margin: 26px 0 12px; }
-.games { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+.games { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
 .game { --cut: 16px; display: flex; flex-direction: column; background: var(--plate); overflow: hidden; }
 .game .cover { position: relative; height: 104px; background: var(--night-2) center / cover; }
 .game .cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14, 17, 22, 0) 30%, rgba(21, 26, 34, .96)); }
@@ -276,9 +276,11 @@ const GAMES = [
   { slug: 'kizma-birader', name: 'Kızma Birader', img: '../assets/kizma-birader.jpg', rules: true, cpu: true },
   { slug: 'civi-futbolu', name: 'Çivi Futbolu', img: '../assets/civi-futbolu.jpg', cpu: true },
   { slug: 'solo-test', name: 'Solo Test', img: '../assets/solo-test.jpg', rules: true, solo: true },
-  { slug: 'sulu-halka', name: 'Sulu Halka', img: '../assets/sulu-halka.jpg' }
+  { slug: 'sulu-halka', name: 'Sulu Halka', img: '../assets/sulu-halka.jpg' },
+  { slug: 'mangala', name: 'Mangala', img: '../assets/mangala.jpg', rules: true, cpu: true },
+  { slug: 'yilan-merdiven', name: 'Yılan Merdiven', img: '../assets/yilan-merdiven.jpg', rules: true, cpu: true }
 ];
-const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka' };
+const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven' };
 const SIZES = { phone: 'Telefon', tablet: 'Tablet', desktop: 'Bilgisayar', desktophd: 'Büyük ekran', unknown: 'Bilinmiyor' };
 // Süre dilimleri (olcum.js ile aynı): yol dilimin üst sınırını taşır, toplamda dilimin ortası kullanılır
 const MID = { 1: 0.5, 2: 1.5, 3: 2.5, 5: 4, 7: 6, 10: 8.5, 15: 12.5, 20: 17.5, 30: 25, 45: 37.5, 60: 52.5, 90: 75, 120: 105 };
@@ -481,6 +483,8 @@ function modeLabel(slug, m) {
   if (slug === 'civi-futbolu') return p[0] === '2' ? '2 oyuncu' : 'bilgisayara karşı, ' + (p[1] || '');
   if (slug === 'solo-test') return { klasik: 'Klasik', elmas: 'Elmas ısınma', hizli: 'Hızlı bulmaca' }[m] || m;
   if (slug === 'sulu-halka') return `${p[0] === 'yetiskin' ? 'Yetişkin' : 'Çocuk'} · ${p[1] || ''} halka`;
+  if (slug === 'mangala') return p[0] === '2' ? '2 oyuncu' : 'bilgisayara karşı, ' + (p[1] || '');
+  if (slug === 'yilan-merdiven') return `${p[0]} kişi · ${p[1] === 'insan' ? 'aynı telefonda' : 'bilgisayarlı'}`;
   return m;
 }
 function topMode(x, slug) {
@@ -545,7 +549,7 @@ function refLabel(name, scheme) {
   return scheme === 'c' ? label + '<span class="chip cut">etiketli</span>' : label;
 }
 function drawLists(cur, lists) {
-  // kalma süresi dağılımı: oyun sayfası ziyaretleri (ilk çıkış), dört oyun birlikte
+  // kalma süresi dağılımı: oyun sayfası ziyaretleri (ilk çıkış), bütün oyunlar birlikte
   const dist = {}; let distAll = 0;
   for (const x of GAMES) for (const [b, c] of Object.entries(cur.g[x.slug].dist)) { dist[b] = (dist[b] || 0) + c; distAll += c; }
   rows($('dist'), distAll ? GROUPS.map(([label, bs]) => ({ label, count: bs.reduce((a, b) => a + (dist[b] || 0), 0) })) : [], { empty: 'Henüz süre verisi yok. Ölçüm bu güncellemeyle başladı.' });
