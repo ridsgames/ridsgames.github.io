@@ -278,9 +278,10 @@ const GAMES = [
   { slug: 'solo-test', name: 'Solo Test', img: '../assets/solo-test.jpg', rules: true, solo: true },
   { slug: 'sulu-halka', name: 'Sulu Halka', img: '../assets/sulu-halka.jpg' },
   { slug: 'mangala', name: 'Mangala', img: '../assets/mangala.jpg', rules: true, cpu: true },
-  { slug: 'yilan-merdiven', name: 'Yılan Merdiven', img: '../assets/yilan-merdiven.jpg', rules: true, cpu: true }
+  { slug: 'yilan-merdiven', name: 'Yılan Merdiven', img: '../assets/yilan-merdiven.jpg', rules: true, cpu: true },
+  { slug: 'saniye', name: 'Saniye', img: '../assets/saniye.jpg', rules: true }
 ];
-const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven' };
+const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Saniye' };
 const SIZES = { phone: 'Telefon', tablet: 'Tablet', desktop: 'Bilgisayar', desktophd: 'Büyük ekran', unknown: 'Bilinmiyor' };
 // Süre dilimleri (olcum.js ile aynı): yol dilimin üst sınırını taşır, toplamda dilimin ortası kullanılır
 const MID = { 1: 0.5, 2: 1.5, 3: 2.5, 5: 4, 7: 6, 10: 8.5, 15: 12.5, 20: 17.5, 30: 25, 45: 37.5, 60: 52.5, 90: 75, 120: 105 };
@@ -485,6 +486,7 @@ function modeLabel(slug, m) {
   if (slug === 'sulu-halka') return `${p[0] === 'yetiskin' ? 'Yetişkin' : 'Çocuk'} · ${p[1] || ''} halka`;
   if (slug === 'mangala') return p[0] === '2' ? '2 oyuncu' : 'bilgisayara karşı, ' + (p[1] || '');
   if (slug === 'yilan-merdiven') return `${p[0]} kişi · ${p[1] === 'insan' ? 'aynı telefonda' : 'bilgisayarlı'}`;
+  if (slug === 'saniye') return `${p[0] === 'grup' ? 'Arkadaşlarla' : 'Tek kişi'} · ${p[1] || ''} sn · ${{ bas: 'baştan gizli', 3: '3. sn\'de gizlenir', yari: 'yarıda gizlenir', hic: 'gizlenmez' }[p[2]] || ''}`;
   return m;
 }
 function topMode(x, slug) {

@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Saniye | Ridsgames</title>
+<meta name="description" content="Saniye: hedef süreyi seç, kronometre gizlenince içinden say ve tam zamanında durdur. Tek başına rekor kovala ya da arkadaşlarınla aynı telefonda yarış.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı: bilgi şeridi, kronometre, sonuç, düğme */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.hud {
+  flex: none; width: 100%; max-width: 440px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 12px; padding: 8px 14px 9px;
+  border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px);
+}
+#hudMain { font-size: 18px; font-weight: 800; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#hudMain i { font-style: normal; color: #475569; font-size: 20px; margin-right: 3px; }
+#hudMain i.on { color: #f43f5e; text-shadow: 0 0 8px rgba(244, 63, 94, .45); }
+#hudSide { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #cbd5e1; font-variant-numeric: tabular-nums; }
+#hudSide b { color: #fff; font-weight: 800; }
+.mult { padding: 2px 8px; border-radius: 999px; background: rgba(251, 191, 36, .16); border: 1px solid rgba(251, 191, 36, .55); color: #fde68a; font-weight: 800; }
+.mult.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .5; } 100% { scale: 1; } }
+#hudInfo { grid-column: 1 / -1; font-size: 12.5px; color: var(--dim); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#watchWrap { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+canvas#watch { display: block; touch-action: manipulation; cursor: pointer; }
+.verdict { flex: none; min-height: 54px; max-width: 440px; text-align: center; text-shadow: 0 1px 3px rgba(0, 0, 0, .7); }
+#vMain { font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: -.01em; }
+#vSub { font-size: 14.5px; color: #e2e8f0; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.go {
+  flex: none; width: 100%; max-width: 360px; height: 62px; border-radius: 18px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 20px; font-weight: 800; box-shadow: 0 6px 18px rgba(6, 182, 212, .4); touch-action: manipulation; transition: filter .15s, transform .08s;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 14px;
+}
+.go.stop { background: linear-gradient(135deg, #dc2626, #f43f5e); border-color: #fda4af; box-shadow: 0 6px 18px rgba(244, 63, 94, .45); }
+.go.wait { filter: grayscale(.5) brightness(.75); cursor: default; }
+.go:active:not(.wait) { transform: translateY(2px) scale(.99); }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); margin-top: 8px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.stepper { display: grid; grid-template-columns: 54px 1fr 54px; align-items: center; gap: 8px; }
+.stepper button { height: 54px; border-radius: 14px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 28px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.stepper button:disabled { opacity: .35; cursor: default; }
+.tval { text-align: center; line-height: 1; }
+.tval output { display: block; font-size: 42px; font-weight: 800; letter-spacing: .02em; color: #fff; font-variant-numeric: tabular-nums; }
+.tval small { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 600; color: var(--dim); letter-spacing: .04em; }
+.players { display: grid; gap: 6px; }
+.prow { display: grid; grid-template-columns: 1fr 40px; gap: 6px; }
+.prow input {
+  height: 42px; min-width: 0; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .25); background: rgba(2, 6, 23, .7); color: #fff; padding: 0 12px;
+  font: inherit; font-size: 16px; user-select: text; -webkit-user-select: text;
+}
+.prow input:focus { outline: none; border-color: var(--cyan); }
+.prow button { border: 1px solid rgba(148, 163, 184, .25); border-radius: 10px; background: rgba(2, 6, 23, .7); color: #94a3b8; font-size: 15px; }
+.prow button:disabled { visibility: hidden; }
+.add { height: 40px; border-radius: 10px; border: 1px dashed rgba(34, 211, 238, .5); background: none; color: #67e8f9; font-size: 14px; font-weight: 700; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score small { font-size: 15px; font-weight: 700; color: var(--dim); margin-left: 6px; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank.r4 li { grid-template-columns: 22px minmax(0, 1fr) auto auto; }
+.rank.st li { grid-template-columns: 1fr auto; }
+.rank li .n { color: var(--dim); font-weight: 800; }
+.rank li .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank li .s { color: var(--dim); font-size: 13px; font-variant-numeric: tabular-nums; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.rank li.hd { background: none; padding-top: 0; padding-bottom: 0; font-size: 11.5px; color: var(--dim); }
+.rank li.first { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+@media (max-height: 600px) { main { gap: 6px; padding-top: 6px; } .go { height: 54px; } #vMain { font-size: 21px; } .verdict { min-height: 48px; } }
+@media (prefers-reduced-motion: reduce) { .mult.pop { animation: none; } }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="saniye" data-name="Saniye"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Saniye</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="hud" id="hud" hidden>
+    <div id="hudMain"></div>
+    <div id="hudSide"></div>
+    <div id="hudInfo"></div>
+  </div>
+  <div id="watchWrap"><canvas id="watch" role="img" aria-label="Kronometre"></canvas></div>
+  <div class="verdict" aria-live="polite"><div id="vMain"></div><div id="vSub"></div></div>
+  <button class="go" id="go" type="button">Başlat</button>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Saniye</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="seg two" id="modeSeg"><button type="button" data-m="tek"></button><button type="button" data-m="grup"></button></div>
+    <div class="sec">
+      <div class="lbl" id="targetLbl"></div>
+      <div class="stepper">
+        <button type="button" id="tMinus" aria-label="−1">−</button>
+        <div class="tval"><output id="tVal">10:00</output><small id="tCap"></small></div>
+        <button type="button" id="tPlus" aria-label="+1">+</button>
+      </div>
+      <div class="seg five" id="presetSeg"><button type="button" data-t="5">05:00</button><button type="button" data-t="10">10:00</button><button type="button" data-t="15">15:00</button><button type="button" data-t="30">30:00</button><button type="button" data-t="60">60:00</button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="hideLbl"></div>
+      <div class="seg four" id="hideSeg"><button type="button" data-h="bas"></button><button type="button" data-h="3"></button><button type="button" data-h="yari"></button><button type="button" data-h="hic"></button></div>
+      <div class="note" id="hideNote"></div>
+    </div>
+    <div id="groupBox">
+      <div class="sec">
+        <div class="lbl" id="playersLbl"></div>
+        <div class="players" id="players"></div>
+        <button class="add" id="addBtn" type="button" style="width:100%;margin-top:6px"></button>
+      </div>
+      <div class="sec">
+        <div class="lbl" id="roundsLbl"></div>
+        <div class="seg" id="roundSeg"><button type="button" data-r="3"></button><button type="button" data-r="5"></button><button type="button" data-r="10"></button></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button" hidden>Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Tur arası (arkadaşlarla) -->
+<div class="ov" id="roundOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="roundTitle">
+    <h2 id="roundTitle"></h2>
+    <p class="sub" id="roundSub"></p>
+    <ol class="rank r4" id="roundList"></ol>
+    <div class="btns"><button class="big" id="roundNext" type="button"></button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore" hidden></div>
+    <ol class="rank" id="rankList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Dil ----------
+const STR = {
+  tr: {
+    title: 'Saniye | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Saniye', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    setupSub: 'Hedef süreyi seç. Kronometre gizlenince içinden say, tam zamanında durdur.',
+    solo: 'Tek kişi', group: 'Arkadaşlarla', targetLbl: 'Hedef süre', cap: 'saniye : salise', hideLbl: 'Kronometre ne zaman gizlensin?',
+    hides: { bas: 'Baştan', 3: '3. sn', yari: 'Yarıda', hic: 'Hiç' },
+    hideNote: (h, tg, b) => (h === 'bas' ? `Baştan gizli: ${tg} saniyenin hepsini içinden sayarsın.` : h === 'hic' ? 'Hiç gizlenmez: tolerans çok dar, salise avı.' : `Son ${b} saniyeyi içinden sayarsın.`),
+    hideShort: (h, at) => (h === 'bas' ? 'baştan gizli' : h === 'hic' ? 'gizlenmez' : at === 3000 ? '3. saniyede gizlenir' : 'yarıda gizlenir'),
+    willHide: (at) => (at === 3000 ? 'Kronometre 3. saniyede gizlenecek.' : 'Kronometre yarıda gizlenecek.'),
+    playersLbl: 'Oyuncular', playerN: (n) => `Oyuncu ${n}`, add: '+ Oyuncu ekle', remove: 'Oyuncuyu çıkar', roundsLbl: 'Tur sayısı', roundsN: (n) => `${n} tur`,
+    start: 'Başla', back: 'Oyuna dön',
+    go: 'Başlat', stop: 'Durdur', nextBtn: (n) => `Sıradaki: ${n}`, roundResults: 'Tur sonucu', overBtn: 'Oyun bitti',
+    target: 'Hedef', score: 'Puan', best: 'En iyi', roundOf: (a, b) => `Tur ${a}/${b}`, totalErr: 'Toplam sapma',
+    targetIs: (s) => `Hedef ${s}`, readyHint: 'Başlat\'a dokun, gizlenince içinden say.', readyHintHic: 'Başlat\'a dokun, tam hedefte durdur.',
+    upNext: (n) => `Sıradaki: ${n}`, passPhone: 'Telefonu ver, hazır olunca Başlat\'a dokunsun.',
+    counting: 'Saymaya başla', hiddenNow: 'Gizlendi', keepCounting: 'İçinden saymaya devam et.', eyesOn: 'Gözün kronometrede', stopOnTarget: 'Tam hedefte durdur.',
+    z: { perfect: 'Tam isabet!', great: 'Harika!', good: 'İyi', ok: 'Fena değil', miss: 'Iska' },
+    err: (e, f) => (e === 0 ? 'Tam zamanında' : e > 0 ? `+${f(e)} geç` : `−${f(-e)} erken`),
+    lifeLost: 'bir can gitti', pts: (n) => `+${n} puan`, harder: 'Tolerans daraldı', cancelled: 'Deneme iptal edildi',
+    overTitle: 'Oyun bitti', newRecord: 'Yeni rekor!', overSub: 'Üç canın da bitti.', ptsWord: 'puan',
+    stats: { best: 'En iyi', tries: 'Deneme', perfect: 'Tam isabet', maxMult: 'En yüksek çarpan', avg: 'Ortalama sapma' },
+    wins: (n) => `${n} kazandı!`, tie: 'Berabere!', groupSub: 'Toplam sapması en az olan kazanır.',
+    roundDone: (n) => `${n}. tur bitti`, roundBest: (s) => `Bu turun en yakını: ${s}`, thisRound: 'Bu tur', total: 'Toplam', nextRound: (n) => `${n}. tur`,
+    again: 'Tekrar oyna', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', rulesSub: 'Saniyeyi içinden say, tam zamanında durdur.', ok: 'Tamam',
+    watch: 'Kronometre', hidden: 'GİZLİ', lcdCap: 'SANİYE : SALİSE',
+    ruleList: [
+      ['⏱️', 'Hedef süreyi sen seçersin: <b>1 ile 99 saniye</b> arası. Süreler <b>saniye:salise</b> olarak yazılır; 10:00 tam 10 saniyedir.'],
+      ['▶️', '<b>Başlat</b>\'a dokununca kronometre çalışır. Seçtiğin anda <b>gizlenir</b>, tik sesi de kesilir.'],
+      ['🧠', 'Saniyeleri içinden say. Hedefe geldiğini düşündüğün an <b>Durdur</b>\'a dokun. Kadrana dokunmak da olur.'],
+      ['🎯', 'Sonuç açılır: <b>tam isabet, harika, iyi, fena değil</b> ya da <b>ıska</b>. +00:12, 12 salise geç demektir.'],
+      ['⚖️', 'Gizli kalan süre uzadıkça tolerans genişler. Kadranın kenarındaki renkli şerit hedefin çevresindeki aralıkları gösterir.'],
+      ['❤️', '<b>Tek kişi:</b> 3 canın var, ıska bir can götürür. Tam isabet çarpanı ikiye katlar, harika bir artırır; fena değil ve ıska çarpanı 1\'e düşürür. Her 5 denemede tolerans biraz daralır.'],
+      ['👥', '<b>Arkadaşlarla:</b> telefon elden ele dolaşır, her turda herkes bir kez dener. Turda hedefe en yakın olan 👑 alır. Sonunda <b>toplam sapması en az</b> olan kazanır.']
+    ]
+  },
+  en: {
+    title: 'Second Sense | Ridsgames', homeLabel: 'Ridsgames home', game: 'Second Sense', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    setupSub: 'Pick a target time. When the stopwatch hides, keep counting in your head and stop it right on time.',
+    solo: 'Solo', group: 'With friends', targetLbl: 'Target time', cap: 'seconds : hundredths', hideLbl: 'When should the stopwatch hide?',
+    hides: { bas: 'At start', 3: 'At 3 s', yari: 'Halfway', hic: 'Never' },
+    hideNote: (h, tg, b) => (h === 'bas' ? `Hidden from the start: you count all ${tg} seconds in your head.` : h === 'hic' ? 'Never hidden: very tight tolerance, a hunt for hundredths.' : `You count the last ${b} seconds in your head.`),
+    hideShort: (h, at) => (h === 'bas' ? 'hidden from start' : h === 'hic' ? 'never hidden' : at === 3000 ? 'hides at 3 s' : 'hides halfway'),
+    willHide: (at) => (at === 3000 ? 'The stopwatch hides at 3 seconds.' : 'The stopwatch hides halfway.'),
+    playersLbl: 'Players', playerN: (n) => `Player ${n}`, add: '+ Add player', remove: 'Remove player', roundsLbl: 'Rounds', roundsN: (n) => `${n} rounds`,
+    start: 'Start', back: 'Back to game',
+    go: 'Start', stop: 'Stop', nextBtn: (n) => `Next: ${n}`, roundResults: 'Round results', overBtn: 'Game over',
+    target: 'Target', score: 'Score', best: 'Best', roundOf: (a, b) => `Round ${a}/${b}`, totalErr: 'Total error',
+    targetIs: (s) => `Target ${s}`, readyHint: 'Tap Start, then count in your head once it hides.', readyHintHic: 'Tap Start and stop right on target.',
+    upNext: (n) => `Up next: ${n}`, passPhone: 'Pass the phone. Tap Start when ready.',
+    counting: 'Start counting', hiddenNow: 'Hidden', keepCounting: 'Keep counting in your head.', eyesOn: 'Eyes on the clock', stopOnTarget: 'Stop right on target.',
+    z: { perfect: 'Bullseye!', great: 'Great!', good: 'Good', ok: 'Not bad', miss: 'Miss' },
+    err: (e, f) => (e === 0 ? 'Spot on' : e > 0 ? `+${f(e)} late` : `−${f(-e)} early`),
+    lifeLost: 'lost a life', pts: (n) => `+${n} pts`, harder: 'Tolerance tightened', cancelled: 'Attempt cancelled',
+    overTitle: 'Game over', newRecord: 'New record!', overSub: 'All three lives are gone.', ptsWord: 'pts',
+    stats: { best: 'Best', tries: 'Attempts', perfect: 'Bullseyes', maxMult: 'Top multiplier', avg: 'Average error' },
+    wins: (n) => `${n} wins!`, tie: 'It\'s a tie!', groupSub: 'Lowest total error wins.',
+    roundDone: (n) => `Round ${n} done`, roundBest: (s) => `Closest this round: ${s}`, thisRound: 'Round', total: 'Total', nextRound: (n) => `Round ${n}`,
+    again: 'Play again', toMenu: 'Change settings', rulesTitle: 'How to play', rulesSub: 'Count the seconds in your head and stop right on time.', ok: 'OK',
+    watch: 'Stopwatch', hidden: 'HIDDEN', lcdCap: 'SEC : 1/100',
+    ruleList: [
+      ['⏱️', 'You choose the target: <b>1 to 99 seconds</b>. Times are shown as <b>seconds:hundredths</b>, so 10:00 is exactly 10 seconds.'],
+      ['▶️', 'Tap <b>Start</b> and the stopwatch runs. At the moment you chose, it <b>hides</b> and the ticking stops.'],
+      ['🧠', 'Keep counting in your head. Tap <b>Stop</b> the moment you think the target is reached. Tapping the dial works too.'],
+      ['🎯', 'The result is revealed: <b>bullseye, great, good, not bad</b> or <b>miss</b>. +00:12 means 12 hundredths late.'],
+      ['⚖️', 'The longer the stopwatch stays hidden, the wider the tolerance. The coloured band on the rim shows the zones around the target.'],
+      ['❤️', '<b>Solo:</b> you have 3 lives and a miss costs one. A bullseye doubles your multiplier and great adds one; not bad and miss drop it back to 1. Every 5 attempts the tolerance tightens a little.'],
+      ['👥', '<b>With friends:</b> pass the phone around; everyone gets one try per round. The closest each round earns a 👑. The lowest <b>total error</b> wins.']
+    ]
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_saniye_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' })[c]);
+const num = (n) => n.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US');
+
+// ---------- Kurallar (saf mantık) ----------
+// RULES-BEGIN
+// Süre biçimi saniye:salise ("10:00", "07:42"); 99 saniyeyi aşan süreler üç haneli saniye gösterir
+const fmt = (ms) => { const cs = Math.floor(Math.max(0, ms) / 10); return String(Math.floor(cs / 100)).padStart(2, '0') + ':' + String(cs % 100).padStart(2, '0'); };
+const HIDES = ['bas', '3', 'yari', 'hic'];
+// Gizlenme anı (ms): baştan, 3. saniye (kısa hedefte yarı), yarı, hiç
+const hideAtMs = (tg, h) => (h === 'bas' ? 0 : h === '3' ? Math.min(3000, tg * 500) : h === 'yari' ? tg * 500 : Infinity);
+const blindS = (tg, h) => (h === 'hic' ? 0 : tg - hideAtMs(tg, h) / 1000);
+// Tolerans birimi (ms): körlemesine sayılan süre uzadıkça genişler; f zorluk çarpanı (tek kişide her 5 denemede %10 daralır, en çok yarıya)
+const unitMs = (tg, h, f = 1) => (50 + 24 * blindS(tg, h)) * f;
+const levelF = (n) => Math.max(0.5, Math.pow(0.9, Math.floor(n / 5)));
+const ZONES = [
+  { k: 'perfect', r: 0.2, pts: 100, col: '#fbbf24' },
+  { k: 'great', r: 0.5, pts: 50, col: '#34d399' },
+  { k: 'good', r: 1, pts: 20, col: '#22d3ee' },
+  { k: 'ok', r: 2, pts: 5, col: '#fb923c' },
+  { k: 'miss', r: Infinity, pts: 0, col: '#f87171' }
+];
+const judge = (errMs, u) => ZONES.find((z) => Math.abs(errMs) <= z.r * u + 1e-6);
+// Tek kişi: çarpan ve can güncellemesi; puan = taban puan × güncel çarpan
+function scoreSolo(st, z) {
+  let mult = st.mult, lives = st.lives;
+  if (z.k === 'perfect') mult = Math.min(16, mult * 2);
+  else if (z.k === 'great') mult = Math.min(16, mult + 1);
+  else if (z.k === 'ok' || z.k === 'miss') mult = 1;
+  if (z.k === 'miss') lives--;
+  return { mult, lives, pts: z.pts * mult };
+}
+// RULES-END
+
+// ---------- Durum ----------
+let setup = { mode: 'tek', target: 10, hide: '3', players: ['', ''], rounds: 5 };
+let soundOn = true, best = {};
+try {
+  const s = JSON.parse(localStorage.getItem(KEY + 'setup'));
+  if (s) {
+    if (s.mode === 'tek' || s.mode === 'grup') setup.mode = s.mode;
+    if (Number.isInteger(s.target) && s.target >= 1 && s.target <= 99) setup.target = s.target;
+    if (HIDES.includes(s.hide)) setup.hide = s.hide;
+    if (Array.isArray(s.players) && s.players.length >= 2) setup.players = s.players.slice(0, 8).map((x) => String(x || '').slice(0, 14));
+    if ([3, 5, 10].includes(s.rounds)) setup.rounds = s.rounds;
+  }
+} catch (e) {}
+try { soundOn = localStorage.getItem(KEY + 'sound') !== '0'; } catch (e) {}
+try { best = JSON.parse(localStorage.getItem(KEY + 'best')) || {}; } catch (e) {}
+
+let G = null;            // oyun: ayarlar + tek kişi skoru ya da oyuncular
+let phase = 'setup';     // setup | ready | run | reveal | result | between | over
+let t0 = 0, hidT = 0, hiddenNow = false, lastSec = 0, res = null, revealAt = 0, resultAt = 0, lastAct = -1e9, bitenVar = false, timer = null, dirty = true, popAt = 0;
+const later = (f, ms) => { clearTimeout(timer); timer = setTimeout(f, ms); };
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'saniye/' + olay, title: 'Saniye: ' + ad, event: true }); } catch (e) {} };
+const cur = () => G.players[(G.idx + G.round - 1) % G.players.length];        // her tur sıra bir kişi kayar
+const nextUp = () => G.players[(G.idx + 1 + G.round - 1) % G.players.length];
+const unit = () => unitMs(G.target, G.hide, G.mode === 'tek' ? levelF(G.n) : 1);
+const limitMs = () => G.target * 2000 + 3000; // bu kadar geçince deneme kendiliğinden biter (ıska)
+
+// ---------- Akış ----------
+function newGame() {
+  const s = setup;
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${s.mode}-${s.target}-${s.hide}`, `mod: ${s.mode === 'tek' ? 'tek kişi' : 'arkadaşlarla'}, ${s.target} sn, gizlenme ${s.hide}`);
+  clearTimeout(timer);
+  G = {
+    mode: s.mode, target: s.target, hide: s.hide, hideAt: hideAtMs(s.target, s.hide), rounds: s.rounds,
+    players: s.mode === 'grup' ? s.players.map((n, i) => ({ name: n.trim() || T().playerN(i + 1), total: 0, crowns: 0, errs: [] })) : [],
+    round: 1, idx: 0, lives: 3, score: 0, mult: 1, n: 0, perfect: 0, maxMult: 1, errSum: 0, best: best[`${s.target}-${s.hide}`] || 0
+  };
+  res = null; hiddenNow = false; phase = 'ready';
+  closeAll(); render();
+}
+function act(ts) {
+  if (!G || ts - lastAct < 150) return; // aynı dokunuşun ikinci olayı ya da iki parmak
+  if (phase === 'ready') { lastAct = ts; start(ts); }
+  else if (phase === 'run') { if (ts - t0 < 200) return; lastAct = ts; finish(ts - t0); }
+  else if (phase === 'result') { if (performance.now() - resultAt < 450) return; lastAct = ts; next(ts); }
+}
+function start(ts) {
+  phase = 'run'; t0 = ts; lastSec = 0; res = null;
+  hiddenNow = G.hideAt <= 0; hidT = ts;
+  Sfx.start(); buzz(10); render();
+}
+function finish(ms) {
+  const cs = Math.floor(Math.max(0, ms) / 10), err = cs * 10 - G.target * 1000, u = unit(), z = judge(err, u);
+  res = { cs, err, z, u, wasHidden: hiddenNow, hideMs: Math.min(G.hideAt, cs * 10), pts: 0, life: false, multUp: false };
+  if (G.mode === 'tek') {
+    const r = scoreSolo(G, z);
+    res.multUp = r.mult > G.mult; res.life = r.lives < G.lives; res.pts = r.pts;
+    G.mult = r.mult; G.lives = r.lives; G.score += r.pts; G.n++; G.errSum += Math.abs(err);
+    G.maxMult = Math.max(G.maxMult, G.mult); if (z.k === 'perfect') G.perfect++;
+  } else {
+    const p = cur(); p.errs[G.round - 1] = err; p.total += Math.abs(err);
+  }
+  phase = 'reveal'; revealAt = performance.now(); Sfx.stop(); buzz(15);
+  const slow = res.wasHidden && !REDUCED;
+  if (slow) Sfx.sweep();
+  later(showResult, slow ? 900 : 150);
+  render();
+}
+function showResult() {
+  phase = 'result'; resultAt = performance.now();
+  const z = res.z; Sfx[z.k]();
+  if (z.k === 'perfect') buzz([20, 40, 20, 40, 60]); else if (z.k === 'miss') buzz([50, 40, 50]);
+  if (G.mode === 'tek') {
+    if (res.multUp) popAt = performance.now();
+    if (G.lives <= 0) { phase = 'over'; later(gameOverSolo, 1300); }
+    else if (G.n % 5 === 0 && levelF(G.n) < levelF(G.n - 1)) toast(T().harder);
+  }
+  render();
+}
+function next(ts) {
+  if (G.mode === 'tek') { start(ts); return; }
+  if (G.idx < G.players.length - 1) { G.idx++; res = null; phase = 'ready'; Sfx.click(); render(); return; }
+  endRound();
+}
+function endRound() {
+  const r = G.round - 1, t = T(), low = Math.min(...G.players.map((p) => Math.abs(p.errs[r])));
+  const tops = G.players.filter((p) => Math.abs(p.errs[r]) === low);
+  tops.forEach((p) => { p.crowns++; });
+  if (G.round >= G.rounds) { gameOverGroup(); return; }
+  phase = 'between'; Sfx.click();
+  $('roundTitle').textContent = t.roundDone(G.round);
+  $('roundSub').textContent = t.roundBest(tops.map((p) => p.name).join(', '));
+  const order = G.players.slice().sort((a, b) => a.total - b.total || b.crowns - a.crowns);
+  $('roundList').innerHTML = `<li class="hd"><span></span><span></span><span>${t.thisRound}</span><span>${t.total}</span></li>` +
+    order.map((p, k) => `<li class="${k ? '' : 'first'}"><span class="n">${rankNo(order, k)}</span><span class="nm">${esc(p.name)}${tops.includes(p) ? ' 👑' : ''}</span><span class="s">${signed(p.errs[r])}</span><span class="b">${fmt(p.total)}</span></li>`).join('');
+  $('roundNext').textContent = t.nextRound(G.round + 1);
+  render();
+  $('roundOv').hidden = false;
+}
+const signed = (e) => (e === 0 ? '00:00' : (e > 0 ? '+' : '−') + fmt(Math.abs(e)));
+const rankNo = (order, k) => { let j = k; while (j > 0 && order[j - 1].total === order[k].total && order[j - 1].crowns === order[k].crowns) j--; return j + 1; };
+function gameOverGroup() {
+  phase = 'over'; bitenVar = true; sayac('bitti', 'oyun bitti');
+  const t = T(), order = G.players.slice().sort((a, b) => a.total - b.total || b.crowns - a.crowns);
+  const tied = order.length > 1 && order[1].total === order[0].total && order[1].crowns === order[0].crowns;
+  $('winIco').textContent = '🏆'; $('winTitle').textContent = tied ? t.tie : t.wins(order[0].name); $('winSub').textContent = t.groupSub;
+  $('winScore').hidden = true; $('rankList').className = 'rank';
+  $('rankList').innerHTML = order.map((p, k) => `<li class="${rankNo(order, k) === 1 ? 'first' : ''}"><span class="n">${rankNo(order, k)}</span><span class="nm">${esc(p.name)}${p.crowns ? ` <span class="s">👑${p.crowns > 1 ? '×' + p.crowns : ''}</span>` : ''}</span><span class="b">${fmt(p.total)}</span></li>`).join('');
+  render();
+  later(() => { Sfx.win(); buzz([60, 60, 120]); confetti(); $('winOv').hidden = false; }, 500);
+}
+function gameOverSolo() {
+  bitenVar = true; sayac('bitti', 'oyun bitti');
+  const t = T(), key = `${G.target}-${G.hide}`, rec = G.score > 0 && G.score > G.best;
+  if (rec) { best[key] = G.score; try { localStorage.setItem(KEY + 'best', JSON.stringify(best)); } catch (e) {} }
+  $('winIco').textContent = rec ? '🏆' : '⏱️';
+  $('winTitle').textContent = rec ? t.newRecord : t.overTitle;
+  $('winSub').textContent = t.overSub;
+  $('winScore').hidden = false; $('winScore').innerHTML = `${num(G.score)}<small>${t.ptsWord}</small>`;
+  const st = t.stats, rows = [
+    [st.best, num(Math.max(G.best, G.score))], [st.tries, G.n], [st.perfect, G.perfect], [st.maxMult, '×' + G.maxMult], [st.avg, fmt(G.n ? G.errSum / G.n : 0)]
+  ];
+  $('rankList').className = 'rank st';
+  $('rankList').innerHTML = rows.map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  if (rec) { Sfx.win(); confetti(); } else Sfx.over();
+  $('winOv').hidden = false;
+}
+function cancelRun(note) {
+  if (phase !== 'run') return;
+  phase = 'ready'; res = null; hiddenNow = false;
+  if (note) toast(T().cancelled);
+  render();
+}
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function knock(delay, vol = 0.25, freq = 2000) { // kısa, süzülmüş gürültü: mekanik tık
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, len = 0.04, buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 4);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 2.2; g.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(g).connect(c.destination); s.start(t);
+  }
+  return {
+    unlock: ctx,
+    tick(k) { knock(0, 0.3, k % 2 ? 3300 : 4100); },
+    start() { knock(0, 0.35, 1700); tone(1250, 1400, 0.06, 0.06, 'triangle'); },
+    stop() { knock(0, 0.4, 1400); tone(950, 760, 0.07, 0.07, 'triangle'); },
+    hide() { tone(720, 240, 0.35, 0.05, 'sine'); },
+    sweep() { tone(260, 1100, 0.75, 0.035, 'triangle'); },
+    click() { knock(0, 0.2, 2400); },
+    perfect() { [784, 988, 1175, 1568, 2093].forEach((f, k) => tone(f, f * 1.01, 0.3, 0.1, 'triangle', k * 0.08)); tone(3136, 3100, 0.9, 0.03, 'sine', 0.42); },
+    great() { [659, 880, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.1, 'triangle', k * 0.09)); },
+    good() { [587, 784].forEach((f, k) => tone(f, f * 1.01, 0.2, 0.09, 'triangle', k * 0.1)); },
+    ok() { tone(440, 445, 0.22, 0.08, 'triangle'); },
+    miss() { tone(300, 180, 0.18, 0.1, 'triangle'); tone(220, 130, 0.25, 0.1, 'triangle', 0.14); },
+    over() { [523, 440, 349, 262].forEach((f, k) => tone(f, f * 0.99, 0.28, 0.1, 'triangle', k * 0.16)); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Konfeti ----------
+function confetti() {
+  if (REDUCED) return;
+  const c = $('confetti'), x = c.getContext('2d'); c.hidden = false; c.width = innerWidth; c.height = innerHeight;
+  const cols = ['#fbbf24', '#34d399', '#22d3ee', '#fb923c', '#f43f5e', '#fff'];
+  const ps = Array.from({ length: 130 }, (_, i) => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * 0.6, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3.5, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, w: 6 + Math.random() * 6, h: 4 + Math.random() * 5, col: cols[i % cols.length] }));
+  const t0 = performance.now();
+  (function f(now) {
+    x.clearRect(0, 0, c.width, c.height);
+    for (const q of ps) { q.x += q.vx; q.y += q.vy; q.r += q.vr; x.save(); x.translate(q.x, q.y); x.rotate(q.r); x.fillStyle = q.col; x.fillRect(-q.w / 2, -q.h / 2, q.w, q.h); x.restore(); }
+    if (now - t0 < 3500) requestAnimationFrame(f); else c.hidden = true;
+  })(t0);
+}
+
+// ---------- Kronometre çizimi (dünya birimi: kadran yarıçapı = 1, merkez 0,0) ----------
+const WW = 2.5, HH = 2.9, OX = 1.25, OY = 1.64;
+const cv = $('watch'), cx = cv.getContext('2d');
+let K = 100, DPR = 1, layer = null, layerKey = '', fontsOk = 0;
+function layout() {
+  const w = $('watchWrap').clientWidth, h = $('watchWrap').clientHeight;
+  K = Math.max(40, Math.min(w / WW, h / HH, 180));
+  DPR = Math.min(3, window.devicePixelRatio || 1);
+  cv.width = Math.round(WW * K * DPR); cv.height = Math.round(HH * K * DPR);
+  cv.style.width = (WW * K) + 'px'; cv.style.height = (HH * K) + 'px';
+  dirty = true;
+}
+const circ = (c, x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, TAU); };
+function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function metal(c, x0, y0, x1, y1) {
+  const g = c.createLinearGradient(x0, y0, x1, y1);
+  g.addColorStop(0, '#f8fafc'); g.addColorStop(0.3, '#a8b1bb'); g.addColorStop(0.55, '#eef1f4'); g.addColorStop(0.8, '#76808b'); g.addColorStop(1, '#d3d9df');
+  return g;
+}
+// Metin piksel uzayında yazılır (çok küçük dünya yazı boyutları tarayıcılarda bozulur)
+function ptext(c, S, s, x, y, size, weight, color) {
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
+  c.font = `${weight} ${size * S}px Inter, system-ui, sans-serif`; c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(s, (OX + x) * S, (OY + y) * S); c.restore();
+}
+const tickStep = (tg) => [0.5, 1, 2, 5, 10, 15, 20].find((s) => tg / s <= 12) || 20;
+function drawStatic(c, S, tg) {
+  c.setTransform(S, 0, 0, S, OX * S, OY * S);
+  // askı halkası, taç ve yan düğmeler (kasanın arkasında kalır)
+  c.lineWidth = 0.05; c.strokeStyle = metal(c, -0.15, -1.6, 0.15, -1.34); circ(c, 0, -1.47, 0.12); c.stroke();
+  c.fillStyle = metal(c, -0.07, 0, 0.07, 0); rrect(c, -0.07, -1.27, 0.14, 0.2, 0.02); c.fill();
+  c.fillStyle = metal(c, -0.18, 0, 0.18, 0); rrect(c, -0.18, -1.38, 0.36, 0.13, 0.04); c.fill();
+  c.strokeStyle = 'rgba(0, 0, 0, .18)'; c.lineWidth = 0.007;
+  for (let i = -6; i <= 6; i++) { c.beginPath(); c.moveTo(i * 0.025, -1.365); c.lineTo(i * 0.025, -1.265); c.stroke(); }
+  for (const a of [-0.74, 0.74]) { c.save(); c.rotate(a); c.fillStyle = metal(c, -0.08, 0, 0.08, 0); rrect(c, -0.075, -1.25, 0.15, 0.17, 0.025); c.fill(); c.restore(); }
+  // kasa ve gölgesi
+  c.save(); c.shadowColor = 'rgba(0, 0, 0, .6)'; c.shadowBlur = 0.2 * S; c.shadowOffsetY = 0.08 * S; c.shadowOffsetX = 0.03 * S;
+  circ(c, 0, 0, 1.13); c.fillStyle = '#9aa3ad'; c.fill(); c.restore();
+  circ(c, 0, 0, 1.13); c.fillStyle = metal(c, -0.9, -0.9, 0.9, 0.9); c.fill();
+  c.lineWidth = 0.01; c.strokeStyle = 'rgba(0, 0, 0, .35)'; c.stroke();
+  const inner = c.createLinearGradient(0, -1.06, 0, 1.06); inner.addColorStop(0, '#6f7882'); inner.addColorStop(1, '#f1f4f6');
+  circ(c, 0, 0, 1.065); c.fillStyle = inner; c.fill();
+  // kadran
+  const face = c.createRadialGradient(-0.25, -0.3, 0.05, 0, 0, 1);
+  face.addColorStop(0, '#fffefa'); face.addColorStop(1, '#ebe5d6');
+  circ(c, 0, 0, 1); c.fillStyle = face; c.fill();
+  // çentikler: bir tam tur = hedef süre
+  const step = tickStep(tg), minor = step / (step === 2 || step === 20 ? 4 : step === 15 ? 3 : 5);
+  const dec = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.', lang === 'tr' ? ',' : '.'));
+  for (let k = 0; k * minor < tg - minor * 0.01; k++) {
+    const v = k * minor, major = Math.abs(v / step - Math.round(v / step)) < 1e-6, a = v / tg * TAU;
+    c.save(); c.rotate(a); c.beginPath();
+    if (k === 0) { c.moveTo(0, -0.95); c.lineTo(0, -0.77); c.lineWidth = 0.045; c.strokeStyle = '#0f766e'; }
+    else if (major) { c.moveTo(0, -0.945); c.lineTo(0, -0.82); c.lineWidth = 0.026; c.strokeStyle = '#1c1917'; }
+    else { c.moveTo(0, -0.945); c.lineTo(0, -0.885); c.lineWidth = 0.012; c.strokeStyle = '#57534e'; }
+    c.stroke(); c.restore();
+    if (major && k > 0 && (tg - v) / tg > 0.06) {
+      const s = dec(v); ptext(c, S, s, Math.sin(a) * 0.69, -Math.cos(a) * 0.69, s.length > 2 ? 0.105 : 0.13, 700, '#27272a');
+    }
+  }
+  ptext(c, S, String(tg), 0, -0.66, 0.16, 800, '#0f766e');
+  ptext(c, S, 'RIDSGAMES', 0, -0.36, 0.062, 700, '#a8a29e');
+  ptext(c, S, T().lcdCap, 0, 0.53, 0.05, 700, '#a8a29e');
+}
+function ensureLayer(tg) {
+  const key = [K, DPR, tg, lang, fontsOk].join('|');
+  if (key === layerKey && layer) return;
+  layerKey = key;
+  layer = layer || document.createElement('canvas');
+  layer.width = cv.width; layer.height = cv.height;
+  const c = layer.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, layer.width, layer.height);
+  drawStatic(c, K * DPR, tg);
+}
+const easeOut = (u) => 1 - Math.pow(1 - u, 3);
+const LCD_DIM = '#6b8f83', LCD_ON = '#a7f3d0';
+// O anki görünüm: ibre açısı, ibre görünürlüğü, sis, gösterge yazısı
+function viewState(now) {
+  const preview = !G || !$('setupOv').hidden;
+  const tg = preview ? setup.target : G.target, hide = preview ? setup.hide : G.hide, T_MS = tg * 1000;
+  const v = { tg, u: preview ? unitMs(tg, hide) : unit(), ang: 0, handA: 1, fog: 0, lcd: fmt(T_MS), lcdCol: LCD_DIM, glow: null };
+  if (preview || phase === 'ready' || phase === 'setup') return v;
+  if (phase === 'run') {
+    const el = Math.max(0, now - t0);
+    if (hiddenNow) { v.fog = REDUCED ? 1 : clamp((now - hidT) / 260); v.ang = Math.min(G.hideAt, el) / T_MS * TAU; v.handA = 1 - v.fog; v.lcd = '--:--'; v.lcdCol = LCD_ON; }
+    else { v.ang = el / T_MS * TAU; v.lcd = fmt(el); v.lcdCol = LCD_ON; }
+    return v;
+  }
+  if (!res) return v;
+  // sonuç: gizliyken durdurulduysa sis kalkar, ibre gizlendiği yerden durduğu yere koşar
+  const fin = res.cs * 10;
+  if (phase === 'reveal' && res.wasHidden && !REDUCED) {
+    const u = now - revealAt, p = easeOut(clamp((u - 120) / 700)), ms = res.hideMs + (fin - res.hideMs) * p;
+    v.fog = 1 - clamp(u / 260); v.ang = ms / T_MS * TAU; v.lcd = fmt(ms); v.lcdCol = LCD_ON;
+  } else {
+    v.ang = fin / T_MS * TAU; v.lcd = fmt(fin); v.lcdCol = phase === 'reveal' ? LCD_ON : res.z.col;
+    if (phase !== 'reveal') v.glow = res.z;
+  }
+  return v;
+}
+function lcdText(c, S, s, y, size, color) {
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
+  let px = size * S; c.font = `800 ${px}px Inter, system-ui, sans-serif`;
+  let cw = c.measureText('0').width * 1.04, colw = cw * 0.5;
+  const nd = s.replace(/:/g, '').length, nc = s.length - nd, maxW = 0.66 * S;
+  let total = nd * cw + nc * colw;
+  if (total > maxW) { const k = maxW / total; px *= k; cw *= k; colw *= k; total = maxW; c.font = `800 ${px}px Inter, system-ui, sans-serif`; }
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = color;
+  let x = OX * S - total / 2; const yy = (OY + y) * S + px * 0.04;
+  for (const ch of s) { const w = ch === ':' ? colw : cw; c.fillText(ch, x + w / 2, yy); x += w; }
+  c.restore();
+}
+function draw(now) {
+  const S = K * DPR, v = viewState(now);
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+  ensureLayer(v.tg); cx.drawImage(layer, 0, 0);
+  cx.setTransform(S, 0, 0, S, OX * S, OY * S);
+  // sis: gizliyken kadranı buzlu cam kaplar
+  if (v.fog > 0) {
+    cx.save(); cx.globalAlpha = v.fog;
+    const g = cx.createRadialGradient(0, -0.2, 0.1, 0, 0, 1); g.addColorStop(0, '#e4e8ec'); g.addColorStop(1, '#b8c0c9');
+    circ(cx, 0, 0, 1.002); cx.fillStyle = g; cx.fill();
+    cx.restore();
+    ptext(cx, S, T().hidden, 0, -0.3, 0.13, 800, `rgba(100, 116, 139, ${0.85 * v.fog})`);
+  }
+  // hedefin çevresindeki tolerans şeridi (dıştan içe: fena değil, iyi, harika, tam isabet)
+  cx.lineWidth = 0.04; cx.lineCap = 'butt';
+  for (let i = 3; i >= 0; i--) {
+    const z = ZONES[i], w = Math.min(Math.PI * 0.95, z.r * v.u / (v.tg * 1000) * TAU);
+    cx.beginPath(); cx.arc(0, 0, 0.977, -Math.PI / 2 - w, -Math.PI / 2 + w); cx.strokeStyle = z.col; cx.stroke();
+  }
+  // dijital gösterge
+  rrect(cx, -0.4, 0.19, 0.8, 0.28, 0.065); cx.fillStyle = '#0c1311'; cx.fill();
+  const lg = cx.createLinearGradient(0, 0.21, 0, 0.45); lg.addColorStop(0, '#26362f'); lg.addColorStop(1, '#15201c');
+  rrect(cx, -0.375, 0.213, 0.75, 0.234, 0.045); cx.fillStyle = lg; cx.fill();
+  lcdText(cx, S, v.lcd.replace(/\d/g, '8').replace(/-/g, '8'), 0.33, 0.19, 'rgba(167, 243, 208, .06)');
+  lcdText(cx, S, v.lcd, 0.33, 0.19, v.lcdCol);
+  // sonuç halkası
+  if (v.glow) {
+    const u = (now - resultAt) / 1000, a = REDUCED ? 0.8 : 0.55 + 0.45 * Math.cos(Math.min(u, 2.5) * Math.PI * 2) * Math.max(0, 1 - u / 2.5);
+    cx.save(); cx.globalAlpha = a; cx.shadowColor = v.glow.col; cx.shadowBlur = 0.12 * S;
+    circ(cx, 0, 0, 1.1); cx.lineWidth = 0.035; cx.strokeStyle = v.glow.col; cx.stroke(); cx.restore();
+    if (v.glow.k === 'perfect' && !REDUCED && u < 1.1) {
+      for (const d of [0, 0.25]) { const q = clamp((u - d) / 0.8); if (q <= 0 || q >= 1) continue; cx.save(); cx.globalAlpha = 1 - q; circ(cx, 0, 0, 1.12 + q * 0.5); cx.lineWidth = 0.03; cx.strokeStyle = '#fbbf24'; cx.stroke(); cx.restore(); }
+    }
+  }
+  // ibre
+  if (v.handA > 0.01) {
+    cx.save(); cx.globalAlpha = v.handA; cx.rotate(v.ang);
+    cx.save(); cx.translate(0.018, 0.028); cx.fillStyle = 'rgba(0, 0, 0, .22)'; hand(cx); cx.restore();
+    cx.fillStyle = '#dc2626'; hand(cx);
+    cx.restore();
+  }
+  circ(cx, 0, 0, 0.058); cx.fillStyle = metal(cx, -0.06, -0.06, 0.06, 0.06); cx.fill();
+  circ(cx, 0, 0, 0.022); cx.fillStyle = '#3f3f46'; cx.fill();
+}
+function hand(c) {
+  c.beginPath(); c.moveTo(-0.014, 0.2); c.lineTo(-0.006, -0.84); c.lineTo(0, -0.93); c.lineTo(0.006, -0.84); c.lineTo(0.014, 0.2); c.closePath(); c.fill();
+  circ(c, 0, 0.17, 0.045); c.fill();
+}
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (phase === 'run' && G) {
+    const el = now - t0;
+    if (el >= limitMs()) { lastAct = now; finish(limitMs()); }
+    else {
+      if (!hiddenNow && el >= G.hideAt) { hiddenNow = true; hidT = now; Sfx.hide(); render(); }
+      const sec = Math.floor(el / 1000);
+      if (sec > lastSec) { lastSec = sec; if (!hiddenNow) Sfx.tick(sec); }
+    }
+  }
+  const busy = phase === 'run' || phase === 'reveal' || ((phase === 'result' || phase === 'over') && now - resultAt < 2600);
+  if (busy || dirty) { dirty = false; draw(now); }
+}
+
+// ---------- Arayüz ----------
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+function closeAll() { for (const id of ['setupOv', 'rulesOv', 'roundOv', 'winOv']) $(id).hidden = true; }
+function renderHud() {
+  const t = T(), hud = $('hud');
+  hud.hidden = !G; if (!G) return;
+  const info = `${t.target} ${fmt(G.target * 1000)} · ${t.hideShort(G.hide, G.hideAt)}`;
+  if (G.mode === 'tek') {
+    $('hudMain').innerHTML = [0, 1, 2].map((i) => `<i class="${i < G.lives ? 'on' : ''}">♥︎</i>`).join('');
+    $('hudSide').innerHTML = `<span>${t.score} <b>${num(G.score)}</b></span><span class="mult" id="mult">×${G.mult}</span>`;
+    $('hudInfo').textContent = `${info} · ${t.best} ${num(Math.max(G.best, G.score))}`;
+    if (popAt && performance.now() - popAt < 300) { popAt = 0; $('mult').classList.add('pop'); }
+  } else {
+    const p = cur();
+    $('hudMain').textContent = p.name;
+    $('hudSide').innerHTML = `<span>${t.roundOf(G.round, G.rounds)}</span>`;
+    $('hudInfo').textContent = `${info} · ${t.totalErr} ${fmt(p.total)}`;
+  }
+}
+function renderVerdict() {
+  const t = T(); let a = '', b = '', col = '#fff';
+  if (G && phase === 'ready') {
+    if (G.mode === 'grup') { a = t.upNext(cur().name); b = t.passPhone; }
+    else { a = t.targetIs(fmt(G.target * 1000)); b = G.hide === 'hic' ? t.readyHintHic : t.readyHint; }
+  } else if (G && phase === 'run') {
+    if (hiddenNow) { a = t.hiddenNow; b = t.keepCounting; }
+    else if (G.hide === 'hic') { a = t.eyesOn; b = t.stopOnTarget; }
+    else { a = t.counting; b = t.willHide(G.hideAt); }
+  } else if (G && phase === 'reveal') { a = '…'; }
+  else if (G && res) {
+    a = t.z[res.z.k]; col = res.z.col;
+    b = t.err(res.err, fmt) + (G.mode === 'tek' ? ' · ' + (res.life ? t.lifeLost : t.pts(num(res.pts))) : '');
+  }
+  $('vMain').textContent = a; $('vMain').style.color = col; $('vSub').textContent = b;
+}
+function renderGo() {
+  const t = T(), b = $('go'); let s = t.go, cls = '';
+  if (G && phase === 'run') { s = t.stop; cls = 'stop'; }
+  else if (G && (phase === 'reveal' || phase === 'between')) { s = '…'; cls = 'wait'; }
+  else if (G && phase === 'over') { s = t.overBtn; cls = 'wait'; }
+  else if (G && phase === 'result' && G.mode === 'grup') s = G.idx < G.players.length - 1 ? t.nextBtn(nextUp().name) : t.roundResults;
+  b.textContent = s; b.className = 'go' + (cls ? ' ' + cls : '');
+}
+function render() { renderHud(); renderVerdict(); renderGo(); dirty = true; }
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function renderSetup() {
+  const t = T(), tg = setup.target, h = setup.hide, bl = blindS(tg, h);
+  segPress('modeSeg', 'm', setup.mode); segPress('hideSeg', 'h', h); segPress('presetSeg', 't', tg); segPress('roundSeg', 'r', setup.rounds);
+  $('tVal').textContent = fmt(tg * 1000);
+  $('tMinus').disabled = tg <= 1; $('tPlus').disabled = tg >= 99;
+  $('hideNote').textContent = t.hideNote(h, tg, bl.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US'));
+  $('groupBox').hidden = setup.mode !== 'grup';
+  $('backBtn').hidden = !(G && ['ready', 'result', 'reveal', 'between'].includes(phase));
+  dirty = true;
+}
+function renderPlayers() {
+  const t = T(), n = setup.players.length;
+  $('players').innerHTML = setup.players.map((p, i) => `<div class="prow"><input type="text" maxlength="14" autocomplete="off" enterkeyhint="done" data-i="${i}" value="${esc(p)}" placeholder="${esc(t.playerN(i + 1))}" aria-label="${esc(t.playerN(i + 1))}"><button type="button" data-x="${i}" aria-label="${esc(t.remove)}" ${n <= 2 ? 'disabled' : ''}>✕</button></div>`).join('');
+  $('addBtn').hidden = n >= 8;
+}
+function openSetup() { cancelRun(false); renderSetup(); renderPlayers(); closeAll(); $('setupOv').hidden = false; }
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  document.querySelector('#modeSeg [data-m="tek"]').textContent = t.solo; document.querySelector('#modeSeg [data-m="grup"]').textContent = t.group;
+  $('targetLbl').textContent = t.targetLbl; $('tCap').textContent = t.cap; $('hideLbl').textContent = t.hideLbl;
+  document.querySelectorAll('#hideSeg button').forEach((b) => { b.textContent = t.hides[b.dataset.h]; });
+  document.querySelectorAll('#roundSeg button').forEach((b) => { b.textContent = t.roundsN(b.dataset.r); });
+  $('playersLbl').textContent = t.playersLbl; $('addBtn').textContent = t.add; $('roundsLbl').textContent = t.roundsLbl;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('toMenuBtn').textContent = t.toMenu;
+  cv.setAttribute('aria-label', t.watch);
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  renderSetup(); renderPlayers(); render();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+// ---------- Olaylar ----------
+// Zamanlama dokunuşun kendi zaman damgasıyla ölçülür (çizim karesine bağlı değil)
+const stamp = (e) => (e && e.timeStamp > 0 && Math.abs(performance.now() - e.timeStamp) < 1000 ? e.timeStamp : performance.now());
+const press = (e) => { if (e.button > 0) return; Sfx.unlock(); act(stamp(e)); };
+$('go').addEventListener('pointerdown', press);
+cv.addEventListener('pointerdown', press);
+$('go').addEventListener('click', (e) => { if (e.detail === 0) act(performance.now()); }); // klavye ve ekran okuyucu
+const anyOpen = () => !$('setupOv').hidden || !$('rulesOv').hidden || !$('roundOv').hidden || !$('winOv').hidden;
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('rulesOv').hidden) { $('rulesOv').hidden = true; return; }
+  if (e.key !== ' ' && e.key !== 'Enter') return;
+  if (anyOpen() || e.repeat) return;
+  const a = document.activeElement;
+  if (a && a !== $('go') && (a.tagName === 'BUTTON' || a.tagName === 'INPUT')) return;
+  e.preventDefault(); Sfx.unlock(); act(stamp(e));
+});
+$('modeSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-m]'); if (b) { setup.mode = b.dataset.m; renderSetup(); renderPlayers(); } });
+$('presetSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-t]'); if (b) { setup.target = +b.dataset.t; renderSetup(); } });
+$('hideSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-h]'); if (b) { setup.hide = b.dataset.h; renderSetup(); } });
+$('roundSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-r]'); if (b) { setup.rounds = +b.dataset.r; renderSetup(); } });
+// Hedef süre: dokun bir saniye, basılı tut hızlı değişsin
+let holdT = null;
+const stepBy = (d) => { const v = Math.max(1, Math.min(99, setup.target + d)); if (v !== setup.target) { setup.target = v; renderSetup(); } };
+const endHold = () => { clearTimeout(holdT); holdT = null; };
+for (const [id, d] of [['tMinus', -1], ['tPlus', 1]]) {
+  const b = $(id);
+  b.addEventListener('pointerdown', (e) => { if (e.button > 0) return; e.preventDefault(); stepBy(d); endHold(); holdT = setTimeout(function rep() { stepBy(d); holdT = setTimeout(rep, 70); }, 420); });
+  b.addEventListener('click', (e) => { if (e.detail === 0) stepBy(d); });
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(ev, endHold);
+}
+addEventListener('pointerup', endHold);
+$('players').addEventListener('input', (e) => { const i = e.target.dataset.i; if (i != null) setup.players[+i] = e.target.value.slice(0, 14); });
+$('players').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
+$('players').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-x]'); if (!b || setup.players.length <= 2) return;
+  setup.players.splice(+b.dataset.x, 1); renderPlayers();
+});
+$('addBtn').addEventListener('click', () => {
+  if (setup.players.length >= 8) return;
+  setup.players.push(''); renderPlayers();
+  const ins = $('players').querySelectorAll('input'); ins[ins.length - 1].focus();
+});
+$('startBtn').addEventListener('click', () => {
+  Sfx.unlock();
+  setup.players = setup.players.map((p) => p.trim().slice(0, 14));
+  try { localStorage.setItem(KEY + 'setup', JSON.stringify(setup)); } catch (e) {}
+  newGame();
+});
+$('backBtn').addEventListener('click', () => { closeAll(); if (phase === 'between') $('roundOv').hidden = false; dirty = true; });
+$('roundNext').addEventListener('click', () => { G.round++; G.idx = 0; res = null; phase = 'ready'; closeAll(); Sfx.click(); render(); });
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { cancelRun(false); $('rulesOv').hidden = false; sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); newGame(); });
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem(KEY + 'sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+// Tam ekran: desteklemeyen tarayıcıda (iPhone Safari) düğme gizlenir
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+// Sekmeden çıkınca süren deneme sayılmaz
+document.addEventListener('visibilitychange', () => { if (document.hidden) cancelRun(true); });
+addEventListener('resize', () => layout());
+document.addEventListener('fullscreenchange', () => layout()); document.addEventListener('webkitfullscreenchange', () => layout());
+if (window.ResizeObserver) new ResizeObserver(() => layout()).observe($('watchWrap'));
+if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('800 20px Inter'), document.fonts.load('700 20px Inter')]).then(() => { fontsOk++; dirty = true; }).catch(() => {});
+
+// Test kancası (oyun akışını değiştirmez)
+window.__rids = {
+  get phase() { return phase; }, get G() { return G; }, get res() { return res; },
+  act, finish, unit, judge, fmt, hideAtMs, blindS, unitMs, levelF, scoreSolo, layoutNow: layout, drawNow: () => draw(performance.now())
+};
+
+layout(); applyLang(); applySound(); openSetup(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
