@@ -264,7 +264,7 @@ const STR = {
       ['🐍', 'Bir <b>yılanın</b> başına gelirsen kuyruğuna kadar kayarsın.'],
       ['🎯', '100\'e <b>tam sayıyla</b> girilir. Zar fazla gelirse piyon yerinde kalır ve sıra geçer.'],
       ['6️⃣', '<b>6</b> gelince bir daha atarsın. Üst üste üçüncü 6\'da hamle yapılmaz ve sıra geçer.'],
-      ['🏆', '100\'e ilk ulaşan kazanır. 80. kareye gelen merdivenle doğrudan 100\'e çıkar.']
+      ['🏆', '100\'e ilk ulaşan kazanır.']
     ]
   },
   en: {
@@ -283,7 +283,7 @@ const STR = {
       ['🐍', 'Land on a <b>snake\'s head</b> and you slide down to its tail.'],
       ['🎯', 'You must reach 100 with an <b>exact roll</b>. If the roll is too high, the piece stays and the turn passes.'],
       ['6️⃣', 'A <b>6</b> gives you another roll. A third 6 in a row means no move and the turn passes.'],
-      ['🏆', 'The first to reach 100 wins. Landing on square 80 takes the ladder straight to 100.']
+      ['🏆', 'The first to reach 100 wins.']
     ]
   }
 };
@@ -297,8 +297,8 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---------- Kurallar (saf mantık) ----------
 // RULES-BEGIN
-const LADDERS = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100 };
-const SNAKES = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
+const LADDERS = { 4: 14, 9: 31, 20: 38, 28: 84, 40: 59, 51: 67, 63: 81, 71: 91 };
+const SNAKES = { 17: 7, 54: 34, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 99: 78 };
 const jumpOf = (n) => (LADDERS[n] ? { type: 'ladder', from: n, to: LADDERS[n] } : SNAKES[n] ? { type: 'snake', from: n, to: SNAKES[n] } : null);
 // Bir atışın sonucu: pos mevcut kare (0 = tahta dışı), v zar, sixes bu turda önceki üst üste 6 sayısı
 function playRoll(pos, v, sixes) {
@@ -340,9 +340,9 @@ const bez = (a, b, c, d, t) => { const u = 1 - t; return [u * u * u * a[0] + 3 *
 
 // Yılanlar: [baş, kuyruk, sapma1, sapma2, renk, desen]; sapma = baş-kuyruk doğrusuna dik, kare cinsinden
 const SNAKE_DEF = [
-  [16, 6, 0.5, -0.5, '#e0447c', 'dots'], [47, 26, 0.9, -0.9, '#7c4dd6', 'bands'], [49, 11, 1.1, -1.2, '#e8a317', 'diamonds'],
-  [56, 53, 0.6, -0.6, '#3bb273', 'dots'], [62, 19, -1.3, 1.3, '#17a2a2', 'diamonds'], [64, 60, 0.6, -0.6, '#e5603a', 'bands'],
-  [87, 24, 1.6, -1.2, '#2f80d8', 'bands'], [93, 73, 0.6, -0.6, '#f08c2a', 'diamonds'], [95, 75, -0.6, 0.6, '#9b59b6', 'dots'], [98, 78, 0.6, -0.6, '#8cc63f', 'bands']
+  [17, 7, 0.5, -0.5, '#e0447c', 'dots'], [54, 34, -1.0, 0.5, '#e8a317', 'diamonds'], [62, 19, -1.3, 1.3, '#17a2a2', 'diamonds'],
+  [64, 60, 0.6, -0.6, '#e5603a', 'bands'], [87, 24, 1.6, -1.2, '#2f80d8', 'bands'], [93, 73, -1.0, 0.3, '#f08c2a', 'diamonds'],
+  [95, 75, 0.7, -0.6, '#9b59b6', 'dots'], [99, 78, -0.7, 0.6, '#8cc63f', 'bands']
 ].map(([h, t, o1, o2, col, pat]) => {
   const a = sq(h), d = sq(t), dx = d[0] - a[0], dy = d[1] - a[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
   const c1 = [a[0] + dx * 0.33 + nx * o1, a[1] + dy * 0.33 + ny * o1], c2 = [a[0] + dx * 0.66 + nx * o2, a[1] + dy * 0.66 + ny * o2];
