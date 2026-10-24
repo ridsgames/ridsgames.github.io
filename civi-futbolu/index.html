@@ -18,13 +18,8 @@
   h1 { font-size: 40px; }
   button { font: inherit; font-size: 18px; font-weight: 700; min-width: 220px; padding: 12px 24px; border: 0; border-radius: 12px; background: #e9b44c; color: #2b1a05; cursor: pointer; }
   #gol { position: fixed; left: 0; right: 0; top: 42%; text-align: center; font-size: 72px; font-weight: 900; text-shadow: 0 4px 16px #000; pointer-events: none; }
-  /* Para seçimi: büyük para çivilerin arasından zor geçer */
-  .para { display: flex; gap: 6px; }
-  .para button { min-width: 0; width: 96px; padding: 8px 6px; font-size: 15px; background: #2a3038; color: #e8eef7; }
-  .para button small { display: block; font-size: 11px; font-weight: 600; opacity: .7; }
-  .para button.on { background: #e9b44c; color: #2b1a05; }
   /* Yatay telefonda menü tek ekrana sığsın */
-  @media (max-height: 460px) { .ov { gap: 8px; } h1 { font-size: 28px; } .ov p { max-width: 520px; font-size: 13px; } .ov button { font-size: 16px; padding: 7px 20px; } .ov .para button { font-size: 14px; padding: 4px 6px; } }
+  @media (max-height: 460px) { .ov { gap: 8px; } h1 { font-size: 28px; } .ov p { max-width: 520px; font-size: 13px; } .ov button { font-size: 16px; padding: 7px 20px; } }
   [hidden] { display: none !important; }
   /* Üst çubuk: logo ana sayfaya döner (diğer oyunlardaki gibi), sağda tam ekran düğmesi; tam ekranda logo gizlenir */
   .home-bar { flex: none; width: 100%; position: relative; z-index: 30; background: rgba(2, 6, 23, .85); border-bottom: 1px solid rgba(30, 41, 59, .8); }
@@ -53,8 +48,6 @@
     .ov { flex-direction: row; flex-wrap: wrap; justify-content: center; align-content: center; padding: 12px 64px; gap: 8px 10px; }
     .ov > :first-child, .ov > :last-child { margin: 0; }
     .ov h1, .ov p { flex-basis: 100%; }
-    .ov .para { flex-basis: 100%; justify-content: center; }
-    .ov .para button { width: 96px; }
     .ov p { max-width: 560px; }
     .ov button { min-width: 0; width: 150px; }
   }
@@ -81,11 +74,6 @@
 <div id="menu" class="ov">
   <h1 data-i18n="title">Çivi Futbolu</h1>
   <p data-i18n="help">Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı yukarıdaki, Mavi aşağıdaki kaleye atar. Sıra her itişte değişir, para durduğu yerden oynanır. 5 gol atan kazanır.</p>
-  <div class="para">
-    <button class="on"><span data-i18n="kr5">5 kuruş</span><small data-i18n="kr5s">amatör</small></button>
-    <button><span data-i18n="kr10">10 kuruş</span><small data-i18n="kr10s">yarı pro</small></button>
-    <button><span data-i18n="kr25">25 kuruş</span><small data-i18n="kr25s">pro</small></button>
-  </div>
   <button id="p2" data-i18n="p2">2 Oyuncu</button>
   <p data-i18n="vsCpu">Bilgisayara karşı:</p>
   <button class="lv" data-i18n="easy">Kolay</button>
@@ -101,10 +89,8 @@
 // Gerçek ölçüler: 20×32 cm'lik tahta (sokakta yaygın 20×30 sunta), 1 mm = 2 birim. Para kırmızı çerçeveden seker
 const W = 400, H = 640, L = 16, R = 384, TOP = 46, BOT = 594; // tahta ve yeşil saha sınırları
 const GL = 140, GR = 260, GD = 34;   // kale ağzı 6 cm (direkler x), file derinliği 17 mm
-// Paralar (2005 serisi 5, 10, 25 kuruş; çap mm): büyüdükçe çivilerin arasından geçmek zorlaşır. Sokakta 5 kuruş
-// amatör, 10 kuruş yarı pro, 25 kuruş pro parası sayılırdı. 1 mm 2 birim olduğundan yarıçap birim = çap mm
-const COINS = [17, 19.25, 21.5];
-let CR = COINS[0];
+// Para: 5 kuruş (17 mm), sokakta bu oyunun en çok aranan parası. 1 mm 2 birim olduğundan yarıçap birim = çap mm
+const CR = 17;
 const NR = 2.5, PR = 4;              // çivi gövdesi yarıçapı: 5 cm'lik tel çivi (2,5 mm), kale direği kalın çivi (4 mm)
 const NH = 8, HR = 5, GH = 12;       // eğik bakış: çivi boyu, çivi başı (5 mm), kale direği boyu
 // Ayar düğmeleri: oyunun hissi bunlarla değişir
@@ -112,12 +98,12 @@ const DECEL = 3000;                  // tahtanın sürtünmesi: boyalı tahtada 
 const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
 const FLING = 1.6, MAX_V = 2800, MIN_V = 150; // fırlatma gücü (ekrandaki tahta gerçeğinden ~3 kat küçük); en sert itiş 1,4 m/s
 const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
-// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı (5 kuruşla, kendine karşı) atış başına ~%8, ~%10, ~%19
+// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı (kendine karşı) atış başına ~%8, ~%10, ~%19
 const AI_ERR = [[.7, .2], [.15, .06], [.05, .02]];
 const DT = 1 / 240, WIN = 5;
 
 // Çiviler: şaşırtmalı sıralar (4 ve 3 çivi, 48 birim arayla), her kalede iki kalın direk ve filenin arka köşelerinde iki çivi.
-// Sıradaki çiviler 4,5 cm arayla (5 kuruşun ~2,6 katı), çapraz geçit 3 cm: tahta yapanların 4'lü ve 3'lü sıralarıyla aynı oran
+// Sıradaki çiviler 4,5 cm arayla (paranın ~2,6 katı), çapraz geçit 3 cm: tahta yapanların 4'lü ve 3'lü sıralarıyla aynı oran
 const nails = [];
 for (let k = -5; k <= 5; k++)
   for (const x of k % 2 ? [110, 200, 290] : [65, 155, 245, 335]) nails.push({ x, y: H / 2 + 48 * k, r: NR, h: NH });
@@ -176,14 +162,13 @@ function best(p, [ea, es] = [0, 0]) {
 
 const $ = id => document.getElementById(id);
 const cv = $('c'), ctx = cv.getContext('2d'), board = document.createElement('canvas'), pins = document.createElement('canvas');
-let mode, level = 2, para = 0, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1, coinImg;
+let mode, level = 2, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1, coinImg;
 // Dil: ?lang=en|tr adresten, yoksa tarayıcı dili (tr dışı her dil İngilizce). Türkçe metinler HTML'de durur.
 const LANG = /^tr/i.test(new URLSearchParams(location.search).get('lang') || navigator.language || 'tr') ? 'tr' : 'en';
 const I18N_EN = {
   title: 'Nail Football', red: 'Red', blue: 'Blue', cpu: 'Computer', goal: 'GOAL!', menu: 'Menu', fs: 'Full screen',
   help: 'Press on the coin, hold and drag, then flick it. Red shoots at the top goal, Blue at the bottom one. Turns switch after every push, played from where the coin stops. First to 5 goals wins.',
   helpSide: 'Press on the coin, hold and drag, then flick it. Red shoots at the right goal, Blue at the left one. Turns switch after every push, played from where the coin stops. First to 5 goals wins.',
-  kr5: '17 mm', kr5s: 'beginner', kr10: '19 mm', kr10s: 'semi-pro', kr25: '21.5 mm', kr25s: 'pro',
   p2: '2 Players', vsCpu: 'Against the computer:', easy: 'Easy', medium: 'Medium', hard: 'Hard', again: 'Play Again',
   think: 'thinking…', turn: 'Turn', aim: 'press the coin, drag, flick',
   cpuWins: 'Computer wins', youWin: 'You win!', wins: 'wins!'
@@ -208,7 +193,6 @@ function newGame(m) {
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
   sayac(m === 'ai' ? 'mod/bilgisayar-' + LV[level] : 'mod/2-oyuncu', m === 'ai' ? 'mod: bilgisayara karşı, ' + LV[level] : 'mod: 2 oyuncu');
   try { ac = ac || new AudioContext(); } catch {}
-  CR = COINS[para]; COIN = CR + 6; coinImg = makeCoin();
   $('menu').hidden = $('end').hidden = $('gol').hidden = true;
   kickoff(0);
 }
@@ -384,7 +368,7 @@ function drawBoard(g, p) {
 }
 
 // Para: kalın kenar, kabarık çerçeve ve kabartma Ridsgames logosu; her boyutlanmada bir kez çizilir
-let COIN = CR + 6;                                                       // görselin yarı boyu (gölge payıyla)
+const COIN = CR + 6;                                                     // görselin yarı boyu (gölge payıyla)
 function tint(col, w, h) {
   const c = document.createElement('canvas'), g = c.getContext('2d');
   c.width = Math.ceil(w * K); c.height = Math.ceil(h * K);
@@ -553,9 +537,6 @@ function frame(t) {
 }
 requestAnimationFrame(frame);
 
-document.querySelectorAll('.para button').forEach((b, i, all) => b.onclick = () => {
-  para = i; all.forEach((x) => x.classList.toggle('on', x === b));
-});
 $('p2').onclick = () => newGame('2p');
 document.querySelectorAll('.lv').forEach((b, i) => b.onclick = () => { level = i; newGame('ai'); });
 $('again').onclick = () => newGame(mode);
