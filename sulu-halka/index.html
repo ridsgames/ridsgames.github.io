@@ -1411,7 +1411,7 @@
       }
 
       // Hazne resimden belirgin biçimde genişse (yatay telefon) dikey resim kırpılmaz: tam boy ortaya konur,
-      // iki yanı resmin kendi kenar renkleriyle uzatılır ve kenarları yumuşak geçişle bu renklere karışır
+      // iki yanına aynalanmış kopyaları dizilir; komşu kopyalar kenardan birleştiği için geçiş dikişsiz olur
       let wideBgKey = '';
       function paintBackground() {
         const found = BACKGROUNDS.find((b) => b.id === activeBgId) || BACKGROUNDS[0];
@@ -1437,49 +1437,23 @@
       }
 
       function widenedBackground(img, ratio) {
-        const h = Math.min(img.naturalHeight, 900);
-        const iw = Math.round((img.naturalWidth * h) / img.naturalHeight);
-        const w = Math.round(h * ratio);
-        const x0 = Math.round((w - iw) / 2);
-        const src = document.createElement('canvas');
-        src.width = iw; src.height = h;
-        const sctx = src.getContext('2d');
-        sctx.drawImage(img, 0, 0, iw, h);
-        // Kenar rengi: resmin 8 piksellik kenar şeridinin satır ortalaması; kabarcıklar şerit gibi uzamasın diye
-        // dikeyde önce kayan medyanla ayıklanır, sonra yumuşatılır
-        const edge = (sx) => {
-          const d = sctx.getImageData(sx, 0, 8, h).data, rows = [];
-          for (let y = 0; y < h; y++) {
-            let r = 0, g = 0, b = 0;
-            for (let i = y * 32; i < y * 32 + 32; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
-            rows.push([r / 8, g / 8, b / 8]);
-          }
-          const win = (arr, y, k) => arr.slice(Math.max(0, y - k), Math.min(h, y + k + 1));
-          const med = rows.map((_, y) => [0, 1, 2].map((j) => {
-            const v = win(rows, y, 60).map((c) => c[j]).sort((p, q) => p - q);
-            return v[v.length >> 1];
-          }));
-          return med.map((_, y) => {
-            const w = win(med, y, 15), c = [0, 1, 2].map((j) => w.reduce((t, q) => t + q[j], 0) / w.length);
-            return `rgb(${c.map(Math.round).join(',')})`;
-          });
-        };
-        const left = edge(0), right = edge(iw - 8);
+        const a = img.naturalWidth / img.naturalHeight;
+        const h = Math.min(img.naturalHeight, 900), w = Math.round(h * ratio);
+        // Tek sayıda kopya sığacaksa resim en çok %25 büyütülüp kenarlardaki yarım kopyalar kaldırılır;
+        // taşan alt kısım zaten haznenin karanlık tabanının arkasında kalır
+        const n = ratio / a, odd = Math.max(1, 2 * Math.floor((n - 1) / 2) + 1), up = n / odd;
+        const th = h * (up <= 1.25 ? up : 1), tw = th * a, x0 = (w - tw) / 2;
         const out = document.createElement('canvas');
         out.width = w; out.height = h;
         const octx = out.getContext('2d');
-        for (let y = 0; y < h; y++) {
-          octx.fillStyle = left[y]; octx.fillRect(0, y, Math.ceil(w / 2), 1);
-          octx.fillStyle = right[y]; octx.fillRect(Math.floor(w / 2), y, w - Math.floor(w / 2), 1);
+        for (let k = -Math.ceil(x0 / tw); x0 + k * tw < w; k++) {
+          octx.save();
+          octx.translate(x0 + k * tw, 0);
+          if (k % 2) { octx.translate(tw, 0); octx.scale(-1, 1); }
+          octx.drawImage(img, 0, 0, tw, th);
+          octx.restore();
         }
-        const f = 0.08;
-        const fade = sctx.createLinearGradient(0, 0, iw, 0);
-        fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(f, '#000'); fade.addColorStop(1 - f, '#000'); fade.addColorStop(1, 'rgba(0,0,0,0)');
-        sctx.globalCompositeOperation = 'destination-in';
-        sctx.fillStyle = fade;
-        sctx.fillRect(0, 0, iw, h);
-        octx.drawImage(src, x0, 0);
-        return out.toDataURL('image/jpeg', 0.86);
+        return out.toDataURL('image/jpeg', 0.88);
       }
 
       function renderBgPresets() {
