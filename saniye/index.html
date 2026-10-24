@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Saniye | Ridsgames</title>
-<meta name="description" content="Saniye: hedef süreyi seç, kronometre gizlenince içinden say ve tam zamanında durdur. Tek başına rekor kovala ya da arkadaşlarınla aynı telefonda yarış.">
+<title>Cuk | Ridsgames</title>
+<meta name="description" content="Cuk: hedef süreyi seç, kronometre gizlenince içinden say ve tam zamanında durdur. Tek başına rekor kovala ya da arkadaşlarınla aynı telefonda yarış.">
 <meta name="theme-color" content="#0a0e17">
 <link rel="icon" href="../assets/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -153,14 +153,14 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
-<script src="../assets/olcum.js" data-page="saniye" data-name="Saniye"></script>
+<script src="../assets/olcum.js" data-page="saniye" data-name="Cuk"></script>
 </head>
 <body>
 <header class="top">
   <div class="in">
     <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
       <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
-      <span class="gname" id="gameName">Saniye</span>
+      <span class="gname" id="gameName">Cuk</span>
     </a>
     <div class="tools">
       <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
@@ -190,7 +190,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 <!-- Kurulum -->
 <div class="ov" id="setupOv">
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
-    <h2 id="setupTitle">Saniye</h2>
+    <h2 id="setupTitle">Cuk</h2>
     <p class="sub" id="setupSub"></p>
     <div class="seg two" id="modeSeg"><button type="button" data-m="tek"></button><button type="button" data-m="grup"></button></div>
     <div class="sec">
@@ -264,7 +264,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 // ---------- Dil ----------
 const STR = {
   tr: {
-    title: 'Saniye | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Saniye', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    title: 'Cuk | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Cuk', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
     setupSub: 'Hedef süreyi seç. Kronometre gizlenince içinden say, tam zamanında durdur.',
     solo: 'Tek kişi', group: 'Arkadaşlarla', targetLbl: 'Hedef süre', cap: 'saniye : salise', hideLbl: 'Kronometre ne zaman gizlensin?',
     hides: { bas: 'Baştan', 3: '3. sn', yari: 'Yarıda', hic: 'Hiç' },
@@ -298,7 +298,7 @@ const STR = {
     ]
   },
   en: {
-    title: 'Second Sense | Ridsgames', homeLabel: 'Ridsgames home', game: 'Second Sense', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    title: 'Spot On | Ridsgames', homeLabel: 'Ridsgames home', game: 'Spot On', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
     setupSub: 'Pick a target time. When the stopwatch hides, keep counting in your head and stop it right on time.',
     solo: 'Solo', group: 'With friends', targetLbl: 'Target time', cap: 'seconds : hundredths', hideLbl: 'When should the stopwatch hide?',
     hides: { bas: 'At start', 3: 'At 3 s', yari: 'Halfway', hic: 'Never' },
@@ -398,7 +398,7 @@ let manualT = null, timerF = null, timerAt = 0;
 const clock = () => (manualT === null ? performance.now() : manualT);
 const later = (f, ms) => { timerF = f; timerAt = clock() + ms; }; // frame içinde çalışır
 function runTimer(now) { if (timerF && now >= timerAt) { const f = timerF; timerF = null; f(); } }
-const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'saniye/' + olay, title: 'Saniye: ' + ad, event: true }); } catch (e) {} };
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'saniye/' + olay, title: 'Cuk: ' + ad, event: true }); } catch (e) {} };
 const cur = () => G.players[(G.idx + G.round - 1) % G.players.length];        // her tur sıra bir kişi kayar
 const nextUp = () => G.players[(G.idx + 1 + G.round - 1) % G.players.length];
 const unit = () => unitMs(G.target, G.hide, G.mode === 'tek' ? levelF(G.n) : 1);

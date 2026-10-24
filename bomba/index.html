@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Bomba | Ridsgames</title>
-<meta name="description" content="Bomba: ekrandaki hecenin geçtiği bir kelime söyle, bombayı yanındakine pasla. Patladığında elinde olan can kaybeder. Aynı telefonda 2-8 kişilik kelime oyunu.">
+<title>Dilimin Ucunda | Ridsgames</title>
+<meta name="description" content="Dilimin Ucunda: ekrandaki hecenin geçtiği bir kelime söyle, bombayı yanındakine pasla. Patladığında elinde olan can kaybeder. Aynı telefonda 2-8 kişilik kelime oyunu.">
 <meta name="theme-color" content="#0a0e17">
 <link rel="icon" href="../assets/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -158,14 +158,14 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
-<script src="../assets/olcum.js" data-page="bomba" data-name="Bomba"></script>
+<script src="../assets/olcum.js" data-page="bomba" data-name="Dilimin Ucunda"></script>
 </head>
 <body>
 <header class="top">
   <div class="in">
     <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
       <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
-      <span class="gname" id="gameName">Bomba</span>
+      <span class="gname" id="gameName">Dilimin Ucunda</span>
     </a>
     <div class="tools">
       <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
@@ -193,7 +193,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 <!-- Kurulum -->
 <div class="ov" id="setupOv">
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
-    <h2 id="setupTitle">Bomba</h2>
+    <h2 id="setupTitle">Dilimin Ucunda</h2>
     <p class="sub" id="setupSub"></p>
     <div class="sec">
       <div class="lbl" id="playersLbl"></div>
@@ -260,7 +260,7 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 // ---------- Dil ----------
 const STR = {
   tr: {
-    title: 'Bomba | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Bomba', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    title: 'Dilimin Ucunda | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Dilimin Ucunda', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
     setupSub: 'Hecenin geçtiği bir kelime söyle, bombayı yanındakine pasla. Patladığında elinde olan can kaybeder.',
     playersLbl: 'Oyuncular', playerN: (n) => `Oyuncu ${n}`, add: '+ Oyuncu ekle', remove: 'Oyuncuyu çıkar', seatNote: 'Listedeki sırayla oturun; bomba hep sıradakine gider.',
     livesLbl: 'Can', livesN: (n) => `${n} can`,
@@ -289,7 +289,7 @@ const STR = {
     ]
   },
   en: {
-    title: 'Word Bomb | Ridsgames', homeLabel: 'Ridsgames home', game: 'Word Bomb', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    title: 'Tip of My Tongue | Ridsgames', homeLabel: 'Ridsgames home', game: 'Tip of My Tongue', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
     setupSub: 'Say a word containing the letters, pass the bomb to your neighbour. Whoever holds it when it blows loses a life.',
     playersLbl: 'Players', playerN: (n) => `Player ${n}`, add: '+ Add player', remove: 'Remove player', seatNote: 'Sit in the order of the list; the bomb always goes to the next player.',
     livesLbl: 'Lives', livesN: (n) => `${n} ${n > 1 ? 'lives' : 'life'}`,
@@ -400,7 +400,7 @@ let manualT = null, timerF = null, timerAt = 0;
 const clock = () => (manualT === null ? performance.now() : manualT);
 const later = (f, ms) => { timerF = f; timerAt = clock() + ms; }; // frame içinde çalışır
 function runTimer(now) { if (timerF && now >= timerAt) { const f = timerF; timerF = null; f(); } }
-const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'bomba/' + olay, title: 'Bomba: ' + ad, event: true }); } catch (e) {} };
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'bomba/' + olay, title: 'Dilimin Ucunda: ' + ad, event: true }); } catch (e) {} };
 const pname = (i) => G.players[i].name;
 
 // ---------- Akış ----------
