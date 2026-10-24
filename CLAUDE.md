@@ -8,3 +8,7 @@
 
 - Kullanıcıya sormadan istatistik paneline de ekle: `panel/index.html` içinde `GAMES` (kapak, `rules`/`cpu`/`solo`), `PAGES` ve `modeLabel`.
 - Aynı işte ana sayfa kartını (`index.html`) ve gizlilik sayfasını (`web-gizlilik.html`: kapsam ve tarayıcıda tutulan veriler) da güncelle.
+
+# Yayına alma
+
+- Kullanıcının "birleştir" demesini bekleme: her push'tan sonra main'e de birleştir (`git fetch -q origin main && git merge-base --is-ancestor origin/main HEAD && git push origin HEAD:main`).

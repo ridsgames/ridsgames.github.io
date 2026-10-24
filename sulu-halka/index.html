@@ -765,14 +765,15 @@
         return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
       }
 
+      // Kalınlık halkalardaki gibi üstten sınırlı: geniş (yatay) haznede çubuk halkaya göre kalınlaşmaz
       function computeFixedRods() {
         rods = ROD_CONFIG.map((rc, index) => ({
           id: index,
           x: rc.xNorm * W,
           topY: rc.topNorm * H,
           bottomY: rc.bottomNorm * H,
-          radius: Math.max(4, W * 0.012),
-          baseHalfWidth: Math.max(18, W * 0.052)
+          radius: Math.max(4, Math.min(5, W * 0.012)),
+          baseHalfWidth: Math.max(18, Math.min(22, W * 0.052))
         }));
       }
 
