@@ -89,21 +89,21 @@
 // Gerçek ölçüler: 20×32 cm'lik tahta (sokakta yaygın 20×30 sunta), 1 mm = 2 birim. Para kırmızı çerçeveden seker
 const W = 400, H = 640, L = 16, R = 384, TOP = 46, BOT = 594; // tahta ve yeşil saha sınırları
 const GL = 140, GR = 260, GD = 34;   // kale ağzı 6 cm (direkler x), file derinliği 17 mm
-// Para: 1 lira (26,15 mm). 1 mm 2 birim olduğundan yarıçap birim = çap mm
-const CR = 26.15;
+// Para: 50 kuruş (23,85 mm). 1 mm 2 birim olduğundan yarıçap birim = çap mm
+const CR = 23.85;
 const NR = 2.5, PR = 4;              // çivi gövdesi yarıçapı: 5 cm'lik tel çivi (2,5 mm), kale direği kalın çivi (4 mm)
 const NH = 8, HR = 5, GH = 12;       // eğik bakış: çivi boyu, çivi başı (5 mm), kale direği boyu
 // Ayar düğmeleri: oyunun hissi bunlarla değişir
-const DECEL = 3000;                  // tahtanın sürtünmesi: boyalı tahtada ~0,15 (0,15 × 9,81 m/s² × 2 birim/mm)
+const DECEL = 320;                   // tahtanın sürtünmesi
 const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
-const FLING = 1.6, MAX_V = 2800, MIN_V = 150; // fırlatma gücü (ekrandaki tahta gerçeğinden ~3 kat küçük); en sert itiş 1,4 m/s
+const FLING = 0.8, MAX_V = 1100, MIN_V = 80; // fırlatma gücü
 const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
-// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı, sahada rastgele bir yerden atışta ~%8, ~%20, ~%30
+// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı, sahada rastgele bir yerden atışta ~%10, ~%17, ~%25
 const AI_ERR = [[.7, .2], [.1, .04], [.01, .005]];
 const DT = 1 / 240, WIN = 5;
 
 // Çiviler: şaşırtmalı sıralar (4 ve 3 çivi, 48 birim arayla), her kalede iki kalın direk ve filenin arka köşelerinde iki çivi.
-// Sıradaki çiviler 4,5 cm arayla (paranın ~1,7 katı), çapraz geçit 3 cm: tahta yapanların 4'lü ve 3'lü sıralarıyla aynı oran
+// Sıradaki çiviler 4,5 cm arayla (paranın ~1,9 katı), çapraz geçit 3 cm
 const nails = [];
 for (let k = -5; k <= 5; k++)
   for (const x of k % 2 ? [110, 200, 290] : [65, 155, 245, 335]) nails.push({ x, y: H / 2 + 48 * k, r: NR, h: NH });
@@ -138,7 +138,7 @@ function step(c) {
 // Bilgisayarın arayışı (alt kaleye atar): her yön ve güçte itişi simüle eder, sonucu gol olasılığı cinsinden puanlar.
 // Gol 1, kendi kalesine -1; gol yoksa Kırmızı paranın durduğu yerden oynar, Mavi kalesine yakınsa eksi. En iyi adayları
 // kendi nişan ve güç hatasıyla birkaç kez daha dener, ortalaması en yüksek olanı seçer: hatası büyükse riskli vuruştan kaçar
-const AI_SP = [400, 700, 1000, 1400, 1900, 2400, 2800];
+const AI_SP = [300, 450, 600, 750, 900, 1050];
 function best(p, [ea, es] = [0, 0]) {
   const val = (a, sp) => {
     const c = { x: p.x, y: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp };
