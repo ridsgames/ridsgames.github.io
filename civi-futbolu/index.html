@@ -88,15 +88,15 @@
 <script>
 const W = 400, H = 640, L = 16, R = 384, TOP = 46, BOT = 594; // tahta ve saha sınırları
 const GL = 140, GR = 260, GD = 34;   // kale direkleri (x) ve file derinliği
-const CR = 13, NR = 2;               // para (1 TL ≈ 26 mm) ve çivi gövdesi yarıçapı
+const CR = 17, NR = 2;               // para (1 TL ≈ 26 mm, ~28 cm'lik tahtada) ve çivi gövdesi yarıçapı
 const NH = 7, HR = 3.2, GH = 9;      // eğik bakış: çivi boyu, çivi başı, kale yüksekliği
 // Ayar düğmeleri: oyunun hissi bunlarla değişir
 const DECEL = 320;                   // tahtanın sürtünmesi
 const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
 const FLING = 0.8, MAX_V = 1100, MIN_V = 80; // fırlatma gücü
 const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
-// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı atış başına ~%11, ~%26, ~%51
-const AI_ERR = [[.9, .6], [.26, .22], [.08, .1]];
+// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı atış başına ~%7, ~%10, ~%17
+const AI_ERR = [[.7, .5], [.18, .14], [.04, .05]];
 const DT = 1 / 240, WIN = 5;
 
 // Çiviler: şaşırtmalı sıralar (4 ve 3 çivi, 48 birim arayla)

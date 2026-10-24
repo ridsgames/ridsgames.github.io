@@ -1417,7 +1417,8 @@
       }
 
       // Hazne resimden belirgin biçimde genişse (yatay telefon) dikey resim kırpılmaz: tam boy ortaya konur,
-      // iki yanına aynalanmış kopyaları dizilir; komşu kopyalar kenardan birleştiği için geçiş dikişsiz olur
+      // iki yanına aynı sahnenin karakterleri silinmiş hâli (yan/<id>.jpg) aynalanarak dizilir. Komşu kopyalar
+      // kenardan birleştiği için geçiş dikişsiz olur, karakterler tek kalır
       let wideBgKey = '';
       function paintBackground() {
         const found = BACKGROUNDS.find((b) => b.id === activeBgId) || BACKGROUNDS[0];
@@ -1432,23 +1433,22 @@
         const key = found.id + ':' + ratio.toFixed(2);
         if (key === wideBgKey) return;
         wideBgKey = key;
-        const img = new Image();
-        img.onload = () => {
-          if (wideBgKey !== key) return;
+        const img = new Image(), side = new Image();
+        let kalan = 2;
+        img.onload = side.onload = side.onerror = () => {
+          if (--kalan || wideBgKey !== key) return;
           if (img.naturalWidth / img.naturalHeight > ratio * 0.8) { plain(); return; }
-          bgLayer.style.backgroundImage = `url("${widenedBackground(img, ratio)}")`;
+          bgLayer.style.backgroundImage = `url("${widenedBackground(img, side.naturalWidth ? side : img, ratio)}")`;
           bgLayer.style.backgroundSize = '100% 100%';
         };
         img.src = found.src;
+        side.src = `yan/${found.id}.jpg`;
       }
 
-      function widenedBackground(img, ratio) {
+      function widenedBackground(img, side, ratio) {
         const a = img.naturalWidth / img.naturalHeight;
         const h = Math.min(img.naturalHeight, 900), w = Math.round(h * ratio);
-        // Tek sayıda kopya sığacaksa resim en çok %25 büyütülüp kenarlardaki yarım kopyalar kaldırılır;
-        // taşan alt kısım zaten haznenin karanlık tabanının arkasında kalır
-        const n = ratio / a, odd = Math.max(1, 2 * Math.floor((n - 1) / 2) + 1), up = n / odd;
-        const th = h * (up <= 1.25 ? up : 1), tw = th * a, x0 = (w - tw) / 2;
+        const th = h, tw = th * a, x0 = (w - tw) / 2;
         const out = document.createElement('canvas');
         out.width = w; out.height = h;
         const octx = out.getContext('2d');
@@ -1456,7 +1456,7 @@
           octx.save();
           octx.translate(x0 + k * tw, 0);
           if (k % 2) { octx.translate(tw, 0); octx.scale(-1, 1); }
-          octx.drawImage(img, 0, 0, tw, th);
+          octx.drawImage(k ? side : img, 0, 0, tw, th);
           octx.restore();
         }
         return out.toDataURL('image/jpeg', 0.88);
