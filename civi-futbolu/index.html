@@ -8,18 +8,15 @@
   * { box-sizing: border-box; margin: 0; }
   html, body { height: 100%; }
   body { display: flex; flex-direction: column; background: #16191d; color: #fff; font-family: system-ui, sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; }
-  #hud { position: relative; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 8px 12px 0; font-size: 20px; font-weight: 800; }
-  #turn { text-align: center; font-size: 14px; height: 22px; line-height: 22px; }
   .r { color: #ff6a5c; } .b { color: #5aa8ff; }
-  #wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 8px 8px; }
-  canvas { display: block; touch-action: none; border-radius: 10px; box-shadow: 0 8px 30px #0008; }
+  #wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 2px 6px 6px; }
+  canvas { display: block; touch-action: none; }
   .ov { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 62px 16px 16px; overflow-y: auto; text-align: center; background: #0b0d10d9; }
   /* Otomatik kenar boşluğu menüyü ortalar; sığmazsa boşluk sıfırlanır, menü üst çubuğun altından başlar ve kaydırılır */
   .ov > :first-child { margin-top: auto; } .ov > :last-child { margin-bottom: auto; }
   .ov p { max-width: 330px; font-size: 14px; line-height: 1.5; opacity: .85; }
   h1 { font-size: 40px; }
   button { font: inherit; font-size: 18px; font-weight: 700; min-width: 220px; padding: 12px 24px; border: 0; border-radius: 12px; background: #e9b44c; color: #2b1a05; cursor: pointer; }
-  #menuBtn { position: absolute; left: 8px; min-width: 0; padding: 2px 10px; background: none; color: #fff; font-size: 22px; }
   #gol { position: fixed; left: 0; right: 0; top: 42%; text-align: center; font-size: 72px; font-weight: 900; text-shadow: 0 4px 16px #000; pointer-events: none; }
   /* Yatay telefonda menü tek ekrana sığsın */
   @media (max-height: 460px) { .ov { gap: 8px; } h1 { font-size: 28px; } .ov p { max-width: 520px; font-size: 13px; } .ov button { font-size: 16px; padding: 7px 20px; } }
@@ -31,30 +28,28 @@
   .home-bar img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
   .home-bar .gname { font: 12px Inter, system-ui, sans-serif; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
   @media (max-width: 520px) { .home-bar .in { height: 46px; } .home-bar img { height: 28px; } .home-bar .gname { display: none; } }
-  .home-bar #fsBtn { margin-left: auto; min-width: 34px; height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, .4); background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); color: #e2e8f0; font-size: 16px; font-weight: 600; }
+  .home-bar button { min-width: 34px; height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, .4); background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); color: #e2e8f0; font-size: 16px; font-weight: 600; }
+  #menuBtn { margin-left: auto; } #fsBtn { margin-left: 8px; }
+  body:has(.ov:not([hidden])) #menuBtn { visibility: hidden; }          /* menü açıkken menü düğmesi gereksiz */
   :root:fullscreen #homeLink { display: none; }
   :root:-webkit-full-screen #homeLink { display: none; }
-  /* Yatay telefon: saha yan çevrilir (kaleler sağda ve solda) ve sağdaki bütün alanı kaplar; logo, skor ve sıra soldaki
-     dar panelde alt alta durur. Menü pencereleri paneli örtmez, düğmeler yan yana dizilir */
+  /* Yatay telefon: saha yan çevrilir (kaleler sağda ve solda) ve ekranı boydan boya kaplar; skor tabelaları kalelerin
+     arkasındaki şeritte durur. Logo, menü ve tam ekran düğmeleri ekranın köşelerine, tabelaların üstüne ve altına iner */
   @media (orientation: landscape) and (max-height: 500px) {
-    body { display: grid; grid-template-columns: clamp(130px, 22vw, 200px) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); }
-    .home-bar { grid-column: 1; grid-row: 1; background: none; border-bottom: 0; }
-    .home-bar .in { height: auto; flex-direction: column; gap: 10px; padding: 14px 8px 4px; }
-    .home-bar a { flex-direction: column; gap: 6px; }
-    .home-bar .gname { display: inline; }
-    .home-bar #fsBtn { margin: 0; }
-    #hud { grid-column: 1; grid-row: 2; flex-direction: column; gap: 2px; padding: 14px 8px 0; font-size: clamp(17px, 2.8vw, 24px); text-align: center; }
-    #hud > span:nth-of-type(2) { display: none; }
-    #hud .b { display: flex; flex-direction: row-reverse; gap: .3em; }
-    #menuBtn { position: static; order: 9; margin-top: 10px; padding: 4px 18px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 10px; }
-    #turn { grid-column: 1; grid-row: 3; height: auto; padding: 10px 10px 0; line-height: 1.35; }
-    #wrap { grid-column: 2; grid-row: 1 / -1; padding: 8px 8px 8px 0; }
-    .ov { flex-direction: row; flex-wrap: wrap; justify-content: center; align-content: center; padding: 12px 12px 12px calc(clamp(130px, 22vw, 200px) + 12px); gap: 8px 10px; }
+    .home-bar { position: fixed; inset: 0; background: none; border: 0; pointer-events: none; }
+    .home-bar .in { height: 100%; max-width: none; padding: 0; }
+    .home-bar a, .home-bar button { position: absolute; pointer-events: auto; }
+    #homeLink { top: 8px; left: 6px; }
+    .home-bar img { height: clamp(20px, 3.4vw, 30px); }
+    .home-bar .gname { display: none; }
+    #menuBtn { left: 6px; bottom: 8px; margin: 0; }
+    #fsBtn { right: 6px; top: 8px; margin: 0; }
+    #wrap { padding: 0; }
+    .ov { flex-direction: row; flex-wrap: wrap; justify-content: center; align-content: center; padding: 12px 64px; gap: 8px 10px; }
     .ov > :first-child, .ov > :last-child { margin: 0; }
     .ov h1, .ov p { flex-basis: 100%; }
     .ov p { max-width: 560px; }
     .ov button { min-width: 0; width: 150px; }
-    #gol { left: clamp(130px, 22vw, 200px); }
   }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
@@ -70,16 +65,10 @@
       <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
       <span class="gname" data-i18n="title">Çivi Futbolu</span>
     </a>
+    <button id="menuBtn" aria-label="Menü">☰</button>
     <button id="fsBtn" aria-label="Tam ekran">⛶</button>
   </div>
 </header>
-<div id="hud">
-  <button id="menuBtn" aria-label="Menü">☰</button>
-  <span class="r"><span data-i18n="red">Kırmızı</span> <span id="sA">0</span></span>
-  <span>:</span>
-  <span class="b"><span id="sB">0</span> <span id="nB" data-i18n="blue">Mavi</span></span>
-</div>
-<div id="turn"></div>
 <div id="wrap"><canvas id="c"></canvas></div>
 <div id="gol" hidden data-i18n="goal">GOL!</div>
 <div id="menu" class="ov">
@@ -153,7 +142,7 @@ const I18N_EN = {
   help: 'Press on the coin, hold and drag, then flick it. Red shoots at the top goal, Blue at the bottom one. Turns switch after every shot; first to 5 goals wins.',
   helpSide: 'Press on the coin, hold and drag, then flick it. Red shoots at the right goal, Blue at the left one. Turns switch after every shot; first to 5 goals wins.',
   p2: '2 Players', vsCpu: 'Against the computer:', easy: 'Easy', medium: 'Medium', hard: 'Hard', again: 'Play Again',
-  thinking: 'Computer is thinking…', turn: 'Turn', aim: 'press the coin, drag, flick',
+  think: 'thinking…', turn: 'Turn', aim: 'press the coin, drag, flick',
   cpuWins: 'Computer wins', youWin: 'You win!', wins: 'wins!'
 };
 function t(key, trText) { return LANG === 'en' ? I18N_EN[key] : trText; }
@@ -177,33 +166,26 @@ function newGame(m) {
   sayac(m === 'ai' ? 'mod/bilgisayar-' + LV[level] : 'mod/2-oyuncu', m === 'ai' ? 'mod: bilgisayara karşı, ' + LV[level] : 'mod: 2 oyuncu');
   try { ac = ac || new AudioContext(); } catch {}
   $('menu').hidden = $('end').hidden = $('gol').hidden = true;
-  $('nB').textContent = names()[1];
   kickoff(0);
 }
 function kickoff(t) { coin = { x: W / 2, y: H / 2, vx: 0, vy: 0 }; turn = t; aim(); }
 function aim() {
-  state = 'aim'; hud();
+  state = 'aim';
   if (mode === 'ai' && turn) aiTimer = setTimeout(aiShoot, 700);
 }
 // Yatay telefonda saha saat yönünde çeyrek tur döner: mantıksal üst sağa gelir. Fizik ve bilgisayar aynı koordinatlarda kalır
 const yatayMq = matchMedia('(orientation: landscape) and (max-height: 500px)');
-let yan = false, TR = [1, 0, 0, 1, 0, 0];
+let yan = false, TR = [1, 0, 0, 1, 0, 0], sb = 36;                     // sb: kale arkasındaki tabela şeridinin derinliği
 const HELP_TR = $('menu').querySelector('[data-i18n="help"]').textContent;
 function helpText() {
   $('menu').querySelector('[data-i18n="help"]').textContent = yan
     ? t('helpSide', 'Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı sağdaki, Mavi soldaki kaleye atar. Sıra her atışta değişir, 5 gol atan kazanır.')
     : t('help', HELP_TR);
 }
-function hud() {
-  $('sA').textContent = score[0]; $('sB').textContent = score[1];
-  $('turn').className = turn ? 'b' : 'r';
-  $('turn').textContent = state !== 'aim' ? '' : mode === 'ai' && turn ? t('thinking', 'Bilgisayar düşünüyor…')
-    : `${t('turn', 'Sıra')}: ${names()[turn]} ${yan ? (turn ? '←' : '→') : turn ? '↓' : '↑'} — ${t('aim', 'paraya bas, sürükle, fırlat')}`;
-}
-function shoot(vx, vy) { coin.vx = vx; coin.vy = vy; state = 'moving'; hud(); }
+function shoot(vx, vy) { coin.vx = vx; coin.vy = vy; state = 'moving'; }
 function goal(side) {
   const s = side === 'top' ? 0 : 1;  // kırmızı yukarı, mavi aşağı atar
-  score[s]++; state = 'goal'; hud();
+  score[s]++; state = 'goal'; golBy = s;
   coin.x = Math.min(GR - CR, Math.max(GL + CR, coin.x)); coin.y = s ? BOT + GD / 2 : TOP - GD / 2; // para filede
   $('gol').className = s ? 'b' : 'r'; $('gol').hidden = false;
   tik(0.25, 520, 0.5);
@@ -240,7 +222,7 @@ function aiShoot() {
 // Dokunma / fare: paraya bas, tutup sürükle, bırak. Hız = parmağın son ~90 ms'deki hızı.
 function pos(e) {
   const r = cv.getBoundingClientRect(), sx = (e.clientX - r.left) / scale, sy = (e.clientY - r.top) / scale;
-  return yan ? { x: sy, y: H - sx, t: e.timeStamp } : { x: sx, y: sy, t: e.timeStamp };
+  return yan ? { x: sy, y: H + sb - sx, t: e.timeStamp } : { x: sx, y: sy - sb, t: e.timeStamp };
 }
 cv.onpointerdown = e => {
   if (state !== 'aim' || (mode === 'ai' && turn) || hold) return;
@@ -387,8 +369,89 @@ function makeCoin() {
   return c;
 }
 
+// Skor tabelaları kalelerin arkasında: herkesinki kendi kalesinin arkasında (Kırmızı altta / solda, Mavi üstte / sağda).
+// Ekran düzleminde çizilir, saha yan dönse de yazılar dik okunur. Sırası gelenin tabelası nabız gibi parlar, gol atanınki yanıp söner
+const TEAM = ['#ff6a5c', '#5aa8ff'];
+let golBy = 0;
+const rr = (g, x, y, w, h, r) => { g.beginPath(); g.roundRect ? g.roundRect(x, y, w, h, r) : g.rect(x, y, w, h); };
+function fit(txt, w, max, wt) {                                          // yazıyı w genişliğine sığdıran punto; yazı tipini de ayarlar
+  ctx.font = `${wt} ${max}px system-ui, sans-serif`;
+  const m = ctx.measureText(txt).width, f = m > w ? max * w / m : max;
+  ctx.font = `${wt} ${f}px system-ui, sans-serif`; return f;
+}
+function lines(txt, w) {                                                 // kelime kelime satırlara böl
+  const out = [''];
+  for (const k of txt.split(' ')) { const n = out[out.length - 1] ? out[out.length - 1] + ' ' + k : k; if (out[out.length - 1] && ctx.measureText(n).width > w) out.push(k); else out[out.length - 1] = n; }
+  return out;
+}
+function drawBoards(now) {
+  const D = K / scale, cw = cv.width / D, ch = cv.height / D, d = sb * scale, up = (s) => s.toLocaleUpperCase(LANG);
+  ctx.setTransform(D, 0, 0, D, 0, 0); ctx.textBaseline = 'middle';
+  for (const i of [0, 1]) {
+    const c = TEAM[i], on = state === 'aim' && turn === i, gol = state === 'goal' && golBy === i, cpu = mode === 'ai' && i === 1;
+    const name = up(names()[i]), sc = String(score[i]), arrow = yan ? (i ? '←' : '→') : i ? '↓' : '↑';
+    const label = !on ? '' : cpu ? t('think', 'düşünüyor…') : up(t('turn', 'Sıra')), hint = t('aim', 'paraya bas, sürükle, fırlat');
+    let x, y, w, h;                                                      // tabela: şeridin içinde, yatayda köşe düğmelerine yer bırakır
+    if (yan) { const m = Math.max(4, d * .08); x = (i ? cw - d : 0) + m; w = d - 2 * m; y = 50; h = ch - 100; }
+    else { const m = Math.max(3, d * .1); x = (L + 6) * scale; w = cw - 2 * x; y = (i ? 0 : ch - d) + m; h = d - 2 * m; }
+    ctx.save();
+    if (on || gol) { ctx.shadowColor = c; ctx.shadowBlur = gol ? 18 : 6 + 5 * Math.sin(now / 200); }
+    rr(ctx, x, y, w, h, Math.min(8, w / 5, h / 5));
+    const bg = ctx.createLinearGradient(0, y, 0, y + h); bg.addColorStop(0, '#151b24'); bg.addColorStop(1, '#090c11');
+    ctx.fillStyle = bg; ctx.fill(); ctx.restore();
+    ctx.lineWidth = on || gol ? 2 : 1; ctx.strokeStyle = on || gol ? c : c + '66'; ctx.stroke();
+    const led = gol && (now / 140 | 0) % 2 ? '#ffffff' : '#ffd36b';     // skor: sarı led, golde yanıp söner
+    if (!yan) {                                                          // dikey: geniş ve basık tabela, ad solda, skor sağda
+      const p = Math.min(14, h * .3), two = h >= 46, sf = Math.min(h * (two ? .74 : .8), 46);
+      ctx.textAlign = 'right'; ctx.font = `900 ${sf}px system-ui, sans-serif`; ctx.fillStyle = led;
+      ctx.fillText(sc, x + w - p, y + h / 2 + sf * .04);
+      const room = w - 3 * p - ctx.measureText(sc).width;
+      ctx.textAlign = 'left'; ctx.fillStyle = c;
+      fit(name, room * (two ? 1 : .55), Math.min(h * (two ? .34 : .5), 20), 800);
+      const nw = ctx.measureText(name).width;
+      ctx.fillText(name, x + p, two && label ? y + h * .34 : y + h / 2);
+      if (!label) continue;
+      const kisa = cpu ? label : `${label} ${arrow}`, uzun = cpu ? label : `${kisa}   ${hint}`;
+      ctx.fillStyle = '#e8eef7';
+      if (two) {                                                         // alt satır: sıra, yön ve sığarsa nasıl atılacağı
+        const fs = Math.min(h * .24, 13);
+        ctx.fillText(fit(uzun, room, fs, 700) >= 9 ? uzun : (fit(kisa, room, fs, 700), kisa), x + p, y + h * .72);
+      } else {                                                           // basık tabelada adın yanında
+        fit(kisa, room - nw - p, Math.min(h * .42, 13), 700); ctx.fillText(kisa, x + 2 * p + nw, y + h / 2);
+      }
+      continue;
+    }
+    // yatay: dar ve uzun tabela, ad üstte, skor ortada, sıra altta
+    const p = Math.max(4, Math.min(10, w * .1)), iw = w - 2 * p, cx = x + w / 2, sf = Math.min(iw * .95, 60, h * .3);
+    ctx.textAlign = 'center'; ctx.font = `900 ${sf}px system-ui, sans-serif`; ctx.fillStyle = led;
+    ctx.fillText(sc, cx, y + h / 2);
+    ctx.fillStyle = c;
+    const top = y + p, bot = y + h / 2 - sf * .65, nf = Math.min(18, iw * .3);
+    const dik = names().every(n => fit(up(n), iw, nf, 800) >= 10);      // iki tabela aynı yönde yazsın
+    if (dik) { fit(name, iw, nf, 800); ctx.fillText(name, cx, (top + bot) / 2); }
+    else {                                                               // ad dik sığmazsa şerit boyunca yazılır
+      fit(name, bot - top, Math.min(15, iw * .6), 800);
+      ctx.save(); ctx.translate(cx, (top + bot) / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(name, 0, 0); ctx.restore();
+    }
+    if (!label) continue;
+    let ly = y + h / 2 + sf * .65;
+    ctx.fillStyle = '#e8eef7';
+    if (cpu) {                                                           // dar şeritte "düşünüyor" yerine yanıp sönen noktalar
+      const dar = fit(label, iw, 12, 700) < 9;
+      if (dar) ctx.font = `900 ${Math.min(iw * .4, 18)}px system-ui, sans-serif`;
+      ctx.fillText(dar ? '•'.repeat(1 + (now / 400 | 0) % 3) : label, cx, ly + 12); continue;
+    }
+    const lf = fit(label, iw, 13, 800); ly += lf; ctx.fillText(label, cx, ly);
+    const af = Math.min(iw * .55, 26); ctx.font = `900 ${af}px system-ui, sans-serif`; ctx.fillStyle = c; ly += lf * .5 + af * .6; ctx.fillText(arrow, cx, ly);
+    if (iw < 70) continue;                                               // geniş şeritte nasıl atılacağı da yazar
+    ctx.font = '600 11px system-ui, sans-serif'; ctx.fillStyle = '#e8eef7b0'; ly += af * .5 + 6;
+    for (const ln of lines(hint, iw)) { ly += 14; if (ly > y + h - p) break; ctx.fillText(ln, cx, ly); }
+  }
+}
+
 function draw(t) {
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(board, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(board, 0, 0);
+  drawBoards(t);
   ctx.setTransform(...TR);
   if (coin) {
     const { x, y } = coin;
@@ -408,16 +471,22 @@ function draw(t) {
 
 function resize() {
   const r = $('wrap').getBoundingClientRect(), cs = getComputedStyle($('wrap'));
-  if (yan !== yatayMq.matches) { yan = yatayMq.matches; helpText(); hud(); }
-  const ew = yan ? H : W, eh = yan ? W : H;                              // ekrandaki en ve boy
-  const s = Math.min((r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) / ew, (r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) / eh);
+  if (yan !== yatayMq.matches) { yan = yatayMq.matches; helpText(); }
+  // Saha enine tam sığar; boyuna artan yer kale arkasındaki tabela şeritlerine gider (en az mn, en çok mx birim)
+  const aw = r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const en = yan ? ah : aw, boy = yan ? aw : ah, [mn, mx] = yan ? [60, 130] : [36, 84];
+  const s = Math.min(en / W, boy / (H + 2 * mn));
   if (s <= 0) return;                                                    // sayfa henüz boyutsuz (gizli sekme)
-  scale = s; K = scale * (devicePixelRatio || 1);
-  TR = yan ? [0, K, -K, 0, H * K, 0] : [K, 0, 0, K, 0, 0];
+  scale = s; sb = Math.min(mx, (boy / s - H) / 2); K = scale * (devicePixelRatio || 1);
+  const ew = yan ? H + 2 * sb : W, eh = yan ? W : H + 2 * sb;            // ekrandaki en ve boy
+  TR = yan ? [0, K, -K, 0, (H + sb) * K, 0] : [K, 0, 0, K, 0, sb * K];
   cv.style.width = ew * scale + 'px'; cv.style.height = eh * scale + 'px';
   board.width = cv.width = pins.width = Math.round(ew * K); board.height = cv.height = pins.height = Math.round(eh * K);
-  const g = board.getContext('2d'), p = pins.getContext('2d');
-  g.setTransform(...TR); p.setTransform(...TR); drawBoard(g, p);
+  const g = board.getContext('2d'), p = pins.getContext('2d'), rad = 10 / scale;
+  g.setTransform(...TR); p.setTransform(...TR);
+  g.save(); g.shadowColor = '#0009'; g.shadowBlur = 24 * K / scale; g.shadowOffsetY = 6 * K / scale; // tahtanın gölgesi
+  rr(g, 0, 0, W, H, rad); g.fill(); g.restore();
+  g.save(); rr(g, 0, 0, W, H, rad); g.clip(); drawBoard(g, p); g.restore();
   coinImg = makeCoin();
 }
 const tex = {}, logo = new Image();                                      // Antigravity'nin ürettiği dokular, para logosu
@@ -454,7 +523,7 @@ $('fsBtn').onclick = () => {
 };
 $('toMenu').onclick = $('menuBtn').onclick = () => {
   clearTimeout(aiTimer); hold = null; state = 'menu';
-  $('end').hidden = true; $('menu').hidden = false; hud();
+  $('end').hidden = true; $('menu').hidden = false;
 };
 </script>
 </body>
