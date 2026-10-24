@@ -148,6 +148,39 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
 @media (max-height: 600px) { main { gap: 6px; padding-top: 6px; } .go { height: 54px; } #vMain { font-size: 21px; } .verdict { min-height: 48px; } }
 @media (prefers-reduced-motion: reduce) { .mult.pop { animation: none; } }
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; kronometre ortada tam yükseklikte, sağ sütunda bilgi, sonuç ve
+   başparmak hizasında büyük düğme. Pencereler menü panelini örtmez; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .gname { display: inline; font-size: 11px; white-space: nowrap; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  main { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: minmax(0, 1fr) clamp(200px, 34vw, 300px); grid-template-rows: auto auto minmax(0, 1fr) auto; align-items: stretch; gap: 8px 12px; padding: 8px 12px 10px 8px; }
+  .hud { grid-column: 2; grid-row: 1; max-width: none; }
+  #watchWrap { grid-column: 1; grid-row: 1 / -1; }
+  .verdict { grid-column: 2; grid-row: 3; align-self: center; justify-self: stretch; max-width: none; }
+  #vMain { white-space: normal; font-size: 21px; }
+  .go { grid-column: 2; grid-row: 4; max-width: none; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
+  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
+  footer { display: none; }
+  /* Kurulum penceresi iki sütun; Başla düğmesi kaydırınca da altta görünür kalır */
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 8px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .stepper { grid-template-columns: 46px 1fr 46px; }
+  #setupOv .stepper button { height: 46px; }
+  #setupOv .tval output { font-size: 34px; }
+  #setupOv .seg button { white-space: nowrap; font-size: 12.5px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #modeSeg { grid-column: 1 / -1; }
+  #groupBox { display: contents; }
+}
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>

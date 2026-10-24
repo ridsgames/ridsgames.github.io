@@ -108,6 +108,33 @@ canvas { display: block; touch-action: manipulation; }
 
 footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
 
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur, tahta ortada tam yükseklikte, sağda dar sıra paneli ve zar (sağ başparmak hizasında).
+   Pencereler sol paneli örtmesin diye sağa kayar; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: minmax(130px, 1fr) auto minmax(130px, 1fr); grid-template-rows: minmax(0, 1fr); }
+  main { display: contents; }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  #boardWrap { grid-column: 2; grid-row: 1; width: auto; padding: 8px; }
+  .dock { grid-column: 3; grid-row: 1; width: auto; margin: 8px 8px 8px 0; grid-template-columns: 1fr; align-content: space-evenly; justify-items: center; gap: 12px; padding: 4px 4px 8px; }
+  .who { flex-direction: column; text-align: center; gap: 8px; }
+  .who .chip { width: 54px; height: 54px; }
+  .dice { zoom: 1.2; }
+  body > .ov { padding: 8px 8px 8px max(16px, calc((100vw - 100dvh) / 2 + 16px)); }
+  footer { display: none; }
+  /* Kurulum penceresi iki sütun: solda başlık, ayarlar ve Başla; sağda oyuncu sıraları. Kaydırmadan sığar */
+  #setupOv .card { max-width: 700px; display: grid; grid-template-columns: 1fr 1.1fr; column-gap: 22px; align-content: center; padding: 14px 18px; }
+  #setupOv h2, #setupOv .sub, #setupOv .row, #setupOv .btns { grid-column: 1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 10px; }
+  #setupOv #seats { grid-column: 2; grid-row: 1 / span 6; align-self: center; }
+  #setupOv .seat { padding: 5px 0; }
+  #setupOv .seat:first-child { border-top: 0; }
+}
+
 /* Pencereler */
 .ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
 .card {
@@ -552,16 +579,19 @@ function confetti() {
 // ---------- Çizim ----------
 const cv = $('board'), cx = cv.getContext('2d');
 let K = 30, DPR = 1, layer = null, layerKey = '';
+const yatayMq = matchMedia('(orientation: landscape) and (max-height: 500px)');
 function layout() {
   // tahta, sıra paneliyle birlikte ana alana sığan en büyük boyut
   const m = document.querySelector('main'), cs = getComputedStyle(m), dock = $('dock');
-  const w = m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const h = m.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - dock.offsetHeight - parseFloat(cs.rowGap || 10);
+  const yan = yatayMq.matches; // yatay telefon: tahta ortada, iki yanda en az 130 piksellik paneller (ölçü pencereden)
+  const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  const w = yan ? vw - 2 * 130 - 16 : m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const h = yan ? vh - 16 : m.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - dock.offsetHeight - parseFloat(cs.rowGap || 10);
   K = Math.max(14, Math.min(w / WW, h / HH, 56));
   DPR = Math.min(3, window.devicePixelRatio || 1);
   const cw = Math.floor(K * WW), ch = Math.floor(K * HH); K = cw / WW;
   cv.width = Math.round(cw * DPR); cv.height = Math.round(ch * DPR); cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
-  dock.style.maxWidth = Math.max(cw, 320) + 'px'; layerKey = '';
+  dock.style.maxWidth = yan ? '' : Math.max(cw, 320) + 'px'; layerKey = '';
 }
 function rrAdd(c, x, y, w, h, r) { c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 function rr(c, x, y, w, h, r) { c.beginPath(); rrAdd(c, x, y, w, h, r); }

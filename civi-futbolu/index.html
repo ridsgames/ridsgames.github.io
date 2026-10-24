@@ -34,6 +34,28 @@
   .home-bar #fsBtn { margin-left: auto; min-width: 34px; height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, .4); background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); color: #e2e8f0; font-size: 16px; font-weight: 600; }
   :root:fullscreen #homeLink { display: none; }
   :root:-webkit-full-screen #homeLink { display: none; }
+  /* Yatay telefon: saha yan çevrilir (kaleler sağda ve solda) ve sağdaki bütün alanı kaplar; logo, skor ve sıra soldaki
+     dar panelde alt alta durur. Menü pencereleri paneli örtmez, düğmeler yan yana dizilir */
+  @media (orientation: landscape) and (max-height: 500px) {
+    body { display: grid; grid-template-columns: clamp(130px, 22vw, 200px) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); }
+    .home-bar { grid-column: 1; grid-row: 1; background: none; border-bottom: 0; }
+    .home-bar .in { height: auto; flex-direction: column; gap: 10px; padding: 14px 8px 4px; }
+    .home-bar a { flex-direction: column; gap: 6px; }
+    .home-bar .gname { display: inline; }
+    .home-bar #fsBtn { margin: 0; }
+    #hud { grid-column: 1; grid-row: 2; flex-direction: column; gap: 2px; padding: 14px 8px 0; font-size: clamp(17px, 2.8vw, 24px); text-align: center; }
+    #hud > span:nth-of-type(2) { display: none; }
+    #hud .b { display: flex; flex-direction: row-reverse; gap: .3em; }
+    #menuBtn { position: static; order: 9; margin-top: 10px; padding: 4px 18px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 10px; }
+    #turn { grid-column: 1; grid-row: 3; height: auto; padding: 10px 10px 0; line-height: 1.35; }
+    #wrap { grid-column: 2; grid-row: 1 / -1; padding: 8px 8px 8px 0; }
+    .ov { flex-direction: row; flex-wrap: wrap; justify-content: center; align-content: center; padding: 12px 12px 12px calc(clamp(130px, 22vw, 200px) + 12px); gap: 8px 10px; }
+    .ov > :first-child, .ov > :last-child { margin: 0; }
+    .ov h1, .ov p { flex-basis: 100%; }
+    .ov p { max-width: 560px; }
+    .ov button { min-width: 0; width: 150px; }
+    #gol { left: clamp(130px, 22vw, 200px); }
+  }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -129,6 +151,7 @@ const LANG = /^tr/i.test(new URLSearchParams(location.search).get('lang') || nav
 const I18N_EN = {
   title: 'Nail Football', red: 'Red', blue: 'Blue', cpu: 'Computer', goal: 'GOAL!', menu: 'Menu', fs: 'Full screen',
   help: 'Press on the coin, hold and drag, then flick it. Red shoots at the top goal, Blue at the bottom one. Turns switch after every shot; first to 5 goals wins.',
+  helpSide: 'Press on the coin, hold and drag, then flick it. Red shoots at the right goal, Blue at the left one. Turns switch after every shot; first to 5 goals wins.',
   p2: '2 Players', vsCpu: 'Against the computer:', easy: 'Easy', medium: 'Medium', hard: 'Hard', again: 'Play Again',
   thinking: 'Computer is thinking…', turn: 'Turn', aim: 'press the coin, drag, flick',
   cpuWins: 'Computer wins', youWin: 'You win!', wins: 'wins!'
@@ -162,11 +185,20 @@ function aim() {
   state = 'aim'; hud();
   if (mode === 'ai' && turn) aiTimer = setTimeout(aiShoot, 700);
 }
+// Yatay telefonda saha saat yönünde çeyrek tur döner: mantıksal üst sağa gelir. Fizik ve bilgisayar aynı koordinatlarda kalır
+const yatayMq = matchMedia('(orientation: landscape) and (max-height: 500px)');
+let yan = false, TR = [1, 0, 0, 1, 0, 0];
+const HELP_TR = $('menu').querySelector('[data-i18n="help"]').textContent;
+function helpText() {
+  $('menu').querySelector('[data-i18n="help"]').textContent = yan
+    ? t('helpSide', 'Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı sağdaki, Mavi soldaki kaleye atar. Sıra her atışta değişir, 5 gol atan kazanır.')
+    : t('help', HELP_TR);
+}
 function hud() {
   $('sA').textContent = score[0]; $('sB').textContent = score[1];
   $('turn').className = turn ? 'b' : 'r';
   $('turn').textContent = state !== 'aim' ? '' : mode === 'ai' && turn ? t('thinking', 'Bilgisayar düşünüyor…')
-    : `${t('turn', 'Sıra')}: ${names()[turn]} ${turn ? '↓' : '↑'} — ${t('aim', 'paraya bas, sürükle, fırlat')}`;
+    : `${t('turn', 'Sıra')}: ${names()[turn]} ${yan ? (turn ? '←' : '→') : turn ? '↓' : '↑'} — ${t('aim', 'paraya bas, sürükle, fırlat')}`;
 }
 function shoot(vx, vy) { coin.vx = vx; coin.vy = vy; state = 'moving'; hud(); }
 function goal(side) {
@@ -206,7 +238,10 @@ function aiShoot() {
 }
 
 // Dokunma / fare: paraya bas, tutup sürükle, bırak. Hız = parmağın son ~90 ms'deki hızı.
-function pos(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale, t: e.timeStamp }; }
+function pos(e) {
+  const r = cv.getBoundingClientRect(), sx = (e.clientX - r.left) / scale, sy = (e.clientY - r.top) / scale;
+  return yan ? { x: sy, y: H - sx, t: e.timeStamp } : { x: sx, y: sy, t: e.timeStamp };
+}
 cv.onpointerdown = e => {
   if (state !== 'aim' || (mode === 'ai' && turn) || hold) return;
   const p = pos(e);
@@ -246,8 +281,12 @@ function tik(vol, f, d) {
   o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d);
 }
 
-// Eğik bakış: yerden h yüksekteki nokta ekranda h yukarı kayar, gölgesi sağ alta düşer (ışık sol üstten)
-const up = (x, y, h) => [x, y - h], shade = (x, y, h) => [x + h * .85, y + h];
+// Eğik bakış: yerden h yüksekteki nokta ekranda h yukarı kayar, gölgesi sağ alta düşer (ışık sol üstten).
+// Saha yan dönünce de ekrana göre böyle kalsın diye kaydırmalar ekran yönünden sahaya çevrilir: scr(sağa, aşağı)
+const scr = (dx, dy) => yan ? [dy, -dx] : [dx, dy];
+const up = (x, y, h) => { const [a, b] = scr(0, -h); return [x + a, y + b]; };
+const shade = (x, y, h) => { const [a, b] = scr(h * .85, h); return [x + a, y + b]; };
+const oval = (g, x, y, rx, ry) => yan ? g.ellipse(x, y, ry, rx, 0, 0, 7) : g.ellipse(x, y, rx, ry, 0, 0, 7); // ekranda yatık elips
 const GOALS = [[TOP, -1, '#1f6fe5', '#a9cfff'], [BOT, 1, '#e0262b', '#ffaaa5']]; // üstte Mavi'nin, altta Kırmızı'nın kalesi
 function goalPath(g, y0, d, f) {      // kale borularının iskeleti; f kaleyi ya da gölgesini çizer
   const y1 = y0 + d * GD; g.beginPath();
@@ -257,11 +296,11 @@ function goalPath(g, y0, d, f) {      // kale borularının iskeleti; f kaleyi y
   }
 }
 function drawGoal(g, [y0, d, col, net]) {
-  const y1 = y0 + d * GD, ya = Math.min(y0, y1) - GH;
+  const y1 = y0 + d * GD, ya = Math.min(y0, y1), ln = (a, b) => { g.moveTo(...a); g.lineTo(...b); };
   g.strokeStyle = net + '99'; g.lineWidth = .7; g.beginPath();           // file: tavan ve arka
-  for (let x = GL; x <= GR; x += 6) { g.moveTo(x, ya); g.lineTo(x, ya + GD); g.moveTo(x, y1); g.lineTo(x, y1 - GH); }
-  for (let k = 6; k < GD; k += 6) { g.moveTo(GL, ya + k); g.lineTo(GR, ya + k); }
-  for (let k = 3; k < GH; k += 3) { g.moveTo(GL, y1 - k); g.lineTo(GR, y1 - k); }
+  for (let x = GL; x <= GR; x += 6) { ln(up(x, y0, GH), up(x, y1, GH)); ln([x, y1], up(x, y1, GH)); }
+  for (let k = 6; k < GD; k += 6) ln(up(GL, ya + k, GH), up(GR, ya + k, GH));
+  for (let k = 3; k < GH; k += 3) ln(up(GL, y1, k), up(GR, y1, k));
   g.stroke();
   g.lineCap = g.lineJoin = 'round';
   g.strokeStyle = col; g.lineWidth = 2.6; goalPath(g, y0, d, up); g.stroke();
@@ -296,7 +335,8 @@ function drawBoard(g, p) {
   g.stroke();
   g.fillStyle = '#ffffffe0'; g.beginPath(); g.arc(cx, cy, 2.5, 0, 7); g.fill();
   for (const G of GOALS) {                                               // kalenin gölgesi, sonra kale
-    g.fillStyle = '#0000001a'; g.fillRect(GL + GH * .85, Math.min(G[0], G[0] + G[1] * GD) + GH, GR - GL, GD);
+    const [ox, oy] = shade(0, 0, GH);
+    g.fillStyle = '#0000001a'; g.fillRect(GL + ox, Math.min(G[0], G[0] + G[1] * GD) + oy, GR - GL, GD);
     g.strokeStyle = '#00000045'; g.lineWidth = 2.6; goalPath(g, G[0], G[1], shade); g.stroke();
     drawGoal(g, G);
   }
@@ -307,14 +347,15 @@ function drawBoard(g, p) {
     g.beginPath(); g.moveTo(n.x, n.y); g.lineTo(sx, sy); g.stroke();
     b.addColorStop(0, '#00000066'); b.addColorStop(1, '#0000');
     g.fillStyle = b; g.beginPath(); g.arc(sx, sy, HR + 1, 0, 7); g.fill();
-    g.fillStyle = '#00000080'; g.beginPath(); g.ellipse(n.x, n.y, NR, NR * .6, 0, 0, 7); g.fill(); // girdiği delik
-    const ty = n.y - NH, s = p.createLinearGradient(n.x - 1, 0, n.x + 1, 0); // p: paranın üstünde kalan gövde ve baş
+    g.fillStyle = '#00000080'; g.beginPath(); oval(g, n.x, n.y, NR, NR * .6); g.fill(); // girdiği delik
+    const [tx, ty] = up(n.x, n.y, NH), [bx, by] = up(n.x, n.y, NH - .8), [lx, ly] = scr(-1, 0), [hx, hy] = scr(-1.2, -.8);
+    const s = p.createLinearGradient(n.x + lx, n.y + ly, n.x - lx, n.y - ly); // p: paranın üstünde kalan gövde ve baş
     s.addColorStop(0, '#e8e8e8'); s.addColorStop(.5, '#8c8c8c'); s.addColorStop(1, '#2e2e2e');
-    p.strokeStyle = s; p.lineWidth = 1.8; p.beginPath(); p.moveTo(n.x, n.y); p.lineTo(n.x, ty); p.stroke();
-    p.fillStyle = '#262626'; p.beginPath(); p.ellipse(n.x, ty + .8, HR, HR * .6, 0, 0, 7); p.fill();
-    const hd = p.createRadialGradient(n.x - 1.2, ty - .8, .2, n.x, ty, HR);
+    p.strokeStyle = s; p.lineWidth = 1.8; p.beginPath(); p.moveTo(n.x, n.y); p.lineTo(tx, ty); p.stroke();
+    p.fillStyle = '#262626'; p.beginPath(); oval(p, bx, by, HR, HR * .6); p.fill();
+    const hd = p.createRadialGradient(tx + hx, ty + hy, .2, tx, ty, HR);
     hd.addColorStop(0, '#fdfdfd'); hd.addColorStop(.35, '#b9b9b9'); hd.addColorStop(1, '#4a4a4a');
-    p.fillStyle = hd; p.beginPath(); p.ellipse(n.x, ty, HR, HR * .6, 0, 0, 7); p.fill();
+    p.fillStyle = hd; p.beginPath(); oval(p, tx, ty, HR, HR * .6); p.fill();
   }
 }
 
@@ -348,7 +389,7 @@ function makeCoin() {
 
 function draw(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(board, 0, 0);
-  ctx.setTransform(K, 0, 0, K, 0, 0);
+  ctx.setTransform(...TR);
   if (coin) {
     const { x, y } = coin;
     if (hold) {
@@ -358,21 +399,25 @@ function draw(t) {
       ctx.globalAlpha = .55 + .4 * Math.sin(t / 200); ctx.strokeStyle = turn ? '#5aa8ff' : '#ff6a5c'; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(x, y, CR + 6, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
     }
-    ctx.drawImage(coinImg, x - COIN, y - COIN, 2 * COIN, 2 * COIN);
+    if (yan) { ctx.save(); ctx.translate(x, y); ctx.rotate(-Math.PI / 2); ctx.drawImage(coinImg, -COIN, -COIN, 2 * COIN, 2 * COIN); ctx.restore(); } // para ekranda dik
+    else ctx.drawImage(coinImg, x - COIN, y - COIN, 2 * COIN, 2 * COIN);
     if (y < TOP || y > BOT) drawGoal(ctx, GOALS[y < TOP ? 0 : 1]);      // para filede: file ve borular önde
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(pins, 0, 0);        // çiviler paranın önünde durur
 }
 
 function resize() {
-  const r = $('wrap').getBoundingClientRect();
-  const s = Math.min((r.width - 16) / W, (r.height - 8) / H);
+  const r = $('wrap').getBoundingClientRect(), cs = getComputedStyle($('wrap'));
+  if (yan !== yatayMq.matches) { yan = yatayMq.matches; helpText(); hud(); }
+  const ew = yan ? H : W, eh = yan ? W : H;                              // ekrandaki en ve boy
+  const s = Math.min((r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) / ew, (r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) / eh);
   if (s <= 0) return;                                                    // sayfa henüz boyutsuz (gizli sekme)
   scale = s; K = scale * (devicePixelRatio || 1);
-  cv.style.width = W * scale + 'px'; cv.style.height = H * scale + 'px';
-  board.width = cv.width = pins.width = Math.round(W * K); board.height = cv.height = pins.height = Math.round(H * K);
+  TR = yan ? [0, K, -K, 0, H * K, 0] : [K, 0, 0, K, 0, 0];
+  cv.style.width = ew * scale + 'px'; cv.style.height = eh * scale + 'px';
+  board.width = cv.width = pins.width = Math.round(ew * K); board.height = cv.height = pins.height = Math.round(eh * K);
   const g = board.getContext('2d'), p = pins.getContext('2d');
-  g.setTransform(K, 0, 0, K, 0, 0); p.setTransform(K, 0, 0, K, 0, 0); drawBoard(g, p);
+  g.setTransform(...TR); p.setTransform(...TR); drawBoard(g, p);
   coinImg = makeCoin();
 }
 const tex = {}, logo = new Image();                                      // Antigravity'nin ürettiği dokular, para logosu

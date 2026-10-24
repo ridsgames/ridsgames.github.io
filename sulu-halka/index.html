@@ -195,6 +195,28 @@
       background: rgba(6, 19, 32, 0.82);
       backdrop-filter: blur(8px);
     }
+    /* Yatay telefon: hazne iki dar sütun arasında kalan bütün genişliği kaplar; sütunlarda başparmak hizasında birer su düğmesi.
+       Puan, ayarlar ve küçük düğmeler JS ile sütunlara taşınır; dikeyde sütunlar gizli */
+    .side-col { display: none; }
+    @media (orientation: landscape) and (max-height: 500px) {
+      .home-bar .in { height: 40px; }
+      .home-bar img { height: 26px; }
+      .home-bar .lb-btn { height: 30px; }
+      #app-wrapper { padding: 6px 8px; gap: 8px; align-items: stretch; }
+      .casing-shell { flex: 1 1 0; min-width: 0; width: auto; height: 100%; max-width: none; margin: 0; padding: 5px; border-radius: 22px; }
+      .inner-chamber { border-radius: 17px; }
+      .bottom-control-deck { height: 23%; min-height: 0; max-height: none; }
+      #app-wrapper .bottom-control-deck > * { display: none; }
+      .side-col { display: flex; flex: none; width: clamp(108px, 14vw, 132px); height: 100%; flex-direction: column; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 0; }
+      .side-top, .side-bottom { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; }
+      .side-jet { width: 100px; height: 100px; padding: 7px; }
+      #hud-score { flex-direction: column; gap: 5px; padding: 6px 10px; text-align: center; }
+      #hud-score > span:first-child, #hud-score > .h-6, #btn-open-bg [data-i18n="bg"] { display: none; }
+      #hud-actions { margin: 0; flex-wrap: wrap; justify-content: center; gap: 6px; }
+      .side-bottom > button { position: static; }
+      #victory-modal { position: fixed; z-index: 40; overflow-y: auto; align-items: flex-start; }
+      #victory-modal > div { margin: auto; }
+    }
   </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -218,6 +240,17 @@
 
   <!-- Main Outer Container -->
   <div id="app-wrapper" class="w-full flex-1 min-h-0 flex items-center justify-center p-0 sm:p-3">
+    <!-- Yatay telefonda sol kontroller (sol su düğmesi, puan, Yeni, Sol Eğ) -->
+    <div id="side-left" class="side-col">
+      <div id="side-left-top" class="side-top"></div>
+      <div id="jet-left" class="aqua-push-btn-outer side-jet" role="button" tabindex="0" data-side="-1" data-i18n-aria="jetLAria" aria-label="Sol su düğmesi">
+        <div class="aqua-push-btn-inner">
+          <span class="font-game text-xs font-bold uppercase tracking-wider text-sky-900/80" data-i18n="press">BAS</span>
+          <span class="text-[10px] font-medium text-sky-800/70" data-i18n="jetL">◀ Sola</span>
+        </div>
+      </div>
+      <div id="side-left-bottom" class="side-bottom"></div>
+    </div>
     <div id="casing-shell" class="casing-shell">
       <div class="inner-chamber">
 
@@ -230,11 +263,11 @@
         <!-- 2. Top Floating HUD & Controls -->
         <div class="absolute top-2.5 left-2.5 right-2.5 z-10 flex items-center justify-between gap-1.5 pointer-events-auto">
           <!-- Score Pill -->
-          <div class="flex items-center gap-2 bg-slate-900/70 backdrop-blur-md border border-sky-300/30 rounded-2xl px-3 py-1.5 shadow-lg">
+          <div id="hud-score" class="flex items-center gap-2 bg-slate-900/70 backdrop-blur-md border border-sky-300/30 rounded-2xl px-3 py-1.5 shadow-lg">
             <span class="text-lg">⭕</span>
             <div>
               <div class="text-[10px] uppercase tracking-wider text-sky-200 font-semibold leading-none" data-i18n="rings">Halkalar</div>
-              <div class="font-game text-base sm:text-lg font-bold text-white leading-tight">
+              <div class="font-game text-base sm:text-lg font-bold text-white leading-tight whitespace-nowrap">
                 <span id="score-val">0</span><span class="text-sky-300/80 text-xs"> / </span><span id="target-val" class="text-sky-200 text-sm">16</span>
               </div>
             </div>
@@ -246,7 +279,7 @@
           </div>
 
           <!-- Action Buttons -->
-          <div class="flex items-center gap-1 mr-6 sm:mr-7">
+          <div id="hud-actions" class="flex items-center gap-1 mr-6 sm:mr-7">
             <button id="btn-open-bg" type="button" class="bg-sky-500/85 hover:bg-sky-400 active:scale-95 text-white font-semibold text-xs px-2 py-1.5 rounded-xl shadow-md border border-white/30 flex items-center gap-1 transition" data-i18n-title="bgTitle" title="Arkaplanı Değiştir">
               <span>🖼️</span>
               <span class="hidden xs:inline sm:inline" data-i18n="bg">Arkaplan</span>
@@ -331,6 +364,17 @@
         </div>
 
       </div>
+    </div>
+    <!-- Yatay telefonda sağ kontroller (sağ su düğmesi, ayarlar, Sağ Eğ, tam ekran) -->
+    <div id="side-right" class="side-col">
+      <div id="side-right-top" class="side-top"></div>
+      <div id="jet-right" class="aqua-push-btn-outer side-jet" role="button" tabindex="0" data-side="1" data-i18n-aria="jetRAria" aria-label="Sağ su düğmesi">
+        <div class="aqua-push-btn-inner">
+          <span class="font-game text-xs font-bold uppercase tracking-wider text-sky-900/80" data-i18n="press">BAS</span>
+          <span class="text-[10px] font-medium text-sky-800/70" data-i18n="jetR">Sağa ▶</span>
+        </div>
+      </div>
+      <div id="side-right-bottom" class="side-bottom"></div>
     </div>
   </div>
 
@@ -447,6 +491,7 @@
           <div class="bg-sky-950/50 border border-sky-400/30 rounded-2xl p-3.5 text-xs text-sky-100 space-y-1.5">
             <div class="font-bold text-sky-300" data-i18n="howTo">💡 Nasıl Oynanır?</div>
             <p data-i18n="help1">• Alttaki <strong>mavi yuvarlak butona</strong> bastıkça su jeti halkaları yukarı fırlatır. Butonun sol veya sağ kenarına dokunmak o tarafa daha güçlü akıntı verir.</p>
+            <p data-i18n="helpSide">• Telefonu <strong>yan çevirince</strong> iki yanda birer su düğmesi çıkar: soldaki akıntıyı sola, sağdaki sağa verir. İki başparmakla sırayla basabilirsin.</p>
             <p data-i18n="help2">• <strong>Sol Eğ / Sağ Eğ</strong> butonlarıyla (veya klavyede <strong>A / D / Yön tuşları</strong> ve <strong>Boşluk</strong> tuşuyla) halkaları sabit çubuklara yönlendirebilirsin.</p>
             <p data-i18n="help3">• Üstteki <strong>📱 butonuyla</strong> jiroskobu açarsan telefonu sağa sola eğerek de halkaları kaydırabilirsin. Açtığın andaki tutuş düz kabul edilir; yeniden ayarlamak için kapatıp aç. Jiroskop açıkken <strong>telefonu sallamak</strong> da 🌊 Çalkala butonu gibi halkaları çalkalar.</p>
             <p data-i18n="help4">• <strong>🎯 Yetişkin modunda</strong> halkalar suda takla atar. Halka çubuğa ancak <strong>düz ve ortalanmış</strong> gelirse geçer; eğik gelen seker ya da ucun üstünde sallanıp düşer. Telefonu ince ince eğerek halkayı tam ortaya getir.</p>
@@ -471,6 +516,8 @@
       sound: 'Sound on/off', settings: 'Settings', tiltLTitle: 'Tilt left (left current)', tiltL: 'Tilt L',
       jetAria: 'Water jet button', press: 'PRESS', jet: 'Water jet', tiltRTitle: 'Tilt right (right current)', tiltR: 'Tilt R',
       restart: 'Restart', new: 'NEW', fullscreen: 'Full screen',
+      jetLAria: 'Left water button', jetRAria: 'Right water button', jetL: '◀ Left', jetR: 'Right ▶',
+      helpSide: '• Turn your phone <strong>sideways</strong> and a water button appears on each side: the left one sends the current to the left, the right one to the right. Take turns pressing with both thumbs.',
       congrats: 'Well done!', allDone: 'You got every ring onto the pegs!', finishTime: 'Your time', bestTime: 'Best time',
       newBg: '🖼️ New background', replay: '🔄 Play again',
       bgModal: '<span>🖼️</span> Change background', bgModalSub: 'The button and pegs stay in place; only the background image changes.',
@@ -631,6 +678,10 @@
       let W = 380;
       let H = 680;
       let dpr = 1;
+      // Yatay telefonda hazne alçak: dikey kuvvetler küçülür ki halkalar dikeydeki gibi aynı oranda yükselip batsın (sıralama adil kalır).
+      // Puan çubuğu da hazneden çıktığı için tavan yükselir
+      let vScale = 1;
+      let ceilingY = 58;
 
       // Fixed Normalized Positions for Rods & Floor (never move when background changes!)
       // Left and Right vertical rods placed symmetrically in the middle-upper water chamber
@@ -639,6 +690,7 @@
         { xNorm: 0.69, topNorm: 0.34, bottomNorm: 0.54 }
       ];
       const FLOOR_NORM = 0.77; // Top of the bottom button deck
+      const VSCALE_REF = 700;
 
       let totalRingsCount = 16;
       // Oyun modu: 'kids' (kolay, mevcut) | 'adult' (takla + gerçekçi takılma)
@@ -726,13 +778,19 @@
 
       function resizeCanvas() {
         const rect = canvas.parentElement.getBoundingClientRect();
-        W = Math.max(260, rect.width);
-        H = Math.max(420, rect.height);
+        // Hazne 420 pikselden alçaksa (yatay telefon) sahne orantılı küçültülür; fizik yine en az 420 yükseklikte çalışır
+        const k = rect.height > 0 ? Math.min(1, rect.height / 420) : 1;
+        W = Math.max(260, rect.width / k);
+        H = Math.max(420, rect.height / k);
         dpr = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = W * dpr;
-        canvas.height = H * dpr;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        canvas.width = Math.round(W * k * dpr);
+        canvas.height = Math.round(H * k * dpr);
+        ctx.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
+        const yatay = !canvas.parentElement.contains(document.getElementById('hud-score'));
+        vScale = yatay ? Math.min(1, H / VSCALE_REF) : 1;
+        ceilingY = yatay ? 20 : 58;
         computeFixedRods();
+        if (activeBgId) paintBackground();
       }
 
       function createRings() {
@@ -839,7 +897,7 @@
         playWaterJetSound();
 
         const floorY = H * FLOOR_NORM;
-        const jetPower = 8.8 * jetPowerMultiplier;
+        const jetPower = 8.8 * jetPowerMultiplier * vScale;
 
         // Spawn visible water jet bubble stream from the fixed bottom nozzles
         spawnAmbientBubbles(24, true, biasX);
@@ -879,7 +937,7 @@
             ring.hookedRod = -1;
           }
           ring.vx += (Math.random() - 0.5) * 9;
-          ring.vy -= 3 + Math.random() * 6;
+          ring.vy -= (3 + Math.random() * 6) * vScale;
           ring.vAngle += (Math.random() - 0.5) * 0.25;
           if (isAdult()) ring.vTilt += (Math.random() - 0.5) * 0.6;
         });
@@ -961,9 +1019,8 @@
 
       function updatePhysics() {
         const floorY = H * FLOOR_NORM;
-        const ceilingY = 58;
         const wallPad = 18;
-        const gravity = 0.145 * gravityMultiplier;
+        const gravity = 0.145 * gravityMultiplier * vScale;
         const waterDrag = 0.968;
 
         // Ambient bubbles
@@ -1349,10 +1406,80 @@
       function applyBackgroundById(bgId) {
         const found = BACKGROUNDS.find((b) => b.id === bgId) || BACKGROUNDS[0];
         activeBgId = found.id;
-        const bgLayer = document.getElementById('bg-layer');
-        bgLayer.style.backgroundImage = `url("${found.src}")`;
-        bgLayer.style.backgroundSize = bgFitMode;
+        paintBackground();
         renderBgPresets();
+      }
+
+      // Hazne resimden belirgin biçimde genişse (yatay telefon) dikey resim kırpılmaz: tam boy ortaya konur,
+      // iki yanı resmin kendi kenar renkleriyle uzatılır ve kenarları yumuşak geçişle bu renklere karışır
+      let wideBgKey = '';
+      function paintBackground() {
+        const found = BACKGROUNDS.find((b) => b.id === activeBgId) || BACKGROUNDS[0];
+        const bgLayer = document.getElementById('bg-layer');
+        const rect = bgLayer.getBoundingClientRect();
+        const ratio = rect.height > 0 ? rect.width / rect.height : 0;
+        const plain = () => {
+          bgLayer.style.backgroundImage = `url("${found.src}")`;
+          bgLayer.style.backgroundSize = bgFitMode;
+        };
+        if (bgFitMode !== 'cover' || ratio <= 1) { wideBgKey = ''; plain(); return; }
+        const key = found.id + ':' + ratio.toFixed(2);
+        if (key === wideBgKey) return;
+        wideBgKey = key;
+        const img = new Image();
+        img.onload = () => {
+          if (wideBgKey !== key) return;
+          if (img.naturalWidth / img.naturalHeight > ratio * 0.8) { plain(); return; }
+          bgLayer.style.backgroundImage = `url("${widenedBackground(img, ratio)}")`;
+          bgLayer.style.backgroundSize = '100% 100%';
+        };
+        img.src = found.src;
+      }
+
+      function widenedBackground(img, ratio) {
+        const h = Math.min(img.naturalHeight, 900);
+        const iw = Math.round((img.naturalWidth * h) / img.naturalHeight);
+        const w = Math.round(h * ratio);
+        const x0 = Math.round((w - iw) / 2);
+        const src = document.createElement('canvas');
+        src.width = iw; src.height = h;
+        const sctx = src.getContext('2d');
+        sctx.drawImage(img, 0, 0, iw, h);
+        // Kenar rengi: resmin 8 piksellik kenar şeridinin satır ortalaması; kabarcıklar şerit gibi uzamasın diye
+        // dikeyde önce kayan medyanla ayıklanır, sonra yumuşatılır
+        const edge = (sx) => {
+          const d = sctx.getImageData(sx, 0, 8, h).data, rows = [];
+          for (let y = 0; y < h; y++) {
+            let r = 0, g = 0, b = 0;
+            for (let i = y * 32; i < y * 32 + 32; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+            rows.push([r / 8, g / 8, b / 8]);
+          }
+          const win = (arr, y, k) => arr.slice(Math.max(0, y - k), Math.min(h, y + k + 1));
+          const med = rows.map((_, y) => [0, 1, 2].map((j) => {
+            const v = win(rows, y, 60).map((c) => c[j]).sort((p, q) => p - q);
+            return v[v.length >> 1];
+          }));
+          return med.map((_, y) => {
+            const w = win(med, y, 15), c = [0, 1, 2].map((j) => w.reduce((t, q) => t + q[j], 0) / w.length);
+            return `rgb(${c.map(Math.round).join(',')})`;
+          });
+        };
+        const left = edge(0), right = edge(iw - 8);
+        const out = document.createElement('canvas');
+        out.width = w; out.height = h;
+        const octx = out.getContext('2d');
+        for (let y = 0; y < h; y++) {
+          octx.fillStyle = left[y]; octx.fillRect(0, y, Math.ceil(w / 2), 1);
+          octx.fillStyle = right[y]; octx.fillRect(Math.floor(w / 2), y, w - Math.floor(w / 2), 1);
+        }
+        const f = 0.08;
+        const fade = sctx.createLinearGradient(0, 0, iw, 0);
+        fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(f, '#000'); fade.addColorStop(1 - f, '#000'); fade.addColorStop(1, 'rgba(0,0,0,0)');
+        sctx.globalCompositeOperation = 'destination-in';
+        sctx.fillStyle = fade;
+        sctx.fillRect(0, 0, iw, h);
+        octx.drawImage(src, x0, 0);
+        return out.toDataURL('image/jpeg', 0.86);
       }
 
       function renderBgPresets() {
@@ -1424,6 +1551,37 @@
 
         pushBtn.addEventListener('pointerdown', handlePushStart);
         window.addEventListener('pointerup', handlePushEnd);
+
+        // Yatay telefondaki iki yan su düğmesi: sol düğme akıntıyı sola, sağ düğme sağa verir
+        // (dikeydeki düğmenin sol/sağ yarısına basmakla aynı fizik; sıralama adil kalır)
+        document.querySelectorAll('.side-jet').forEach((btn) => {
+          btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            btn.classList.add('pressed');
+            triggerWaterJet(Number(btn.dataset.side) * 0.45);
+          });
+          ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => btn.addEventListener(ev, () => btn.classList.remove('pressed')));
+        });
+
+        // Yatay telefonda puan, ayarlar ve küçük düğmeler hazne dışına, iki yandaki sütunlara taşınır; dikeye dönünce yerlerine döner
+        const yatayMq = window.matchMedia('(orientation: landscape) and (max-height: 500px)');
+        const tasinan = [
+          ['hud-score', 'side-left-top'], ['btn-restart-quick', 'side-left-bottom'], ['btn-tilt-left', 'side-left-bottom'],
+          ['hud-actions', 'side-right-top'], ['btn-tilt-right', 'side-right-bottom'], ['btn-fullscreen', 'side-right-bottom']
+        ].map(([id, hedef]) => {
+          const el = document.getElementById(id);
+          const yer = document.createComment(id);
+          el.before(yer);
+          return { el, yer, hedef: document.getElementById(hedef) };
+        });
+        function yerlesim() {
+          const yatay = yatayMq.matches;
+          tasinan.forEach((t) => { if (yatay) t.hedef.appendChild(t.el); else t.yer.after(t.el); });
+          resizeCanvas();
+        }
+        if (yatayMq.addEventListener) yatayMq.addEventListener('change', yerlesim);
+        else yatayMq.addListener(yerlesim);
+        yerlesim();
 
         // Tilt left / right buttons
         const btnTiltLeft = document.getElementById('btn-tilt-left');
@@ -1666,13 +1824,13 @@
         const btnContain = document.getElementById('btn-fit-contain');
         btnCover.addEventListener('click', () => {
           bgFitMode = 'cover';
-          document.getElementById('bg-layer').style.backgroundSize = 'cover';
+          paintBackground();
           btnCover.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950';
           btnContain.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-700 text-slate-200';
         });
         btnContain.addEventListener('click', () => {
           bgFitMode = 'contain';
-          document.getElementById('bg-layer').style.backgroundSize = 'contain';
+          paintBackground();
           btnContain.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950';
           btnCover.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-700 text-slate-200';
         });
