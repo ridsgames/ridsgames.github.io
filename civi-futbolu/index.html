@@ -93,7 +93,7 @@ const NH = 7, HR = 3.2, GH = 9;      // eğik bakış: çivi boyu, çivi başı,
 // Ayar düğmeleri: oyunun hissi bunlarla değişir
 const DECEL = 320;                   // tahtanın sürtünmesi
 const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
-const FLING = 0.55, MAX_V = 1100, MIN_V = 80; // fırlatma gücü
+const FLING = 0.8, MAX_V = 1100, MIN_V = 80; // fırlatma gücü
 const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
 // Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı atış başına ~%11, ~%26, ~%51
 const AI_ERR = [[.9, .6], [.26, .22], [.08, .1]];
@@ -219,7 +219,8 @@ function aiShoot() {
   shoot(Math.cos(a) * sp, Math.sin(a) * sp);
 }
 
-// Dokunma / fare: paraya bas, tutup sürükle, bırak. Hız = parmağın son ~90 ms'deki hızı.
+// Dokunma / fare: paraya bas, tutup sürükle, bırak. Hız = parmağın son ~50 ms'deki hızı: fırlatışın hızlanan sonu ölçülür,
+// yavaş başlangıcı ortalamayı düşürmez. Tarayıcının birleştirdiği ara örnekler de alınır
 function pos(e) {
   const r = cv.getBoundingClientRect(), sx = (e.clientX - r.left) / scale, sy = (e.clientY - r.top) / scale;
   return yan ? { x: sy, y: H + sb - sx, t: e.timeStamp } : { x: sx, y: sy - sb, t: e.timeStamp };
@@ -233,7 +234,9 @@ cv.onpointerdown = e => {
 };
 cv.onpointermove = e => {
   if (!hold) return;
-  const p = pos(e); hold.pts.push(p);
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+  for (const ev of evs.length ? evs : [e]) hold.pts.push(pos(ev));
+  const p = hold.pts[hold.pts.length - 1];
   const dx = p.x - hold.ox - hold.ax, dy = p.y - hold.oy - hold.ay;
   if (Math.hypot(dx, dy) > CARRY) return release(p.t);   // para elden çıktı
   const c = { x: hold.ax + dx, y: hold.ay + dy, vx: 0, vy: 0 };
@@ -242,7 +245,8 @@ cv.onpointermove = e => {
 };
 cv.onpointerup = cv.onpointercancel = e => hold && release(e.timeStamp);
 function release(now) {
-  const h = hold, pts = h.pts.filter(q => now - q.t < 90);
+  const h = hold, k = h.pts.findIndex(q => now - q.t < 50);              // pencerede tek örnek varsa bir öncekiyle ölçülür
+  const pts = k < 0 ? [] : h.pts.slice(Math.max(0, Math.min(k, h.pts.length - 2)));
   hold = null;
   let vx = 0, vy = 0;
   if (pts.length > 1) {
