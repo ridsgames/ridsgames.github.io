@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Bomba | Ridsgames</title>
+<meta name="description" content="Bomba: ekrandaki hecenin geçtiği bir kelime söyle, bombayı yanındakine pasla. Patladığında elinde olan can kaybeder. Aynı telefonda 2-8 kişilik kelime oyunu.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .66) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı: oyuncular, bomba, durum, düğme */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+main.shake { animation: shake .5s cubic-bezier(.36, .07, .19, .97); }
+@keyframes shake {
+  10%, 90% { transform: translate(-2px, 1px); } 20%, 80% { transform: translate(5px, -3px); }
+  30%, 50%, 70% { transform: translate(-9px, 4px); } 40%, 60% { transform: translate(9px, -4px); }
+}
+.plist { flex: none; width: 100%; max-width: 560px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.pc {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 168px; height: 32px; padding: 0 10px; border-radius: 999px;
+  background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .22); font-size: 13.5px; font-weight: 700; transition: background .2s, border-color .2s, box-shadow .2s;
+}
+.pc .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc .hp { flex: none; font-size: 11px; letter-spacing: 1px; }
+.pc .hp i { font-style: normal; color: #475569; }
+.pc .hp i.on { color: #f43f5e; }
+.pc .bm { font-size: 14px; line-height: 1; }
+.pc.on { border-color: #fb923c; background: rgba(124, 45, 18, .78); box-shadow: 0 0 14px rgba(251, 146, 60, .55); }
+.pc.out { opacity: .4; }
+.pc.out .nm { text-decoration: line-through; }
+#meta { flex: none; font-size: 12.5px; color: #cbd5e1; text-shadow: 0 1px 2px rgba(0, 0, 0, .8); font-variant-numeric: tabular-nums; }
+#stage { flex: 1; min-height: 0; width: 100%; position: relative; overflow: hidden; }
+canvas#bomb { position: absolute; inset: 0; display: block; }
+.verdict { flex: none; min-height: 54px; max-width: 460px; text-align: center; text-shadow: 0 1px 3px rgba(0, 0, 0, .75); }
+#vMain { font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#vSub { font-size: 14.5px; color: #e2e8f0; margin-top: 3px; }
+.go {
+  flex: none; width: 100%; max-width: 380px; height: 62px; border-radius: 18px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 20px; font-weight: 800; box-shadow: 0 6px 18px rgba(6, 182, 212, .4); touch-action: manipulation; transition: filter .15s, transform .08s;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 14px;
+}
+.go.pass { height: 76px; font-size: 24px; background: linear-gradient(135deg, #ea580c, #f59e0b); border-color: #fdba74; box-shadow: 0 6px 20px rgba(249, 115, 22, .5); }
+.go.wait { filter: grayscale(.5) brightness(.75); cursor: default; }
+.go:active:not(.wait) { transform: translateY(2px) scale(.99); }
+#flash { position: fixed; inset: 0; z-index: 12; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 247, 214, .95), rgba(249, 115, 22, .55) 45%, rgba(220, 38, 38, 0) 80%); }
+#flash.on { animation: flash .7s ease-out; }
+@keyframes flash { 0% { opacity: 0; } 8% { opacity: 1; } 100% { opacity: 0; } }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.mt { margin-top: 8px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.stepper { display: grid; grid-template-columns: 54px 1fr 54px; align-items: center; gap: 8px; }
+.stepper button { height: 54px; border-radius: 14px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 28px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.stepper button:disabled { opacity: .35; cursor: default; }
+.tval { text-align: center; line-height: 1; }
+.tval output { display: block; font-size: 38px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.tval small { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 600; color: var(--dim); letter-spacing: .04em; }
+.players { display: grid; gap: 6px; }
+.prow { display: grid; grid-template-columns: 26px 1fr 40px; gap: 6px; align-items: center; }
+.prow .no { text-align: center; font-size: 13px; font-weight: 800; color: var(--dim); }
+.prow input {
+  height: 42px; min-width: 0; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .25); background: rgba(2, 6, 23, .7); color: #fff; padding: 0 12px;
+  font: inherit; font-size: 16px; user-select: text; -webkit-user-select: text;
+}
+.prow input:focus { outline: none; border-color: var(--cyan); }
+.prow button { height: 42px; border: 1px solid rgba(148, 163, 184, .25); border-radius: 10px; background: rgba(2, 6, 23, .7); color: #94a3b8; font-size: 15px; }
+.prow button:disabled { visibility: hidden; }
+.add { height: 40px; border-radius: 10px; border: 1px dashed rgba(34, 211, 238, .5); background: none; color: #67e8f9; font-size: 14px; font-weight: 700; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .n { color: var(--dim); font-weight: 800; }
+.rank li .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank li .s { color: var(--dim); font-size: 13px; }
+.rank li .b { font-weight: 700; color: #cbd5e1; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.rank li.first { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+@media (max-height: 600px) { main { gap: 6px; padding-top: 6px; } .go { height: 54px; } .go.pass { height: 64px; font-size: 21px; } #vMain { font-size: 21px; } .verdict { min-height: 48px; } }
+@media (prefers-reduced-motion: reduce) { main.shake { animation: none; } #flash.on { animation-duration: .3s; } }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="bomba" data-name="Bomba"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Bomba</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="plist" id="plist" hidden></div>
+  <div id="meta"></div>
+  <div id="stage"><canvas id="bomb" role="img" aria-label="Bomba"></canvas></div>
+  <div class="verdict" aria-live="polite"><div id="vMain"></div><div id="vSub"></div></div>
+  <button class="go" id="go" type="button">Başla</button>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+<div id="flash"></div>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Bomba</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="playersLbl"></div>
+      <div class="players" id="players"></div>
+      <button class="add" id="addBtn" type="button" style="width:100%;margin-top:6px"></button>
+      <div class="note" id="seatNote"></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="livesLbl"></div>
+      <div class="seg" id="livesSeg"><button type="button" data-l="1"></button><button type="button" data-l="2"></button><button type="button" data-l="3"></button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="diffLbl"></div>
+      <div class="seg" id="diffSeg"><button type="button" data-d="kolay"></button><button type="button" data-d="orta"></button><button type="button" data-d="zor"></button></div>
+      <div class="note" id="diffNote"></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="fuseLbl"></div>
+      <div class="stepper">
+        <button type="button" id="fMinus" aria-label="−5">−</button>
+        <div class="tval"><output id="fVal">30 sn</output><small id="fCap"></small></div>
+        <button type="button" id="fPlus" aria-label="+5">+</button>
+      </div>
+      <div class="seg mt" id="presetSeg"><button type="button" data-f="15"></button><button type="button" data-f="30"></button><button type="button" data-f="60"></button></div>
+      <div class="note" id="fuseNote"></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="changeLbl"></div>
+      <div class="seg two" id="changeSeg"><button type="button" data-c="sabit"></button><button type="button" data-c="degisir"></button></div>
+      <div class="note" id="changeNote"></div>
+    </div>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button" hidden>Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <ol class="rank" id="rankList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Dil ----------
+const STR = {
+  tr: {
+    title: 'Bomba | Ridsgames', homeLabel: 'Ridsgames ana sayfa', game: 'Bomba', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    setupSub: 'Hecenin geçtiği bir kelime söyle, bombayı yanındakine pasla. Patladığında elinde olan can kaybeder.',
+    playersLbl: 'Oyuncular', playerN: (n) => `Oyuncu ${n}`, add: '+ Oyuncu ekle', remove: 'Oyuncuyu çıkar', seatNote: 'Listedeki sırayla oturun; bomba hep sıradakine gider.',
+    livesLbl: 'Can', livesN: (n) => `${n} can`,
+    diffLbl: 'Heceler', diffs: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' }, diffShort: { kolay: 'Kolay heceler', orta: 'Orta heceler', zor: 'Zor heceler' },
+    diffNote: { kolay: 'AR, KE, Lİ gibi iki harfli heceler.', orta: 'KAR, YOL, DER gibi üç harfli heceler.', zor: 'ĞIR, KÖP, HAV gibi daha seyrek heceler.' },
+    fuseLbl: 'Fitil süresi', fuseCap: 'ortalama', secs: (s) => `${s} sn`, presets: { 15: 'Kısa', 30: 'Orta', 60: 'Uzun' },
+    fuseNote: (a, b) => `Bomba ${a} ile ${b} saniye arasında rastgele bir anda patlar.`,
+    changeLbl: 'Hece ne zaman değişsin?', changes: { sabit: 'Tur başında', degisir: 'Her pasta' },
+    changeNote: { sabit: 'Tur boyunca aynı hece kalır; söylenen kelime tekrar edilmez.', degisir: 'Her pastan sonra yeni bir hece gelir.' },
+    start: 'Başla', back: 'Oyuna dön',
+    light: '🔥 Fitili ateşle', passTo: (n) => `Pas ➜ ${n}`, nextRound: 'Sonraki tur', overBtn: 'Oyun bitti',
+    starts: (n) => `Başlayan: ${n}`, readyHint: 'Telefon ona verilsin. Hazır olunca fitili ateşlesin.',
+    runHint: (s) => `İçinde ${s} geçen bir kelime söyle, sonra Pas'a dokun.`,
+    lost: (n) => `${n} bir can kaybetti`, out: (n) => `${n} elendi!`, roundInfo: (s, k) => `Hece: ${s} · ${k} pas`,
+    roundN: (n) => `Tur ${n}`, approx: (s) => `~${s} sn`, boomWord: 'BUM!', cancelled: 'Tur iptal edildi',
+    wins: (n) => `${n} kazandı!`, overSub: (r, p) => `${r} tur, toplam ${p} pas`, passWord: (n) => `${n} pas`,
+    again: 'Tekrar oyna', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', rulesSub: 'Kelimeyi bul, bombayı pasla, patlamadan kurtul.', ok: 'Tamam', bomb: 'Bomba',
+    ruleList: [
+      ['👥', 'Herkes <b>listedeki sırayla</b> çember olup oturur. Telefon elden ele dolaşır, bomba hep sıradakine gider.'],
+      ['🔥', '<b>Fitili ateşle</b>\'ye dokununca bombanın üstünde bir hece çıkar, örneğin <b>KAR</b>.'],
+      ['🗣️', 'Bomba elindeyken içinde o hece geçen bir kelimeyi yüksek sesle söyle: <b>KAR</b>puz, a<b>KAR</b>su, ma<b>KAR</b>na. Hece kelimenin başında, ortasında ya da sonunda olabilir.'],
+      ['➡️', 'Sonra <b>Pas</b>\'a dokun ve telefonu yanındakine ver. Turda söylenmiş bir kelime tekrar söylenemez; uygun olup olmadığına masa karar verir.'],
+      ['⏳', 'Bombanın ne zaman patlayacağı gizlidir. Tik takları düzensizdir ve sona doğru hızlanır. Fitil en geç ne zaman patlayabileceğini gösterir. Pası alır almaz patlamaz, yeni gelene en az bir saniye kalır.'],
+      ['💥', 'Patladığında bomba kimin elindeyse <b>bir can</b> kaybeder ve sonraki turu o başlatır. Canı biten elenir, <b>son kalan kazanır</b>.'],
+      ['⚙️', 'Hece zorluğunu, ortalama fitil süresini ve hecenin her pasta değişip değişmeyeceğini ayarlardan seçersin.']
+    ]
+  },
+  en: {
+    title: 'Word Bomb | Ridsgames', homeLabel: 'Ridsgames home', game: 'Word Bomb', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    setupSub: 'Say a word containing the letters, pass the bomb to your neighbour. Whoever holds it when it blows loses a life.',
+    playersLbl: 'Players', playerN: (n) => `Player ${n}`, add: '+ Add player', remove: 'Remove player', seatNote: 'Sit in the order of the list; the bomb always goes to the next player.',
+    livesLbl: 'Lives', livesN: (n) => `${n} ${n > 1 ? 'lives' : 'life'}`,
+    diffLbl: 'Letters', diffs: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' }, diffShort: { kolay: 'Easy letters', orta: 'Medium letters', zor: 'Hard letters' },
+    diffNote: { kolay: 'Two-letter chunks like AN, TH, RE.', orta: 'Three-letter chunks like ING, ART, OUT.', zor: 'Rarer chunks like UDG, EEZ, IMB.' },
+    fuseLbl: 'Fuse length', fuseCap: 'average', secs: (s) => `${s} s`, presets: { 15: 'Short', 30: 'Medium', 60: 'Long' },
+    fuseNote: (a, b) => `The bomb goes off at a random moment between ${a} and ${b} seconds.`,
+    changeLbl: 'When do the letters change?', changes: { sabit: 'Each round', degisir: 'Every pass' },
+    changeNote: { sabit: 'The same letters stay for the whole round; no word may be repeated.', degisir: 'New letters appear after every pass.' },
+    start: 'Start', back: 'Back to game',
+    light: '🔥 Light the fuse', passTo: (n) => `Pass ➜ ${n}`, nextRound: 'Next round', overBtn: 'Game over',
+    starts: (n) => `Starting: ${n}`, readyHint: 'Hand them the phone. They light the fuse when ready.',
+    runHint: (s) => `Say a word containing ${s}, then tap Pass.`,
+    lost: (n) => `${n} lost a life`, out: (n) => `${n} is out!`, roundInfo: (s, k) => `Letters: ${s} · ${k} ${k === 1 ? 'pass' : 'passes'}`,
+    roundN: (n) => `Round ${n}`, approx: (s) => `~${s} s`, boomWord: 'BOOM!', cancelled: 'Round cancelled',
+    wins: (n) => `${n} wins!`, overSub: (r, p) => `${r} rounds, ${p} passes in total`, passWord: (n) => `${n} ${n === 1 ? 'pass' : 'passes'}`,
+    again: 'Play again', toMenu: 'Change settings', rulesTitle: 'How to play', rulesSub: 'Find a word, pass the bomb, don\'t get caught.', ok: 'OK', bomb: 'Bomb',
+    ruleList: [
+      ['👥', 'Sit in a circle <b>in the order of the list</b>. The phone goes hand to hand and the bomb always moves to the next player.'],
+      ['🔥', 'Tap <b>Light the fuse</b> and a few letters appear on the bomb, for example <b>ART</b>.'],
+      ['🗣️', 'While you hold the bomb, say out loud a word that contains those letters: <b>ART</b>ist, he<b>ART</b>, sm<b>ART</b>. They can be at the start, middle or end of the word.'],
+      ['➡️', 'Then tap <b>Pass</b> and hand the phone to your neighbour. A word said this round can\'t be used again; the table decides what counts.'],
+      ['⏳', 'Nobody knows when the bomb will go off. The ticking is irregular and speeds up towards the end. The fuse shows the latest it can blow. It never blows right after a pass: the new holder always gets at least a second.'],
+      ['💥', 'Whoever holds the bomb when it explodes loses <b>a life</b> and starts the next round. Run out of lives and you\'re out; <b>the last player standing wins</b>.'],
+      ['⚙️', 'Choose the letter difficulty, the average fuse length and whether the letters change on every pass in the settings.']
+    ]
+  }
+};
+// Hece listeleri: her biri gündelik kelimelerin içinde geçer
+const SYL = {
+  tr: {
+    kolay: ['AR', 'AL', 'AN', 'AK', 'AS', 'AT', 'AY', 'AM', 'ER', 'EL', 'EN', 'EK', 'ES', 'ET', 'EY', 'EM', 'İL', 'İN', 'İR', 'İK', 'İM', 'IR', 'OL', 'OR', 'ON', 'UR', 'UL', 'UN',
+      'KA', 'KE', 'LA', 'LE', 'MA', 'ME', 'DA', 'DE', 'TA', 'TE', 'SA', 'SE', 'RA', 'RE', 'BA', 'BE', 'YA', 'NA', 'NE', 'Kİ', 'Lİ', 'Rİ', 'Dİ', 'Tİ', 'Sİ', 'Nİ',
+      'KO', 'KU', 'TO', 'DO', 'BO', 'BU', 'PA', 'ÇA', 'GE'],
+    orta: ['KAR', 'SAL', 'TAŞ', 'BAŞ', 'KAL', 'YAN', 'KUŞ', 'GEL', 'YOL', 'KOL', 'SES', 'BİL', 'YAZ', 'GÜN', 'TAR', 'BAL', 'MAS', 'KİT', 'SAR', 'KUM', 'DİL', 'KAN', 'ÇAY',
+      'YAP', 'TEL', 'PAR', 'SİN', 'KAS', 'ARK', 'ORT', 'MAN', 'DER', 'LAR', 'LER', 'ALT', 'KAP', 'TOP', 'SON', 'BAK', 'GÖR', 'OKU', 'SEV', 'DAĞ', 'KAT', 'KIR', 'AYA',
+      'ELE', 'ERK', 'İLK', 'KAY'],
+    zor: ['MUR', 'RAK', 'ZAN', 'FIR', 'ŞIK', 'ÇAK', 'GÖZ', 'YÜZ', 'ÖRT', 'ÜRK', 'ÇEK', 'HAL', 'HAV', 'PEN', 'KUZ', 'BUZ', 'ŞEK', 'GÜL', 'PİR', 'FİL', 'KÖP', 'TÜR',
+      'ĞIR', 'EĞE', 'ÖĞR', 'TAV', 'FAR', 'LAM', 'PAS', 'ZAR', 'ÜZÜ', 'JAN', 'VER', 'ÇIK', 'ÇOR', 'MUZ', 'ŞEF', 'ÇİZ', 'HAS', 'BÜY', 'YÜK', 'ZEY', 'TÜK', 'SÜT']
+  },
+  en: {
+    kolay: ['AN', 'AR', 'AT', 'ER', 'EN', 'IN', 'ON', 'OR', 'IT', 'ST', 'TH', 'RE', 'ED', 'ES', 'AL', 'LE', 'OU', 'EA', 'IS', 'AS', 'OW', 'IL', 'EL', 'IC', 'LO', 'LA',
+      'MA', 'ME', 'MO', 'NE', 'NO', 'PA', 'PE', 'PO', 'RA', 'RO', 'SE', 'SH', 'SO', 'TA', 'TE', 'TO', 'UN', 'US', 'CH', 'CO', 'DE', 'DI', 'LI', 'RI', 'TI'],
+    orta: ['ING', 'ANT', 'ART', 'OUT', 'END', 'ACK', 'ELL', 'ILL', 'OOK', 'AIN', 'TER', 'PER', 'CON', 'PRO', 'PLA', 'STA', 'TRA', 'ORN', 'ICE', 'AKE', 'ATE', 'OCK', 'UMP',
+      'ASH', 'EAR', 'OUN', 'ACH', 'IGH', 'ACE', 'ALL', 'AND', 'ENT', 'EST', 'IND', 'INK', 'ION', 'ITE', 'OLD', 'ONE', 'OUR', 'RAN', 'SHO', 'TCH', 'UST', 'ULL', 'AST'],
+    zor: ['AFT', 'IFT', 'OIL', 'OAT', 'EEP', 'ULT', 'OZE', 'IZE', 'AWN', 'ERB', 'EAP', 'OOM', 'UNK', 'IRL', 'URN', 'ASP', 'EEZ', 'IMB', 'UDG', 'OUB', 'YMP', 'XT', 'OX',
+      'UFF', 'IZZ', 'QUA', 'QUE', 'WR', 'KN', 'PH', 'MB', 'ORK', 'IRT', 'URT', 'OAK', 'ISK', 'AUT', 'AWL', 'OUGH', 'EAU']
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_bomba_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TAU = Math.PI * 2;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' })[c]);
+
+// ---------- Kurallar (saf mantık) ----------
+// RULES-BEGIN
+const FUSE_MIN = 10, FUSE_MAX = 120, FUSE_STEP = 5;
+// Ortalama fitil s saniye: bomba s/2 ile 3s/2 arasında rastgele bir anda patlar
+const fuseRange = (s) => [Math.round(s * 0.5), Math.round(s * 1.5)];
+const pickFuse = (s, r = Math.random) => (s * 0.5 + r() * s) * 1000;
+const GRACE = 1200;      // pası alana tanınan en kısa süre (ms)
+const PASS_GUARD = 450;  // pastan hemen sonraki dokunuş sayılmaz (telefonu alırken kazara dokunma)
+// Bir sonraki tike kalan süre: düzensiz, sona doğru hızlanır (p: geçen süre / fitil)
+const tickGap = (p, r = Math.random) => (85 + 600 * Math.pow(1 - clamp(p), 1.5)) * (0.7 + 0.6 * r());
+const nextAlive = (ps, i) => { for (let k = 1; k <= ps.length; k++) { const j = (i + k) % ps.length; if (!ps[j].out) return j; } return i; };
+const aliveCount = (ps) => ps.filter((p) => !p.out).length;
+// Son çıkan hecelerden kaçınarak yeni hece seç
+function pickSyl(list, recent, r = Math.random) {
+  const last = recent.slice(-Math.min(12, Math.floor(list.length / 2)));
+  const pool = list.filter((s) => !last.includes(s));
+  const s = pool[Math.floor(r() * pool.length)];
+  recent.push(s); if (recent.length > 24) recent.shift();
+  return s;
+}
+// Patlama: bomba elinde olan bir can kaybeder, canı biten elenir (seq: elenme sırası)
+function applyBoom(ps, i, seq) { const p = ps[i]; p.lives--; p.booms++; if (p.lives <= 0) { p.out = true; p.outAt = seq; } return p.out; }
+// Sıralama: ayakta kalan önce, sonra en geç elenen
+const ranking = (ps) => ps.slice().sort((a, b) => (a.out - b.out) || (b.outAt - a.outAt));
+// RULES-END
+
+// ---------- Durum ----------
+let setup = { players: ['', '', ''], lives: 2, diff: 'orta', fuse: 30, change: 'sabit' };
+let soundOn = true;
+try {
+  const s = JSON.parse(localStorage.getItem(KEY + 'setup'));
+  if (s) {
+    if (Array.isArray(s.players) && s.players.length >= 2) setup.players = s.players.slice(0, 8).map((x) => String(x || '').slice(0, 14));
+    if ([1, 2, 3].includes(s.lives)) setup.lives = s.lives;
+    if (['kolay', 'orta', 'zor'].includes(s.diff)) setup.diff = s.diff;
+    if (Number.isInteger(s.fuse) && s.fuse >= FUSE_MIN && s.fuse <= FUSE_MAX && s.fuse % FUSE_STEP === 0) setup.fuse = s.fuse;
+    if (s.change === 'sabit' || s.change === 'degisir') setup.change = s.change;
+  }
+} catch (e) {}
+try { soundOn = localStorage.getItem(KEY + 'sound') !== '0'; } catch (e) {}
+
+let G = null;            // oyun: ayarlar, oyuncular, tur durumu
+let phase = 'setup';     // setup | ready | run | boom | result | over
+let t0 = 0, lastPass = 0, sylAt = 0, tickAt = -1e9, nextTick = 0, tickN = 0, boomAt = -1e9, resultAt = 0, lastAct = -1e9;
+let res = null, bitenVar = false, timer = null, dirty = true;
+const later = (f, ms) => { clearTimeout(timer); timer = setTimeout(f, ms); };
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'bomba/' + olay, title: 'Bomba: ' + ad, event: true }); } catch (e) {} };
+const pname = (i) => G.players[i].name;
+
+// ---------- Akış ----------
+function newGame() {
+  const s = setup;
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${s.diff}-${s.fuse}-${s.change}-${s.players.length}`, `mod: ${s.players.length} kişi, ${s.diff} heceler, ${s.fuse} sn, hece ${s.change}`);
+  clearTimeout(timer); Sfx.hiss(false);
+  const n = s.players.length, first = Math.floor(Math.random() * n);
+  G = {
+    lives: s.lives, diff: s.diff, fuse: s.fuse, change: s.change,
+    players: s.players.map((nm, i) => ({ name: nm.trim() || T().playerN(i + 1), lives: s.lives, out: false, outAt: 0, passes: 0, booms: 0 })),
+    round: 1, holder: first, starter: first, roundStarter: first, syl: null, recent: [], fuseMs: 0, roundPasses: 0, totalPasses: 0, outSeq: 0
+  };
+  res = null; phase = 'ready'; sparks.length = 0;
+  closeAll(); render();
+}
+function act(ts) {
+  if (!G || ts - lastAct < 150) return; // aynı dokunuşun ikinci olayı ya da iki parmak
+  if (phase === 'ready') { lastAct = ts; lightFuse(ts); }
+  else if (phase === 'run') { if (ts - lastPass < PASS_GUARD) return; lastAct = ts; pass(ts); }
+  else if (phase === 'result') { if (performance.now() - resultAt < 900) return; lastAct = ts; nextRound(); }
+}
+function lightFuse(ts) {
+  phase = 'run'; t0 = ts; lastPass = ts; tickN = 0; tickAt = -1e9; nextTick = ts + 350;
+  G.fuseMs = pickFuse(G.fuse); G.roundStarter = G.holder; G.roundPasses = 0;
+  G.syl = pickSyl(SYL[lang][G.diff], G.recent); sylAt = ts;
+  Sfx.light(); Sfx.hiss(true); buzz(15); render();
+}
+function pass(ts) {
+  G.players[G.holder].passes++; G.roundPasses++; G.totalPasses++;
+  G.holder = nextAlive(G.players, G.holder); lastPass = ts;
+  if (G.change === 'degisir') { G.syl = pickSyl(SYL[lang][G.diff], G.recent); sylAt = ts; }
+  Sfx.pass(); buzz(12); render();
+}
+function explode(now) {
+  phase = 'boom'; boomAt = now; sparks.length = 0;
+  Sfx.hiss(false); Sfx.boom(); buzz([280, 90, 380]);
+  const i = G.holder, out = applyBoom(G.players, i, G.outSeq + 1);
+  if (out) G.outSeq++;
+  res = { who: i, out, syl: G.syl, passes: G.roundPasses };
+  makeBlast();
+  const fl = $('flash'); fl.classList.remove('on'); void fl.offsetWidth; fl.classList.add('on');
+  if (!REDUCED) { const m = $('main'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake'); }
+  later(showResult, REDUCED ? 400 : 1100);
+  render();
+}
+function showResult() {
+  phase = 'result'; resultAt = performance.now();
+  if (res.out) Sfx.out();
+  // patlatan sonraki turu başlatır; elendiyse sıradaki
+  G.starter = G.players[res.who].out ? nextAlive(G.players, res.who) : res.who;
+  if (aliveCount(G.players) <= 1) { phase = 'over'; later(gameOver, 1500); }
+  else later(render, 950); // Sonraki tur düğmesi açılsın
+  render();
+}
+function nextRound() {
+  G.round++; G.holder = G.starter; G.syl = null; res = null; phase = 'ready';
+  Sfx.click(); render();
+}
+function gameOver() {
+  bitenVar = true; sayac('bitti', 'oyun bitti');
+  const t = T(), order = ranking(G.players);
+  $('winTitle').textContent = t.wins(order[0].name);
+  $('winSub').textContent = t.overSub(G.round, G.totalPasses);
+  $('rankList').innerHTML = order.map((p, k) => `<li class="${k ? '' : 'first'}"><span class="n">${k + 1}</span><span class="nm">${esc(p.name)}${k ? '' : ' 👑'}</span><span class="b">${t.passWord(p.passes)}</span></li>`).join('');
+  render();
+  Sfx.win(); buzz([60, 60, 120]); confetti(); $('winOv').hidden = false;
+}
+function cancelRun(note) {
+  if (phase !== 'run') return;
+  Sfx.hiss(false); sparks.length = 0;
+  phase = 'ready'; G.holder = G.roundStarter; G.syl = null;
+  if (note) toast(T().cancelled);
+  render();
+}
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null, noiseBuf = null, hissSrc = null, hissGain = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  const noise = (c) => {
+    if (!noiseBuf) { noiseBuf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    return noiseBuf;
+  };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function knock(delay, vol = 0.25, freq = 2000) { // kısa, süzülmüş gürültü: mekanik tık
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, len = 0.04, buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 4);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 2.2; g.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(g).connect(c.destination); s.start(t);
+  }
+  // Fitilin cızırtısı: döngüdeki gürültü, alçak sesle
+  function hiss(on) {
+    if (hissSrc) {
+      const c = ac, s = hissSrc, g = hissGain; hissSrc = null;
+      try { g.gain.setTargetAtTime(0.0001, c.currentTime, 0.03); s.stop(c.currentTime + 0.2); } catch (e) {}
+    }
+    const c = on && soundOn && ctx(); if (!c) return;
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = noise(c); s.loop = true; f.type = 'bandpass'; f.frequency.value = 5200; f.Q.value = 0.8;
+    g.gain.setValueAtTime(0.0001, c.currentTime); g.gain.exponentialRampToValueAtTime(0.028, c.currentTime + 0.2);
+    s.connect(f).connect(g).connect(c.destination); s.start(); hissSrc = s; hissGain = g;
+  }
+  return {
+    unlock: ctx, hiss,
+    tick(k) { knock(0, 0.34, k % 2 ? 2500 : 3400); },
+    light() { knock(0, 0.4, 5200); tone(300, 1200, 0.22, 0.04, 'sawtooth'); },
+    pass() { tone(520, 980, 0.09, 0.07, 'triangle'); knock(0, 0.18, 1800); },
+    boom() {
+      const c = soundOn && ctx(); if (!c) return;
+      const t = c.currentTime, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      s.buffer = noise(c); f.type = 'lowpass'; f.frequency.setValueAtTime(2600, t); f.frequency.exponentialRampToValueAtTime(80, t + 1.5);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.9, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.7);
+      s.connect(f).connect(g).connect(c.destination); s.start(t); s.stop(t + 1.8);
+      tone(120, 30, 0.8, 0.6, 'sine');
+    },
+    out() { [392, 330, 262].forEach((f, k) => tone(f, f * 0.98, 0.26, 0.09, 'triangle', k * 0.15)); },
+    click() { knock(0, 0.2, 2400); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Konfeti ----------
+function confetti() {
+  if (REDUCED) return;
+  const c = $('confetti'), x = c.getContext('2d'); c.hidden = false; c.width = innerWidth; c.height = innerHeight;
+  const cols = ['#fbbf24', '#34d399', '#22d3ee', '#fb923c', '#f43f5e', '#fff'];
+  const ps = Array.from({ length: 130 }, (_, i) => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * 0.6, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3.5, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, w: 6 + Math.random() * 6, h: 4 + Math.random() * 5, col: cols[i % cols.length] }));
+  const t0 = performance.now();
+  (function f(now) {
+    x.clearRect(0, 0, c.width, c.height);
+    for (const q of ps) { q.x += q.vx; q.y += q.vy; q.r += q.vr; x.save(); x.translate(q.x, q.y); x.rotate(q.r); x.fillStyle = q.col; x.fillRect(-q.w / 2, -q.h / 2, q.w, q.h); x.restore(); }
+    if (now - t0 < 3500) requestAnimationFrame(f); else c.hidden = true;
+  })(t0);
+}
+
+// ---------- Bomba çizimi (dünya birimi: gövde yarıçapı = 1, merkez 0,0; fitil sağ üstte) ----------
+const WW = 2.6, HH = 3.36, OX = 1.3, OY = 2.14;
+const NECK_A = 0.62;                                                        // boynun dikeyle açısı
+const FUSE = [[0.72, -1.01], [0.95, -1.31], [0.6, -1.55], [0.98, -1.82]];   // fitil eğrisi (boyundan uca)
+const cv = $('bomb'), cx = cv.getContext('2d');
+let K = 100, DPR = 1, BX = 0, BY = 0, fontsOk = 0;
+const sparks = [];
+let blast = null;
+function layout() {
+  const w = $('stage').clientWidth, h = $('stage').clientHeight;
+  K = Math.max(30, Math.min(w / WW, h / HH, 150));
+  DPR = Math.min(3, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  BX = (w / 2 + (OX - WW / 2) * K) * DPR; BY = ((h - HH * K) / 2 + OY * K) * DPR;
+  dirty = true;
+}
+const W = (c, s = 1) => c.setTransform(K * DPR * s, 0, 0, K * DPR * s, BX, BY);
+const circ = (c, x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, TAU); };
+function rrect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function metal(c, x0, y0, x1, y1) {
+  const g = c.createLinearGradient(x0, y0, x1, y1);
+  g.addColorStop(0, '#f8fafc'); g.addColorStop(0.3, '#a8b1bb'); g.addColorStop(0.55, '#eef1f4'); g.addColorStop(0.8, '#76808b'); g.addColorStop(1, '#d3d9df');
+  return g;
+}
+const bez = (t) => {
+  const u = 1 - t, [a, b, c, d] = FUSE, k0 = u * u * u, k1 = 3 * u * u * t, k2 = 3 * u * t * t, k3 = t * t * t;
+  return [k0 * a[0] + k1 * b[0] + k2 * c[0] + k3 * d[0], k0 * a[1] + k1 * b[1] + k2 * c[1] + k3 * d[1]];
+};
+const easeOut = (u) => 1 - Math.pow(1 - u, 3);
+const backOut = (u) => 1 + 2.7 * Math.pow(u - 1, 3) + 1.7 * Math.pow(u - 1, 2);
+// Fitil en uzun süreye göre yanar: kalan uzunluk "en geç ne zaman" sorusunu yanıtlar, patlama anını değil
+const fuseLeft = (now) => 1 - 0.85 * clamp((now - t0) / (G.fuse * 1500));
+function viewState(now) {
+  const v = { pulse: 1, heat: 0, fuse: 1, lit: false, syl: '?', dim: true, pop: 1 };
+  if (!G || phase !== 'run') return v;
+  const p = (now - t0) / G.fuseMs;
+  v.lit = true; v.fuse = fuseLeft(now); v.heat = clamp((p - 0.55) / 0.45);
+  v.pulse = REDUCED ? 1 : 1 + 0.045 * Math.exp(-(now - tickAt) / 90);
+  v.syl = G.syl; v.dim = false;
+  v.pop = REDUCED ? 1 : 1 + 0.35 * (1 - easeOut(clamp((now - sylAt) / 240)));
+  return v;
+}
+function stepSparks(dt, now) {
+  if (phase === 'run' && G && !REDUCED) {
+    const [x, y] = bez(fuseLeft(now));
+    for (let n = Math.random() < (70 * dt) % 1 ? Math.ceil(70 * dt) : Math.floor(70 * dt); n > 0; n--) {
+      const a = Math.random() * TAU, sp = 0.6 + Math.random() * 1.6;
+      sparks.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.6, life: 0.25 + Math.random() * 0.35, col: Math.random() < 0.5 ? '#fde68a' : '#fb923c' });
+    }
+  }
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const q = sparks[i]; q.life -= dt; if (q.life <= 0) { sparks.splice(i, 1); continue; }
+    q.vy += 3 * dt; q.x += q.vx * dt; q.y += q.vy * dt;
+  }
+}
+function drawBomb(c, now) {
+  const v = viewState(now), S = K * DPR;
+  // masadaki gölge
+  W(c); c.save(); c.translate(0.06, 1.04); c.scale(1, 0.18);
+  let g = c.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, 'rgba(0, 0, 0, .6)'); g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  circ(c, 0, 0, 1); c.fillStyle = g; c.fill(); c.restore();
+  // boyun (gövdenin arkasından çıkar)
+  c.save(); c.rotate(NECK_A);
+  c.fillStyle = metal(c, -0.2, 0, 0.2, 0); rrect(c, -0.19, -1.18, 0.38, 0.34, 0.04); c.fill();
+  c.fillStyle = metal(c, -0.24, 0, 0.24, 0); rrect(c, -0.24, -1.25, 0.48, 0.11, 0.04); c.fill();
+  c.restore();
+  // gövde
+  W(c, v.pulse);
+  g = c.createRadialGradient(-0.38, -0.42, 0.04, -0.1, -0.1, 1.15);
+  g.addColorStop(0, '#6b7280'); g.addColorStop(0.28, '#2a3039'); g.addColorStop(0.75, '#0d1015'); g.addColorStop(1, '#050608');
+  circ(c, 0, 0, 1); c.fillStyle = g; c.fill();
+  if (v.heat > 0) { // sona doğru kızarır
+    g = c.createRadialGradient(0, 0.15, 0.1, 0, 0, 1); g.addColorStop(0, `rgba(239, 68, 68, ${0.55 * v.heat})`); g.addColorStop(1, `rgba(127, 29, 29, ${0.3 * v.heat})`);
+    circ(c, 0, 0, 1); c.fillStyle = g; c.fill();
+  }
+  c.save(); circ(c, 0, 0, 1); c.clip(); c.lineWidth = 0.07; c.strokeStyle = 'rgba(148, 163, 184, .2)'; c.beginPath(); c.arc(0.05, 0.05, 0.99, -0.25, 1.95); c.stroke(); c.restore();
+  c.save(); c.translate(-0.42, -0.5); c.rotate(-0.7); c.scale(1, 0.6);
+  g = c.createRadialGradient(0, 0, 0, 0, 0, 0.28); g.addColorStop(0, 'rgba(255, 255, 255, .55)'); g.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  circ(c, 0, 0, 0.28); c.fillStyle = g; c.fill(); c.restore();
+  // fitil
+  W(c);
+  const n = Math.max(2, Math.round(40 * v.fuse)), pts = [];
+  for (let i = 0; i <= n; i++) pts.push(bez(v.fuse * i / n));
+  const path = () => { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (const p of pts) c.lineTo(p[0], p[1]); };
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  path(); c.lineWidth = 0.09; c.strokeStyle = '#4a3216'; c.stroke();
+  path(); c.lineWidth = 0.062; c.strokeStyle = '#c9a063'; c.stroke();
+  c.setLineDash([0.035, 0.045]); path(); c.strokeStyle = 'rgba(92, 61, 26, .6)'; c.stroke(); c.setLineDash([]);
+  const [tx, ty] = pts[pts.length - 1];
+  if (v.lit) {
+    circ(c, tx, ty, 0.045); c.fillStyle = '#1c1917'; c.fill();
+    const fl = REDUCED ? 1 : 0.85 + 0.3 * Math.random();
+    g = c.createRadialGradient(tx, ty, 0, tx, ty, 0.3 * fl);
+    g.addColorStop(0, 'rgba(255, 251, 235, 1)'); g.addColorStop(0.25, 'rgba(253, 224, 71, .9)'); g.addColorStop(0.6, 'rgba(249, 115, 22, .35)'); g.addColorStop(1, 'rgba(249, 115, 22, 0)');
+    circ(c, tx, ty, 0.3 * fl); c.fillStyle = g; c.fill();
+    if (!REDUCED) {
+      c.lineWidth = 0.014; c.strokeStyle = 'rgba(254, 240, 138, .9)';
+      for (let i = 0; i < 7; i++) { const a = Math.random() * TAU, l = 0.08 + Math.random() * 0.14; c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx + Math.cos(a) * l, ty + Math.sin(a) * l); c.stroke(); }
+    }
+  }
+  c.lineWidth = 0.016;
+  for (const q of sparks) { c.globalAlpha = clamp(q.life * 3); c.strokeStyle = q.col; c.beginPath(); c.moveTo(q.x, q.y); c.lineTo(q.x - q.vx * 0.025, q.y - q.vy * 0.025); c.stroke(); }
+  c.globalAlpha = 1;
+  // hece (piksel uzayında; gövdeyle birlikte nabız atar)
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  c.font = `900 100px Inter, system-ui, sans-serif`;
+  const px = Math.min(0.62, 1.36 * 100 / c.measureText(v.syl).width) * S * v.pulse * v.pop;
+  c.font = `900 ${px}px Inter, system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.shadowColor = 'rgba(0, 0, 0, .6)'; c.shadowBlur = 0.04 * S; c.shadowOffsetY = 0.02 * S;
+  c.fillStyle = v.dim ? 'rgba(255, 255, 255, .28)' : '#fff';
+  c.fillText(v.syl, BX, BY + 0.07 * S);
+  c.shadowColor = 'transparent';
+}
+function makeBlast() {
+  const cols = ['#111827', '#1f2937', '#374151', '#f97316', '#fbbf24'], n = REDUCED ? 0 : 30;
+  blast = {
+    debris: Array.from({ length: n }, (_, i) => { const a = Math.random() * TAU, sp = 2 + Math.random() * 3; return { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1, r: Math.random() * TAU, vr: (Math.random() - 0.5) * 14, s: 0.05 + Math.random() * 0.07, col: cols[i % cols.length] }; }),
+    smoke: Array.from({ length: REDUCED ? 0 : 11 }, () => ({ x: (Math.random() - 0.5) * 1.2, y: (Math.random() - 0.5) * 0.6, vx: (Math.random() - 0.5) * 0.5, vy: -0.25 - Math.random() * 0.4, r: 0.5 + Math.random() * 0.45, d: 0.05 + Math.random() * 0.25, life: 1.6 + Math.random() * 0.9 }))
+  };
+}
+function drawBlast(c, now) {
+  const u = (now - boomAt) / 1000, S = K * DPR;
+  let g;
+  W(c);
+  // yanık izi
+  c.save(); c.translate(0, 0.95); c.scale(1, 0.24);
+  g = c.createRadialGradient(0, 0, 0, 0, 0, 1.3); g.addColorStop(0, `rgba(10, 8, 6, ${0.8 * clamp(u * 4)})`); g.addColorStop(1, 'rgba(10, 8, 6, 0)');
+  circ(c, 0, 0, 1.3); c.fillStyle = g; c.fill(); c.restore();
+  for (const p of blast.smoke) {
+    const k = u - p.d; if (k <= 0 || k > p.life) continue;
+    const q = k / p.life, r = p.r * (0.5 + q * 1.3), x = p.x + p.vx * k, y = p.y + p.vy * k;
+    g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(68, 64, 60, ${0.5 * (1 - q)})`); g.addColorStop(1, 'rgba(68, 64, 60, 0)');
+    circ(c, x, y, r); c.fillStyle = g; c.fill();
+  }
+  const edge = Math.min(BX, cv.width - BX, BY, cv.height - BY) / S; // ateş topu ve dalga kenarda kesik görünmesin
+  if (u < 0.9) { // ateş topu
+    const a = 1 - (u / 0.9) * (u / 0.9), r = Math.min(edge, 0.3 + 2.2 * easeOut(Math.min(1, u / 0.45)));
+    g = c.createRadialGradient(0, 0, 0, 0, 0, r);
+    g.addColorStop(0, `rgba(255, 251, 235, ${a})`); g.addColorStop(0.25, `rgba(253, 224, 71, ${a})`); g.addColorStop(0.55, `rgba(249, 115, 22, ${0.85 * a})`); g.addColorStop(1, 'rgba(220, 38, 38, 0)');
+    circ(c, 0, 0, r); c.fillStyle = g; c.fill();
+  }
+  if (u < 0.6 && !REDUCED) { // şok dalgası
+    const q = u / 0.6, R = 0.6 + 3.2 * easeOut(q);
+    circ(c, 0, 0, R); c.lineWidth = 0.1 * (1 - q); c.strokeStyle = `rgba(255, 237, 213, ${0.8 * (1 - q) * clamp((edge - R) / 0.35)})`; c.stroke();
+  }
+  if (u < 1.4) for (const d of blast.debris) {
+    c.save(); c.translate(d.vx * u, d.vy * u + 2.2 * u * u); c.rotate(d.r + d.vr * u); c.globalAlpha = 1 - u / 1.4;
+    c.fillStyle = d.col; c.beginPath(); c.moveTo(-d.s, -d.s * 0.6); c.lineTo(d.s, -d.s * 0.3); c.lineTo(0, d.s * 0.8); c.closePath(); c.fill(); c.restore();
+  }
+  if (u > 0.12) { // BUM!
+    const q = clamp((u - 0.12) / 0.32), sc = REDUCED ? 1 : 0.4 + 0.6 * backOut(q);
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.font = `900 100px Inter, system-ui, sans-serif`;
+    const word = T().boomWord, px = Math.min(0.8, 2.3 * 100 / c.measureText(word).width) * S * sc;
+    c.font = `900 ${px}px Inter, system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round';
+    const yy = BY - 0.05 * S;
+    g = c.createLinearGradient(0, yy - px / 2, 0, yy + px / 2); g.addColorStop(0, '#fef08a'); g.addColorStop(0.55, '#fb923c'); g.addColorStop(1, '#dc2626');
+    c.lineWidth = px * 0.14; c.strokeStyle = '#3b0a0a'; c.strokeText(word, BX, yy);
+    c.fillStyle = g; c.fillText(word, BX, yy);
+  }
+}
+function draw(now) {
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+  if (G && blast && (phase === 'boom' || phase === 'result' || phase === 'over')) drawBlast(cx, now);
+  else drawBomb(cx, now);
+}
+let lastFrame = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000)); lastFrame = now;
+  if (phase === 'run' && G) {
+    if (now >= Math.max(t0 + G.fuseMs, lastPass + GRACE)) explode(now);
+    else if (now >= nextTick) { tickAt = now; Sfx.tick(tickN++); nextTick = now + tickGap((now - t0) / G.fuseMs); }
+  }
+  stepSparks(dt, now);
+  const busy = phase === 'run' || sparks.length > 0 || ((phase === 'boom' || phase === 'result' || phase === 'over') && now - boomAt < 3200);
+  if (busy || dirty) { dirty = false; draw(now); }
+}
+
+// ---------- Arayüz ----------
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+function closeAll() { for (const id of ['setupOv', 'rulesOv', 'winOv']) $(id).hidden = true; }
+function renderPlayers2() {
+  const el = $('plist'); el.hidden = !G; $('meta').hidden = !G; if (!G) return;
+  const t = T();
+  el.innerHTML = G.players.map((p, i) => {
+    const on = !p.out && i === G.holder && phase !== 'over';
+    const hp = p.out ? '💀' : Array.from({ length: G.lives }, (_, k) => `<i class="${k < p.lives ? 'on' : ''}">♥︎</i>`).join('');
+    return `<span class="pc${on ? ' on' : ''}${p.out ? ' out' : ''}">${on ? '<span class="bm">💣</span>' : ''}<span class="nm">${esc(p.name)}</span><span class="hp">${hp}</span></span>`;
+  }).join('');
+  $('meta').textContent = `${t.roundN(G.round)} · ${t.diffShort[G.diff]} · ${t.approx(G.fuse)}`;
+}
+function renderVerdict() {
+  const t = T(); let a = '', b = '', col = '#fff';
+  if (G && phase === 'ready') { a = t.starts(pname(G.holder)); b = t.readyHint; }
+  else if (G && phase === 'run') { a = '💣 ' + pname(G.holder); b = t.runHint(G.syl); col = '#fdba74'; }
+  else if (G && res && phase !== 'boom') { a = res.out ? t.out(pname(res.who)) : t.lost(pname(res.who)); col = res.out ? '#f87171' : '#fb923c'; b = t.roundInfo(res.syl, res.passes); }
+  $('vMain').textContent = a; $('vMain').style.color = col; $('vSub').textContent = b;
+}
+function renderGo() {
+  const t = T(), b = $('go'); let s = t.light, cls = '';
+  if (G && phase === 'run') { s = t.passTo(pname(nextAlive(G.players, G.holder))); cls = 'pass'; }
+  else if (G && phase === 'boom') { s = '…'; cls = 'wait'; }
+  else if (G && phase === 'result') { s = t.nextRound; if (performance.now() - resultAt < 900) cls = 'wait'; }
+  else if (G && phase === 'over') { s = t.overBtn; cls = 'wait'; }
+  else if (!G) s = t.start;
+  b.textContent = s; b.className = 'go' + (cls ? ' ' + cls : '');
+}
+function render() { renderPlayers2(); renderVerdict(); renderGo(); dirty = true; }
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function renderSetup() {
+  const t = T(), f = setup.fuse, [a, b] = fuseRange(f);
+  segPress('livesSeg', 'l', setup.lives); segPress('diffSeg', 'd', setup.diff); segPress('presetSeg', 'f', f); segPress('changeSeg', 'c', setup.change);
+  $('fVal').textContent = t.secs(f);
+  $('fMinus').disabled = f <= FUSE_MIN; $('fPlus').disabled = f >= FUSE_MAX;
+  $('fuseNote').textContent = t.fuseNote(a, b);
+  $('diffNote').textContent = t.diffNote[setup.diff];
+  $('changeNote').textContent = t.changeNote[setup.change];
+  $('backBtn').hidden = !(G && ['ready', 'boom', 'result'].includes(phase));
+}
+function renderPlayers() {
+  const t = T(), n = setup.players.length;
+  $('players').innerHTML = setup.players.map((p, i) => `<div class="prow"><span class="no">${i + 1}</span><input type="text" maxlength="14" autocomplete="off" enterkeyhint="done" data-i="${i}" value="${esc(p)}" placeholder="${esc(t.playerN(i + 1))}" aria-label="${esc(t.playerN(i + 1))}"><button type="button" data-x="${i}" aria-label="${esc(t.remove)}" ${n <= 2 ? 'disabled' : ''}>✕</button></div>`).join('');
+  $('addBtn').hidden = n >= 8;
+}
+function openSetup() { cancelRun(false); renderSetup(); renderPlayers(); closeAll(); $('setupOv').hidden = false; }
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('playersLbl').textContent = t.playersLbl; $('addBtn').textContent = t.add; $('seatNote').textContent = t.seatNote;
+  $('livesLbl').textContent = t.livesLbl; document.querySelectorAll('#livesSeg button').forEach((b) => { b.textContent = t.livesN(+b.dataset.l); });
+  $('diffLbl').textContent = t.diffLbl; document.querySelectorAll('#diffSeg button').forEach((b) => { b.textContent = t.diffs[b.dataset.d]; });
+  $('fuseLbl').textContent = t.fuseLbl; $('fCap').textContent = t.fuseCap;
+  document.querySelectorAll('#presetSeg button').forEach((b) => { b.textContent = `${t.presets[b.dataset.f]} · ${t.secs(b.dataset.f)}`; });
+  $('changeLbl').textContent = t.changeLbl; document.querySelectorAll('#changeSeg button').forEach((b) => { b.textContent = t.changes[b.dataset.c]; });
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('toMenuBtn').textContent = t.toMenu;
+  cv.setAttribute('aria-label', t.bomb);
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  renderSetup(); renderPlayers(); render();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+// ---------- Olaylar ----------
+const stamp = (e) => (e && e.timeStamp > 0 && Math.abs(performance.now() - e.timeStamp) < 1000 ? e.timeStamp : performance.now());
+$('go').addEventListener('pointerdown', (e) => {
+  if (e.button > 0) return;
+  Sfx.unlock();
+  if (!G) { openSetup(); return; }
+  act(stamp(e));
+});
+$('go').addEventListener('click', (e) => { if (e.detail === 0) { if (!G) openSetup(); else act(performance.now()); } }); // klavye ve ekran okuyucu
+const anyOpen = () => !$('setupOv').hidden || !$('rulesOv').hidden || !$('winOv').hidden;
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('rulesOv').hidden) { $('rulesOv').hidden = true; return; }
+  if (e.key !== ' ' && e.key !== 'Enter') return;
+  if (anyOpen() || e.repeat) return;
+  const a = document.activeElement;
+  if (a && a !== $('go') && (a.tagName === 'BUTTON' || a.tagName === 'INPUT')) return;
+  e.preventDefault(); Sfx.unlock(); act(stamp(e));
+});
+$('livesSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-l]'); if (b) { setup.lives = +b.dataset.l; renderSetup(); } });
+$('diffSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-d]'); if (b) { setup.diff = b.dataset.d; renderSetup(); } });
+$('presetSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-f]'); if (b) { setup.fuse = +b.dataset.f; renderSetup(); } });
+$('changeSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-c]'); if (b) { setup.change = b.dataset.c; renderSetup(); } });
+// Fitil süresi: dokun 5 saniye, basılı tut hızlı değişsin
+let holdT = null;
+const stepBy = (d) => { const v = Math.max(FUSE_MIN, Math.min(FUSE_MAX, setup.fuse + d)); if (v !== setup.fuse) { setup.fuse = v; renderSetup(); } };
+const endHold = () => { clearTimeout(holdT); holdT = null; };
+for (const [id, d] of [['fMinus', -FUSE_STEP], ['fPlus', FUSE_STEP]]) {
+  const b = $(id);
+  b.addEventListener('pointerdown', (e) => { if (e.button > 0) return; e.preventDefault(); stepBy(d); endHold(); holdT = setTimeout(function rep() { stepBy(d); holdT = setTimeout(rep, 110); }, 420); });
+  b.addEventListener('click', (e) => { if (e.detail === 0) stepBy(d); });
+  for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(ev, endHold);
+}
+addEventListener('pointerup', endHold);
+$('players').addEventListener('input', (e) => { const i = e.target.dataset.i; if (i != null) setup.players[+i] = e.target.value.slice(0, 14); });
+$('players').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
+$('players').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-x]'); if (!b || setup.players.length <= 2) return;
+  setup.players.splice(+b.dataset.x, 1); renderPlayers();
+});
+$('addBtn').addEventListener('click', () => {
+  if (setup.players.length >= 8) return;
+  setup.players.push(''); renderPlayers();
+  const ins = $('players').querySelectorAll('input'); ins[ins.length - 1].focus();
+});
+$('startBtn').addEventListener('click', () => {
+  Sfx.unlock();
+  setup.players = setup.players.map((p) => p.trim().slice(0, 14));
+  try { localStorage.setItem(KEY + 'setup', JSON.stringify(setup)); } catch (e) {}
+  newGame();
+});
+$('backBtn').addEventListener('click', () => { closeAll(); dirty = true; });
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { cancelRun(false); $('rulesOv').hidden = false; sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); newGame(); });
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn; applySound();
+  try { localStorage.setItem(KEY + 'sound', soundOn ? '1' : '0'); } catch (e) {}
+  if (soundOn) Sfx.unlock();
+  Sfx.hiss(soundOn && phase === 'run');
+});
+// Tam ekran: desteklemeyen tarayıcıda (iPhone Safari) düğme gizlenir
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+// Sekmeden çıkınca süren tur sayılmaz (arka planda zamanlayıcı yavaşlar)
+document.addEventListener('visibilitychange', () => { if (document.hidden) cancelRun(true); });
+addEventListener('resize', () => layout());
+document.addEventListener('fullscreenchange', () => layout()); document.addEventListener('webkitfullscreenchange', () => layout());
+if (window.ResizeObserver) new ResizeObserver(() => layout()).observe($('stage'));
+if (document.fonts && document.fonts.load) document.fonts.load('900 40px Inter').then(() => { fontsOk++; dirty = true; }).catch(() => {});
+
+// Test kancası (oyun akışını değiştirmez)
+window.__rids = {
+  get phase() { return phase; }, get G() { return G; }, get res() { return res; },
+  act, explode: () => explode(performance.now()), SYL, pickSyl, pickFuse, fuseRange, tickGap, nextAlive, applyBoom, ranking, layoutNow: layout, drawNow: () => draw(performance.now())
+};
+
+layout(); applyLang(); applySound(); openSetup(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

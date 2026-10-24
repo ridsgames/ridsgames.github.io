@@ -96,6 +96,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
 .game.mangala { background: #1A0F08 url("assets/mangala.jpg") center top / cover; }
 .game.yilan { background: #1A0F08 url("assets/yilan-merdiven.jpg") center top / cover; }
 .game.saniye { background: #1A0F08 url("assets/saniye.jpg") center 45% / cover; }
+.game.bomba { background: #1A0F08 url("assets/bomba.jpg") center 20% / cover; }
 .game::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,18,32,0) 25%, rgba(10,18,32,.6) 50%, rgba(10,18,32,.95) 80%); }
 .game .info { display: contents; }
 .game .info > * { position: relative; }
@@ -227,6 +228,14 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
           <span class="btn" data-i18n="play">Oyna</span>
         </div>
       </a>
+      <a class="game bomba cut" href="bomba/">
+        <div class="info">
+          <h3 data-i18n="bombaName">Bomba</h3>
+          <p data-i18n="bombaDesc">Hecenin geçtiği bir kelime söyleyin, bombayı yanınızdakine paslayın. Patladığında elinde olan can kaybeder.</p>
+          <div class="tags"><span class="tag cut" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag cut" data-i18n="tagWord">Kelime oyunu</span><span class="tag cut" data-i18n="tagTime">Ayarlanabilir süre</span></div>
+          <span class="btn" data-i18n="play">Oyna</span>
+        </div>
+      </a>
     </div>
   </section>
 
@@ -294,6 +303,8 @@ const I18N_EN = {
   yilanName: 'Snakes and Ladders', yilanDesc: 'Roll the die, climb the ladders, dodge the snakes and be the first to reach 100.',
   saniyeName: 'Second Sense', saniyeDesc: 'Pick a target time, keep counting in your head once the stopwatch hides and stop it right on time. Measured to the hundredth.',
   tagAlone: 'Solo', tag28: '2-8 players, one device', tagTime: 'Adjustable time',
+  bombaName: 'Word Bomb', bombaDesc: 'Say a word containing the letters and pass the bomb to your neighbour. Whoever holds it when it blows loses a life.',
+  tagWord: 'Word game',
   mobileGames: 'Mobile games', mobileDesc: 'Apps you can download to your device and play even without an internet connection.',
   misketDesc: 'The traditional street marbles game, with glass marbles. Play with friends on the same device or remotely with a Room Code.',
   soonPlay: 'Coming soon to Google Play',
