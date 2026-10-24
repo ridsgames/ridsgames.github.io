@@ -682,6 +682,7 @@
       // Puan çubuğu da hazneden çıktığı için tavan yükselir
       let vScale = 1;
       let ceilingY = 58;
+      let yatayHazne = false;
 
       // Fixed Normalized Positions for Rods & Floor (never move when background changes!)
       // Left and Right vertical rods placed symmetrically in the middle-upper water chamber
@@ -689,6 +690,9 @@
         { xNorm: 0.31, topNorm: 0.34, bottomNorm: 0.54 },
         { xNorm: 0.69, topNorm: 0.34, bottomNorm: 0.54 }
       ];
+      // Yatay hazne alçak: çubuk aynı orandaysa halkanın iki katı kadar kalır. Dikeydeki gibi ~3,5 halka boyuna
+      // aşağı doğru uzatılır; uç neredeyse aynı yerde kaldığı için halkayı uca çıkarmak zorlaşmaz
+      const ROD_SPAN_YATAY = { topNorm: 0.32, bottomNorm: 0.66 };
       const FLOOR_NORM = 0.77; // Top of the bottom button deck
       const VSCALE_REF = 700;
 
@@ -767,11 +771,12 @@
 
       // Kalınlık halkalardaki gibi üstten sınırlı: geniş (yatay) haznede çubuk halkaya göre kalınlaşmaz
       function computeFixedRods() {
+        const span = (rc) => (yatayHazne ? ROD_SPAN_YATAY : rc);
         rods = ROD_CONFIG.map((rc, index) => ({
           id: index,
           x: rc.xNorm * W,
-          topY: rc.topNorm * H,
-          bottomY: rc.bottomNorm * H,
+          topY: span(rc).topNorm * H,
+          bottomY: span(rc).bottomNorm * H,
           radius: Math.max(4, Math.min(5, W * 0.012)),
           baseHalfWidth: Math.max(18, Math.min(22, W * 0.052))
         }));
@@ -787,9 +792,9 @@
         canvas.width = Math.round(W * k * dpr);
         canvas.height = Math.round(H * k * dpr);
         ctx.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
-        const yatay = !canvas.parentElement.contains(document.getElementById('hud-score'));
-        vScale = yatay ? Math.min(1, H / VSCALE_REF) : 1;
-        ceilingY = yatay ? 20 : 58;
+        yatayHazne = !canvas.parentElement.contains(document.getElementById('hud-score'));
+        vScale = yatayHazne ? Math.min(1, H / VSCALE_REF) : 1;
+        ceilingY = yatayHazne ? 20 : 58;
         computeFixedRods();
         if (activeBgId) paintBackground();
       }
