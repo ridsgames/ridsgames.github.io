@@ -392,8 +392,12 @@ try { best = JSON.parse(localStorage.getItem(KEY + 'best')) || {}; } catch (e) {
 
 let G = null;            // oyun: ayarlar + tek kişi skoru ya da oyuncular
 let phase = 'setup';     // setup | ready | run | reveal | result | between | over
-let t0 = 0, hidT = 0, hiddenNow = false, lastSec = 0, res = null, revealAt = 0, resultAt = 0, lastAct = -1e9, bitenVar = false, timer = null, dirty = true, popAt = 0;
-const later = (f, ms) => { clearTimeout(timer); timer = setTimeout(f, ms); };
+let t0 = 0, hidT = 0, hiddenNow = false, lastSec = 0, res = null, revealAt = 0, resultAt = 0, lastAct = -1e9, bitenVar = false, dirty = true, popAt = 0;
+// Oyun saati: bütün akış buradan okur. Test advanceTime çağırınca saat yalnız onunla ilerler, sonuç her seferinde aynı olur
+let manualT = null, timerF = null, timerAt = 0;
+const clock = () => (manualT === null ? performance.now() : manualT);
+const later = (f, ms) => { timerF = f; timerAt = clock() + ms; }; // frame içinde çalışır
+function runTimer(now) { if (timerF && now >= timerAt) { const f = timerF; timerF = null; f(); } }
 const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'saniye/' + olay, title: 'Saniye: ' + ad, event: true }); } catch (e) {} };
 const cur = () => G.players[(G.idx + G.round - 1) % G.players.length];        // her tur sıra bir kişi kayar
 const nextUp = () => G.players[(G.idx + 1 + G.round - 1) % G.players.length];
@@ -406,7 +410,7 @@ function newGame() {
   sayac('basladi', 'oyun başladı');
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
   sayac(`mod/${s.mode}-${s.target}-${s.hide}`, `mod: ${s.mode === 'tek' ? 'tek kişi' : 'arkadaşlarla'}, ${s.target} sn, gizlenme ${s.hide}`);
-  clearTimeout(timer);
+  timerF = null;
   G = {
     mode: s.mode, target: s.target, hide: s.hide, hideAt: hideAtMs(s.target, s.hide), rounds: s.rounds,
     players: s.mode === 'grup' ? s.players.map((n, i) => ({ name: n.trim() || T().playerN(i + 1), total: 0, crowns: 0, errs: [] })) : [],
@@ -419,7 +423,7 @@ function act(ts) {
   if (!G || ts - lastAct < 150) return; // aynı dokunuşun ikinci olayı ya da iki parmak
   if (phase === 'ready') { lastAct = ts; start(ts); }
   else if (phase === 'run') { if (ts - t0 < 200) return; lastAct = ts; finish(ts - t0); }
-  else if (phase === 'result') { if (performance.now() - resultAt < 450) return; lastAct = ts; next(ts); }
+  else if (phase === 'result') { if (clock() - resultAt < 450) return; lastAct = ts; next(ts); }
 }
 function start(ts) {
   phase = 'run'; t0 = ts; lastSec = 0; res = null;
@@ -437,18 +441,18 @@ function finish(ms) {
   } else {
     const p = cur(); p.errs[G.round - 1] = err; p.total += Math.abs(err);
   }
-  phase = 'reveal'; revealAt = performance.now(); Sfx.stop(); buzz(15);
+  phase = 'reveal'; revealAt = clock(); Sfx.stop(); buzz(15);
   const slow = res.wasHidden && !REDUCED;
   if (slow) Sfx.sweep();
   later(showResult, slow ? 900 : 150);
   render();
 }
 function showResult() {
-  phase = 'result'; resultAt = performance.now();
+  phase = 'result'; resultAt = clock();
   const z = res.z; Sfx[z.k]();
   if (z.k === 'perfect') buzz([20, 40, 20, 40, 60]); else if (z.k === 'miss') buzz([50, 40, 50]);
   if (G.mode === 'tek') {
-    if (res.multUp) popAt = performance.now();
+    if (res.multUp) popAt = clock();
     if (G.lives <= 0) { phase = 'over'; later(gameOverSolo, 1300); }
     else if (G.n % 5 === 0 && levelF(G.n) < levelF(G.n - 1)) toast(T().harder);
   }
@@ -720,8 +724,7 @@ function hand(c) {
   c.beginPath(); c.moveTo(-0.014, 0.2); c.lineTo(-0.006, -0.84); c.lineTo(0, -0.93); c.lineTo(0.006, -0.84); c.lineTo(0.014, 0.2); c.closePath(); c.fill();
   circ(c, 0, 0.17, 0.045); c.fill();
 }
-function frame(now) {
-  requestAnimationFrame(frame);
+function update(now) {
   if (phase === 'run' && G) {
     const el = now - t0;
     if (el >= limitMs()) { lastAct = now; finish(limitMs()); }
@@ -731,6 +734,12 @@ function frame(now) {
       if (sec > lastSec) { lastSec = sec; if (!hiddenNow) Sfx.tick(sec); }
     }
   }
+  runTimer(now);
+}
+function frame() {
+  requestAnimationFrame(frame);
+  const now = clock();
+  update(now);
   const busy = phase === 'run' || phase === 'reveal' || ((phase === 'result' || phase === 'over') && now - resultAt < 2600);
   if (busy || dirty) { dirty = false; draw(now); }
 }
@@ -750,7 +759,7 @@ function renderHud() {
     $('hudMain').innerHTML = [0, 1, 2].map((i) => `<i class="${i < G.lives ? 'on' : ''}">♥︎</i>`).join('');
     $('hudSide').innerHTML = `<span>${t.score} <b>${num(G.score)}</b></span><span class="mult" id="mult">×${G.mult}</span>`;
     $('hudInfo').textContent = `${info} · ${t.best} ${num(Math.max(G.best, G.score))}`;
-    if (popAt && performance.now() - popAt < 300) { popAt = 0; $('mult').classList.add('pop'); }
+    if (popAt && clock() - popAt < 300) { popAt = 0; $('mult').classList.add('pop'); }
   } else {
     const p = cur();
     $('hudMain').textContent = p.name;
@@ -824,11 +833,11 @@ function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $
 
 // ---------- Olaylar ----------
 // Zamanlama dokunuşun kendi zaman damgasıyla ölçülür (çizim karesine bağlı değil)
-const stamp = (e) => (e && e.timeStamp > 0 && Math.abs(performance.now() - e.timeStamp) < 1000 ? e.timeStamp : performance.now());
+const stamp = (e) => (manualT === null && e && e.timeStamp > 0 && Math.abs(performance.now() - e.timeStamp) < 1000 ? e.timeStamp : clock());
 const press = (e) => { if (e.button > 0) return; Sfx.unlock(); act(stamp(e)); };
 $('go').addEventListener('pointerdown', press);
 cv.addEventListener('pointerdown', press);
-$('go').addEventListener('click', (e) => { if (e.detail === 0) act(performance.now()); }); // klavye ve ekran okuyucu
+$('go').addEventListener('click', (e) => { if (e.detail === 0) act(clock()); }); // klavye ve ekran okuyucu
 const anyOpen = () => !$('setupOv').hidden || !$('rulesOv').hidden || !$('roundOv').hidden || !$('winOv').hidden;
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !$('rulesOv').hidden) { $('rulesOv').hidden = true; return; }
@@ -898,10 +907,16 @@ document.addEventListener('fullscreenchange', () => layout()); document.addEvent
 if (window.ResizeObserver) new ResizeObserver(() => layout()).observe($('watchWrap'));
 if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('800 20px Inter'), document.fonts.load('700 20px Inter')]).then(() => { fontsOk++; dirty = true; }).catch(() => {});
 
-// Test kancası (oyun akışını değiştirmez)
+// Test kancası (oyun akışını değiştirmez). advanceTime: oyun saatini 16 ms adımlarla ileri sarar; advanceTime(0) saati dondurur
+function advanceTime(ms) {
+  if (manualT === null) manualT = performance.now();
+  for (let left = ms; left > 0; left -= 16) { manualT += Math.min(16, left); update(manualT); }
+  dirty = true; draw(clock());
+  return phase;
+}
 window.__rids = {
   get phase() { return phase; }, get G() { return G; }, get res() { return res; },
-  act, finish, unit, judge, fmt, hideAtMs, blindS, unitMs, levelF, scoreSolo, layoutNow: layout, drawNow: () => draw(performance.now())
+  act, now: clock, advanceTime, finish, unit, judge, fmt, hideAtMs, blindS, unitMs, levelF, scoreSolo, layoutNow: layout, drawNow: () => draw(clock())
 };
 
 layout(); applyLang(); applySound(); openSetup(); requestAnimationFrame(frame);

@@ -394,8 +394,12 @@ try { soundOn = localStorage.getItem(KEY + 'sound') !== '0'; } catch (e) {}
 let G = null;            // oyun: ayarlar, oyuncular, tur durumu
 let phase = 'setup';     // setup | ready | run | boom | result | over
 let t0 = 0, lastPass = 0, sylAt = 0, tickAt = -1e9, nextTick = 0, tickN = 0, boomAt = -1e9, resultAt = 0, lastAct = -1e9;
-let res = null, bitenVar = false, timer = null, dirty = true;
-const later = (f, ms) => { clearTimeout(timer); timer = setTimeout(f, ms); };
+let res = null, bitenVar = false, dirty = true;
+// Oyun saati: bütün akış buradan okur. Test advanceTime çağırınca saat yalnız onunla ilerler, sonuç her seferinde aynı olur
+let manualT = null, timerF = null, timerAt = 0;
+const clock = () => (manualT === null ? performance.now() : manualT);
+const later = (f, ms) => { timerF = f; timerAt = clock() + ms; }; // frame içinde çalışır
+function runTimer(now) { if (timerF && now >= timerAt) { const f = timerF; timerF = null; f(); } }
 const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'bomba/' + olay, title: 'Bomba: ' + ad, event: true }); } catch (e) {} };
 const pname = (i) => G.players[i].name;
 
@@ -405,7 +409,7 @@ function newGame() {
   sayac('basladi', 'oyun başladı');
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
   sayac(`mod/${s.diff}-${s.fuse}-${s.change}-${s.players.length}`, `mod: ${s.players.length} kişi, ${s.diff} heceler, ${s.fuse} sn, hece ${s.change}`);
-  clearTimeout(timer); Sfx.hiss(false);
+  timerF = null; Sfx.hiss(false);
   const n = s.players.length, first = Math.floor(Math.random() * n);
   G = {
     lives: s.lives, diff: s.diff, fuse: s.fuse, change: s.change,
@@ -419,7 +423,7 @@ function act(ts) {
   if (!G || ts - lastAct < 150) return; // aynı dokunuşun ikinci olayı ya da iki parmak
   if (phase === 'ready') { lastAct = ts; lightFuse(ts); }
   else if (phase === 'run') { if (ts - lastPass < PASS_GUARD) return; lastAct = ts; pass(ts); }
-  else if (phase === 'result') { if (performance.now() - resultAt < 900) return; lastAct = ts; nextRound(); }
+  else if (phase === 'result') { if (clock() - resultAt < 900) return; lastAct = ts; nextRound(); }
 }
 function lightFuse(ts) {
   phase = 'run'; t0 = ts; lastPass = ts; tickN = 0; tickAt = -1e9; nextTick = ts + 350;
@@ -446,7 +450,7 @@ function explode(now) {
   render();
 }
 function showResult() {
-  phase = 'result'; resultAt = performance.now();
+  phase = 'result'; resultAt = clock();
   if (res.out) Sfx.out();
   // patlatan sonraki turu başlatır; elendiyse sıradaki
   G.starter = G.players[res.who].out ? nextAlive(G.players, res.who) : res.who;
@@ -712,14 +716,18 @@ function draw(now) {
   else drawBomb(cx, now);
 }
 let lastFrame = 0;
-function frame(now) {
-  requestAnimationFrame(frame);
-  const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000)); lastFrame = now;
+function update(now, dt) {
   if (phase === 'run' && G) {
     if (now >= Math.max(t0 + G.fuseMs, lastPass + GRACE)) explode(now);
     else if (now >= nextTick) { tickAt = now; Sfx.tick(tickN++); nextTick = now + tickGap((now - t0) / G.fuseMs); }
   }
   stepSparks(dt, now);
+  runTimer(now);
+}
+function frame() {
+  requestAnimationFrame(frame);
+  const now = clock(), dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000)); lastFrame = now;
+  update(now, dt);
   const busy = phase === 'run' || sparks.length > 0 || ((phase === 'boom' || phase === 'result' || phase === 'over') && now - boomAt < 3200);
   if (busy || dirty) { dirty = false; draw(now); }
 }
@@ -752,7 +760,7 @@ function renderGo() {
   const t = T(), b = $('go'); let s = t.light, cls = '';
   if (G && phase === 'run') { s = t.passTo(pname(nextAlive(G.players, G.holder))); cls = 'pass'; }
   else if (G && phase === 'boom') { s = '…'; cls = 'wait'; }
-  else if (G && phase === 'result') { s = t.nextRound; if (performance.now() - resultAt < 900) cls = 'wait'; }
+  else if (G && phase === 'result') { s = t.nextRound; if (clock() - resultAt < 900) cls = 'wait'; }
   else if (G && phase === 'over') { s = t.overBtn; cls = 'wait'; }
   else if (!G) s = t.start;
   b.textContent = s; b.className = 'go' + (cls ? ' ' + cls : '');
@@ -799,14 +807,14 @@ function applyLang() {
 function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
 
 // ---------- Olaylar ----------
-const stamp = (e) => (e && e.timeStamp > 0 && Math.abs(performance.now() - e.timeStamp) < 1000 ? e.timeStamp : performance.now());
+const stamp = (e) => (manualT === null && e && e.timeStamp > 0 && Math.abs(performance.now() - e.timeStamp) < 1000 ? e.timeStamp : clock());
 $('go').addEventListener('pointerdown', (e) => {
   if (e.button > 0) return;
   Sfx.unlock();
   if (!G) { openSetup(); return; }
   act(stamp(e));
 });
-$('go').addEventListener('click', (e) => { if (e.detail === 0) { if (!G) openSetup(); else act(performance.now()); } }); // klavye ve ekran okuyucu
+$('go').addEventListener('click', (e) => { if (e.detail === 0) { if (!G) openSetup(); else act(clock()); } }); // klavye ve ekran okuyucu
 const anyOpen = () => !$('setupOv').hidden || !$('rulesOv').hidden || !$('winOv').hidden;
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !$('rulesOv').hidden) { $('rulesOv').hidden = true; return; }
@@ -880,10 +888,16 @@ document.addEventListener('fullscreenchange', () => layout()); document.addEvent
 if (window.ResizeObserver) new ResizeObserver(() => layout()).observe($('stage'));
 if (document.fonts && document.fonts.load) document.fonts.load('900 40px Inter').then(() => { fontsOk++; dirty = true; }).catch(() => {});
 
-// Test kancası (oyun akışını değiştirmez)
+// Test kancası (oyun akışını değiştirmez). advanceTime: oyun saatini 16 ms adımlarla ileri sarar; advanceTime(0) saati dondurur
+function advanceTime(ms) {
+  if (manualT === null) manualT = performance.now();
+  for (let left = ms; left > 0; left -= 16) { const d = Math.min(16, left); manualT += d; update(manualT, d / 1000); }
+  lastFrame = clock(); dirty = true; draw(clock());
+  return phase;
+}
 window.__rids = {
   get phase() { return phase; }, get G() { return G; }, get res() { return res; },
-  act, explode: () => explode(performance.now()), SYL, pickSyl, pickFuse, fuseRange, tickGap, nextAlive, applyBoom, ranking, layoutNow: layout, drawNow: () => draw(performance.now())
+  act, now: clock, advanceTime, explode: () => explode(clock()), SYL, pickSyl, pickFuse, fuseRange, tickGap, nextAlive, applyBoom, ranking, layoutNow: layout, drawNow: () => draw(clock())
 };
 
 layout(); applyLang(); applySound(); openSetup(); requestAnimationFrame(frame);
