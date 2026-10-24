@@ -265,7 +265,7 @@ a.btn { display: inline-flex; align-items: center; padding: 0 22px; text-decorat
 
     <div class="meta">
       <span id="updated"></span>
-      <span><a href="https://ridsgames.goatcounter.com/" target="_blank" rel="noopener">GoatCounter'da aç</a> · <button id="forget" type="button">Anahtarı sil</button></span>
+      <span>Bu tarayıcı sayılmıyor · <a href="https://ridsgames.goatcounter.com/" target="_blank" rel="noopener">GoatCounter'da aç</a> · <button id="forget" type="button">Anahtarı sil</button></span>
     </div>
   </section>
 </main>
@@ -302,6 +302,9 @@ const store = {
   del(k) { try { localStorage.removeItem(k); } catch (e) {} }
 };
 let key = store.get('rids_panel_key');
+// Paneli açan tarayıcı sayılmaz: GoatCounter'ın count.js'i skipgc = 't' görünce sayfa ve olay göndermez. Site verisi
+// silinince bu da gider, anahtar yeniden girilince geri gelir
+if (key) store.set('skipgc', 't');
 let days = +(store.get('rids_panel_days') || 7);
 if (![1, 7, 30, 90].includes(days)) days = 7;
 let loadId = 0, lastOk = 0;
@@ -641,7 +644,7 @@ function showDash() {
 $('keyForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const v = $('keyInput').value.trim(); if (!v) return;
-  key = v; store.set('rids_panel_key', v); $('keyInput').value = '';
+  key = v; store.set('rids_panel_key', v); store.set('skipgc', 't'); $('keyInput').value = '';
   if (location.hash) history.replaceState(null, '', location.pathname);
   showDash();
 });
