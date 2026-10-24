@@ -17,8 +17,7 @@
   .ov p { max-width: 330px; font-size: 14px; line-height: 1.5; opacity: .85; }
   h1 { font-size: 40px; }
   button { font: inherit; font-size: 18px; font-weight: 700; min-width: 220px; padding: 12px 24px; border: 0; border-radius: 12px; background: #e9b44c; color: #2b1a05; cursor: pointer; }
-  #gol, #aut { position: fixed; left: 0; right: 0; top: 42%; text-align: center; font-size: 72px; font-weight: 900; text-shadow: 0 4px 16px #000; pointer-events: none; }
-  #aut { font-size: 52px; }
+  #gol { position: fixed; left: 0; right: 0; top: 42%; text-align: center; font-size: 72px; font-weight: 900; text-shadow: 0 4px 16px #000; pointer-events: none; }
   /* Para seçimi: büyük para çivilerin arasından zor geçer */
   .para { display: flex; gap: 6px; }
   .para button { min-width: 0; width: 96px; padding: 8px 6px; font-size: 15px; background: #2a3038; color: #e8eef7; }
@@ -79,10 +78,9 @@
 </header>
 <div id="wrap"><canvas id="c"></canvas></div>
 <div id="gol" hidden data-i18n="goal">GOL!</div>
-<div id="aut" hidden></div>
 <div id="menu" class="ov">
   <h1 data-i18n="title">Çivi Futbolu</h1>
-  <p data-i18n="help">Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı yukarıdaki, Mavi aşağıdaki kaleye atar. Sırası gelen arka arkaya 3 kez iter, para durduğu yerden oynanır. Tahtadan düşen para rakibe geçer. 5 gol atan kazanır.</p>
+  <p data-i18n="help">Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı yukarıdaki, Mavi aşağıdaki kaleye atar. Sıra her itişte değişir, para durduğu yerden oynanır. 5 gol atan kazanır.</p>
   <div class="para">
     <button class="on"><span data-i18n="kr5">5 kuruş</span><small data-i18n="kr5s">amatör</small></button>
     <button><span data-i18n="kr10">10 kuruş</span><small data-i18n="kr10s">yarı pro</small></button>
@@ -100,8 +98,7 @@
   <button id="toMenu" data-i18n="menu">Menü</button>
 </div>
 <script>
-// Gerçek ölçüler: 20×32 cm'lik tahta (sokakta yaygın 20×30 sunta), 1 mm = 2 birim. Kırmızı kenar da tahtanın
-// boyalı kısmı: para üstünden kayar, merkezi tahtanın dış kenarını geçince düşer
+// Gerçek ölçüler: 20×32 cm'lik tahta (sokakta yaygın 20×30 sunta), 1 mm = 2 birim. Para kırmızı çerçeveden seker
 const W = 400, H = 640, L = 16, R = 384, TOP = 46, BOT = 594; // tahta ve yeşil saha sınırları
 const GL = 140, GR = 260, GD = 34;   // kale ağzı 6 cm (direkler x), file derinliği 17 mm
 // Paralar (2005 serisi 5, 10, 25 kuruş; çap mm): büyüdükçe çivilerin arasından geçmek zorlaşır. Sokakta 5 kuruş
@@ -112,27 +109,22 @@ const NR = 2.5, PR = 4;              // çivi gövdesi yarıçapı: 5 cm'lik tel
 const NH = 8, HR = 5, GH = 12;       // eğik bakış: çivi boyu, çivi başı (5 mm), kale direği boyu
 // Ayar düğmeleri: oyunun hissi bunlarla değişir
 const DECEL = 3000;                  // tahtanın sürtünmesi: boyalı tahtada ~0,15 (0,15 × 9,81 m/s² × 2 birim/mm)
-const E_NAIL = 0.55, E_NET = 0.1;    // çividen sekme; fileye çarpan paranın kalan hızı
+const E_NAIL = 0.55, E_WALL = 0.5;   // çividen / kenardan sekme
 const FLING = 1.6, MAX_V = 2800, MIN_V = 150; // fırlatma gücü (ekrandaki tahta gerçeğinden ~3 kat küçük); en sert itiş 1,4 m/s
 const CARRY = 50;                    // parayı tutup taşıyabileceğin mesafe
-const HAK = 3;                       // sırası gelen arka arkaya bu kadar iter
-// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı sıra (3 itiş) başına ~%21, ~%45, ~%75
-const AI_ERR = [[1.1, .25], [.5, .13], [.38, .11]];
+// Bilgisayarın nişan (radyan) ve güç hatası: kolay, orta, zor. Ölçülen gol oranı (5 kuruşla, kendine karşı) atış başına ~%8, ~%10, ~%19
+const AI_ERR = [[.7, .2], [.15, .06], [.05, .02]];
 const DT = 1 / 240, WIN = 5;
 
-// Çiviler, gerçek tahtadaki gibi: iki takımın 11'er oyuncusu (kaleci, 4 defans, 4 orta saha, 2 forvet), 4 köşe bayrağı,
-// her kalede iki kalın direk ve filenin arka köşelerinde iki çivi. Mavi'nin dizilişi Kırmızı'nınkinin sahanın ortası
-// etrafında yarım dönmüşü (iki taraf eşit); sağ ve sol bilerek simetrik değil, düz koridor kalmasın
+// Çiviler: şaşırtmalı sıralar (4 ve 3 çivi, 48 birim arayla), her kalede iki kalın direk ve filenin arka köşelerinde iki çivi.
+// Sıradaki çiviler 4,5 cm arayla (5 kuruşun ~2,6 katı), çapraz geçit 3 cm: tahta yapanların 4'lü ve 3'lü sıralarıyla aynı oran
 const nails = [];
-const KIRMIZI = [[200, 560], [68, 495], [152, 495], [243, 495], [334, 495], [62, 375], [140, 375], [225, 375], [318, 375], [158, 210], [262, 210]];
-for (const [x, y] of KIRMIZI) nails.push({ x, y, r: NR, h: NH }, { x: W - x, y: H - y, r: NR, h: NH });
-for (const x of [L + 6, R - 6]) for (const y of [TOP, BOT]) nails.push({ x, y, r: NR, h: NH, flag: 1 });
+for (let k = -5; k <= 5; k++)
+  for (const x of k % 2 ? [110, 200, 290] : [65, 155, 245, 335]) nails.push({ x, y: H / 2 + 48 * k, r: NR, h: NH });
 for (const [y, d] of [[TOP, -1], [BOT, 1]]) for (const x of [GL, GR]) nails.push({ x, y, r: PR, h: GH, post: d }, { x, y: y + d * GD, r: NR, h: GH });
-const NETS = [];                     // file: yanlar ve arka
-for (const [y0, y1] of [[TOP, TOP - GD], [BOT, BOT + GD]]) NETS.push([GL, y0, GL, y1], [GR, y0, GR, y1], [GL, y1, GR, y1]);
 
 let hitV = 0;
-// Fizik adımı; gol olursa 'top' (kırmızının golü) ya da 'bottom' (mavinin golü), para tahtadan düşerse 'out' döner
+// Fizik adımı; gol olursa 'top' (kırmızının golü) ya da 'bottom' (mavinin golü) döner
 function step(c) {
   const s = Math.hypot(c.vx, c.vy);
   if (s) { const k = Math.max(0, s - DECEL * DT) / s; c.vx *= k; c.vy *= k; }
@@ -146,35 +138,28 @@ function step(c) {
     c.x = n.x + nx * m; c.y = n.y + ny * m;
     if (vn < 0) { c.vx -= (1 + E_NAIL) * vn * nx; c.vy -= (1 + E_NAIL) * vn * ny; hitV = Math.max(hitV, -vn); }
   }
-  if (c.y < TOP + CR || c.y > BOT - CR) for (const [x1, y1, x2, y2] of NETS) { // fileye dışarıdan çarpan para yumuşakça durur
-    const ex = x2 - x1, ey = y2 - y1, u = Math.max(0, Math.min(1, ((c.x - x1) * ex + (c.y - y1) * ey) / (ex * ex + ey * ey)));
-    const dx = c.x - x1 - u * ex, dy = c.y - y1 - u * ey, d = Math.hypot(dx, dy);
-    if (!d || d >= CR) continue;
-    const nx = dx / d, ny = dy / d, vn = c.vx * nx + c.vy * ny;
-    c.x += nx * (CR - d); c.y += ny * (CR - d);
-    if (vn < 0) { c.vx -= (1 + E_NET) * vn * nx; c.vy -= (1 + E_NET) * vn * ny; }
-  }
+  if (c.x < L + CR) { c.x = L + CR; if (c.vx < 0) { hitV = Math.max(hitV, -c.vx); c.vx *= -E_WALL; } }
+  if (c.x > R - CR) { c.x = R - CR; if (c.vx > 0) { hitV = Math.max(hitV, c.vx); c.vx *= -E_WALL; } }
   if (c.x > GL && c.x < GR) {        // kale ağzı: paranın merkezi çizgiyi geçerse gol
     if (c.y < TOP) return 'top';
     if (c.y > BOT) return 'bottom';
+  } else {
+    if (c.y < TOP + CR) { c.y = TOP + CR; if (c.vy < 0) { hitV = Math.max(hitV, -c.vy); c.vy *= -E_WALL; } }
+    if (c.y > BOT - CR) { c.y = BOT - CR; if (c.vy > 0) { hitV = Math.max(hitV, c.vy); c.vy *= -E_WALL; } }
   }
-  if (c.x < 0 || c.x > W || c.y < 0 || c.y > H) return 'out'; // merkezi kenarı geçen para devrilip düşer
 }
 
 // Bilgisayarın arayışı (alt kaleye atar): her yön ve güçte itişi simüle eder, sonucu gol olasılığı cinsinden puanlar.
-// Gol 1, kendi kalesine -1. Son hakta para nerede kalırsa Kırmızı oradan oynar: Mavi kalesine yakınsa eksi. Önceki
-// haklarda kale önüne yaklaşmak artı. Tahtadan düşen para rakibe geçer. En iyi adayları kendi nişan ve güç hatasıyla
-// birkaç kez daha dener, ortalaması en yüksek olanı seçer: hatası büyükse riskli sert vuruş yerine güvenli itişe döner
+// Gol 1, kendi kalesine -1; gol yoksa Kırmızı paranın durduğu yerden oynar, Mavi kalesine yakınsa eksi. En iyi adayları
+// kendi nişan ve güç hatasıyla birkaç kez daha dener, ortalaması en yüksek olanı seçer: hatası büyükse riskli vuruştan kaçar
 const AI_SP = [400, 700, 1000, 1400, 1900, 2400, 2800];
-function best(p, last, [ea, es] = [0, 0]) {
+function best(p, [ea, es] = [0, 0]) {
   const val = (a, sp) => {
     const c = { x: p.x, y: p.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp };
     let g; for (let k = 0; k < 2400 && !g && (c.vx || c.vy); k++) g = step(c);
     if (g === 'bottom') return 1;
     if (g === 'top') return -1;
-    const rakip = -.3 * (1 - c.y / H);
-    if (g === 'out') return rakip - .1;
-    return last ? rakip : .5 * Math.exp(-Math.hypot(c.x - W / 2, BOT - 70 - c.y) / 120);
+    return -.3 * (1 - c.y / H);
   };
   const ad = [];
   for (let i = 0; i < 120; i++) for (const sp of AI_SP) { const a = i / 120 * 2 * Math.PI; ad.push({ a, sp, v: val(a, sp) }); }
@@ -191,14 +176,14 @@ function best(p, last, [ea, es] = [0, 0]) {
 
 const $ = id => document.getElementById(id);
 const cv = $('c'), ctx = cv.getContext('2d'), board = document.createElement('canvas'), pins = document.createElement('canvas');
-let mode, level = 2, para = 0, score = [0, 0], turn = 0, hak = HAK, outAt = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1, coinImg;
+let mode, level = 2, para = 0, score = [0, 0], turn = 0, coin, state = 'menu', hold = null, aiTimer, ac, scale = 1, K = 1, coinImg;
 // Dil: ?lang=en|tr adresten, yoksa tarayıcı dili (tr dışı her dil İngilizce). Türkçe metinler HTML'de durur.
 const LANG = /^tr/i.test(new URLSearchParams(location.search).get('lang') || navigator.language || 'tr') ? 'tr' : 'en';
 const I18N_EN = {
   title: 'Nail Football', red: 'Red', blue: 'Blue', cpu: 'Computer', goal: 'GOAL!', menu: 'Menu', fs: 'Full screen',
-  help: 'Press on the coin, hold and drag, then flick it. Red shoots at the top goal, Blue at the bottom one. Each turn is 3 pushes in a row, played from where the coin stops. A coin that falls off the board goes to the opponent. First to 5 goals wins.',
-  helpSide: 'Press on the coin, hold and drag, then flick it. Red shoots at the right goal, Blue at the left one. Each turn is 3 pushes in a row, played from where the coin stops. A coin that falls off the board goes to the opponent. First to 5 goals wins.',
-  kr5: '17 mm', kr5s: 'beginner', kr10: '19 mm', kr10s: 'semi-pro', kr25: '21.5 mm', kr25s: 'pro', out: 'OUT!', throwIn: 'OUT!',
+  help: 'Press on the coin, hold and drag, then flick it. Red shoots at the top goal, Blue at the bottom one. Turns switch after every push, played from where the coin stops. First to 5 goals wins.',
+  helpSide: 'Press on the coin, hold and drag, then flick it. Red shoots at the right goal, Blue at the left one. Turns switch after every push, played from where the coin stops. First to 5 goals wins.',
+  kr5: '17 mm', kr5s: 'beginner', kr10: '19 mm', kr10s: 'semi-pro', kr25: '21.5 mm', kr25s: 'pro',
   p2: '2 Players', vsCpu: 'Against the computer:', easy: 'Easy', medium: 'Medium', hard: 'Hard', again: 'Play Again',
   think: 'thinking…', turn: 'Turn', aim: 'press the coin, drag, flick',
   cpuWins: 'Computer wins', youWin: 'You win!', wins: 'wins!'
@@ -224,13 +209,13 @@ function newGame(m) {
   sayac(m === 'ai' ? 'mod/bilgisayar-' + LV[level] : 'mod/2-oyuncu', m === 'ai' ? 'mod: bilgisayara karşı, ' + LV[level] : 'mod: 2 oyuncu');
   try { ac = ac || new AudioContext(); } catch {}
   CR = COINS[para]; COIN = CR + 6; coinImg = makeCoin();
-  $('menu').hidden = $('end').hidden = $('gol').hidden = $('aut').hidden = true;
+  $('menu').hidden = $('end').hidden = $('gol').hidden = true;
   kickoff(0);
 }
-function kickoff(t) { coin = { x: W / 2, y: H / 2, vx: 0, vy: 0 }; turn = t; hak = HAK; aim(); }
+function kickoff(t) { coin = { x: W / 2, y: H / 2, vx: 0, vy: 0 }; turn = t; aim(); }
 function aim() {
   state = 'aim';
-  if (mode === 'ai' && turn) aiTimer = setTimeout(aiShoot, hak === HAK ? 700 : 450);
+  if (mode === 'ai' && turn) aiTimer = setTimeout(aiShoot, 700);
 }
 // Yatay telefonda saha saat yönünde çeyrek tur döner: mantıksal üst sağa gelir. Fizik ve bilgisayar aynı koordinatlarda kalır
 const yatayMq = matchMedia('(orientation: landscape) and (max-height: 500px)');
@@ -238,33 +223,10 @@ let yan = false, TR = [1, 0, 0, 1, 0, 0], sb = 36;                     // sb: ka
 const HELP_TR = $('menu').querySelector('[data-i18n="help"]').textContent;
 function helpText() {
   $('menu').querySelector('[data-i18n="help"]').textContent = yan
-    ? t('helpSide', 'Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı sağdaki, Mavi soldaki kaleye atar. Sırası gelen arka arkaya 3 kez iter, para durduğu yerden oynanır. Tahtadan düşen para rakibe geçer. 5 gol atan kazanır.')
+    ? t('helpSide', 'Paranın üstüne bas, tutup sürükle ve fırlat. Kırmızı sağdaki, Mavi soldaki kaleye atar. Sıra her itişte değişir, para durduğu yerden oynanır. 5 gol atan kazanır.')
     : t('help', HELP_TR);
 }
-function shoot(vx, vy) { coin.vx = vx; coin.vy = vy; hak--; state = 'moving'; }
-// Tahtadan düşen para rakibe geçer, düştüğü yerin hemen içine kenara dayalı konur (gerçekte yarısı dışarıda bırakılır,
-// ekranda yarısı kesilmesin diye içeride). Orada çivi ya da file varsa kenar boyunca en yakın boş yere kayar
-function out() {
-  const yanKenar = coin.x < 0 || coin.x > W;
-  state = 'out'; outAt = performance.now();
-  $('aut').textContent = yanKenar ? t('throwIn', 'TAÇ!') : t('out', 'AUT!'); $('aut').hidden = false;
-  tik(0.2, 220, 0.3);
-  setTimeout(() => {
-    $('aut').hidden = true;
-    if (state !== 'out') return;
-    place(coin, yanKenar); turn = 1 - turn; hak = HAK; aim();
-  }, 1100);
-}
-const free = (x, y) => nails.every(n => Math.hypot(x - n.x, y - n.y) >= CR + n.r) && !((y < TOP || y > BOT) && x > GL - CR && x < GR + CR);
-function place(c, boyuna) {
-  const x0 = Math.min(W - CR, Math.max(CR, c.x)), y0 = Math.min(H - CR, Math.max(CR, c.y));
-  for (let k = 0; k < 400; k++) {
-    const o = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 2;
-    const x = boyuna ? x0 : Math.min(W - CR, Math.max(CR, x0 + o)), y = boyuna ? Math.min(H - CR, Math.max(CR, y0 + o)) : y0;
-    if (free(x, y)) { c.x = x; c.y = y; break; }
-  }
-  c.vx = c.vy = 0;
-}
+function shoot(vx, vy) { coin.vx = vx; coin.vy = vy; state = 'moving'; }
 function goal(side) {
   const s = side === 'top' ? 0 : 1;  // kırmızı yukarı, mavi aşağı atar
   score[s]++; state = 'goal'; golBy = s;
@@ -285,7 +247,7 @@ function goal(side) {
 // Bilgisayar: en iyi itişi bulur, seviyesine göre nişan ve güç hatası katar
 function aiShoot() {
   if (state !== 'aim' || mode !== 'ai' || !turn) return;
-  const [ea, es] = AI_ERR[level], b = best(coin, hak === 1, AI_ERR[level]);
+  const [ea, es] = AI_ERR[level], b = best(coin, AI_ERR[level]);
   const a = b.a + (Math.random() - .5) * ea, sp = b.sp * (1 + (Math.random() - .5) * es);
   shoot(Math.cos(a) * sp, Math.sin(a) * sp);
 }
@@ -372,8 +334,8 @@ function drawBoard(g, p) {
   g.clip();
   g.fillStyle = '#1f9d4b'; g.fillRect(L, TOP - GD, R - L, BOT - TOP + 2 * GD);
   if (tex.zemin.naturalWidth) g.drawImage(tex.zemin, L, TOP - GD, R - L, BOT - TOP + 2 * GD);
+  g.strokeStyle = '#00000059'; g.lineWidth = 6; g.strokeRect(L, TOP, R - L, BOT - TOP); // çerçeve gölgesi
   g.restore();
-  g.strokeStyle = '#00000040'; g.lineWidth = 1; g.strokeRect(L, TOP, R - L, BOT - TOP); // boya sınırı: kenar yükseltisi yok
   const cx = W / 2, cy = H / 2, a = Math.asin(.6);                       // beyaz saha çizgileri
   g.strokeStyle = '#ffffffe0'; g.lineWidth = 2; g.beginPath();
   g.rect(L + 6, TOP, R - L - 12, BOT - TOP);
@@ -413,11 +375,6 @@ function drawBoard(g, p) {
       p.strokeStyle = '#ffffff55'; p.lineWidth = .6; p.beginPath();
       for (let k = 2.5; k < h - 2; k += 1.6) { const [a1, b1] = up(n.x, n.y, k), [o1, o2] = scr(w / 2 + .6, 0); p.moveTo(a1 - o1, b1 - o2 - .5); p.lineTo(a1 + o1, b1 + o2 + .5); }
       p.stroke();
-    }
-    if (n.flag) {                                                        // köşe bayrağı
-      const [fx, fy] = up(n.x, n.y, h - 1.5), [mx, my] = up(n.x, n.y, h - 6.5), [ox, oy] = scr(n.x < W / 2 ? 10 : -10, 0);
-      p.fillStyle = '#ffd23f'; p.strokeStyle = '#8a6a00'; p.lineWidth = .5;
-      p.beginPath(); p.moveTo(fx, fy); p.lineTo((fx + mx) / 2 + ox, (fy + my) / 2 + oy); p.lineTo(mx, my); p.closePath(); p.fill(); p.stroke();
     }
     p.fillStyle = '#262626'; p.beginPath(); oval(p, bx, by, hr, hr * .6); p.fill();
     const hd = p.createRadialGradient(tx + hx, ty + hy, .2, tx, ty, hr);
@@ -469,18 +426,11 @@ function lines(txt, w) {                                                 // keli
   for (const k of txt.split(' ')) { const n = out[out.length - 1] ? out[out.length - 1] + ' ' + k : k; if (out[out.length - 1] && ctx.measureText(n).width > w) out.push(k); else out[out.length - 1] = n; }
   return out;
 }
-function pips(cx, cy, r, col) {                                         // kalan itme hakları: dolu daire kalan, boş daire kullanılan
-  for (let i = 0; i < HAK; i++) {
-    ctx.beginPath(); ctx.arc(cx + (i - (HAK - 1) / 2) * r * 2.8, cy, r, 0, 7);
-    if (i < hak) { ctx.fillStyle = col; ctx.fill(); } else { ctx.lineWidth = 1.2; ctx.strokeStyle = col + 'aa'; ctx.stroke(); }
-  }
-}
 function drawBoards(now) {
   const D = K / scale, cw = cv.width / D, ch = cv.height / D, d = sb * scale, up = (s) => s.toLocaleUpperCase(LANG);
   ctx.setTransform(D, 0, 0, D, 0, 0); ctx.textBaseline = 'middle';
   for (const i of [0, 1]) {
     const c = TEAM[i], on = state === 'aim' && turn === i, gol = state === 'goal' && golBy === i, cpu = mode === 'ai' && i === 1;
-    const oyunda = turn === i && (state === 'aim' || state === 'moving');
     const name = up(names()[i]), sc = String(score[i]), arrow = yan ? (i ? '←' : '→') : i ? '↓' : '↑';
     const label = !on ? '' : cpu ? t('think', 'düşünüyor…') : up(t('turn', 'Sıra')), hint = t('aim', 'paraya bas, sürükle, fırlat');
     let x, y, w, h;                                                      // tabela: şeridin içinde, yatayda köşe düğmelerine yer bırakır
@@ -497,9 +447,7 @@ function drawBoards(now) {
       const p = Math.min(14, h * .3), two = h >= 46, sf = Math.min(h * (two ? .74 : .8), 46);
       ctx.textAlign = 'right'; ctx.font = `900 ${sf}px system-ui, sans-serif`; ctx.fillStyle = led;
       ctx.fillText(sc, x + w - p, y + h / 2 + sf * .04);
-      const pr = Math.min(4.5, h * .1), pw = oyunda ? HAK * pr * 2.8 : 0, scw = ctx.measureText(sc).width;
-      if (oyunda) pips(x + w - 2 * p - scw - pw / 2, y + h / 2, pr, c);
-      const room = w - 3 * p - scw - pw;
+      const room = w - 3 * p - ctx.measureText(sc).width;
       ctx.textAlign = 'left'; ctx.fillStyle = c;
       fit(name, room * (two ? 1 : .55), Math.min(h * (two ? .34 : .5), 20), 800);
       const nw = ctx.measureText(name).width;
@@ -527,9 +475,8 @@ function drawBoards(now) {
       fit(name, bot - top, Math.min(15, iw * .6), 800);
       ctx.save(); ctx.translate(cx, (top + bot) / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(name, 0, 0); ctx.restore();
     }
-    let ly = y + h / 2 + sf * .65;
-    if (oyunda) { const pr = Math.min(4, iw * .08); pips(cx, ly + pr, pr, c); ly += 2 * pr + 4; }
     if (!label) continue;
+    let ly = y + h / 2 + sf * .65;
     ctx.fillStyle = '#e8eef7';
     if (cpu) {                                                           // dar şeritte "düşünüyor" yerine yanıp sönen noktalar
       const dar = fit(label, iw, 12, 700) < 9;
@@ -557,10 +504,8 @@ function draw(t) {
       ctx.globalAlpha = .55 + .4 * Math.sin(t / 200); ctx.strokeStyle = turn ? '#5aa8ff' : '#ff6a5c'; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(x, y, CR + 6, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
     }
-    ctx.globalAlpha = state === 'out' ? Math.max(0, 1 - (t - outAt) / 300) : 1; // tahtadan düşen para kaybolur
     if (yan) { ctx.save(); ctx.translate(x, y); ctx.rotate(-Math.PI / 2); ctx.drawImage(coinImg, -COIN, -COIN, 2 * COIN, 2 * COIN); ctx.restore(); } // para ekranda dik
     else ctx.drawImage(coinImg, x - COIN, y - COIN, 2 * COIN, 2 * COIN);
-    ctx.globalAlpha = 1;
     if (y < TOP || y > BOT) drawGoal(ctx, GOALS[y < TOP ? 0 : 1]);      // para filede: file ve borular önde
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(pins, 0, 0);        // çiviler paranın önünde durur
@@ -598,9 +543,8 @@ function frame(t) {
     hitV = 0; acc += dt;
     for (; acc >= DT && state === 'moving'; acc -= DT) {
       const g = step(coin);
-      if (g === 'out') out();
-      else if (g) goal(g);
-      else if (!coin.vx && !coin.vy) { if (!hak) { turn = 1 - turn; hak = HAK; } aim(); } // hak bitince sıra rakibe
+      if (g) goal(g);
+      else if (!coin.vx && !coin.vy) { turn = 1 - turn; aim(); }
     }
     if (hitV > 40) tik(Math.min(.3, hitV / 3000), 1700, .05);
   } else acc = 0;
@@ -624,7 +568,7 @@ $('fsBtn').onclick = () => {
 };
 $('toMenu').onclick = $('menuBtn').onclick = () => {
   clearTimeout(aiTimer); hold = null; state = 'menu';
-  $('end').hidden = $('aut').hidden = true; $('menu').hidden = false;
+  $('end').hidden = true; $('menu').hidden = false;
 };
 </script>
 </body>
