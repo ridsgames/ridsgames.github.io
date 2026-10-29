@@ -97,6 +97,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
 .game.yilan { background: #1A0F08 url("assets/yilan-merdiven.jpg") center top / cover; }
 .game.saniye { background: #1A0F08 url("assets/saniye.jpg") center 45% / cover; }
 .game.bomba { background: #1A0F08 url("assets/bomba.jpg") center 20% / cover; }
+.game.mayin { background: #0B1220 url("assets/mayin-tarlasi.jpg") center 30% / cover; }
 .game::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,18,32,0) 25%, rgba(10,18,32,.6) 50%, rgba(10,18,32,.95) 80%); }
 .game .info { display: contents; }
 .game .info > * { position: relative; }
@@ -236,6 +237,14 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
           <span class="btn" data-i18n="play">Oyna</span>
         </div>
       </a>
+      <a class="game mayin cut" href="mayin-tarlasi/">
+        <div class="info">
+          <h3 data-i18n="mayinName">Mayın Tarlası</h3>
+          <p data-i18n="mayinDesc">Mayınlara basmadan bütün kareleri açın. Sayılar çevrede kaç mayın olduğunu söyler, şüphelendiğiniz yere bayrak dikin.</p>
+          <div class="tags"><span class="tag cut" data-i18n="tagAlone">Tek kişi</span><span class="tag cut" data-i18n="tagLevels">3 zorluk ve özel saha</span><span class="tag cut" data-i18n="tagThemes5">5 tema</span></div>
+          <span class="btn" data-i18n="play">Oyna</span>
+        </div>
+      </a>
     </div>
   </section>
 
@@ -305,6 +314,8 @@ const I18N_EN = {
   tagAlone: 'Solo', tag28: '2-8 players, one device', tagTime: 'Adjustable time',
   bombaName: 'Tip of My Tongue', bombaDesc: 'Say a word containing the letters and pass the bomb to your neighbour. Whoever holds it when it blows loses a life.',
   tagWord: 'Word game',
+  mayinName: 'Minesweeper', mayinDesc: 'Open every square without stepping on a mine. Numbers tell how many mines are around; plant a flag where you suspect one.',
+  tagLevels: '3 levels plus custom', tagThemes5: '5 themes',
   mobileGames: 'Mobile games', mobileDesc: 'Apps you can download to your device and play even without an internet connection.',
   misketDesc: 'The traditional street marbles game, with glass marbles. Play with friends on the same device or remotely with a Room Code.',
   soonPlay: 'Coming soon to Google Play',

@@ -280,9 +280,10 @@ const GAMES = [
   { slug: 'mangala', name: 'Mangala', img: '../assets/mangala.jpg', rules: true, cpu: true },
   { slug: 'yilan-merdiven', name: 'Yılan Merdiven', img: '../assets/yilan-merdiven.jpg', rules: true, cpu: true },
   { slug: 'saniye', name: 'Cuk', img: '../assets/saniye.jpg', rules: true },
-  { slug: 'bomba', name: 'Dilimin Ucunda', img: '../assets/bomba.jpg', rules: true }
+  { slug: 'bomba', name: 'Dilimin Ucunda', img: '../assets/bomba.jpg', rules: true },
+  { slug: 'mayin-tarlasi', name: 'Mayın Tarlası', img: '../assets/mayin-tarlasi.jpg', rules: true, clear: true }
 ];
-const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Cuk', bomba: 'Dilimin Ucunda' };
+const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Cuk', bomba: 'Dilimin Ucunda', 'mayin-tarlasi': 'Mayın Tarlası' };
 const SIZES = { phone: 'Telefon', tablet: 'Tablet', desktop: 'Bilgisayar', desktophd: 'Büyük ekran', unknown: 'Bilinmiyor' };
 // Süre dilimleri (olcum.js ile aynı): yol dilimin üst sınırını taşır, toplamda dilimin ortası kullanılır
 const MID = { 1: 0.5, 2: 1.5, 3: 2.5, 5: 4, 7: 6, 10: 8.5, 15: 12.5, 20: 17.5, 30: 25, 45: 37.5, 60: 52.5, 90: 75, 120: 105 };
@@ -492,6 +493,7 @@ function modeLabel(slug, m) {
   if (slug === 'yilan-merdiven') return `${p[0]} kişi · ${p[1] === 'insan' ? 'aynı telefonda' : 'bilgisayarlı'}`;
   if (slug === 'saniye') return `${p[0] === 'grup' ? 'Arkadaşlarla' : 'Tek kişi'} · ${p[1] || ''} sn · ${{ bas: 'baştan gizli', 3: '3. sn\'de gizlenir', yari: 'yarıda gizlenir', hic: 'gizlenmez' }[p[2]] || ''}`;
   if (slug === 'bomba') return `${p[3] || ''} kişi · ${p[0] || ''} heceler · ${p[1] || ''} sn · hece ${p[2] === 'degisir' ? 'her pasta değişir' : 'tur boyunca sabit'}`;
+  if (slug === 'mayin-tarlasi') return { kolay: 'Kolay 9×9', orta: 'Orta 16×16', zor: 'Zor 22×16' }[p[0]] || `Özel · ${p[1] || ''}×${p[2] || ''} · ${p[3] || ''} mayın`;
   return m;
 }
 function topMode(x, slug) {
@@ -499,11 +501,11 @@ function topMode(x, slug) {
   const all = e.reduce((a, [, c]) => a + c, 0);
   return `${esc(modeLabel(slug, e[0][0]))} <small>%${pct(e[0][1], all)}</small>`;
 }
-function winRate(x) { // bilgisayara karşı: insanın kazandığı oyunların oranı, zorluk zorluk
+function winRate(x, winner = 'insan') { // kazanılan oyunların oranı, zorluk zorluk (bilgisayara karşı: insan; Mayın Tarlası: kazandi)
   let win = 0, all = 0; const lv = {};
   for (const [k, c] of Object.entries(x.results)) {
-    const [who, level] = k.split('-'); all += c; if (who === 'insan') win += c;
-    lv[level] = lv[level] || [0, 0]; lv[level][1] += c; if (who === 'insan') lv[level][0] += c;
+    const [who, level] = k.split('-'); all += c; if (who === winner) win += c;
+    lv[level] = lv[level] || [0, 0]; lv[level][1] += c; if (who === winner) lv[level][0] += c;
   }
   if (!all) return '';
   const parts = Object.keys(LV).filter((l) => lv[l]).map((l) => `${l} %${pct(lv[l][0], lv[l][1])}`);
@@ -522,6 +524,7 @@ function drawGames(cur, list) {
     if (d.time) facts.push(['Toplam süre', `${dur(d.time)}`], ['Oyuncu başına', d.visits ? dur(d.time / d.visits) : '']);
     if (x.cpu) { const w = winRate(d); if (w) facts.push(['Bilgisayarı yenme', w]); }
     if (x.solo) { const w = soloRate(d); if (w) facts.push(['Tek piyonla bitirme', w]); }
+    if (x.clear) { const w = winRate(d, 'kazandi'); if (w) facts.push(['Tarlayı temizleme', w]); }
     if (d.ends) facts.push(['Tekrar oynama', `%${pct(d.again, d.ends)}`]);
     if (x.rules && d.opens) facts.push(['Kurallara bakan', `%${pct(d.rules, d.opens)}`]);
     const tm = topMode(d, x.slug); if (tm) facts.push(['En çok seçilen', tm]);
