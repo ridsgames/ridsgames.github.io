@@ -117,7 +117,7 @@ section.shelf.first { border-top: 0; padding-top: 20px; }
 .strip .legal { font-size: 14px; display: flex; gap: 6px 14px; flex-wrap: wrap; }
 .strip .legal a { color: var(--steel-dim); }
 .strip .legal a:hover { color: #fff; }
-.soon { --cut: 8px; font-family: var(--display); font-weight: 600; font-size: 15px; white-space: nowrap; padding: 10px 16px; background: rgba(201,210,223,.1); color: var(--steel); }
+.strip .btn { white-space: nowrap; }
 
 .contact { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
 .contact h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 12px; }
@@ -145,7 +145,7 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
   .strip { grid-template-columns: auto 1fr; padding: 18px; gap: 14px 16px; }
   .marble { width: 72px; height: 72px; }
   .strip h3 { font-size: 23px; }
-  .strip .soon { grid-column: 1 / -1; justify-self: start; }
+  .strip .btn { grid-column: 1 / -1; justify-self: start; }
 }
 @media (prefers-reduced-motion: reduce) {
   .btn { transition: none; }
@@ -257,10 +257,10 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
       <img class="marble" src="assets/misket-klasik.webp" alt="Misket Klasik" width="110" height="110">
       <div>
         <h3>Misket Klasik</h3>
-        <p data-i18n="misketDesc">Geleneksel sokak misket oyunu, cam misketlerle. Arkadaşlarınızla aynı cihazda veya Oda Kodu ile uzaktan oynayabilirsiniz.</p>
+        <p data-i18n="misketDesc">Geleneksel sokak misket oyunu, cam misketlerle ve internetsiz. Sokağın klasikleri Mors, Tumba ve Kuyu'yu oynayın. Labirent'te telefonu eğip misketleri engellerin arasından geçirerek yuvalarına oturtun; 4 dünya, 105 bölüm. Golf'te betondan çimene, kumdan su arkına uzanan parkurlarda misketi en az atışla kuyuya sokun.</p>
         <div class="legal"><a href="gizlilik.html" data-lang="tr">Gizlilik Politikası</a><a href="sartlar.html" data-lang="tr">Kullanım Şartları</a><a href="privacy.html" data-lang="en" lang="en" hidden>Privacy Policy</a><a href="terms.html" data-lang="en" lang="en" hidden>Terms of Use</a></div>
       </div>
-      <span class="soon cut" data-i18n="soonPlay">Yakında Google Play'de</span>
+      <a class="btn" href="https://play.google.com/store/apps/details?id=com.ridsgame.misketklasik" target="_blank" rel="noopener" data-i18n="getPlay">Google Play'den indir</a>
     </article>
   </section>
 
@@ -268,7 +268,7 @@ footer { border-top: 1px solid var(--line); padding-top: 32px; padding-bottom: c
     <div>
       <h2 id="h-destek" data-i18n="support">Destek</h2>
       <p data-i18n="supportDesc">Soru, öneri ve hata bildirimleriniz için bize e-posta ile ulaşabilirsiniz.</p>
-      <a class="mail" href="mailto:ridsgames.destek@gmail.com">ridsgames.destek@gmail.com</a>
+      <a class="mail" href="mailto:destek@ridsgames.com">destek@ridsgames.com</a>
     </div>
     <div class="docs">
       <h3 data-lang="tr">Misket Klasik belgeleri</h3>
@@ -317,8 +317,8 @@ const I18N_EN = {
   mayinName: 'Minesweeper', mayinDesc: 'Open every square without stepping on a mine. Numbers tell how many mines are around; plant a flag where you suspect one.',
   tagLevels: '3 levels plus custom', tagThemes5: '5 themes',
   mobileGames: 'Mobile games', mobileDesc: 'Apps you can download to your device and play even without an internet connection.',
-  misketDesc: 'The traditional street marbles game, with glass marbles. Play with friends on the same device or remotely with a Room Code.',
-  soonPlay: 'Coming soon to Google Play',
+  misketDesc: 'The traditional street marbles game, with glass marbles and no internet needed. Play the street classics Triangle, Line and Hole. In Maze, tilt your phone and guide the marbles past obstacles into their holes: 4 worlds, 105 levels. In Golf, sink your marble in the fewest shots on courses of concrete, grass, sand and water channels.',
+  getPlay: 'Get it on Google Play',
   supportDesc: 'Send us your questions, suggestions and bug reports by email.', rights: 'All rights reserved.'
 };
 const TR = { title: document.title };
