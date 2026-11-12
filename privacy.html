@@ -5,39 +5,61 @@
 <link rel="icon" href="assets/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0B0C0F">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy Policy - Misket Klasik</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root { --water:#07080B; --ink:#C9D2DF; --ink-soft:#8D9AB0; --surface:#111419; --line:rgba(201,210,223,.16); --head:#1A1F27; --coral:#36C5E8; --aqua:#36C5E8; }
+@font-face { font-family: "Baloo 2"; src: url("assets/fonts/Baloo2-ExtraBold.ttf") format("truetype"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "Nunito"; src: url("assets/fonts/Nunito-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Nunito"; src: url("assets/fonts/Nunito-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+:root { --bg: #0B0C0F; --band: #111317; --panel: #191C22; --line: #2C323C;
+        --text: #EBEFF5; --body: #D3DAE4; --dim: #A6B0BE; --amber: #F6B93B; }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--water); color: var(--ink); font: 16px/1.7 "Barlow", "Segoe UI", system-ui, sans-serif; }
-.bar { max-width: 760px; margin: 0 auto; padding: 18px 20px; }
-.logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font: 700 22px "Chakra Petch", "Segoe UI", system-ui, sans-serif; }
-.logo img { display: block; height: 40px; width: auto; mix-blend-mode: lighten; }
-main { max-width: 760px; margin: 0 auto 56px; padding: 32px 28px 40px; background: var(--surface); --cut: 18px; clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
-h1, h2, th { color: #EEF3F9; }
-h1 { font: 700 clamp(30px, 6vw, 40px)/1.15 "Chakra Petch", "Segoe UI", system-ui, sans-serif; margin: 0 0 14px; }
-h2 { font: 600 22px/1.25 "Chakra Petch", "Segoe UI", system-ui, sans-serif; margin: 34px 0 10px; padding-top: 22px; border-top: 2px dashed var(--line); }
+html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--body);
+       font: 17px/1.7 "Nunito", "Segoe UI", system-ui, sans-serif; }
+.bar { max-width: 820px; margin: 0 auto; padding: 12px 18px;
+       display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.logo img { display: block; height: 46px; width: auto; mix-blend-mode: lighten; }
+.dil { float: right; font-size: 15px; }
+.bar .dil { float: none; font: 800 16px/1 "Baloo 2", "Segoe UI", system-ui, sans-serif;
+            color: var(--dim); text-decoration: none; padding: 9px 12px 6px;
+            border: 2px solid var(--line); border-radius: 10px; }
+.bar .dil:hover { color: var(--text); border-color: var(--amber); }
+main { max-width: 820px; margin: 6px auto 56px; padding: 34px 34px 30px;
+       background: var(--band); border: 2px solid var(--panel); border-radius: 22px; }
+h1, h2, th, strong { color: var(--text); }
+h1, h2 { font-family: "Baloo 2", "Segoe UI", system-ui, sans-serif; font-weight: 800; }
+h1 { font-size: clamp(32px, 7.5vw, 46px); line-height: 1.05; margin: 0 0 16px; }
+h2 { font-size: 25px; line-height: 1.15; margin: 34px 0 10px; padding-top: 26px;
+     border-top: 2px solid var(--line); }
 p { margin: 12px 0; }
-strong { color: var(--ink); }
 ul { padding-left: 22px; }
 li { margin: 6px 0; }
-table { border-collapse: separate; border-spacing: 0; width: 100%; margin: 16px 0; font-size: 15px; border: 2px solid var(--line); border-radius: 16px; overflow: hidden; }
-th, td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+li::marker { color: var(--amber); }
+.tablo { margin: 18px 0; overflow-x: auto; border: 2px solid var(--line); border-radius: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.5; }
+main > table, div[lang] > table { margin: 18px 0; }
+th, td { padding: 10px 12px; text-align: left; vertical-align: top;
+         border-bottom: 1px solid var(--line); }
 tr:last-child td { border-bottom: 0; }
-th { background: var(--head); font-weight: 700; }
-hr { border: 0; border-top: 2px dashed var(--line); margin: 28px 0; }
-a { color: var(--aqua); }
-:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; border-radius: 6px; }
-footer { margin-top: 40px; padding-top: 18px; border-top: 2px dashed var(--line); font-size: 14px; color: var(--ink-soft); }
-@media (max-width: 560px) { main { margin: 0 12px 40px; padding: 24px 18px 30px; } .bar { padding: 14px 16px; } table { font-size: 14px; } }
+th { background: var(--panel); font-weight: 700; }
+hr { border: 0; border-top: 2px solid var(--line); margin: 28px 0; }
+a { color: var(--amber); }
+code { color: var(--text); overflow-wrap: anywhere; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; border-radius: 6px; }
+footer { margin-top: 40px; padding-top: 18px; border-top: 2px solid var(--line);
+         font-size: 14.5px; color: var(--dim); }
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  main { margin: 4px 10px 40px; padding: 24px 18px 22px; border-radius: 18px; }
+  table { font-size: 14px; }
+  th, td { padding: 8px 9px; }
+}
 </style>
 </head>
 <body>
-<header class="bar"><a class="logo" href="./" aria-label="Ridsgames ana sayfa"><img src="assets/logo.webp" alt="Ridsgames" height="40" width="86"></a></header>
+<header class="bar"><a class="logo" href="./" aria-label="RIDS Games home"><img src="assets/logo.webp" alt="RIDS Games" height="46" width="99"></a><a class="dil" href="gizlilik.html" lang="tr">Türkçe</a></header>
 <main>
 <h1>Privacy Policy</h1>
 <ul><li><strong>App:</strong> Classic Marbles (Turkish name: Misket Klasik)</li><li><strong>Developer:</strong> Ridsgame</li><li><strong>Effective date:</strong> September 27, 2026</li><li><strong>Contact:</strong> ridsgames.destek@gmail.com</li></ul>
@@ -45,7 +67,7 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 2px dashed var(--line)
 <h2>In short</h2>
 <ul><li>The game is played without an internet connection. Your save data stays only on your phone.</li><li>The internet is used for four features only: <strong>ads</strong>, the <strong>Premium purchase</strong>, playing with a friend far away using a <strong>Room Code</strong>, and <strong>feedback</strong> that you choose to send.</li><li>You do not need an account. We never ask for your real name, email address, phone number or location.</li><li>We do not sell your data. The app contains no analytics or tracking tools.</li></ul>
 <h2>Data that stays only on your device</h2>
-<table><thead><tr><th>Data</th><th>Why</th></tr></thead><tbody><tr><td>The player name you type, your avatar, and other player names entered for pass-and-play matches</td><td>To show them in the game</td></tr><tr><td>Your marble collection, unlocked marbles, ad unlock progress, match statistics</td><td>To let you continue where you left off</td></tr><tr><td>Your settings (language, sound, vibration, graphics, field)</td><td>To remember your preferences</td></tr></tbody></table>
+<div class="tablo"><table><thead><tr><th>Data</th><th>Why</th></tr></thead><tbody><tr><td>The player name you type, your avatar, and other player names entered for pass-and-play matches</td><td>To show them in the game</td></tr><tr><td>Your marble collection, unlocked marbles, ad unlock progress, match statistics</td><td>To let you continue where you left off</td></tr><tr><td>Your settings (language, sound, vibration, graphics, field)</td><td>To remember your preferences</td></tr></tbody></table></div>
 <p>This information stays in the app&#x27;s own folder and is never sent to us. It is deleted when you uninstall the app or clear its data.</p>
 <h2>Ads (Google AdMob)</h2>
 <p>Classic Marbles is free. To keep developing it, the app shows Google AdMob ads:</p>
@@ -64,11 +86,11 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 2px dashed var(--line)
 <ul><li>The description you write.</li><li>A screenshot of the game screen at that moment. You can remove it by tapping the image before sending.</li><li>Phone model, operating system, graphics card, screen resolution, memory size, app version, current screen and language.</li><li>The game&#x27;s last technical log lines (error messages).</li><li>The anonymous ID.</li></ul>
 <p>This information is used only to find and fix bugs and is stored on Google Firebase servers (Europe, Belgium). We delete it from the server after reviewing it. Please do not include personal information in your description.</p>
 <h2>Device permissions</h2>
-<table><thead><tr><th>Permission</th><th>What it is used for</th></tr></thead><tbody><tr><td>Bluetooth (scan, connect, advertise)</td><td>Only for playing with a nearby phone over Bluetooth. Only game data (player name, marble, shots) is sent over Bluetooth.</td></tr><tr><td>Location (Android 11 and below only)</td><td>Older Android versions require it for Bluetooth scanning. Your location is <strong>never read, stored or sent</strong>. It is not requested on Android 12 and above.</td></tr><tr><td>Vibration</td><td>For in-game haptic feedback.</td></tr><tr><td>Internet</td><td>Only for ads, purchases, Room Code and feedback. The game itself works offline.</td></tr></tbody></table>
+<div class="tablo"><table><thead><tr><th>Permission</th><th>What it is used for</th></tr></thead><tbody><tr><td>Bluetooth (scan, connect, advertise)</td><td>Only for playing with a nearby phone over Bluetooth. Only game data (player name, marble, shots) is sent over Bluetooth.</td></tr><tr><td>Location (Android 11 and below only)</td><td>Older Android versions require it for Bluetooth scanning. Your location is <strong>never read, stored or sent</strong>. It is not requested on Android 12 and above.</td></tr><tr><td>Vibration</td><td>For in-game haptic feedback.</td></tr><tr><td>Internet</td><td>Only for ads, purchases, Room Code and feedback. The game itself works offline.</td></tr></tbody></table></div>
 <h2>Children</h2>
 <p>Classic Marbles is designed for players aged 13 and over. We do not knowingly collect personal data from children under 13. If you notice that such data has been collected, write to us and we will delete it.</p>
 <h2>Who data is shared with</h2>
-<table><thead><tr><th>Party</th><th>Purpose</th></tr></thead><tbody><tr><td>Google AdMob</td><td>Serving and measuring ads</td></tr><tr><td>Google Play</td><td>App distribution and purchases</td></tr><tr><td>Google Firebase</td><td>Room Code and feedback server</td></tr></tbody></table>
+<div class="tablo"><table><thead><tr><th>Party</th><th>Purpose</th></tr></thead><tbody><tr><td>Google AdMob</td><td>Serving and measuring ads</td></tr><tr><td>Google Play</td><td>App distribution and purchases</td></tr><tr><td>Google Firebase</td><td>Room Code and feedback server</td></tr></tbody></table></div>
 <p>We do not share your data with anyone else and we do not sell it. Google&#x27;s servers may be located outside your country; Google uses legal safeguards such as standard contractual clauses for these transfers.</p>
 <h2>Your rights</h2>
 <p>Under the GDPR (Europe), Turkish KVKK and the laws of some US states (e.g. California), you have the right to be informed about, access, correct and delete your data, to object to its processing and to withdraw your consent.</p>
@@ -78,7 +100,7 @@ footer { margin-top: 40px; padding-top: 18px; border-top: 2px dashed var(--line)
 <p>If this policy changes, the current version will be published on this page and the effective date updated.</p>
 <h2>Contact</h2>
 <p>Questions: ridsgames.destek@gmail.com</p>
-<footer><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a> · <a href="gizlilik.html">Türkçe</a></footer>
+<footer><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Use</a> · <a href="./">RIDS Games</a></footer>
 </main>
 </body>
 </html>
