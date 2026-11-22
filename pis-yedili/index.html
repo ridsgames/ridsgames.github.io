@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pis Yedili | Ridsgames</title>
+<meta name="description" content="Pis Yedili: rengi ya da sayıyı tuttur, 7'liyle kart çektir, valeyle renk seç, jokerle 5 kart yedir. 1-3 bilgisayara karşı, üç zorluk.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --turn: #ef4444;
+  --red: #d32f2f;
+  --ink: #1b1b1f;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); white-space: nowrap; }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı: ileti, masa, puan paneli */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 10px 8px; }
+.slot { flex: none; height: 32px; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 6; margin-bottom: -32px; } /* masanın üstünde süzülür, yer kaplamaz */
+.msg {
+  max-width: 100%; padding: 6px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 800; color: #fff; text-align: center; line-height: 1.25;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; pointer-events: none;
+}
+.msg.on { opacity: 1; transform: none; }
+.msg.gold { border-color: #ffd43b; }
+#stage { flex: 1; min-height: 0; width: 100%; max-width: 760px; position: relative; z-index: 0; isolation: isolate; overflow: hidden; touch-action: manipulation; }
+
+/* Kartlar: konum JS'ten transform ile, çevirme içteki katmanla */
+.card { position: absolute; left: 0; top: 0; width: var(--cw); height: var(--ch); transition-property: transform; transition-timing-function: cubic-bezier(.25, .8, .3, 1); will-change: transform; }
+.card .in { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateY(180deg); transition: transform .35s, translate .15s; }
+.card.up .in { transform: none; }
+.face { position: absolute; inset: 0; border-radius: calc(var(--cw) * .05); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .35); overflow: hidden; }
+.front { background: #fff; }
+.front img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+.back { transform: rotateY(180deg); background: var(--back) center / 100% 100% no-repeat, #fffdf8; }
+.card.play { cursor: pointer; }
+.card.play:hover .in { translate: 0 calc(var(--ch) * -.1); }
+.card.hit .front { box-shadow: 0 0 0 2px #ffd43b, 0 0 14px rgba(255, 212, 59, .8), 0 2px 6px rgba(0, 0, 0, .45); }
+.card.hot .in { translate: 0 calc(var(--ch) * -.14); }
+.card.flat .face { box-shadow: none; } /* destede yığılan gölgeler kararmasın */
+
+.badge { position: absolute; z-index: 300; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 12.5px; font-weight: 800; color: #fff; background: rgba(2, 6, 23, .82); border: 1px solid rgba(255, 220, 170, .35); font-variant-numeric: tabular-nums; pointer-events: none; translate: -50% -50%; transition: opacity .2s; }
+.badge.zero { opacity: 0; }
+.lbl2 { position: absolute; z-index: 300; font-size: 11px; font-weight: 700; color: rgba(255, 235, 200, .8); text-shadow: 0 1px 2px rgba(0, 0, 0, .8); translate: -50% 0; pointer-events: none; white-space: nowrap; }
+#pop { position: absolute; z-index: 320; left: 0; top: 0; translate: -50% -50%; pointer-events: none; font-weight: 900; font-size: 44px; color: #ffe066; letter-spacing: .02em; white-space: nowrap;
+  text-shadow: 0 3px 0 #8a5a00, 0 0 18px rgba(255, 200, 0, .7), 0 6px 14px rgba(0, 0, 0, .7); opacity: 0; }
+#pop.go { animation: popIn 1.3s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+@keyframes popIn { 0% { opacity: 0; scale: .3; } 18% { opacity: 1; scale: 1.15; } 30% { scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; scale: 1.05; translate: -50% -90%; } }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+/* Puan paneli: keçeli ahşap tepsi */
+.dock {
+  flex: none; width: 100%; max-width: 440px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+  border-style: solid; border-width: 20px 17px 24px; border-image: url("../kizma-birader/tepsi.webp") 60 50 72 50 fill / 20px 17px 24px stretch;
+  padding: 0 4px 0 8px; background: none;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .5)) drop-shadow(0 0 7px color-mix(in srgb, var(--turn) 60%, transparent));
+  transition: filter .3s;
+}
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ava { flex: none; display: inline-block; border-radius: 50%; background: url("../kizma-birader/karakterler.webp") 0 0 / 400% 100%; }
+.chip { width: 46px; height: 46px; box-shadow: 0 0 0 3px var(--turn), 0 3px 8px rgba(0, 0, 0, .45); transition: box-shadow .3s; }
+.chip.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .4; } 100% { scale: 1; } }
+.who .t { min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+#turnName { font-size: 17px; font-weight: 800; line-height: 1.2; color: #fff; }
+#turnMsg { font-size: 14px; color: #d8f3dc; line-height: 1.3; margin-top: 2px; min-height: 1.3em; }
+.skor { display: grid; gap: 6px; padding: 6px 8px; border-radius: 12px; background: rgba(2, 6, 23, .35); }
+.skor > div { display: flex; align-items: center; gap: 7px; font-size: 17px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.skor .ava { width: 24px; height: 24px; }
+.skor small { font-size: 11.5px; font-weight: 700; color: #ffe066; min-width: 3.2em; }
+#hedef { font-size: 11px; font-weight: 700; color: rgba(255, 235, 200, .75); text-align: center; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Yatay telefon: üst çubuk solda dar menü sütunu, masa ortada, sağda ileti ve puan paneli; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(64px, 9vw, 80px) minmax(0, 1fr) clamp(150px, 25vw, 200px); grid-template-rows: auto minmax(0, 1fr); }
+  main { display: contents; }
+  .top { grid-column: 1; grid-row: 1 / 3; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; max-width: none; flex-direction: column; justify-content: flex-start; padding: 10px 6px; gap: 12px; }
+  .logo img { width: 100%; max-width: 56px; height: auto; }
+  .gname, .pill .lbl { display: none; }
+  .tools { flex-direction: column; gap: 7px; }
+  .pill { padding: 0 8px; }
+  .pill.lang { font-size: 11px; padding: 0 6px; white-space: nowrap; }
+  #stage { grid-column: 2; grid-row: 1 / 3; width: auto; max-width: none; }
+  .slot { grid-column: 3; grid-row: 1; width: auto; height: auto; min-height: 40px; margin: 0; padding: 8px 8px 0 0; }
+  .msg { font-size: 12.5px; padding: 6px 10px; border-radius: 14px; }
+  .dock { grid-column: 3; grid-row: 2; width: auto; max-width: none; margin: 8px 8px 8px 0; grid-template-columns: 1fr; align-content: space-evenly; justify-items: center; gap: 10px; padding: 4px 4px 8px; }
+  .who { flex-direction: column; text-align: center; gap: 8px; }
+  .chip { width: 50px; height: 50px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(64px, 9vw, 80px) + 8px); }
+  footer { display: none; }
+  #setupOv .card2 { max-width: 560px; padding: 14px 18px; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 8px; }
+  #setupOv .field { grid-template-columns: 130px 1fr; align-items: center; padding: 8px 0; }
+  #setupOv .btns { margin-top: 8px; grid-auto-flow: column; grid-auto-columns: 1fr; }
+  #handOv .card2 { max-width: 520px; padding: 10px 16px; }
+  #handOv h2 { font-size: 19px; }
+  #handOv .sub { margin-bottom: 4px; font-size: 12.5px; }
+  #handOv table.sum { font-size: 12.5px; }
+  #handOv table.sum td, #handOv table.sum th { padding: 2px 6px; }
+  #handOv table.sum thead .ava { width: 20px; height: 20px; }
+  #handOv tr.tot td, #handOv tr.all td { font-size: 14px; }
+  #handOv .btns { margin-top: 8px; }
+  #handOv .big { height: 40px; font-size: 15px; }
+}
+/* Geniş yatay ekran: masa solda büyük, panel sağda */
+@media (orientation: landscape) and (min-height: 501px) and (min-width: 900px) {
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto minmax(0, 1fr); gap: 12px 18px; max-width: 1200px; width: 100%; margin: 0 auto; padding: 14px 18px; }
+  #stage { grid-column: 1; grid-row: 1 / 3; max-width: none; align-self: stretch; }
+  .slot { grid-column: 2; grid-row: 1; height: auto; min-height: 44px; margin: 0; align-items: flex-end; }
+  .msg { border-radius: 16px; }
+  .dock { grid-column: 2; grid-row: 2; align-self: start; grid-template-columns: 1fr; justify-items: center; gap: 14px; padding: 10px 6px 14px; }
+  .who { flex-direction: column; text-align: center; gap: 10px; }
+  .chip { width: 64px; height: 64px; }
+}
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card2 {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card2 h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card2 .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.field { display: grid; gap: 8px; padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { min-height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button .mini { display: inline-block; width: 15px; height: 21px; border-radius: 2px; vertical-align: middle; margin-right: 7px; background: var(--b) center / 100% 100%; box-shadow: 0 0 0 1px rgba(255, 255, 255, .5); }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.btns { display: grid; gap: 10px; margin-top: 14px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.final { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 4px 0 6px; font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.final span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; background: rgba(2, 6, 23, .55); }
+.final span.win { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.final .ava { width: 32px; height: 32px; }
+table.sum { width: 100%; border-collapse: collapse; font-size: 14px; color: #cbd5e1; font-variant-numeric: tabular-nums; }
+table.sum th, table.sum td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(148, 163, 184, .12); }
+table.sum th:first-child, table.sum td:first-child { text-align: left; }
+table.sum thead th { color: #fff; }
+table.sum thead .ava { width: 26px; height: 26px; vertical-align: middle; }
+table.sum tr.tot td { color: #fff; font-weight: 800; font-size: 15px; }
+table.sum tr.all td { color: #67e8f9; font-weight: 800; font-size: 16px; border-bottom: 0; }
+table.sum td.z { color: #475569; }
+
+/* Pis Yedili'ye özel */
+.card.dim .front img { filter: brightness(.58) saturate(.6); }
+.card.drawme .back { box-shadow: 0 0 0 2.5px #ffd43b, 0 0 16px rgba(255, 212, 59, .9); }
+.seat { position: absolute; z-index: 310; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; }
+.seat .ava { width: 38px; height: 38px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .3), 0 3px 8px rgba(0, 0, 0, .5); transition: box-shadow .3s, scale .3s; }
+.seat.on .ava { box-shadow: 0 0 0 3px var(--c), 0 0 16px var(--c); scale: 1.14; }
+.seat b { font-size: 11px; font-weight: 800; color: #fff; background: rgba(2, 6, 23, .78); padding: 1px 7px; border-radius: 8px; white-space: nowrap; }
+.seat b.last { color: #1a1200; background: #ffd43b; }
+.badge2 { position: absolute; z-index: 305; translate: -50% -50%; pointer-events: none; transition: opacity .2s, scale .2s; }
+.badge2.off { opacity: 0; scale: .5; }
+#suitB { width: 38px; height: 38px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1; box-shadow: 0 0 0 2.5px #ffd43b, 0 3px 10px rgba(0, 0, 0, .55); }
+#pendB { padding: 3px 11px; border-radius: 14px; background: #dc2626; color: #fff; font-weight: 900; font-size: 17px; border: 2px solid #fff; box-shadow: 0 3px 10px rgba(0, 0, 0, .55); font-variant-numeric: tabular-nums; }
+#dirB { z-index: 1; opacity: .3; transition: transform .4s; }
+#dirB.rev { transform: scaleX(-1); }
+#passBtn { position: absolute; z-index: 330; translate: -50% -50%; height: 36px; padding: 0 18px; border-radius: 18px; border: 1.5px solid #ffd43b; background: rgba(2, 6, 23, .92); color: #ffe066; font-weight: 800; font-size: 14px; box-shadow: 0 4px 12px rgba(0, 0, 0, .5); }
+#suitPick { position: absolute; z-index: 400; translate: -50% -50%; padding: 10px 12px 12px; border-radius: 16px; background: rgba(2, 6, 23, .94); border: 1px solid rgba(34, 211, 238, .55); box-shadow: 0 12px 30px rgba(0, 0, 0, .6); text-align: center; }
+#suitPick .t { font-size: 13.5px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+#suitPick .b { display: grid; grid-template-columns: repeat(4, 52px); gap: 8px; }
+#suitPick button { height: 62px; border-radius: 10px; border: 0; background: #fff; font-size: 36px; line-height: 1; box-shadow: 0 3px 8px rgba(0, 0, 0, .45); font-family: Georgia, serif; }
+#suitPick button:hover { filter: brightness(.93); }
+.skor.g4 { grid-template-columns: auto auto; column-gap: 14px; }
+.skor.g4 #hedef { grid-column: 1 / -1; }
+.skor > div.w { color: #ffe066; }
+table.sum td.nm { display: flex; align-items: center; gap: 7px; }
+table.sum td.nm .ava { width: 22px; height: 22px; }
+table.sum tr.win td { color: #ffe066; font-weight: 800; }
+@keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+.card.no .in { animation: shake .25s 2; }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="pis-yedili" data-name="Pis Yedili"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Pis Yedili</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dili değiştir">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
+  <div id="stage" aria-label="Masa">
+    <svg id="dirB" class="badge2" viewBox="0 0 200 120" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"><path d="M30 46C50 14 150 14 170 46"/><path d="M170 74C150 106 50 106 30 74"/></g><g fill="#fff"><path d="M178 56l-18-6 16-12z"/><path d="M22 64l18 6-16 12z"/></g></svg>
+    <div class="seat" id="seat1"><i class="ava"></i><b></b></div>
+    <div class="seat" id="seat2"><i class="ava"></i><b></b></div>
+    <div class="seat" id="seat3"><i class="ava"></i><b></b></div>
+    <div class="badge2 off" id="suitB"></div>
+    <div class="badge2 off" id="pendB"></div>
+    <button id="passBtn" type="button" hidden></button>
+    <div id="suitPick" hidden><div class="t" id="spT"></div><div class="b"><button type="button" data-s="0" style="color:#16161a">♠&#xFE0E;</button><button type="button" data-s="1" style="color:#d40000">♥&#xFE0E;</button><button type="button" data-s="2" style="color:#d40000">♦&#xFE0E;</button><button type="button" data-s="3" style="color:#16161a">♣&#xFE0E;</button></div></div>
+    <div id="pop"></div>
+  </div>
+  <div class="dock" id="dock">
+    <div class="who">
+      <span class="chip ava" id="chip" aria-hidden="true"></span>
+      <div class="t"><div id="turnName"></div><div id="turnMsg"></div></div>
+    </div>
+    <div class="skor" id="skor" role="status"></div>
+  </div>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Pis Yedili</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="field"><span id="oppLbl"></span><div class="seg" id="oppSeg"><button type="button" data-v="1"></button><button type="button" data-v="2"></button><button type="button" data-v="3"></button></div></div>
+    <div class="field"><span id="lvlLbl"></span><div class="seg" id="lvlSeg"><button type="button" data-v="easy"></button><button type="button" data-v="mid"></button><button type="button" data-v="hard"></button></div></div>
+    <div class="field"><span id="tgtLbl"></span><div class="seg" id="tgtSeg"><button type="button" data-v="0"></button><button type="button" data-v="101"></button><button type="button" data-v="201"></button></div></div>
+    <div class="field"><span id="deckLbl"></span><div class="seg" id="deckSeg"><button type="button" data-v="red"></button><button type="button" data-v="black"></button></div></div>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button"></button>
+      <button class="big alt" id="resumeBtn" type="button" hidden></button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1" style="outline:none"></h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button"></button></div>
+  </div>
+</div>
+
+<!-- El sonu -->
+<div class="ov" id="handOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="handTitle">
+    <h2 id="handTitle"></h2>
+    <p class="sub" id="handSub"></p>
+    <table class="sum" id="sumTable"></table>
+    <div class="btns"><button class="big" id="nextBtn" type="button"></button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 id="winTitle"></h2>
+    <div class="final" id="final"></div>
+    <p class="sub" id="winSub"></p>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button"></button>
+      <button class="big alt" id="toMenuBtn" type="button"></button>
+    </div>
+  </div>
+</div>
+
+<script id="motor">
+// ---------- Motor: Pis Yedili kuralları ve bilgisayar (arayüzden bağımsız) ----------
+// Kart 0-53: 0-51 normal kartlar, renk = id / 13 (0 maça, 1 kupa, 2 karo, 3 sinek), değer = id % 13 + 1 (1 as, 11 vale, 12 kız, 13 papaz); 52 kırmızı, 53 siyah joker
+const suitOf = (c) => (c >= 52 ? -1 : (c / 13) | 0), rankOf = (c) => (c >= 52 ? 0 : (c % 13) + 1);
+const isJoker = (c) => c >= 52, isJack = (c) => rankOf(c) === 11, isWild = (c) => isJoker(c) || isJack(c);
+const PEN = [50, 15, 2, 3, 4, 5, 6, 20, 8, 9, 10, 25, 10, 10]; // elde kalan kartın ceza puanı (değere göre, 0 joker)
+const pen = (c) => PEN[rankOf(c)];
+const isSpecial = (c) => isJoker(c) || [1, 7, 8, 10, 11].includes(rankOf(c));
+const SEVEN = 3, JOKER_PEN = 5; // 7'li ve joker kaç kart çektirir
+function shuffled(rnd = Math.random, a = Array.from({ length: 54 }, (_, i) => i)) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const stepP = (p, dir, n) => (((p + dir) % n) + n) % n;
+// s: { top: yerdeki kart, suit: geçerli renk, pend: biriken çekme cezası }
+function legal(c, s) {
+  if (s.pend > 0) return isJoker(c) || rankOf(c) === 7;
+  if (isWild(c)) return true;
+  return suitOf(c) === s.suit || (!isJoker(s.top) && rankOf(c) === rankOf(s.top));
+}
+
+// ---------- Bilgisayar ----------
+// st: { hand, top, suit, pend, n, me, dir, counts: herkesin kart sayısı, miss: her oyuncunun çekmek zorunda kaldığı renkler }
+function cpuPick(st, level, rnd = Math.random) {
+  const { hand, n, me, dir, counts, miss, pend } = st;
+  const valid = hand.filter((c) => legal(c, st));
+  if (!valid.length) return -1;
+  if (valid.length === hand.length && hand.length === 1) return hand[0];
+  if (level === 'easy') {
+    if (rnd() < 0.45) return valid[Math.floor(rnd() * valid.length)];
+    const plain = valid.filter((c) => !isWild(c)), pool = plain.length ? plain : valid;
+    return pool[Math.floor(rnd() * pool.length)];
+  }
+  const nx = stepP(me, dir, n), pv = stepP(me, -dir, n), nxC = counts[nx];
+  const minOther = Math.min(...counts.filter((_, i) => i !== me));
+  let best = -1, bv = -Infinity;
+  for (const c of valid) {
+    const rest = hand.filter((x) => x !== c), r = rankOf(c), s = suitOf(c);
+    let v = pen(c) * 0.06; // ağır kartlardan kurtul
+    if (!rest.length) v += 100;
+    if (pend > 0) v += 6;
+    if (isJoker(c)) v -= rest.length > 1 ? 3 : 0;
+    else if (isJack(c)) v -= rest.length > 1 ? 2.2 : 0;
+    else {
+      v += 0.35 * rest.filter((x) => !isWild(x) && (suitOf(x) === s || rankOf(x) === r)).length; // sonra da atacak kart kalsın
+      if (level === 'hard' && miss[nx].includes(s)) v += 1.4; // sıradakinde bu renk yok gibi
+    }
+    const danger = nxC <= 2 ? 1 : 0;
+    if (r === 7 || isJoker(c)) v += 0.6 + danger * 3;
+    if (r === 7 && level === 'hard' && !pend && !danger && rest.length > 2) v -= 0.9; // 7'liyi savunmaya sakla
+    if (r === 8) v += (n === 2 ? 1.2 : 0.5) + danger * 2.5;
+    if (r === 10) v += n === 2 ? 1.2 : counts[pv] > nxC && nxC <= 2 ? 2 : -0.2;
+    if (r === 1) v += 0.4 + (minOther <= 2 ? 1.2 : 0);
+    v += rnd() * (level === 'mid' ? 0.9 : 0.15);
+    if (v > bv) { bv = v; best = c; }
+  }
+  return best;
+}
+function cpuSuit(st, rest, level, rnd = Math.random) {
+  const cnt = [0, 0, 0, 0];
+  for (const c of rest) if (!isWild(c)) cnt[suitOf(c)] += 1 + pen(c) * 0.02;
+  if (level === 'easy') { const have = [0, 1, 2, 3].filter((s) => cnt[s]); return have.length && rnd() < 0.7 ? have[Math.floor(rnd() * have.length)] : Math.floor(rnd() * 4); }
+  if (level === 'hard') { const nx = stepP(st.me, st.dir, st.n); for (const s of st.miss[nx]) cnt[s] += 0.8; }
+  let b = 0; for (let s = 1; s < 4; s++) if (cnt[s] > cnt[b] || (cnt[s] === cnt[b] && rnd() < 0.5)) b = s;
+  return b;
+}
+</script>
+<script>
+// ---------- Metinler ----------
+const SUITCH = ['♠︎', '♥︎', '♦︎', '♣︎'], SUITCOL = ['#16161a', '#d40000', '#d40000', '#16161a'];
+const STR = {
+  tr: {
+    title: 'Pis Yedili | Ridsgames', game: 'Pis Yedili', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
+    rights: 'Tüm hakları saklıdır.', stage: 'Masa', names: ['Sen', 'Balina', 'Kurbağa', 'Civciv'],
+    setupSub: 'Rengi ya da sayıyı tuttur, 7\'liyle kart çektir, elini ilk sen bitir.', oppLbl: 'Kaç bilgisayara karşı?', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
+    tgtLbl: 'Oyun ne zaman biter?', deckLbl: 'Deste', red: 'Kırmızı', black: 'Siyah', one: 'Tek el', lim: (n) => `${n} ceza`, start: 'Başla', resume: 'Kaldığın yerden devam et',
+    rulesTitle: 'Nasıl oynanır?', rulesSub: 'Elindeki kartları ilk bitiren eli kazanır.', ok: 'Tamam',
+    ruleList: [
+      ['🃏', 'Herkese 7 kart dağıtılır, desteden bir kart açılır. Destede 52 kartın yanında <b>2 joker</b> vardır.'],
+      ['👆', 'Sıra sana gelince yerdeki kartla <b>aynı renkte</b> (maça, kupa, karo, sinek) ya da <b>aynı değerde</b> bir kart atarsın.'],
+      ['📥', 'Atacak kartın yoksa desteye dokunup <b>bir kart çekersin</b>. Uyuyorsa hemen atabilir ya da pas geçebilirsin, uymuyorsa sıra geçer.'],
+      ['7️⃣', '<b>7</b> atılınca sıradaki oyuncu <b>3 kart çeker</b>. Elinde 7 ya da joker varsa onu atar, ceza büyüyerek bir sonrakine geçer: 3, 6, 9...'],
+      ['🃏', '<b>Joker</b> her kartın üstüne atılır, sıradakine <b>5 kart</b> çektirir ve istediğin rengi seçersin. 7\'nin üstüne de atılır.'],
+      ['🤵', '<b>Vale (J)</b> her kartın üstüne atılır, istediğin rengi seçersin.'],
+      ['⏭️', '<b>8</b> sıradakini atlatır. <b>10</b> yönü değiştirir; iki kişide sıra yine sende kalır. <b>As</b> atınca diğer herkes 1 kart çeker.'],
+      ['🧮', 'Elini biri bitirince diğerlerinin elinde kalanlar <b>ceza puanı</b> olur: joker 50, vale 25, 7 20, as 15, papaz ve kız 10, diğerleri üstündeki sayı kadar.'],
+      ['🔒', 'Deste biter ve yerdeki kartlar yeni deste için yetmezse (5 karttan az) el kapanır; elinde en az ceza kalan eli kazanmış sayılır.'],
+      ['🏆', 'Biri seçilen ceza sınırına ulaşınca oyun biter, <b>en az cezası olan</b> kazanır. <b>Tek el</b> seçersen elini ilk bitiren kazanır.']
+    ],
+    suit: ['Maça', 'Kupa', 'Karo', 'Sinek'],
+    turnYou: 'Sıra sende', turnOf: (p) => `Sıra: ${STR.tr.names[p]}`, hintThink: 'Düşünüyor...', hintDeal: 'Kartlar dağıtılıyor...',
+    hintPlay: 'Rengi ya da değeri uyan bir kart at', hintSuit: (s) => `İstenen renk: ${STR.tr.suit[s]}`, hintDraw: 'Uyan kartın yok, desteye dokunup çek',
+    hintPend: (k) => `Desteye dokun, ${k} kart çek`, hintPendCan: (k) => `7 ya da joker at, yoksa ${k} kart çek`, hintDrew: 'Çektiğin kartı at ya da pas geç',
+    pass: 'Pas', pickSuit: 'Hangi renk olsun?', cant: 'Bu kart şimdi atılamaz',
+    wants: (p, s) => (p === 0 ? `${STR.tr.suit[s]} istedin` : `${STR.tr.names[p]} ${STR.tr.suit[s].toLowerCase()} istedi`),
+    drewN: (p, k) => (p === 0 ? `${k} kart çektin` : `${STR.tr.names[p]} ${k} kart çekti`),
+    skipped: (p) => (p === 0 ? 'Sıran atlandı' : `${STR.tr.names[p]} atlandı`), reversed: 'Yön değişti', again: 'Sıra yine sende', againCpu: (p) => `Sıra yine ${STR.tr.names[p]} oyuncusunda`,
+    ace: (p) => (p === 0 ? 'As! Diğer herkes 1 kart çekiyor' : `${STR.tr.names[p]} as attı, diğerleri 1 kart çekiyor`),
+    passed: (p) => (p === 0 ? 'Pas geçtin' : `${STR.tr.names[p]} pas geçti`), lastCard: (p) => (p === 0 ? 'Son kartın kaldı!' : `${STR.tr.names[p]}: son kart!`), lastTag: 'Son kart!',
+    blocked: 'Deste bitti, yerdeki kartlar yetmiyor: el kapandı', blockSub: (p) => (p === 0 ? 'El kapandı, en az ceza sende kaldı.' : `El kapandı, en az ceza ${STR.tr.names[p]} oyuncusunda kaldı.`),
+    out: (p) => (p === 0 ? 'Elini bitirdin!' : `${STR.tr.names[p]} elini bitirdi`), outPop: 'BİTTİ!', reshuf: 'Yerdeki kartlar karıştırılıp deste yapıldı',
+    handOver: (n) => `${n}. el bitti`, handSub: (p) => (p === 0 ? 'Elini ilk sen bitirdin.' : `Elini ilk ${STR.tr.names[p]} bitirdi.`),
+    cols: ['', 'Kalan', 'Bu el', 'Toplam'], nextHand: 'Sonraki el', seeResult: 'Sonucu gör', target: (t) => (t ? `Sınır ${t} ceza` : 'Tek el'),
+    youWin: 'Kazandın!', draw: 'Berabere!', wins: (ps) => `${ps.map((p) => STR.tr.names[p]).join(' ve ')} kazandı`,
+    winSub: (h, m, one) => (one ? 'Elini ilk bitiren kazandı.' : `${h} el sonunda en az ceza: ${m}`),
+    again2: 'Tekrar oyna', toMenu: 'Ayarları değiştir', scoreAria: (sc) => 'Ceza puanları: ' + sc.map((v, i) => `${STR.tr.names[i]} ${v}`).join(', '),
+    cardName: (c) => (c >= 52 ? (c === 52 ? 'Kırmızı joker' : 'Siyah joker') : `${STR.tr.suit[suitOf(c)]} ${['As', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Vale', 'Kız', 'Papaz'][rankOf(c) - 1]}`)
+  },
+  en: {
+    title: 'Pis Yedili (Dirty Sevens) | Ridsgames', game: 'Dirty Sevens', homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Fullscreen', langAria: 'Switch language',
+    rights: 'All rights reserved.', stage: 'Table', names: ['You', 'Whale', 'Frog', 'Chick'],
+    setupSub: 'Match the suit or the rank, make others draw with a 7, empty your hand first.', oppLbl: 'Computer opponents', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
+    tgtLbl: 'Game ends at', deckLbl: 'Deck', red: 'Red', black: 'Black', one: 'One hand', lim: (n) => `${n} pts`, start: 'Start', resume: 'Resume game',
+    rulesTitle: 'How to play', rulesSub: 'The first to empty their hand wins the hand.', ok: 'OK',
+    ruleList: [
+      ['🃏', 'Everyone gets 7 cards and one card is turned up. The deck has <b>2 jokers</b> besides the 52 cards.'],
+      ['👆', 'On your turn play a card of <b>the same suit</b> or <b>the same rank</b> as the top card.'],
+      ['📥', 'If you cannot play, tap the deck to <b>draw one card</b>. If it fits you may play it or pass; if not, your turn ends.'],
+      ['7️⃣', 'A <b>7</b> makes the next player <b>draw 3</b>. With a 7 or a joker they can pass it on and the penalty grows: 3, 6, 9...'],
+      ['🃏', 'A <b>joker</b> goes on anything, makes the next player <b>draw 5</b> and you pick the suit. It can also answer a 7.'],
+      ['🤵', 'A <b>jack (J)</b> goes on anything and you pick the suit.'],
+      ['⏭️', 'An <b>8</b> skips the next player. A <b>10</b> reverses the direction; with two players you go again. An <b>ace</b> makes everyone else draw 1.'],
+      ['🧮', 'When someone goes out, the others score <b>penalty points</b> for the cards they hold: joker 50, jack 25, 7 20, ace 15, king and queen 10, others their number.'],
+      ['🔒', 'If the deck runs out and the pile is too small to make a new one (under 5 cards), the hand is closed and the player holding the fewest points wins it.'],
+      ['🏆', 'When someone reaches the chosen limit the game ends and <b>the fewest points</b> wins. With <b>One hand</b> the first to go out wins.']
+    ],
+    suit: ['Spades', 'Hearts', 'Diamonds', 'Clubs'],
+    turnYou: 'Your turn', turnOf: (p) => `${STR.en.names[p]}'s turn`, hintThink: 'Thinking...', hintDeal: 'Dealing...',
+    hintPlay: 'Play a card of the same suit or rank', hintSuit: (s) => `Suit asked: ${STR.en.suit[s]}`, hintDraw: 'No card fits, tap the deck to draw',
+    hintPend: (k) => `Tap the deck to draw ${k}`, hintPendCan: (k) => `Play a 7 or a joker, or draw ${k}`, hintDrew: 'Play the card you drew or pass',
+    pass: 'Pass', pickSuit: 'Which suit?', cant: 'You cannot play that card now',
+    wants: (p, s) => (p === 0 ? `You asked for ${STR.en.suit[s].toLowerCase()}` : `${STR.en.names[p]} asks for ${STR.en.suit[s].toLowerCase()}`),
+    drewN: (p, k) => (p === 0 ? `You drew ${k}` : `${STR.en.names[p]} drew ${k}`),
+    skipped: (p) => (p === 0 ? 'You are skipped' : `${STR.en.names[p]} is skipped`), reversed: 'Direction reversed', again: 'Your turn again', againCpu: (p) => `${STR.en.names[p]} goes again`,
+    ace: (p) => (p === 0 ? 'Ace! Everyone else draws 1' : `${STR.en.names[p]} played an ace, the others draw 1`),
+    passed: (p) => (p === 0 ? 'You passed' : `${STR.en.names[p]} passed`), lastCard: (p) => (p === 0 ? 'Last card!' : `${STR.en.names[p]}: last card!`), lastTag: 'Last card!',
+    blocked: 'The deck ran out and the pile is too small: the hand is closed', blockSub: (p) => (p === 0 ? 'The hand was closed, you held the fewest points.' : `The hand was closed, ${STR.en.names[p]} held the fewest points.`),
+    out: (p) => (p === 0 ? 'You went out!' : `${STR.en.names[p]} went out`), outPop: 'OUT!', reshuf: 'The pile was shuffled into a new deck',
+    handOver: (n) => `Hand ${n} is over`, handSub: (p) => (p === 0 ? 'You went out first.' : `${STR.en.names[p]} went out first.`),
+    cols: ['', 'Left', 'This hand', 'Total'], nextHand: 'Next hand', seeResult: 'See the result', target: (t) => (t ? `Limit ${t} pts` : 'One hand'),
+    youWin: 'You win!', draw: 'It\'s a draw!', wins: (ps) => `${ps.map((p) => STR.en.names[p]).join(' and ')} win${ps.length > 1 ? '' : 's'}`,
+    winSub: (h, m, one) => (one ? 'The first to go out wins.' : `Fewest points after ${h} hand${h > 1 ? 's' : ''}: ${m}`),
+    again2: 'Play again', toMenu: 'Change settings', scoreAria: (sc) => 'Penalty points: ' + sc.map((v, i) => `${STR.en.names[i]} ${v}`).join(', '),
+    cardName: (c) => (c >= 52 ? (c === 52 ? 'Red joker' : 'Black joker') : `${['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'][rankOf(c) - 1]} of ${STR.en.suit[suitOf(c)].toLowerCase()}`)
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Durum ----------
+// G: { level, target, n: oyuncu sayısı, scores: ceza puanları, handNo, dealer, h, over }
+// h: { deck, pile, hands, turn, dir, suit, pend, drew: çekilip atılabilecek kart, miss, done, winner, res, mid }
+let G = null, setup = { level: 'easy', opp: '3', target: '101', deck: 'red' };
+let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false;
+try { const s = JSON.parse(localStorage.getItem('rids_pis7_setup')); if (s && s.level && s.target != null) setup = { ...setup, ...s }; } catch (e) {}
+try { soundOn = localStorage.getItem('rids_pis7_sound') !== '0'; } catch (e) {}
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'pis-yedili/' + olay, title: 'Pis Yedili: ' + ad, event: true }); } catch (e) {} };
+const lvAd = (lv) => (lv === 'easy' ? 'kolay' : lv === 'mid' ? 'orta' : 'zor');
+const avaPos = (i) => `${i * 100 / 3}% 0`;
+const TURNCOL = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
+const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
+
+// ---------- Kartlar (DOM) ----------
+const stage = $('stage'), els = [];
+// Kart yüzleri: Adrian Kennard'ın geleneksel İngiliz desenli kartları (CC0), jokerler SVG-cards (LGPL); ayrıntı: ../assets/kart/LISANS.txt
+const SUITC = 'SHDC', RANK = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const cardSvg = (c) => `<img src="../assets/kart/${c >= 52 ? (c === 52 ? 'JR' : 'JB') : SUITC[suitOf(c)] + RANK[rankOf(c) - 1]}.svg" alt="" draggable="false" decoding="async">`;
+function backSvg(ink) { // klasik iskambil sırtı: tek renk kafes, ortada Ridsgames R'si ile rozet
+  const R = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z', W = '#fffdf8';
+  const rot = (n, f) => Array.from({ length: n }, (_, i) => f(i * 360 / n)).join('');
+  const rosette = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${W}"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rot(8, (a) => `<ellipse cx="${x}" cy="${y - r * .5}" rx="${r * .2}" ry="${r * .42}" fill="${ink}" transform="rotate(${a} ${x} ${y})"/>`) + `<circle cx="${x}" cy="${y}" r="${r * .2}" fill="${W}" stroke="${ink}" stroke-width="1.4"/>`;
+  const diamond = (y) => `<path d="M125 ${y - 22}l15 22-15 22-15-22z" fill="${W}" stroke="${ink}" stroke-width="2.2"/><path d="M125 ${y - 12}l8 12-8 12-8-12z" fill="${ink}"/><circle cx="125" cy="${y}" r="2" fill="${W}"/>`;
+  const C = [125, 175];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" preserveAspectRatio="none"><defs>`
+    + `<pattern id="k" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 175)"><rect width="13" height="13" fill="${W}"/><path d="M0 0H13M0 0V13" stroke="${ink}" stroke-width="2.4"/><circle cx="6.5" cy="6.5" r="1.5" fill="${ink}"/></pattern></defs>`
+    + `<rect width="250" height="350" fill="${W}"/>`
+    + `<rect x="13" y="13" width="224" height="324" rx="9" fill="${ink}"/>`
+    + `<rect x="22" y="22" width="206" height="306" rx="5" fill="none" stroke="${W}" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0 6.2"/>`
+    + `<rect x="30" y="30" width="190" height="290" fill="url(#k)" stroke="${W}" stroke-width="1.5"/>`
+    + `<rect x="34" y="34" width="182" height="282" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rosette(50, 50, 13) + rosette(200, 50, 13) + rosette(50, 300, 13) + rosette(200, 300, 13)
+    + diamond(72) + diamond(278)
+    // orta rozet: taç yaprakları, iki halka, içinde logodaki köşeli R
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="82" fill="${W}"/><circle cx="${C[0]}" cy="${C[1]}" r="79" fill="none" stroke="${ink}" stroke-width="2.6"/>`
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="74" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0 5.8"/>`
+    + rot(16, (a) => `<path d="M125 105c11 7 11 19 0 24-11-5-11-17 0-24z" fill="${ink}" transform="rotate(${a} 125 175)"/><path d="M125 111c5 4 5 10 0 13-5-3-5-9 0-13z" fill="${W}" transform="rotate(${a} 125 175)"/>`)
+    + rot(16, (a) => `<circle cx="125" cy="109" r="2.6" fill="${ink}" transform="rotate(${a + 11.25} 125 175)"/>`)
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="45" fill="${ink}"/><circle cx="${C[0]}" cy="${C[1]}" r="40" fill="none" stroke="${W}" stroke-width="1.4"/>`
+    + rot(24, (a) => `<path d="M125 136.5v3" stroke="${W}" stroke-width="1.6" transform="rotate(${a} 125 175)"/>`)
+    + `<path transform="translate(111.4 154.6) scale(.68)" d="${R}" fill="${W}"/></svg>`;
+}
+const DECKS = { red: '#b3141b', black: '#1d1f26' };
+for (const k in DECKS) document.documentElement.style.setProperty('--back-' + k, `url("data:image/svg+xml,${encodeURIComponent(backSvg(DECKS[k]))}")`);
+const applyDeck = () => stage.style.setProperty('--back', `var(--back-${DECKS[setup.deck] ? setup.deck : 'red'})`);
+function makeCard(c) {
+  const el = document.createElement('div');
+  el.className = 'card'; el.dataset.c = c;
+  el.innerHTML = `<div class="in"><div class="face front">${cardSvg(c)}</div><div class="face back"></div></div>`;
+  el.addEventListener('pointerdown', (e) => { if (e.button === 0) { e.preventDefault(); tapCard(c); } });
+  stage.appendChild(el); return el;
+}
+for (let c = 0; c < 54; c++) els[c] = makeCard(c);
+
+// Yerleşim: oyuncular saat yönünde: sen altta, sonra sol, üst, sağ
+const seatsOf = (n) => (n === 2 ? ['b', 't'] : n === 3 ? ['b', 'l', 'r'] : ['b', 'l', 't', 'r']);
+const nPlayers = () => (G ? G.n : +setup.opp + 1);
+let L = null;
+function layout() {
+  const W = stage.clientWidth, H = stage.clientHeight, n = nPlayers(), seats = seatsOf(n), side = n >= 3, top = seats.includes('t');
+  const cw = Math.floor(Math.max(34, Math.min(W / (side ? 4.9 : 4.3), H / 3.5 / 1.4, 116))), ch = Math.round(cw * 1.4);
+  const os = 0.64, och = ch * os, ocw = cw * os;
+  const topVis = top ? och * 0.52 : 0, topSeatY = topVis + 24;
+  const handY = H - ch / 2 - Math.max(4, ch * 0.05), handTop = handY - ch / 2;
+  const upper = top ? topSeatY + 26 : 10;
+  const midY = Math.round((upper + handTop - 10) / 2);
+  L = { W, H, cw, ch, os, och, ocw, n, seats, handY, topY: topVis - och / 2, topSeatY, midY, cx: W / 2, deckX: W / 2 - cw * 0.68, pileX: W / 2 + cw * 0.68,
+    sideX: och * 0.55 - och / 2, sideSeatX: och * 0.55 + 24, bandTop: upper, bandBot: handTop - 6 };
+  stage.style.setProperty('--cw', cw + 'px'); stage.style.setProperty('--ch', ch + 'px');
+  $('pop').style.fontSize = Math.round(Math.max(30, Math.min(56, cw * 0.5))) + 'px';
+  const d = $('dirB'); d.style.width = cw * 3.5 + 'px'; d.style.height = ch * 1.5 + 'px'; d.style.left = L.cx + 'px'; d.style.top = midY + 'px';
+  render(0);
+}
+const hash = (c, k) => { const x = Math.sin(c * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+function put(c, x, y, rot, sc, up, z, dur) {
+  const el = els[c];
+  el.style.transitionDuration = (dur / speed) + 'ms';
+  el.style.transform = `translate(${x - L.cw / 2}px, ${y - L.ch / 2}px) rotate(${rot}deg) scale(${sc})`;
+  el.style.zIndex = z; el.classList.toggle('up', !!up);
+}
+const tbl = (h) => ({ top: h.pile[h.pile.length - 1], suit: h.suit, pend: h.pend });
+const sortKey = (c) => (c >= 52 ? 100 + c : [0, 1, 3, 2][suitOf(c)] * 20 + rankOf(c));
+const sortMine = () => G.h.hands[0].sort((a, b) => sortKey(a) - sortKey(b));
+let hotCard = -1;
+function render(dur = 360) {
+  if (!L) return;
+  const h = G && G.h;
+  if (!h) { for (let c = 0; c < 54; c++) { put(c, L.deckX - Math.min(c, 24) * 0.18, L.midY - Math.min(c, 24) * 0.18, 0, 1, false, c + 1, 0); els[c].className = c < 52 ? 'card flat' : 'card'; } ui(); return; }
+  const flat = new Set(), mine = h.hands[0], play = canPlay(), t = tbl(h), drawme = canDraw();
+  h.deck.forEach((c, i) => { put(c, L.deckX - Math.min(i, 24) * 0.18, L.midY - Math.min(i, 24) * 0.18, 0, 1, false, i + 1, dur); if (i < h.deck.length - 2) flat.add(c); });
+  const np = h.pile.length;
+  h.pile.forEach((c, i) => {
+    const k = np - 1 - i, j = k < 7 ? 1 : 0.3;
+    put(c, L.pileX + (hash(c, 1) - 0.5) * L.cw * 0.2 * j, L.midY + (hash(c, 2) - 0.5) * L.cw * 0.16 * j, (hash(c, 3) - 0.5) * 30 * j, 1, true, 100 + i, dur);
+    if (k > 2) flat.add(c);
+  });
+  // senin elin: sığmazsa iki sıra
+  const k = mine.length, maxW = L.W - 10 - L.cw, two = k > 1 && maxW / (k - 1) < L.cw * 0.3, backN = two ? Math.ceil(k / 2) : 0;
+  mine.forEach((c, i) => {
+    const row = i < backN ? 0 : 1, m = two ? (row ? k - backN : backN) : k, ii = two && row ? i - backN : i;
+    const sp = Math.min(L.cw * 0.68, maxW / Math.max(1, m - 1)), off = ii - (m - 1) / 2;
+    put(c, L.cx + off * sp, L.handY - (two && !row ? L.ch * 0.42 : 0), off * Math.min(1.6, 12 / m), 1, true, 300 + i, dur);
+  });
+  for (let p = 1; p < G.n; p++) {
+    const hand = h.hands[p], m = hand.length, seat = L.seats[p], up = h.done;
+    hand.forEach((c, i) => {
+      const off = i - (m - 1) / 2;
+      if (seat === 't') { const sp = Math.min(L.ocw * 0.42, (L.W * 0.62 - L.ocw) / Math.max(1, m - 1)); put(c, L.cx + off * sp, L.topY, -off * 1.2, L.os, up, 200 + i, dur); }
+      else {
+        const sp = Math.min(L.ocw * 0.36, (L.bandBot - L.bandTop - L.ocw) / Math.max(1, m - 1)), x = seat === 'l' ? L.sideX : L.W - L.sideX;
+        put(c, x, L.midY + off * sp * (seat === 'l' ? 1 : -1), seat === 'l' ? 90 : -90, L.os, up, 200 + i, dur);
+      }
+    });
+  }
+  for (let c = 0; c < 54; c++) {
+    const el = els[c], my = play && mine.includes(c), ok = my && legal(c, t) && (h.drew < 0 || c === h.drew);
+    el.classList.toggle('flat', flat.has(c)); el.classList.toggle('play', ok); el.classList.toggle('dim', my && !ok);
+    el.classList.toggle('hit', play && c === h.drew); el.classList.toggle('hot', ok && hotCard === c);
+    el.classList.toggle('drawme', drawme && c === h.deck[h.deck.length - 1]);
+  }
+  ui();
+}
+function ui() { // koltuklar, renk, ceza ve yön işaretleri, pas düğmesi
+  const h = G && G.h, t = T(), n = nPlayers();
+  for (let p = 1; p < 4; p++) {
+    const s = $('seat' + p), seat = L.seats[p];
+    s.hidden = p >= n; if (p >= n) continue;
+    const m = h ? h.hands[p].length : 7, sp = L.ocw * 0.36;
+    let x, y;
+    if (seat === 't') { x = L.cx; y = L.topSeatY; }
+    else { x = seat === 'l' ? L.sideSeatX : L.W - L.sideSeatX; y = L.midY; }
+    s.style.left = x + 'px'; s.style.top = y + 'px'; s.style.setProperty('--c', TURNCOL[p]);
+    s.querySelector('.ava').style.backgroundPosition = avaPos(p);
+    s.classList.toggle('on', !!(h && !h.done && h.turn === p));
+    const b = s.querySelector('b'), last = h && m === 1 && !h.done; b.textContent = last ? t.lastTag : t.names[p]; b.classList.toggle('last', last);
+  }
+  const top = h && h.pile[h.pile.length - 1], sb = $('suitB'), wild = h && top != null && isWild(top) && !h.done;
+  sb.classList.toggle('off', !wild);
+  if (wild) { sb.textContent = SUITCH[h.suit]; sb.style.color = SUITCOL[h.suit]; }
+  sb.style.left = (L.pileX + L.cw * 0.32) + 'px'; sb.style.top = (L.midY - L.ch * 0.5 - 12) + 'px';
+  const pb = $('pendB'); pb.classList.toggle('off', !(h && h.pend > 0)); if (h && h.pend) pb.textContent = '+' + h.pend;
+  pb.style.left = L.pileX + 'px'; pb.style.top = (L.midY + L.ch * 0.5 + 2) + 'px';
+  const d = $('dirB'); d.classList.toggle('off', n < 3 || !h); d.classList.toggle('rev', !!(h && h.dir < 0));
+  const pass = $('passBtn'); pass.hidden = !(h && canPlay() && h.drew >= 0); pass.textContent = t.pass;
+  pass.style.left = L.deckX + 'px'; pass.style.top = (L.midY + L.ch * 0.5 + 4) + 'px';
+  const sp = $('suitPick'); sp.style.left = L.cx + 'px'; sp.style.top = L.midY + 'px';
+}
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), gn = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(delay, vol, freq, len, type = 'bandpass') { // kartın kumaşa sürtünmesi
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, buf = c.createBuffer(1, Math.max(1, c.sampleRate * len), c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), gn = c.createGain();
+    f.type = type; f.frequency.value = freq; f.Q.value = .8; gn.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(gn).connect(c.destination); s.start(t);
+  }
+  return {
+    unlock: ctx,
+    deal() { noise(0, 0.25, 3200, 0.05); },
+    play() { noise(0, 0.35, 2400, 0.07); noise(0.03, 0.2, 900, 0.04); },
+    take(n) { for (let i = 0; i < Math.min(5, n); i++) noise(i * 0.035, 0.22, 2000 + i * 200, 0.06); },
+    wild() { [659, 880, 1175].forEach((f, k) => tone(f, f, 0.13, 0.09, 'triangle', k * 0.07)); },
+    seven() { tone(330, 165, 0.32, 0.13, 'sawtooth'); noise(0, 0.3, 1400, 0.09); },
+    skip() { tone(520, 780, 0.12, 0.09, 'square'); tone(780, 520, 0.12, 0.07, 'square', 0.1); },
+    last() { [880, 1175].forEach((f, k) => tone(f, f, 0.14, 0.1, 'triangle', k * 0.11)); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); },
+    lose() { [440, 370, 311, 262].forEach((f, k) => tone(f, f * .98, 0.24, 0.1, 'triangle', k * 0.16)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Oyun akışı ----------
+let msgT = null;
+function say(s, gold) {
+  const el = $('msg'); el.textContent = s; el.classList.add('on'); el.classList.toggle('gold', !!gold);
+  clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2600);
+}
+function popText(s) { const p = $('pop'); p.textContent = s; p.style.left = L.cx + 'px'; p.style.top = L.midY + 'px'; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go'); }
+function save() { try { if (G && !G.over && !(G.h && G.h.mid)) localStorage.setItem('rids_pis7_game', JSON.stringify(G)); } catch (e) {} }
+function loadSaved() {
+  try {
+    const s = JSON.parse(localStorage.getItem('rids_pis7_game')); if (!s || !s.h || !Array.isArray(s.scores) || ![2, 3, 4].includes(s.n)) return null;
+    const h = s.h, all = [...h.deck, ...h.pile, ...h.hands.flat()];
+    if (h.hands.length !== s.n || all.length !== 54 || new Set(all).size !== 54 || !h.pile.length) return null;
+    h.mid = false; return s;
+  } catch (e) { return null; }
+}
+const noOv = () => $('setupOv').hidden && $('rulesOv').hidden && $('handOv').hidden && $('winOv').hidden;
+const canPlay = () => G && G.h && !G.over && !busy && G.h.turn === 0 && !G.h.done && noOv();
+const canDraw = () => canPlay() && G.h.drew < 0 && (G.h.pend > 0 || !G.h.hands[0].some((c) => legal(c, tbl(G.h))));
+function hint() {
+  const t = T(), h = G.h;
+  if (!h || h.done) return '';
+  if (h.turn !== 0) return t.hintThink;
+  const any = h.hands[0].some((c) => legal(c, tbl(h)));
+  if (h.pend) return any ? t.hintPendCan(h.pend) : t.hintPend(h.pend);
+  if (h.drew >= 0) return t.hintDrew;
+  if (!any) return t.hintDraw;
+  return isWild(h.pile[h.pile.length - 1]) ? t.hintSuit(h.suit) : t.hintPlay;
+}
+function updateDock(hn) {
+  const t = T(), h = G && G.h, p = h ? h.turn : 0, n = nPlayers();
+  $('dock').style.setProperty('--turn', TURNCOL[p]);
+  const chip = $('chip'); if (chip.dataset.p !== String(p)) { chip.dataset.p = p; chip.style.backgroundPosition = avaPos(p); chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
+  $('turnName').textContent = p === 0 ? t.turnYou : t.turnOf(p);
+  $('turnMsg').textContent = hn == null ? (G ? hint() : '') : hn;
+  const sc = G ? G.scores : Array(n).fill(0), best = Math.min(...sc), sk = $('skor');
+  sk.classList.toggle('g4', n > 2);
+  sk.innerHTML = sc.map((v, i) => `<div class="${G && G.handNo > 1 && v === best ? 'w' : ''}"><span class="ava" style="background-position:${avaPos(i)}"></span><span>${v}</span></div>`).join('') + `<div id="hedef">${G ? t.target(G.target) : ''}</div>`;
+  sk.setAttribute('aria-label', t.scoreAria(sc));
+}
+const nextP = (p) => stepP(p, G.h.dir, G.n);
+async function reshuffle(my) {
+  const h = G.h; if (h.pile.length < 6) return false; // yeni deste en az 5 kart olmalı
+  const top = h.pile.pop(); h.deck = shuffled(Math.random, h.pile); h.pile = [top];
+  say(T().reshuf); Sfx.take(8); render(480); await wait(520); return my === epoch;
+}
+async function drawCards(my, p, k) { // k kart çeker; son çekilen kartı döndürür (deste tükendiyse ya da sayfa değiştiyse null)
+  const h = G.h; let last = -1;
+  for (let i = 0; i < k; i++) {
+    if (!h.deck.length && !(await reshuffle(my))) { if (my !== epoch) return null; h.block = true; return null; }
+    last = h.deck.pop(); h.hands[p].push(last); if (p === 0) sortMine();
+    Sfx.deal(); render(320); await wait(k > 3 ? 110 : 160); if (my !== epoch) return null;
+  }
+  return last;
+}
+async function startHand() {
+  const my = epoch, n = G.n, first = (G.dealer + 1) % n;
+  G.handNo++;
+  G.h = { deck: shuffled(), pile: [], hands: Array.from({ length: n }, () => []), turn: first, dir: 1, suit: 0, pend: 0, drew: -1, miss: Array.from({ length: n }, () => []), done: false, winner: -1, res: null, mid: true };
+  const h = G.h; busy = true; hotCard = -1; render(0); updateDock(T().hintDeal);
+  await wait(250); if (my !== epoch) return;
+  for (let k = 0; k < 7 * n; k++) {
+    const p = (first + k) % n; h.hands[p].push(h.deck.pop()); if (p === 0) sortMine();
+    if (k % 2 === 0) Sfx.deal(); render(300); await wait(65); if (my !== epoch) return;
+  }
+  let c = h.deck.pop(); while (isSpecial(c)) { h.deck.unshift(c); c = h.deck.pop(); } // ilk açılan kart özel olmasın
+  h.pile.push(c); h.suit = suitOf(c); Sfx.play(); render(380);
+  await wait(450); if (my !== epoch) return;
+  h.mid = false; save(); nextAction();
+}
+async function nextAction() {
+  const my = epoch, h = G.h; if (!h || G.over) return;
+  if (h.done) { if (h.res) return showHand(); return; }
+  render(); updateDock();
+  if (h.turn !== 0) { busy = true; await wait(780); if (my !== epoch) return; return cpuTurn(my, h.turn); }
+  busy = false; render(); updateDock();
+}
+const stFor = (p) => { const h = G.h; return { ...tbl(h), hand: h.hands[p], n: G.n, me: p, dir: h.dir, counts: h.hands.map((x) => x.length), miss: h.miss }; };
+async function takePenalty(my, p) {
+  const h = G.h, k = h.pend; h.pend = 0; h.mid = true;
+  say(T().drewN(p, k)); buzz(p === 0 ? [30, 40, 30] : 0);
+  if ((await drawCards(my, p, k)) === null) return h.block && my === epoch ? blockHand() : undefined;
+  await wait(250); if (my !== epoch) return;
+  h.turn = nextP(p); h.mid = false; save(); nextAction();
+}
+function passOn(p) { const h = G.h; say(T().passed(p)); h.turn = nextP(p); h.mid = false; save(); nextAction(); }
+// Deste bitti ve yerdeki kartlar yeni deste için yetmiyor: el kapanır, elinde en az ceza kalan kazanır
+function blockHand() {
+  const h = G.h, sums = h.hands.map((hd) => hd.reduce((s, c) => s + pen(c), 0)), m = Math.min(...sums);
+  let w = h.turn; while (sums[w] !== m) w = nextP(w);
+  say(T().blocked, true); return endHand(w, true);
+}
+async function cpuTurn(my, p) {
+  const h = G.h;
+  const c = cpuPick(stFor(p), G.level);
+  if (c >= 0) return playCard(p, c);
+  if (h.pend) return takePenalty(my, p);
+  h.mid = true; if (!h.miss[p].includes(h.suit)) h.miss[p].push(h.suit);
+  const got = await drawCards(my, p, 1); if (got === null) return h.block && my === epoch ? blockHand() : undefined;
+  await wait(380); if (my !== epoch) return;
+  if (got >= 0 && legal(got, tbl(h))) return playCard(p, got);
+  passOn(p);
+}
+let pickRes = null;
+function pickSuit() {
+  return new Promise((res) => { pickRes = res; $('spT').textContent = T().pickSuit; $('suitPick').hidden = false; $('suitPick').querySelector('button').focus(); });
+}
+async function playCard(p, c) {
+  const my = epoch, h = G.h, t = T(), n = G.n;
+  busy = true; hotCard = -1; h.mid = true;
+  h.hands[p].splice(h.hands[p].indexOf(c), 1); h.pile.push(c); h.drew = -1;
+  if (!isWild(c)) h.miss[p] = h.miss[p].filter((s) => s !== suitOf(c));
+  Sfx.play(); render(360); updateDock('');
+  await wait(420); if (my !== epoch) return;
+  if (!h.hands[p].length) return endHand(p);
+  let suit = suitOf(c);
+  if (isWild(c)) {
+    if (p === 0) { suit = await pickSuit(); if (my !== epoch) return; }
+    else suit = cpuSuit(stFor(p), h.hands[p], G.level);
+    h.suit = suit; Sfx.wild(); say(t.wants(p, suit)); render(200);
+    await wait(500); if (my !== epoch) return;
+  } else h.suit = suit;
+  const r = rankOf(c);
+  let nx = nextP(p);
+  if (isJoker(c) || r === 7) { h.pend += isJoker(c) ? JOKER_PEN : SEVEN; popText('+' + h.pend); Sfx.seven(); buzz(40); }
+  else if (r === 8) { say(t.skipped(nx)); Sfx.skip(); nx = nextP(nx); }
+  else if (r === 10) { h.dir = -h.dir; if (n === 2) { nx = p; say(p === 0 ? t.again : t.againCpu(p)); } else { nx = nextP(p); say(t.reversed); } Sfx.skip(); render(300); }
+  else if (r === 1) {
+    say(t.ace(p)); await wait(300); if (my !== epoch) return;
+    for (let k = 1; k < n; k++) { if ((await drawCards(my, stepP(p, k * h.dir, n), 1)) === null) return h.block && my === epoch ? blockHand() : undefined; }
+  }
+  if (h.hands[p].length === 1) { say(t.lastCard(p), true); Sfx.last(); }
+  await wait(250); if (my !== epoch) return;
+  h.turn = nx; h.mid = false; save(); nextAction();
+}
+async function endHand(w, blocked) {
+  const my = epoch, h = G.h, t = T();
+  busy = true; h.done = true; h.winner = w; h.pend = 0; h.blocked = !!blocked;
+  if (!blocked) { popText(t.outPop); say(t.out(w), true); } if (w === 0) Sfx.win(); else Sfx.lose(); buzz([50, 50, 90]);
+  render(520); updateDock('');
+  await wait(1500); if (my !== epoch) return;
+  h.res = h.hands.map((hd, i) => (i === w ? 0 : hd.reduce((s, c) => s + pen(c), 0)));
+  h.res.forEach((v, i) => { G.scores[i] += v; });
+  h.mid = false; save(); updateDock(''); showHand();
+}
+function matchWinners() {
+  if (G.target === 0) return [G.h.winner];
+  if (Math.max(...G.scores) < G.target) return null;
+  const m = Math.min(...G.scores); return G.scores.map((s, i) => (s === m ? i : -1)).filter((i) => i >= 0);
+}
+function showHand() {
+  const t = T(), h = G.h, ws = matchWinners();
+  $('handTitle').textContent = t.handOver(G.handNo); $('handSub').textContent = h.blocked ? t.blockSub(h.winner) : t.handSub(h.winner);
+  $('sumTable').innerHTML = `<thead><tr>${t.cols.map((c) => `<th>${c}</th>`).join('')}</tr></thead><tbody>`
+    + h.hands.map((hd, i) => `<tr class="${i === h.winner ? 'win' : ''}"><td class="nm"><i class="ava" style="background-position:${avaPos(i)}"></i>${t.names[i]}</td><td class="${hd.length ? '' : 'z'}">${hd.length}</td><td class="${h.res[i] ? '' : 'z'}">${h.res[i]}</td><td>${G.scores[i]}</td></tr>`).join('') + '</tbody>';
+  $('nextBtn').textContent = ws ? t.seeResult : t.nextHand;
+  $('handOv').hidden = false; $('nextBtn').focus();
+}
+function afterHand() {
+  $('handOv').hidden = true;
+  const ws = matchWinners();
+  if (ws) return finish(ws);
+  G.dealer = (G.dealer + 1) % G.n; G.h = null; epoch++; startHand();
+}
+function winText(ws) { const t = T(); return ws.length === 1 && ws[0] === 0 ? t.youWin : ws.includes(0) ? t.draw : t.wins(ws); }
+function finish(ws) {
+  const t = T(), win = ws.length === 1 && ws[0] === 0, draw = ws.includes(0) && !win;
+  G.over = true; busy = true; try { localStorage.removeItem('rids_pis7_game'); } catch (e) {}
+  sayac('bitti', 'oyun bitti'); bitenVar = true;
+  const k = win ? 'insan' : draw ? 'berabere' : 'bilgisayar';
+  sayac(`sonuc/${k}-${lvAd(G.level)}`, `sonuç: ${k === 'berabere' ? 'berabere' : k + ' kazandı'} (${lvAd(G.level)})`);
+  $('trophy').textContent = draw ? '🤝' : win ? '🏆' : '🃏';
+  $('winTitle').textContent = winText(ws);
+  $('winSub').textContent = t.winSub(G.handNo, Math.min(...G.scores), G.target === 0);
+  $('final').innerHTML = G.scores.map((v, p) => `<span class="${ws.includes(p) ? 'win' : ''}"><i class="ava" style="background-position:${avaPos(p)}"></i>${v}</span>`).join('');
+  $('final').style.fontSize = G.n > 2 ? '22px' : ''; $('final').style.gap = G.n > 2 ? '8px' : ''; $('final').style.flexWrap = 'wrap';
+  if (win || draw) Sfx.win(); else Sfx.lose();
+  buzz([60, 60, 120]); if (win) confetti();
+  updateDock('');
+  $('winOv').hidden = false; $('againBtn').focus();
+}
+function newGame(level, n, target) {
+  epoch++; closeAll(); sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${lvAd(level)}-${n - 1}-${target === 0 ? 'tek' : target}`, `mod: ${lvAd(level)}, ${n - 1} rakip, ${target === 0 ? 'tek el' : target + ' ceza'}`);
+  G = { level, target, n, scores: Array(n).fill(0), handNo: 0, dealer: n - 1, h: null, over: false };
+  layout(); applyLang(); startHand();
+}
+function resume() {
+  const s = loadSaved(); if (!s) return;
+  epoch++; closeAll(); G = s; G.over = false; busy = true; hotCard = -1;
+  layout(); applyLang(); nextAction();
+}
+async function tapDeck() {
+  if (!canDraw()) return;
+  const my = epoch, h = G.h; Sfx.unlock(); busy = true; hotCard = -1;
+  if (h.pend) return takePenalty(my, 0);
+  h.mid = true; if (!h.miss[0].includes(h.suit)) h.miss[0].push(h.suit);
+  const got = await drawCards(my, 0, 1); if (got === null) return h.block && my === epoch ? blockHand() : undefined;
+  if (got >= 0 && legal(got, tbl(h))) { h.drew = got; h.mid = false; busy = false; render(200); updateDock(); return; }
+  await wait(500); if (my !== epoch) return;
+  passOn(0);
+}
+function passTurn() {
+  if (!canPlay() || G.h.drew < 0) return;
+  const h = G.h; h.drew = -1; say(T().passed(0)); h.turn = nextP(0); save(); nextAction();
+}
+function tapCard(c) {
+  if (!G || !G.h) return;
+  if (G.h.deck.includes(c)) return tapDeck();
+  if (!canPlay() || !G.h.hands[0].includes(c)) return;
+  Sfx.unlock();
+  const h = G.h;
+  if (!legal(c, tbl(h)) || (h.drew >= 0 && c !== h.drew)) { const el = els[c]; el.classList.remove('no'); void el.offsetWidth; el.classList.add('no'); say(T().cant); return; }
+  // dokunmatikte ilk dokunuş kartı kaldırır, ikincisi atar; farede tek tık yeter
+  if (lastPointer !== 'mouse' && hotCard !== c) { hotCard = c; render(160); return; }
+  playCard(0, c);
+}
+let lastPointer = 'mouse';
+addEventListener('pointerdown', (e) => { lastPointer = e.pointerType; if (hotCard >= 0 && !e.target.closest('.card')) { hotCard = -1; render(160); } }, true);
+function confetti() {
+  if (reduce) return;
+  const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
+  k.hidden = false; k.width = innerWidth * d; k.height = innerHeight * d;
+  const cols = ['#ef4444', '#22d3ee', '#ffd43b', '#ffffff', '#84cc16', '#8b5cf6', '#ff6fb5'];
+  const bits = Array.from({ length: 170 }, () => ({
+    x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160,
+    w: 6 + Math.random() * 6, h: 9 + Math.random() * 8, a: Math.random() * 6, va: (Math.random() - 0.5) * 10, col: cols[Math.floor(Math.random() * cols.length)]
+  }));
+  let last = performance.now(); const end = last + 4200;
+  (function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) {
+      b.vy = Math.min(b.vy + 220 * dt, 260); b.x += (b.vx + Math.sin(now / 300 + b.a) * 40) * dt; b.y += b.vy * dt; b.a += b.va * dt;
+      c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(Math.cos(b.a * 1.7), 1);
+      c.fillStyle = b.col; c.globalAlpha = Math.min(1, (end - now) / 600); c.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); c.restore();
+    }
+    if (now < end) requestAnimationFrame(tick); else { c.clearRect(0, 0, k.width, k.height); k.hidden = true; }
+  })(last);
+}
+
+// ---------- Pencereler ve dil ----------
+function closeAll() { for (const id of ['setupOv', 'rulesOv', 'handOv', 'winOv']) $(id).hidden = true; $('suitPick').hidden = true; pickRes = null; }
+function renderSetup() {
+  const t = T();
+  $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub; $('oppLbl').textContent = t.oppLbl; $('lvlLbl').textContent = t.lvlLbl; $('tgtLbl').textContent = t.tgtLbl; $('deckLbl').textContent = t.deckLbl;
+  const lab = { easy: t.easy, mid: t.mid, hard: t.hard, 0: t.one, 101: t.lim(101), 201: t.lim(201), red: `<i class="mini" style="--b:var(--back-red)"></i>${t.red}`, black: `<i class="mini" style="--b:var(--back-black)"></i>${t.black}` };
+  const opp = (v) => Array.from({ length: +v }, (_, i) => `<i class="ava" style="display:inline-block;width:20px;height:20px;vertical-align:middle;margin:0 1px;background-position:${avaPos(i + 1)}"></i>`).join('');
+  const cur = { oppSeg: String(setup.opp), lvlSeg: setup.level, tgtSeg: String(setup.target), deckSeg: setup.deck };
+  for (const id in cur) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.innerHTML = id === 'oppSeg' ? opp(b.dataset.v) : lab[b.dataset.v]; b.setAttribute('aria-label', id === 'oppSeg' ? b.dataset.v : b.textContent); b.setAttribute('aria-pressed', b.dataset.v === cur[id]); });
+  $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume; $('resumeBtn').hidden = !loadSaved();
+}
+function openSetup() {
+  save(); epoch++; busy = true; hotCard = -1;
+  closeAll(); renderSetup(); render(0); $('setupOv').hidden = false; $('startBtn').focus();
+}
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langAria);
+  $('rights').textContent = t.rights; $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again2; $('toMenuBtn').textContent = t.toMenu; stage.setAttribute('aria-label', t.stage); $('spT').textContent = t.pickSuit;
+  document.querySelectorAll('#suitPick button').forEach((b) => b.setAttribute('aria-label', t.suit[b.dataset.s]));
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  for (let c = 0; c < 54; c++) els[c].setAttribute('aria-label', t.cardName(c));
+  renderSetup(); updateDock(G && G.h && busy && G.h.turn === 0 ? '' : null); if (L) ui();
+  if (!$('handOv').hidden && G && G.h && G.h.res) showHand();
+  if (!$('winOv').hidden && G && G.over) { const ws = matchWinners() || []; $('winTitle').textContent = winText(ws); $('winSub').textContent = t.winSub(G.handNo, Math.min(...G.scores), G.target === 0); }
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+// ---------- Girdi ----------
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { if (!$('rulesOv').hidden) $('rulesOv').hidden = true; return; }
+  if (!$('suitPick').hidden && /^[1-4]$/.test(e.key) && pickRes) { const r = pickRes; pickRes = null; $('suitPick').hidden = true; r(+e.key - 1); return; }
+  if ((e.key === 'd' || e.key === 'D' || e.key === ' ') && canDraw()) { e.preventDefault(); tapDeck(); }
+  if ((e.key === 'p' || e.key === 'P') && !$('passBtn').hidden) passTurn();
+});
+$('suitPick').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-s]'); if (!b || !pickRes) return;
+  const r = pickRes; pickRes = null; $('suitPick').hidden = true; r(+b.dataset.s);
+});
+$('passBtn').addEventListener('click', passTurn);
+document.querySelectorAll('.seg').forEach((s) => s.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  if (s.id === 'lvlSeg') setup.level = b.dataset.v;
+  else if (s.id === 'oppSeg') { setup.opp = b.dataset.v; if (!G) layout(); }
+  else if (s.id === 'deckSeg') { setup.deck = b.dataset.v; applyDeck(); try { localStorage.setItem('rids_pis7_setup', JSON.stringify(setup)); } catch (e) {} }
+  else setup.target = b.dataset.v;
+  renderSetup();
+}));
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); try { localStorage.setItem('rids_pis7_setup', JSON.stringify(setup)); } catch (e) {} newGame(setup.level, +setup.opp + 1, +setup.target); });
+$('resumeBtn').addEventListener('click', () => { Sfx.unlock(); resume(); });
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; render(); });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') { $('rulesOv').hidden = true; render(); } });
+$('nextBtn').addEventListener('click', afterHand);
+$('againBtn').addEventListener('click', () => newGame(G.level, G.n, G.target));
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem('rids_pis7_sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+const relayout = () => layout();
+addEventListener('resize', relayout); document.addEventListener('fullscreenchange', relayout); document.addEventListener('webkitfullscreenchange', relayout);
+if (window.ResizeObserver) new ResizeObserver(relayout).observe(stage);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+// Deneme kancası: hızlandırma ve durum okuma (oyuncuya görünmez)
+window.__pis7 = {
+  setSpeed: (s) => { speed = s; },
+  state: () => ({ G, busy, canPlay: !!canPlay(), canDraw: !!canDraw(), hand: G && G.h ? G.h.hands[0].slice() : [], legal: G && G.h ? G.h.hands[0].filter((c) => legal(c, tbl(G.h)) && (G.h.drew < 0 || c === G.h.drew)) : [], picking: !$('suitPick').hidden, pass: !$('passBtn').hidden, epoch }),
+  card: (c) => { const r = els[c].getBoundingClientRect(); return [r.left + r.width * 0.15, r.top + r.height * 0.18]; }, // kartın her zaman görünen sol üst köşesi
+  setHand: (o) => { Object.assign(G.h, o); render(0); updateDock(); }
+};
+
+applySound(); applyDeck(); layout(); applyLang(); openSetup();
+</script>
+</body>
+</html>

@@ -433,7 +433,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
 const stage = $('stage'), els = [];
 // Kart yüzleri: Adrian Kennard'ın geleneksel İngiliz desenli iskambil çizimleri (CC0, kart/ klasörü); sırtlar Ridsgames tasarımı
 const SUITC = 'SHDC', RANK = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-const cardSvg = (c) => `<img src="kart/${SUITC[suitOf(c)]}${RANK[rankOf(c) - 1]}.svg" alt="" draggable="false" decoding="async">`;
+const cardSvg = (c) => `<img src="../assets/kart/${SUITC[suitOf(c)]}${RANK[rankOf(c) - 1]}.svg" alt="" draggable="false" decoding="async">`;
 function backSvg(ink) { // klasik iskambil sırtı: tek renk kafes, ortada Ridsgames R'si ile rozet
   const R = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z', W = '#fffdf8';
   const rot = (n, f) => Array.from({ length: n }, (_, i) => f(i * 360 / n)).join('');

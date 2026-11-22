@@ -1,0 +1,9 @@
+Kart yüzleri
+
+- A, 2-10, J, Q, K: Adrian Kennard'ın iskambil çizimleri (www.me.uk/cards), CC0 1.0 (kamu malı).
+  @letele/playing-cards paketinden SVG olarak çıkarıldı; maça asındaki adres yazısı RIDSGAMES ile değiştirildi.
+- JR.svg, JB.svg (jokerler): soytarı resmi SVG-cards 4.0.2'den,
+  (C) 2005 David Bellot, (C) 2016-2017 Huub de Beer, GNU LGPL 2.1 ya da sonrası (LGPL-2.1.txt).
+  Kart çerçevesi, köşe yazıları ve siyah jokerdeki renk değişikliği Ridsgames.
+
+Kart sırtları Ridsgames tasarımıdır ve sayfaların içinde çizilir.
