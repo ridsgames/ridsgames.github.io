@@ -299,9 +299,10 @@ const GAMES = [
   { slug: 'tavla', name: "Tavla", img: '../assets/tavla.jpg?v=1', rules: true, cpu: true },
   { slug: 'okey', name: "Okey", img: '../assets/okey.jpg?v=1', rules: true, cpu: true },
   { slug: 'konken', name: "Konken (51)", img: '../assets/konken.jpg?v=1', rules: true, cpu: true },
-  { slug: 'sudoku', name: "Sudoku", img: '../assets/sudoku.jpg?v=1', rules: true, clear: true, clearLbl: 'Bulmacayı çözme' }
+  { slug: 'sudoku', name: "Sudoku", img: '../assets/sudoku.jpg?v=1', rules: true, clear: true, clearLbl: 'Bulmacayı çözme' },
+  { slug: 'tas-cevirme', name: "Taş Çevirme", img: '../assets/tas-cevirme.jpg?v=1', rules: true, cpu: true }
 ];
-const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Cuk', bomba: 'Dilimin Ucunda', 'mayin-tarlasi': 'Mayın Tarlası', dama: 'Türk Daması', pisti: 'Pişti', 'pis-yedili': 'Pis Yedili', batak: 'Batak', 'king': "King", 'sayi-bulmaca': "Sayı Bulmaca", 'adam-asmaca': "Adam Asmaca", 'hafiza': "Hafıza", 'dort-tas': "Dört Taş", 'dokuz-tas': "Dokuz Taş", 'amiral-batti': "Amiral Battı", 'isim-sehir': "İsim Şehir", 'domino': "Domino", 'tombala': "Tombala", 'tavla': "Tavla", 'okey': "Okey", 'konken': "Konken (51)", 'sudoku': "Sudoku" };
+const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Cuk', bomba: 'Dilimin Ucunda', 'mayin-tarlasi': 'Mayın Tarlası', dama: 'Türk Daması', pisti: 'Pişti', 'pis-yedili': 'Pis Yedili', batak: 'Batak', 'king': "King", 'sayi-bulmaca': "Sayı Bulmaca", 'adam-asmaca': "Adam Asmaca", 'hafiza': "Hafıza", 'dort-tas': "Dört Taş", 'dokuz-tas': "Dokuz Taş", 'amiral-batti': "Amiral Battı", 'isim-sehir': "İsim Şehir", 'domino': "Domino", 'tombala': "Tombala", 'tavla': "Tavla", 'okey': "Okey", 'konken': "Konken (51)", 'sudoku': "Sudoku", 'tas-cevirme': "Taş Çevirme" };
 const SIZES = { phone: 'Telefon', tablet: 'Tablet', desktop: 'Bilgisayar', desktophd: 'Büyük ekran', unknown: 'Bilinmiyor' };
 // Süre dilimleri (olcum.js ile aynı): yol dilimin üst sınırını taşır, toplamda dilimin ortası kullanılır
 const MID = { 1: 0.5, 2: 1.5, 3: 2.5, 5: 4, 7: 6, 10: 8.5, 15: 12.5, 20: 17.5, 30: 25, 45: 37.5, 60: 52.5, 90: 75, 120: 105 };
@@ -527,6 +528,7 @@ function modeLabel(slug, m) {
   if (slug === 'okey') return `${p[0] === '101' ? '101 Okey' : 'Okey'} · ${p[1] || ''} · ${(p[2] || '').replace('el', ' el')}`;
   if (slug === 'konken') return `${(p[0] || '').replace('k', ' kişi')} · ${p[1] || ''} · ${(p[2] || '').replace('el', ' el')}`;
   if (slug === 'sudoku') return `${p[0] || ''} · ${{ goster: 'hatalar görünür', uc: '3 hata hakkı', gizli: 'hatalar gizli' }[p[1]] || p[1] || ''}`;
+  if (slug === 'tas-cevirme') return p[0] === 'cpu' ? `bilgisayara karşı · ${p[1] || ''} · ${p[2] || ''}` : 'iki kişi';
   if (slug === 'batak') return `${{ ihalesiz: 'Koz Maça', tekli: 'İhaleli', esli: 'Eşli', gommeli: 'Gömmeli' }[p[0]] || p[0]} · bilgisayara karşı, ${p[1] || ''} · ${p[2] || ''} el`;
   if (slug === 'pis-yedili') return `bilgisayara karşı, ${p[0]} · ${p[1] || ''} rakip · ${p[2] === 'tek' ? 'tek el' : (p[2] || '') + ' ceza'}`;
   if (slug === 'pisti') return 'bilgisayara karşı, ' + p[0] + ' · ' + (p[1] === 'tek' ? 'tek el' : (p[1] || '') + ' sayı');
