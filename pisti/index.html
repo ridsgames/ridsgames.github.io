@@ -224,7 +224,6 @@ table.sum td.z { color: #475569; }
 <main>
   <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
   <div id="stage" aria-label="Masa">
-    <span class="badge" id="bDeck"></span>
     <span class="lbl2" id="lDeck"></span>
     <div id="pop"></div>
   </div>
@@ -572,7 +571,6 @@ function render(dur = 380) {
 function badges() {
   const h = G && G.h, t = T();
   const set = (id, n, x, y) => { const b = $(id); b.textContent = n; b.classList.toggle('zero', !n); b.style.left = x + 'px'; b.style.top = y + 'px'; };
-  set('bDeck', h ? h.deck.length : 52, L.deckX, L.midY + L.ch / 2 + 4);
   const ld = $('lDeck'); ld.textContent = h && h.deck.length === 0 && (h.hands[0].length || h.hands[1].length) ? t.lastDeal : ''; ld.style.left = L.deckX + 'px'; ld.style.top = (L.midY - 8) + 'px';
 }
 
