@@ -198,6 +198,7 @@ table.sum td.z { color: #475569; }
 
 /* Pis Yedili'ye özel */
 .card.dim .front img { filter: brightness(.58) saturate(.6); }
+.card.hit .in { translate: 0 calc(var(--ch) * -.14); }
 .card.drawme .back { box-shadow: 0 0 0 2.5px #ffd43b, 0 0 16px rgba(255, 212, 59, .9); }
 .seat { position: absolute; z-index: 310; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; }
 .seat .ava { width: 38px; height: 38px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .3), 0 3px 8px rgba(0, 0, 0, .5); transition: box-shadow .3s, scale .3s; }
@@ -224,6 +225,10 @@ table.sum td.nm .ava { width: 22px; height: 22px; }
 table.sum tr.win td { color: #ffe066; font-weight: 800; }
 @keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
 .card.no .in { animation: shake .25s 2; }
+.card { touch-action: none; }
+.card.drag { cursor: grabbing; }
+.card.drag .in { translate: none !important; }
+.card.drag .face { box-shadow: 0 14px 28px rgba(0, 0, 0, .55), 0 0 0 .5px rgba(0, 0, 0, .35); }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -523,7 +528,7 @@ function makeCard(c) {
   const el = document.createElement('div');
   el.className = 'card'; el.dataset.c = c;
   el.innerHTML = `<div class="in"><div class="face front">${cardSvg(c)}</div><div class="face back"></div></div>`;
-  el.addEventListener('pointerdown', (e) => { if (e.button === 0) { e.preventDefault(); tapCard(c); } });
+  el.addEventListener('pointerdown', (e) => dragStart(e, c)); el.addEventListener('pointermove', dragMove); el.addEventListener('pointerup', dragEnd); el.addEventListener('pointercancel', dragEnd);
   stage.appendChild(el); return el;
 }
 for (let c = 0; c < 54; c++) els[c] = makeCard(c);
@@ -575,7 +580,7 @@ function render(dur = 360) {
   mine.forEach((c, i) => {
     const row = i < backN ? 0 : 1, m = two ? (row ? k - backN : backN) : k, ii = two && row ? i - backN : i;
     const sp = Math.min(L.cw * 0.68, maxW / Math.max(1, m - 1)), off = ii - (m - 1) / 2;
-    put(c, L.cx + off * sp, L.handY - (two && !row ? L.ch * 0.42 : 0), off * Math.min(1.6, 12 / m), 1, true, 300 + i, dur);
+    put(c, L.cx + off * sp, L.handY - (two && !row ? L.ch * 0.42 : 0), off * Math.min(1.6, 12 / m), 1, true, c === h.drew || c === hotCard ? 399 : 300 + i, dur); // seçilen kart öne çıkar, tamamı görünür
   });
   for (let p = 1; p < G.n; p++) {
     const hand = h.hands[p], m = hand.length, seat = L.seats[p], up = h.done;
@@ -876,6 +881,33 @@ function tapCard(c) {
 }
 let lastPointer = 'mouse';
 addEventListener('pointerdown', (e) => { lastPointer = e.pointerType; if (hotCard >= 0 && !e.target.closest('.card')) { hotCard = -1; render(160); } }, true);
+
+// Sürükle bırak: eldeki kartı tutup masaya çekince atılır; yerinde bırakılırsa dokunuş gibi sayılır
+let drag = null;
+function dragStart(e, c) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  if (!dragOk(c)) return tapCard(c);
+  const r = els[c].getBoundingClientRect();
+  drag = { c, id: e.pointerId, x0: e.clientX, y0: e.clientY, ox: r.left + r.width / 2 - e.clientX, oy: r.top + r.height / 2 - e.clientY, moved: false };
+  try { els[c].setPointerCapture(e.pointerId); } catch (er) {}
+}
+function dragMove(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.moved) { if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 8) return; drag.moved = true; hotCard = -1; render(160); els[drag.c].classList.add('drag'); }
+  const s = stage.getBoundingClientRect();
+  put(drag.c, e.clientX + drag.ox - s.left, e.clientY + drag.oy - s.top, 0, 1.06, true, 900, 0);
+}
+function dragEnd(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag, s = stage.getBoundingClientRect(); drag = null;
+  els[d.c].classList.remove('drag');
+  if (!d.moved) { if (e.type === 'pointerup') tapCard(d.c); return; }
+  if (e.type === 'pointerup' && e.clientY - s.top < L.handY - L.ch * 0.62 && dragOk(d.c)) { Sfx.unlock(); hotCard = -1; return dropPlay(d.c); }
+  render(220);
+}
+const dragOk = (c) => canPlay() && G.h.hands[0].includes(c) && legal(c, tbl(G.h)) && (G.h.drew < 0 || c === G.h.drew);
+const dropPlay = (c) => playCard(0, c);
 function confetti() {
   if (reduce) return;
   const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
