@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Hafıza | Ridsgames</title>
+<meta name="description" content="Hafıza oyunu: kartları ikişer ikişer aç, eşlerini bul. Tek başına rekor kır, bilgisayara karşı ya da arkadaşınla oyna.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --glow: rgba(251, 191, 36, 0.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--glow) 28%, transparent) 0%, transparent 62%), radial-gradient(ellipse at 50% 100%, #111a2c 0%, var(--bg) 70%), var(--bg);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.tall button { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.seg.tall small { font-size: 11px; font-weight: 600; opacity: .75; white-space: nowrap; }
+.seg.tall .em { font-size: 19px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.custom { display: grid; gap: 6px; margin-top: 10px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.mrow button { height: 44px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 24px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.mrow button:disabled { opacity: .35; cursor: default; }
+.mrow output { text-align: center; font-size: 24px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score.lost { color: #fca5a5; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; pencereler menü panelini örtmez; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .gname { display: inline; font-size: 11px; white-space: nowrap; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  main { grid-column: 2; grid-row: 1; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) 6px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
+  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
+  footer { display: none; }
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 4px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #winOv .card { max-width: 560px; padding: 14px 18px 16px; }
+  #winOv .trophy { font-size: 38px; } #winOv .score { font-size: 34px; margin-bottom: 8px; } #winOv .sub { margin-bottom: 8px; }
+  #winOv .rank { grid-template-columns: 1fr 1fr; }
+  #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
+}
+
+/* ---------- Oyuna özel ---------- */
+:root { --glow: rgba(56, 189, 248, .3); }
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); align-items: stretch; gap: 8px; }
+.hud { display: flex; align-items: stretch; justify-content: center; gap: 8px; padding: 6px; width: 100%; max-width: 620px; justify-self: center; }
+.pl { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 12px; border: 1.5px solid transparent; transition: border-color .2s, background .2s; }
+.pl.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); }
+.pl .av { font-size: 24px; line-height: 1; }
+.pl .nm { min-width: 0; font-size: 13px; font-weight: 700; color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl .sc { margin-left: auto; font-size: 22px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.solo { flex: 1; display: flex; justify-content: space-around; align-items: center; font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; padding: 4px; }
+.solo b { display: block; font-size: 20px; color: #fff; text-align: center; }
+#board { min-height: 0; display: grid; place-content: center; gap: var(--gap, 8px); grid-template-columns: repeat(var(--c), var(--w)); grid-auto-rows: var(--h); }
+.cd { position: relative; perspective: 800px; cursor: pointer; border: 0; padding: 0; background: none; touch-action: manipulation; }
+.cd .in { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .38s cubic-bezier(.3, .7, .4, 1.2); }
+.cd.up .in, .cd.done .in { transform: rotateY(180deg); }
+.cd .f, .cd .b { position: absolute; inset: 0; border-radius: calc(var(--w) * .14); backface-visibility: hidden; -webkit-backface-visibility: hidden; display: grid; place-items: center; }
+.cd .b { background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .18), transparent 45%), repeating-linear-gradient(45deg, rgba(255, 255, 255, .06) 0 6px, transparent 6px 12px), linear-gradient(160deg, #0ea5e9, #1e3a8a);
+  border: 2px solid rgba(186, 230, 253, .55); box-shadow: 0 6px 14px rgba(0, 0, 0, .4); }
+.cd .b::after { content: '?'; font-size: calc(var(--w) * .42); font-weight: 800; color: rgba(255, 255, 255, .3); }
+.cd .f { transform: rotateY(180deg); background: linear-gradient(180deg, #fff, #e2e8f0); border: 2px solid #fff; box-shadow: 0 6px 14px rgba(0, 0, 0, .4); font-size: calc(min(var(--w), var(--h)) * .58); line-height: 1; }
+.cd.done .f { animation: matched .5s ease-out; border-color: var(--mc, #4ade80); box-shadow: 0 0 0 3px var(--mc, #4ade80), 0 6px 14px rgba(0, 0, 0, .4); }
+.cd.done { cursor: default; }
+.cd.gone .in { opacity: .35; transition: opacity .4s, transform .38s; }
+.cd.cpu .b { box-shadow: 0 0 0 3px #f472b6, 0 6px 14px rgba(0, 0, 0, .4); }
+.cd:focus-visible { outline: 3px solid #fde68a; outline-offset: 2px; border-radius: 10px; }
+@keyframes matched { 40% { transform: scale(1.12); } }
+.seg.tall small { white-space: normal; }
+.names { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.names input { height: 42px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .3); background: rgba(2, 6, 23, .7); color: #fff; font: inherit; font-size: 15px; padding: 0 10px; min-width: 0; }
+@media (orientation: landscape) and (max-height: 500px) {
+  main { grid-template-columns: clamp(120px, 20vw, 170px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .hud { grid-column: 1; flex-direction: column; justify-content: center; max-width: none; }
+  .pl { flex: none; flex-wrap: wrap; } .pl .sc { font-size: 20px; }
+  .solo { flex-direction: column; gap: 10px; flex: none; }
+  #board { grid-column: 2; }
+}
+
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="hafiza" data-name="Hafıza"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Hafıza</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="hud panel" id="hud"></div>
+  <div id="board"></div>
+
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Yeni oyun -->
+<div class="ov" id="setupOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Hafıza</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="modeLbl"></div>
+      <div class="seg tall" id="modeSeg">
+        <button type="button" data-m="tek"><span class="em">🧠</span><small></small></button>
+        <button type="button" data-m="cpu"><span class="em">🤖</span><small></small></button>
+        <button type="button" data-m="iki"><span class="em">👥</span><small></small></button>
+      </div>
+      <div class="note" id="modeNote"></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="sizeLbl"></div>
+      <div class="seg tall" id="sizeSeg">
+        <button type="button" data-s="12"><span></span><small>12</small></button>
+        <button type="button" data-s="20"><span></span><small>20</small></button>
+        <button type="button" data-s="30"><span></span><small>30</small></button>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="themeLbl"></div>
+      <div class="seg four tall" id="themeSeg"></div>
+    </div>
+    <div class="sec" id="lvSec">
+      <div class="lbl" id="lvLbl"></div>
+      <div class="seg" id="lvSeg"><button type="button" data-l="kolay"></button><button type="button" data-l="orta"></button><button type="button" data-l="zor"></button></div>
+    </div>
+    <div class="sec" id="namesSec" hidden>
+      <div class="lbl" id="namesLbl"></div>
+      <div class="names"><input id="n1" maxlength="14" autocomplete="off"><input id="n2" maxlength="14" autocomplete="off"></div>
+    </div>
+
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore"></div>
+    <ol class="rank" id="statList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="viewBtn" type="button">Tahtaya bak</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Ortak: dil, ses, pencereler, sayaç ----------
+const COMMON = {
+  tr: { homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
+    lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
+  en: { homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
+    lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_hafiza_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (n) => Math.floor(Math.random() * n);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(KEY + k); } catch (e) {} }
+};
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'hafiza/' + olay, title: 'Hafıza: ' + ad, event: true }); } catch (e) {} };
+let soundOn = store.get('sound', 1) !== 0, bitenVar = false;
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock: ctx, tone,
+    click() { tone(900, 700, 0.05, 0.05, 'triangle'); },
+    tap() { tone(540, 880, 0.07, 0.07); },
+    good() { tone(660, 990, 0.12, 0.08, 'triangle'); },
+    bad() { tone(220, 110, 0.22, 0.09, 'sawtooth'); },
+    win() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, f, 0.4, 0.1, 'triangle', i * 0.065)); },
+    lose() { [392, 329.6, 261.6].forEach((f, i) => tone(f, f * 0.98, 0.3, 0.09, 'triangle', i * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+const OVS = ['setupOv', 'rulesOv', 'winOv'];
+function closeAll() { for (const id of OVS) $(id).hidden = true; }
+const anyOpen = () => OVS.some((id) => !$(id).hidden);
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
+  closeAll();
+  $('winIco').textContent = o.ico; $('winTitle').textContent = o.title; $('winSub').textContent = o.sub || '';
+  $('winScore').textContent = o.score || ''; $('winScore').hidden = !o.score; $('winScore').classList.toggle('lost', !!o.lost);
+  $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
+}
+
+// ---------- Oyun ----------
+const STR = {
+  tr: { ...COMMON.tr, title: 'Hafıza | Ridsgames', game: 'Hafıza',
+    setupSub: 'Kartları ikişer ikişer aç, eşlerini bul.',
+    modeLbl: 'Oyun', modes: { tek: 'Tek başına', cpu: 'Bilgisayara karşı', iki: 'İki kişi' },
+    modeNote: { tek: 'Bütün eşleri en az hamlede bul. Rekorun saklanır.', cpu: 'Eş bulan bir daha oynar. En çok eşi toplayan kazanır.', iki: 'Aynı cihazda sırayla oynayın. Eş bulan bir daha oynar.' },
+    sizeLbl: 'Kart sayısı', sizes: { 12: 'Küçük', 20: 'Orta', 30: 'Büyük' }, themeLbl: 'Resimler', themes: { hayvan: 'Hayvanlar', meyve: 'Meyveler', tasit: 'Taşıtlar', spor: 'Spor' },
+    lvLbl: 'Bilgisayarın hafızası', namesLbl: 'Oyuncular', p1: 'Oyuncu 1', p2: 'Oyuncu 2', you: 'Sen', cpu: 'Bilgisayar',
+    moves: 'Hamle', time: 'Süre', pairs: 'Eş', best: 'Rekor',
+    turnOf: (n) => `Sıra: ${n}`, again2: 'Eş buldu, bir daha!',
+    soloWin: 'Hepsini buldun!', newRecord: 'Yeni rekor!', soloSub: (m, n) => `${n} kartı ${m} hamlede eşleştirdin.`,
+    youWin: 'Kazandın!', cpuWin: 'Bilgisayar kazandı', draw: 'Berabere', nameWin: (n) => `${n} kazandı!`, scoreSub: (a, b) => `${a} – ${b}`,
+    stats: { moves: 'Hamle', time: 'Süre', best: 'En iyi', perfect: 'Hatasız eş' },
+    rulesSub: 'Kapalı kartların yerini aklında tut, eşleri bul.',
+    ruleList: [
+      ['🃏', 'Her turda <b>iki kart</b> açılır. Resimleri aynıysa eş bulunmuş olur ve kartlar açık kalır.'],
+      ['🔁', 'Resimler farklıysa kartlar <b>yeniden kapanır</b>. Gördüğün yerleri aklında tut.'],
+      ['➕', 'Bilgisayara karşı ve iki kişilik oyunda <b>eş bulan bir daha oynar</b>; bulamazsa sıra karşıya geçer.'],
+      ['🏆', 'Bütün kartlar eşleşince oyun biter. En çok eşi toplayan kazanır.'],
+      ['🧠', 'Tek başına oyunda amaç <b>en az hamle</b>: her iki kart açışı bir hamledir. Her boy için rekorun saklanır.'],
+      ['🤖', 'Bilgisayarın hafızası zorluğa göre değişir: kolayda çoğunu unutur, zorda neredeyse hiç unutmaz.'],
+      ['⌨️', 'Klavye: <b>oklar</b> ile gez, <b>Enter</b> ya da <b>Boşluk</b> ile kartı aç.']
+    ] },
+  en: { ...COMMON.en, title: 'Memory | Ridsgames', game: 'Memory',
+    setupSub: 'Turn the cards over two at a time and find the pairs.',
+    modeLbl: 'Game', modes: { tek: 'Solo', cpu: 'Against computer', iki: 'Two players' },
+    modeNote: { tek: 'Find every pair in as few moves as you can. Your record is saved.', cpu: 'Find a pair and you go again. Whoever collects the most pairs wins.', iki: 'Take turns on the same device. Find a pair and you go again.' },
+    sizeLbl: 'Cards', sizes: { 12: 'Small', 20: 'Medium', 30: 'Large' }, themeLbl: 'Pictures', themes: { hayvan: 'Animals', meyve: 'Fruit', tasit: 'Vehicles', spor: 'Sports' },
+    lvLbl: 'Computer memory', namesLbl: 'Players', p1: 'Player 1', p2: 'Player 2', you: 'You', cpu: 'Computer',
+    moves: 'Moves', time: 'Time', pairs: 'Pairs', best: 'Best',
+    turnOf: (n) => `${n}'s turn`, again2: 'A pair, go again!',
+    soloWin: 'All found!', newRecord: 'New record!', soloSub: (m, n) => `You matched ${n} cards in ${m} moves.`,
+    youWin: 'You win!', cpuWin: 'The computer wins', draw: 'Draw', nameWin: (n) => `${n} wins!`, scoreSub: (a, b) => `${a} – ${b}`,
+    stats: { moves: 'Moves', time: 'Time', best: 'Best', perfect: 'First-try pairs' },
+    rulesSub: 'Remember where the face-down cards are and find the pairs.',
+    ruleList: [
+      ['🃏', 'Each turn <b>two cards</b> are turned over. If the pictures match it\'s a pair and they stay face up.'],
+      ['🔁', 'If they differ the cards <b>turn back over</b>. Remember where you saw them.'],
+      ['➕', 'Against the computer or a friend, <b>finding a pair means you go again</b>; otherwise the turn passes.'],
+      ['🏆', 'The game ends when every card is matched. Whoever has the most pairs wins.'],
+      ['🧠', 'In solo play the aim is the <b>fewest moves</b>: each pair of cards you turn is one move. Your record is kept for each size.'],
+      ['🤖', 'The computer\'s memory depends on the level: on easy it forgets a lot, on hard it hardly forgets anything.'],
+      ['⌨️', 'Keyboard: move with the <b>arrows</b>, turn a card with <b>Enter</b> or <b>Space</b>.']
+    ] }
+};
+const T = () => STR[lang];
+const THEMES = {
+  hayvan: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🦆', '🦉', '🐢'],
+  meyve: ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🥑', '🥕', '🌽', '🍆', '🌶️'],
+  tasit: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚜', '🛵', '🏍️', '🚲', '✈️', '🚁', '🚀', '⛵', '🚂'],
+  spor: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🥊', '🥋', '⛳', '🏹', '🎣', '🛹', '⛸️']
+};
+const MEM = { kolay: 0.3, orta: 0.62, zor: 0.92 };
+const COLORS = ['#38bdf8', '#f472b6'];
+const fmtTime = (s) => (s < 60 ? `${s} ${T().sec}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`);
+let setup = Object.assign({ mode: 'tek', size: 20, theme: 'hayvan', level: 'orta', n1: '', n2: '' }, store.get('setup', {}));
+if (!STR.tr.modes[setup.mode]) setup.mode = 'tek';
+if (![12, 20, 30].includes(setup.size)) setup.size = 20;
+if (!THEMES[setup.theme]) setup.theme = 'hayvan';
+if (!MEM[setup.level]) setup.level = 'orta';
+let best = store.get('best', {});
+let G = null, busy = false, epoch = 0, focusI = 0;
+const elapsed = () => (G ? (G.tEnd ? 0 : Math.round((Date.now() - G.t0) / 1000)) + (G.tPrev || 0) : 0);
+function save() {
+  if (!G || G.over) { store.del('game'); return; }
+  G.tPrev = elapsed(); G.t0 = Date.now();
+  const s = { ...G, up: [] }; store.set('game', s);
+}
+const pname = (i) => G.mode === 'cpu' ? (i ? T().cpu : T().you) : (G.names[i] || T()['p' + (i + 1)]);
+
+function newGame() {
+  closeAll(); epoch++; busy = false;
+  const s = setup, n = s.size / 2;
+  const syms = shuffle([...Array(THEMES[s.theme].length).keys()]).slice(0, n);
+  G = { mode: s.mode, size: s.size, theme: s.theme, level: s.level, names: [s.n1.trim(), s.n2.trim()], cards: shuffle([...syms, ...syms]), done: Array(s.size).fill(-1), seen: Array(s.size).fill(0),
+    up: [], turn: 0, pts: [0, 0], moves: 0, perfect: 0, mem: {}, t0: Date.now(), tPrev: 0, tEnd: 0, over: false };
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${s.mode}-${s.size}${s.mode === 'cpu' ? '-' + s.level : ''}`, `mod: ${s.mode}, ${s.size} kart${s.mode === 'cpu' ? ', ' + s.level : ''}`);
+  focusI = 0; buildBoard(); save(); render();
+}
+function startFromSetup() { setup.n1 = $('n1').value.slice(0, 14); setup.n2 = $('n2').value.slice(0, 14); store.set('setup', setup); newGame(); }
+function again() { newGame(); }
+
+// ---------- Oyun ----------
+const wait = (ms) => new Promise((r) => setTimeout(r, REDUCED ? Math.min(ms, 250) : ms));
+function remember(i) { if (G.mode === 'cpu' && Math.random() < MEM[G.level]) G.mem[i] = G.cards[i]; }
+async function flip(i, byCpu) {
+  if (!G || G.over || G.done[i] >= 0 || G.up.includes(i) || G.up.length >= 2) return;
+  if (!byCpu && (busy || (G.mode === 'cpu' && G.turn === 1))) return;
+  G.up.push(i); Sfx.tap(); renderCards();
+  if (G.up.length < 2) return;
+  busy = true; G.moves++;
+  const [a, b] = G.up, ep = epoch, first = !G.seen[a] || !G.seen[b];
+  G.seen[a] = G.seen[b] = 1;
+  if (G.cards[a] === G.cards[b]) {
+    await wait(380); if (ep !== epoch) return;
+    G.done[a] = G.done[b] = G.turn; G.pts[G.turn]++; G.up = [];
+    if (G.mode === 'tek' && first) G.perfect++;
+    delete G.mem[a]; delete G.mem[b];
+    Sfx.good(); buzz(15); renderCards(); renderHud();
+    if (G.done.every((d) => d >= 0)) return finish();
+    if (G.mode !== 'tek') toast(T().again2, COLORS[G.turn]);
+  } else {
+    remember(a); remember(b);
+    await wait(G.mode === 'cpu' && G.turn === 1 ? 1100 : 850); if (ep !== epoch) return;
+    G.up = []; if (G.mode !== 'tek') G.turn = 1 - G.turn;
+    Sfx.click(); renderCards(); renderHud();
+  }
+  busy = false; save();
+  if (G.mode === 'cpu' && G.turn === 1) cpuTurn();
+}
+async function cpuTurn() {
+  const ep = epoch; busy = true;
+  await wait(650); if (ep !== epoch || G.over) return;
+  const open = G.cards.map((_, i) => i).filter((i) => G.done[i] < 0);
+  const known = open.filter((i) => G.mem[i] !== undefined), unknown = open.filter((i) => G.mem[i] === undefined);
+  let a = null, b = null;
+  for (const i of known) { const j = known.find((k) => k !== i && G.mem[k] === G.mem[i]); if (j !== undefined) { a = i; b = j; break; } }
+  if (a === null) a = (unknown.length ? unknown : open)[rnd((unknown.length ? unknown : open).length)];
+  busy = false; await flip(a, true); busy = true; G.mem[a] = G.cards[a];
+  await wait(700); if (ep !== epoch || G.over) return;
+  if (b === null) {
+    const k = known.find((k) => k !== a && G.mem[k] === G.cards[a]);
+    if (k !== undefined) b = k;
+    else { const u = unknown.filter((i) => i !== a), pool = u.length ? u : open.filter((i) => i !== a); b = pool[rnd(pool.length)]; }
+  }
+  busy = false; flip(b, true);
+}
+function finish() {
+  G.over = true; G.tEnd = Date.now(); G.tPrev = G.tPrev + Math.round((G.tEnd - G.t0) / 1000); busy = false;
+  const t = T(), secs = G.tPrev;
+  bitenVar = true; sayac('bitti', 'oyun bitti');
+  let o;
+  if (G.mode === 'tek') {
+    const b = best[G.size]; let rec = false;
+    if (!b || G.moves < b.m || (G.moves === b.m && secs < b.s)) { best[G.size] = { m: G.moves, s: secs }; store.set('best', best); rec = true; }
+    const bb = best[G.size];
+    o = { ico: rec ? '🏆' : '🧠', title: rec ? t.newRecord : t.soloWin, sub: t.soloSub(G.moves, G.size), score: String(G.moves),
+      stats: [[t.stats.time, fmtTime(secs)], [t.stats.best, `${bb.m} · ${fmtTime(bb.s)}`]] };
+    Sfx.win();
+  } else {
+    const [p0, p1] = G.pts, w = p0 > p1 ? 0 : p1 > p0 ? 1 : -1;
+    if (G.mode === 'cpu') sayac(`sonuc/${w === 0 ? 'insan' : w === 1 ? 'bilgisayar' : 'berabere'}-${G.level}`, `sonuç (${G.level})`);
+    const title = w < 0 ? t.draw : G.mode === 'cpu' ? (w === 0 ? t.youWin : t.cpuWin) : t.nameWin(pname(w));
+    o = { ico: w < 0 ? '🤝' : G.mode === 'cpu' && w === 1 ? '🤖' : '🏆', title, sub: `${pname(0)} ${p0} – ${p1} ${pname(1)}`, score: `${p0} – ${p1}`, lost: G.mode === 'cpu' && w === 1,
+      stats: [[t.stats.moves, G.moves], [t.stats.time, fmtTime(secs)]] };
+    if (G.mode === 'cpu' && w === 1) Sfx.lose(); else Sfx.win();
+  }
+  save(); render();
+  setTimeout(() => showEnd(o), REDUCED ? 200 : 700);
+}
+
+// ---------- Çizim ----------
+let els = [];
+function buildBoard() {
+  const bd = $('board'), sy = THEMES[G.theme];
+  bd.innerHTML = G.cards.map((c, i) => `<button type="button" class="cd" data-i="${i}" aria-label="${i + 1}"><span class="in"><span class="b"></span><span class="f">${sy[c]}</span></span></button>`).join('');
+  els = [...bd.children]; layout();
+}
+function layout() {
+  if (!G) return;
+  const bd = $('board'), W = bd.clientWidth, H = bd.clientHeight, N = G.size;
+  if (!W || !H) return;
+  const gap = clamp(Math.round(Math.min(W, H) * 0.018), 5, 12), R = 0.8;
+  let bestC = 4, bestW = 0;
+  for (let c = 2; c <= N; c++) {
+    if (N % c) continue;
+    const r = N / c, cw = (W - (c - 1) * gap) / c, ch = (H - (r - 1) * gap) / r, w = Math.min(cw, ch * R);
+    if (w > bestW) { bestW = w; bestC = c; }
+  }
+  const w = Math.floor(Math.min(bestW, 140));
+  bd.style.setProperty('--c', bestC); bd.style.setProperty('--w', w + 'px'); bd.style.setProperty('--h', Math.floor(w / R) + 'px'); bd.style.setProperty('--gap', gap + 'px');
+}
+function renderCards() {
+  if (!G) return;
+  els.forEach((el, i) => {
+    const d = G.done[i];
+    el.classList.toggle('up', G.up.includes(i)); el.classList.toggle('done', d >= 0);
+    el.style.setProperty('--mc', d >= 0 && G.mode !== 'tek' ? COLORS[d] : '#4ade80');
+    el.disabled = d >= 0; el.tabIndex = i === focusI ? 0 : -1;
+  });
+}
+function renderHud() {
+  if (!G) return;
+  const t = T(), h = $('hud');
+  if (G.mode === 'tek') {
+    const b = best[G.size];
+    h.innerHTML = `<div class="solo"><span>${t.moves}<b>${G.moves}</b></span><span>${t.pairs}<b>${G.pts[0]}/${G.size / 2}</b></span><span>${t.time}<b id="clock">${fmtTime(elapsed())}</b></span>${b ? `<span>${t.best}<b>${b.m}</b></span>` : ''}</div>`;
+  } else {
+    const av = G.mode === 'cpu' ? ['🙂', '🤖'] : ['🙂', '😎'];
+    h.innerHTML = [0, 1].map((i) => `<div class="pl ${G.turn === i && !G.over ? 'on' : ''}" style="--c:${COLORS[i]}"><span class="av">${av[i]}</span><span class="nm">${esc(pname(i))}</span><span class="sc">${G.pts[i]}</span></div>`).join('');
+  }
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function render() { renderHud(); renderCards(); }
+function renderSetup() {
+  const t = T(), s = setup;
+  segPress('modeSeg', 'm', s.mode); segPress('sizeSeg', 's', s.size); segPress('themeSeg', 't', s.theme); segPress('lvSeg', 'l', s.level);
+  $('modeNote').textContent = t.modeNote[s.mode];
+  $('lvSec').hidden = s.mode !== 'cpu'; $('namesSec').hidden = s.mode !== 'iki';
+}
+function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('n1').value = setup.n1; $('n2').value = setup.n2; $('backBtn').hidden = !G || G.over; $('startBtn').focus({ preventScroll: true }); }
+function gameLang() {
+  const t = T();
+  $('modeLbl').textContent = t.modeLbl; $('sizeLbl').textContent = t.sizeLbl; $('themeLbl').textContent = t.themeLbl; $('lvLbl').textContent = t.lvLbl; $('namesLbl').textContent = t.namesLbl;
+  $('n1').placeholder = t.p1; $('n2').placeholder = t.p2;
+  document.querySelectorAll('#modeSeg button').forEach((b) => { b.querySelector('small').textContent = t.modes[b.dataset.m]; });
+  document.querySelectorAll('#sizeSeg button').forEach((b) => { b.firstElementChild.textContent = t.sizes[b.dataset.s]; });
+  document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
+  $('themeSeg').innerHTML = Object.keys(THEMES).map((k) => `<button type="button" data-t="${k}"><span class="em">${THEMES[k][0]}</span><small>${t.themes[k]}</small></button>`).join('');
+  renderSetup(); render();
+}
+$('modeSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-m]'); if (b) { setup.mode = b.dataset.m; renderSetup(); } });
+$('sizeSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-s]'); if (b) { setup.size = +b.dataset.s; renderSetup(); } });
+$('themeSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-t]'); if (b) { setup.theme = b.dataset.t; renderSetup(); } });
+$('lvSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-l]'); if (b) { setup.level = b.dataset.l; renderSetup(); } });
+$('board').addEventListener('click', (e) => { const b = e.target.closest('.cd'); if (!b) return; Sfx.unlock(); focusI = +b.dataset.i; flip(focusI, false); });
+addEventListener('keydown', (e) => {
+  if (anyOpen() || !G || e.ctrlKey || e.metaKey || e.altKey) return;
+  const c = +getComputedStyle($('board')).getPropertyValue('--c') || 4;
+  const mv = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -c, ArrowDown: c }[e.key];
+  if (mv) { e.preventDefault(); focusI = clamp(focusI + mv, 0, G.size - 1); renderCards(); els[focusI].focus(); }
+});
+addEventListener('resize', layout);
+if (window.ResizeObserver) new ResizeObserver(layout).observe($('board'));
+setInterval(() => { if (G && G.mode === 'tek' && !G.over && !document.hidden) { const c = $('clock'); if (c) c.textContent = fmtTime(elapsed()); } }, 1000);
+document.addEventListener('visibilitychange', () => { if (!G || G.over) return; if (document.hidden) save(); else G.t0 = Date.now(); });
+
+function boot() {
+  const s = store.get('game', null);
+  if (s && Array.isArray(s.cards) && s.cards.length === s.size && Array.isArray(s.done) && THEMES[s.theme] && !s.over) {
+    G = s; G.up = []; G.t0 = Date.now(); G.mem = G.mem || {}; G.seen = G.seen || Array(G.size).fill(0); buildBoard(); render();
+    if (G.mode === 'cpu' && G.turn === 1) cpuTurn();
+  } else openSetup();
+}
+window.__hafiza = { state: () => ({ G, busy }), flip: (i) => flip(i, false), render };
+
+
+// ---------- Ortak bağlantılar ----------
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  gameLang();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('winOv').hidden) closeAll();
+});
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
+$('backBtn').addEventListener('click', closeAll);
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
+$('viewBtn').addEventListener('click', closeAll);
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+applySound(); applyLang(); boot();
+</script>
+</body>
+</html>
