@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pişti | Ridsgames</title>
+<meta name="description" content="Pişti: masadaki kartla aynısını at, valeyle topla, tek kartın üstüne aynısını atıp pişti yap. Bilgisayara karşı, üç zorluk.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --turn: #ef4444;
+  --red: #d32f2f;
+  --ink: #1b1b1f;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); white-space: nowrap; }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı: ileti, masa, puan paneli */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 10px 8px; }
+.slot { flex: none; height: 32px; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 6; margin-bottom: -32px; } /* masanın üstünde süzülür, yer kaplamaz */
+.msg {
+  max-width: 100%; padding: 6px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 800; color: #fff; text-align: center; line-height: 1.25;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; pointer-events: none;
+}
+.msg.on { opacity: 1; transform: none; }
+.msg.gold { border-color: #ffd43b; }
+#stage { flex: 1; min-height: 0; width: 100%; max-width: 760px; position: relative; z-index: 0; isolation: isolate; overflow: hidden; touch-action: manipulation; }
+
+/* Kartlar: konum JS'ten transform ile, çevirme içteki katmanla */
+.card { position: absolute; left: 0; top: 0; width: var(--cw); height: var(--ch); transition-property: transform; transition-timing-function: cubic-bezier(.25, .8, .3, 1); will-change: transform; }
+.card .in { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateY(180deg); transition: transform .35s, translate .15s; }
+.card.up .in { transform: none; }
+.face { position: absolute; inset: 0; border-radius: calc(var(--cw) * .09); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .35); overflow: hidden; }
+.front { background: linear-gradient(160deg, #ffffff, #f4efe4); color: var(--ink); }
+.front.r { color: var(--red); }
+.back { transform: rotateY(180deg); background: #9b1c1c; border: calc(var(--cw) * .05) solid #fdf6e3; }
+.back::before { content: ""; position: absolute; inset: 0; background:
+  repeating-linear-gradient(45deg, rgba(255, 255, 255, .16) 0 2px, transparent 2px 9px),
+  repeating-linear-gradient(-45deg, rgba(255, 255, 255, .16) 0 2px, transparent 2px 9px),
+  radial-gradient(circle at 50% 50%, #c53030, #7f1414); }
+.back::after { content: "R"; position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 44%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+  background: #fdf6e3; color: #9b1c1c; font-weight: 800; font-size: calc(var(--cw) * .26); box-shadow: 0 0 0 2px #9b1c1c, 0 0 0 4px #fdf6e3; }
+.cr { position: absolute; display: flex; flex-direction: column; align-items: center; line-height: .95; font-weight: 800; }
+.cr b { font-size: calc(var(--cw) * .25); letter-spacing: -.04em; }
+.cr i { font-style: normal; font-size: calc(var(--cw) * .2); }
+.cr.a { left: 6%; top: 4%; }
+.cr.z { right: 6%; bottom: 4%; transform: rotate(180deg); }
+.mid { position: absolute; left: 50%; top: 52%; translate: -50% -50%; font-size: calc(var(--cw) * .5); line-height: 1; }
+.mid.ace { font-size: calc(var(--cw) * .72); }
+.mid.pic { width: 52%; height: 58%; top: 52%; display: grid; place-items: center; border-radius: 6px; border: 2px solid currentColor; font-size: calc(var(--cw) * .38); font-weight: 800;
+  background: linear-gradient(180deg, rgba(255, 212, 59, .35), rgba(255, 212, 59, .08)); }
+.mid.pic small { display: block; font-size: .55em; margin-top: -.15em; text-align: center; }
+.card.play { cursor: pointer; }
+.card.play:hover .in { translate: 0 calc(var(--ch) * -.1); }
+.card.hit .front { box-shadow: 0 0 0 2px #ffd43b, 0 0 14px rgba(255, 212, 59, .8), 0 2px 6px rgba(0, 0, 0, .45); }
+.card.hot .in { translate: 0 calc(var(--ch) * -.14); }
+.card.flat .face { box-shadow: none; } /* destede yığılan gölgeler kararmasın */
+
+.badge { position: absolute; z-index: 300; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 12.5px; font-weight: 800; color: #fff; background: rgba(2, 6, 23, .82); border: 1px solid rgba(255, 220, 170, .35); font-variant-numeric: tabular-nums; pointer-events: none; translate: -50% -50%; transition: opacity .2s; }
+.badge.zero { opacity: 0; }
+.lbl2 { position: absolute; z-index: 300; font-size: 11px; font-weight: 700; color: rgba(255, 235, 200, .8); text-shadow: 0 1px 2px rgba(0, 0, 0, .8); translate: -50% 0; pointer-events: none; white-space: nowrap; }
+#pop { position: absolute; z-index: 320; left: 0; top: 0; translate: -50% -50%; pointer-events: none; font-weight: 900; font-size: 44px; color: #ffe066; letter-spacing: .02em; white-space: nowrap;
+  text-shadow: 0 3px 0 #8a5a00, 0 0 18px rgba(255, 200, 0, .7), 0 6px 14px rgba(0, 0, 0, .7); opacity: 0; }
+#pop.go { animation: popIn 1.3s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+@keyframes popIn { 0% { opacity: 0; scale: .3; } 18% { opacity: 1; scale: 1.15; } 30% { scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; scale: 1.05; translate: -50% -90%; } }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+/* Puan paneli: keçeli ahşap tepsi */
+.dock {
+  flex: none; width: 100%; max-width: 440px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+  border-style: solid; border-width: 20px 17px 24px; border-image: url("../kizma-birader/tepsi.webp") 60 50 72 50 fill / 20px 17px 24px stretch;
+  padding: 0 4px 0 8px; background: none;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .5)) drop-shadow(0 0 7px color-mix(in srgb, var(--turn) 60%, transparent));
+  transition: filter .3s;
+}
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ava { flex: none; display: inline-block; border-radius: 50%; background: url("../kizma-birader/karakterler.webp") 0 0 / 400% 100%; }
+.chip { width: 46px; height: 46px; box-shadow: 0 0 0 3px var(--turn), 0 3px 8px rgba(0, 0, 0, .45); transition: box-shadow .3s; }
+.chip.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .4; } 100% { scale: 1; } }
+.who .t { min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+#turnName { font-size: 17px; font-weight: 800; line-height: 1.2; color: #fff; }
+#turnMsg { font-size: 14px; color: #d8f3dc; line-height: 1.3; margin-top: 2px; min-height: 1.3em; }
+.skor { display: grid; gap: 6px; padding: 6px 8px; border-radius: 12px; background: rgba(2, 6, 23, .35); }
+.skor > div { display: flex; align-items: center; gap: 7px; font-size: 17px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.skor .ava { width: 24px; height: 24px; }
+.skor small { font-size: 11.5px; font-weight: 700; color: #ffe066; min-width: 3.2em; }
+#hedef { font-size: 11px; font-weight: 700; color: rgba(255, 235, 200, .75); text-align: center; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Yatay telefon: üst çubuk solda dar menü sütunu, masa ortada, sağda ileti ve puan paneli; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(64px, 9vw, 80px) minmax(0, 1fr) clamp(150px, 25vw, 200px); grid-template-rows: auto minmax(0, 1fr); }
+  main { display: contents; }
+  .top { grid-column: 1; grid-row: 1 / 3; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; max-width: none; flex-direction: column; justify-content: flex-start; padding: 10px 6px; gap: 12px; }
+  .logo img { width: 100%; max-width: 56px; height: auto; }
+  .gname, .pill .lbl { display: none; }
+  .tools { flex-direction: column; gap: 7px; }
+  .pill { padding: 0 8px; }
+  .pill.lang { font-size: 11px; padding: 0 6px; white-space: nowrap; }
+  #stage { grid-column: 2; grid-row: 1 / 3; width: auto; max-width: none; }
+  .slot { grid-column: 3; grid-row: 1; width: auto; height: auto; min-height: 40px; margin: 0; padding: 8px 8px 0 0; }
+  .msg { font-size: 12.5px; padding: 6px 10px; border-radius: 14px; }
+  .dock { grid-column: 3; grid-row: 2; width: auto; max-width: none; margin: 8px 8px 8px 0; grid-template-columns: 1fr; align-content: space-evenly; justify-items: center; gap: 10px; padding: 4px 4px 8px; }
+  .who { flex-direction: column; text-align: center; gap: 8px; }
+  .chip { width: 50px; height: 50px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(64px, 9vw, 80px) + 8px); }
+  footer { display: none; }
+  #setupOv .card2 { max-width: 560px; padding: 14px 18px; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 8px; }
+  #setupOv .field { grid-template-columns: 130px 1fr; align-items: center; padding: 8px 0; }
+  #setupOv .btns { margin-top: 8px; grid-auto-flow: column; grid-auto-columns: 1fr; }
+  #handOv .card2 { max-width: 520px; padding: 10px 16px; }
+  #handOv h2 { font-size: 19px; }
+  #handOv .sub { margin-bottom: 4px; font-size: 12.5px; }
+  #handOv table.sum { font-size: 12.5px; }
+  #handOv table.sum td, #handOv table.sum th { padding: 2px 6px; }
+  #handOv table.sum thead .ava { width: 20px; height: 20px; }
+  #handOv tr.tot td, #handOv tr.all td { font-size: 14px; }
+  #handOv .btns { margin-top: 8px; }
+  #handOv .big { height: 40px; font-size: 15px; }
+}
+/* Geniş yatay ekran: masa solda büyük, panel sağda */
+@media (orientation: landscape) and (min-height: 501px) and (min-width: 900px) {
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto minmax(0, 1fr); gap: 12px 18px; max-width: 1200px; width: 100%; margin: 0 auto; padding: 14px 18px; }
+  #stage { grid-column: 1; grid-row: 1 / 3; max-width: none; align-self: stretch; }
+  .slot { grid-column: 2; grid-row: 1; height: auto; min-height: 44px; margin: 0; align-items: flex-end; }
+  .msg { border-radius: 16px; }
+  .dock { grid-column: 2; grid-row: 2; align-self: start; grid-template-columns: 1fr; justify-items: center; gap: 14px; padding: 10px 6px 14px; }
+  .who { flex-direction: column; text-align: center; gap: 10px; }
+  .chip { width: 64px; height: 64px; }
+}
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card2 {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card2 h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card2 .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.field { display: grid; gap: 8px; padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { min-height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.btns { display: grid; gap: 10px; margin-top: 14px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.final { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 4px 0 6px; font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.final span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; background: rgba(2, 6, 23, .55); }
+.final span.win { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.final .ava { width: 32px; height: 32px; }
+table.sum { width: 100%; border-collapse: collapse; font-size: 14px; color: #cbd5e1; font-variant-numeric: tabular-nums; }
+table.sum th, table.sum td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(148, 163, 184, .12); }
+table.sum th:first-child, table.sum td:first-child { text-align: left; }
+table.sum thead th { color: #fff; }
+table.sum thead .ava { width: 26px; height: 26px; vertical-align: middle; }
+table.sum tr.tot td { color: #fff; font-weight: 800; font-size: 15px; }
+table.sum tr.all td { color: #67e8f9; font-weight: 800; font-size: 16px; border-bottom: 0; }
+table.sum td.z { color: #475569; }
+
+@media (prefers-reduced-motion: reduce) { .chip.pop { animation: none; } .msg { transition: none; } .card .in { transition: none; } }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="pisti" data-name="Pişti"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Pişti</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dili değiştir">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
+  <div id="stage" aria-label="Masa">
+    <span class="badge" id="bDeck"></span><span class="badge" id="bW0"></span><span class="badge" id="bW1"></span><span class="badge" id="bPile"></span>
+    <span class="lbl2" id="lDeck"></span>
+    <div id="pop"></div>
+  </div>
+  <div class="dock" id="dock">
+    <div class="who">
+      <span class="chip ava" id="chip" aria-hidden="true"></span>
+      <div class="t"><div id="turnName"></div><div id="turnMsg"></div></div>
+    </div>
+    <div class="skor" id="skor" role="status">
+      <div><span class="ava" id="av0" aria-hidden="true"></span><span id="sc0">0</span><small id="ex0"></small></div>
+      <div><span class="ava" id="av1" aria-hidden="true"></span><span id="sc1">0</span><small id="ex1"></small></div>
+      <div id="hedef"></div>
+    </div>
+  </div>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Pişti</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="field"><span id="lvlLbl"></span><div class="seg" id="lvlSeg"><button type="button" data-v="easy"></button><button type="button" data-v="mid"></button><button type="button" data-v="hard"></button></div></div>
+    <div class="field"><span id="tgtLbl"></span><div class="seg" id="tgtSeg"><button type="button" data-v="0"></button><button type="button" data-v="101"></button><button type="button" data-v="151"></button></div></div>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button"></button>
+      <button class="big alt" id="resumeBtn" type="button" hidden></button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1" style="outline:none"></h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button"></button></div>
+  </div>
+</div>
+
+<!-- El sonu -->
+<div class="ov" id="handOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="handTitle">
+    <h2 id="handTitle"></h2>
+    <p class="sub" id="handSub"></p>
+    <table class="sum" id="sumTable"></table>
+    <div class="btns"><button class="big" id="nextBtn" type="button"></button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 id="winTitle"></h2>
+    <div class="final" id="final"></div>
+    <p class="sub" id="winSub"></p>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button"></button>
+      <button class="big alt" id="toMenuBtn" type="button"></button>
+    </div>
+  </div>
+</div>
+
+<script id="motor">
+// ---------- Motor: Pişti kuralları ve bilgisayar (arayüzden bağımsız) ----------
+// Kart 0-51: renk = id / 13 (0 maça, 1 kupa, 2 karo, 3 sinek), değer = id % 13 + 1 (1 as, 11 vale, 12 kız, 13 papaz)
+const suitOf = (c) => (c / 13) | 0, rankOf = (c) => (c % 13) + 1;
+const JACK = 11, CLUB2 = 3 * 13 + 1, DIA10 = 2 * 13 + 9;
+const cardPts = (c) => (rankOf(c) === JACK || rankOf(c) === 1 ? 1 : 0) + (c === CLUB2 ? 2 : 0) + (c === DIA10 ? 3 : 0);
+function shuffled(rnd = Math.random) { const d = Array.from({ length: 52 }, (_, i) => i); for (let i = 51; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [d[i], d[j]] = [d[j], d[i]]; } return d; }
+
+// Kart atınca ne olur: { cap: alındı mı, pisti: 0 / 10 / 20 }
+function outcome(pile, c) {
+  if (!pile.length) return { cap: false, pisti: 0 };
+  const top = pile[pile.length - 1], same = rankOf(top) === rankOf(c);
+  if (!same && rankOf(c) !== JACK) return { cap: false, pisti: 0 };
+  return { cap: true, pisti: pile.length === 1 && same ? (rankOf(c) === JACK ? 20 : 10) : 0 };
+}
+// El sonu puanları: kart çoğunluğu 3, vale ve as 1, sinek 2'si 2, karo 10'u 3, pişti puanları
+function handScore(won, pisti) {
+  const r = [0, 1].map((p) => {
+    const w = won[p], o = { cards: w.length, most: 0, jacks: 0, aces: 0, club2: 0, dia10: 0, pisti: pisti[p] };
+    for (const c of w) { if (rankOf(c) === JACK) o.jacks++; if (rankOf(c) === 1) o.aces++; if (c === CLUB2) o.club2 = 2; if (c === DIA10) o.dia10 = 3; }
+    return o;
+  });
+  if (r[0].cards !== r[1].cards) r[r[0].cards > r[1].cards ? 0 : 1].most = 3;
+  for (const o of r) o.total = o.most + o.jacks + o.aces + o.club2 + o.dia10 + o.pisti;
+  return r;
+}
+
+// ---------- Bilgisayar ----------
+// Görülen kartlar dışındakiler bilinmiyor sayılır; rakibin elindekiler bunlardan çekilmiş kabul edilir.
+function comb(n, k) { if (k < 0 || k > n) return 0; let r = 1; for (let i = 0; i < k; i++) r = r * (n - i) / (i + 1); return r; }
+const pNone = (U, bad, h) => (h <= 0 ? 1 : U <= 0 ? 1 : comb(U - bad, h) / comb(U, h)); // h kartın hiçbiri "bad" türünden değil
+function cpuChoose(st, level, rnd = Math.random) {
+  // st: { hand, pile, seen: Set (bu oyuncunun gördüğü kartlar), oppN: rakibin karşılık verebileceği kart sayısı, deckN }
+  const { hand, pile } = st;
+  if (hand.length === 1) return hand[0];
+  if (level === 'easy' && rnd() < 0.4) return hand[Math.floor(rnd() * hand.length)];
+  const unseen = []; for (let c = 0; c < 52; c++) if (!st.seen.has(c) && !hand.includes(c)) unseen.push(c);
+  const U = unseen.length, cntR = (r) => unseen.filter((c) => rankOf(c) === r).length, uJ = cntR(JACK);
+  const pileVal = pile.reduce((s, c) => s + cardPts(c), 0), CARD = 0.12;
+  let best = null, bv = -Infinity;
+  for (const c of hand) {
+    const o = outcome(pile, c);
+    let v;
+    if (o.cap) {
+      v = pileVal + cardPts(c) + CARD * (pile.length + 1) + o.pisti;
+      if (rankOf(c) === JACK && !o.pisti && level !== 'easy') v -= (st.deckN > 0 ? (level === 'hard' ? 2.2 : 1.2) : 0.3); // valeyi büyük yığına sakla
+    } else if (level === 'easy') {
+      v = -cardPts(c) * 0.5;
+    } else {
+      // rakibin alma olasılığı: aynı değerde ya da vale kartı olması
+      const r = rankOf(c), mR = level === 'hard' ? cntR(r) : (r === JACK ? 3 : 3), mJ = level === 'hard' ? uJ : 4;
+      const bad = r === JACK ? mR : mR + mJ, h = st.oppN;
+      const pCap = 1 - pNone(level === 'hard' ? U : 40, bad, h), pSame = 1 - pNone(level === 'hard' ? U : 40, mR, h);
+      const val = pileVal + cardPts(c) + CARD * (pile.length + 1);
+      v = -pCap * val - (pile.length === 0 ? pSame * (r === JACK ? 20 : 10) : 0);
+      if (r === JACK) v -= 2.5; // valeyi boşa atma
+    }
+    v += rnd() * (level === 'easy' ? 1.5 : 0.01);
+    if (v > bv) { bv = v; best = c; }
+  }
+  return best;
+}
+</script>
+<script>
+// ---------- Metinler ----------
+const STR = {
+  tr: {
+    title: 'Pişti | Ridsgames', game: 'Pişti', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
+    rights: 'Tüm hakları saklıdır.', stage: 'Masa',
+    setupSub: 'Aynısını at, valeyle topla, pişti yap.', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
+    tgtLbl: 'Oyun kaç sayı?', one: 'Tek el', start: 'Başla', resume: 'Kaldığın yerden devam et',
+    rulesTitle: 'Nasıl oynanır?', rulesSub: 'Puanları toplayıp hedefe ilk ulaşan kazanır.', ok: 'Tamam',
+    ruleList: [
+      ['🃏', 'İki oyuncuya 4\'er kart, ortaya 4 kart dağıtılır: 3\'ü kapalı, en üstteki açık.'],
+      ['👆', 'Sırayla birer kart atılır. Attığın kart yerdeki <b>en üst kartla aynı değerdeyse</b> yerdeki bütün kartları alırsın.'],
+      ['🤵', '<b>Vale (J)</b> her zaman yerdeki bütün kartları alır.'],
+      ['⭐', 'Yerde <b>tek kart</b> varken aynısını atarsan <b>PİŞTİ</b>: 10 puan. Valenin üstüne valeyle <b>20 puan</b>. Tek karta valeyle almak pişti sayılmaz.'],
+      ['🔄', 'Eller bitince 4\'er kart daha dağıtılır. Deste bitince yerde kalan kartları <b>son alan</b> oyuncu alır.'],
+      ['🧮', 'El sonunda her <b>vale</b> ve <b>as</b> 1, <b>sinek 2\'si</b> 2, <b>karo 10\'u</b> 3 puan. <b>En çok kartı</b> alan 3 puan daha alır.'],
+      ['🏆', 'Eller sürer, seçtiğin sayıya ilk ulaşan kazanır. İkiniz birden geçerseniz çok olan kazanır. <b>Tek el</b> seçersen tek el sonucu belirler.']
+    ],
+    turnYou: 'Sıra sende', turnCpu: 'Sıra bilgisayarda', hintYou: 'Bir kart at', hintHit: 'Parlayan kartlar yerdekileri alır', hintThink: 'Bilgisayar düşünüyor...', hintDeal: 'Kartlar dağıtılıyor...',
+    pisti: 'PİŞTİ!', jpisti: 'VALE PİŞTİ!', capYou: (n) => `${n} kart aldın`, capCpu: (n) => `Bilgisayar ${n} kart aldı`,
+    pistiYou: (n) => `Pişti! +${n} puan`, pistiCpu: (n) => `Bilgisayar pişti yaptı, +${n}`, lastDeal: 'Son dağıtım', restYou: (n) => `Yerde kalan ${n} kart sana geldi`, restCpu: (n) => `Yerde kalan ${n} kart bilgisayara gitti`,
+    deck: 'Deste', handOver: (n) => `${n}. el bitti`, handSub: (a, b) => (a === b ? 'Bu el berabere.' : a > b ? 'Bu eli sen aldın.' : 'Bu eli bilgisayar aldı.'),
+    rows: { cards: 'Kart sayısı', most: 'En çok kart', jacks: 'Vale', aces: 'As', club2: 'Sinek 2', dia10: 'Karo 10', pisti: 'Pişti', total: 'Bu el', all: 'Toplam' },
+    nextHand: 'Sonraki el', seeResult: 'Sonucu gör', target: (t) => (t ? `Hedef ${t}` : 'Tek el'), extra: (p, n) => (p ? `⭐${p}` : '') + (n ? ` 🃏${n}` : ''),
+    youWin: 'Kazandın!', cpuWins: 'Bilgisayar kazandı', draw: 'Berabere!', winSub: (a, b, h) => `${h} elde ${Math.max(a, b)} - ${Math.min(a, b)}`,
+    again: 'Tekrar oyna', toMenu: 'Ayarları değiştir', scoreAria: (a, b) => `Puanlar: sen ${a}, bilgisayar ${b}`,
+    cardName: (c) => `${['Maça', 'Kupa', 'Karo', 'Sinek'][suitOf(c)]} ${['As', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Vale', 'Kız', 'Papaz'][rankOf(c) - 1]}`
+  },
+  en: {
+    title: 'Pishti | Ridsgames', game: 'Pishti', homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Fullscreen', langAria: 'Switch language',
+    rights: 'All rights reserved.', stage: 'Table',
+    setupSub: 'Match the top card, sweep with a jack, score a pishti.', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
+    tgtLbl: 'Play to', one: 'One hand', start: 'Start', resume: 'Resume game',
+    rulesTitle: 'How to play', rulesSub: 'Collect points; the first to reach the target wins.', ok: 'OK',
+    ruleList: [
+      ['🃏', 'Each player gets 4 cards and 4 go to the table: 3 face down, the top one face up.'],
+      ['👆', 'Take turns playing one card. If it has <b>the same rank as the top card</b> on the table, you take the whole pile.'],
+      ['🤵', 'A <b>jack (J)</b> always takes the whole pile.'],
+      ['⭐', 'Matching a <b>single card</b> on the table is a <b>PISHTI</b>: 10 points. A jack on a single jack scores <b>20</b>. Taking a single card with a jack is not a pishti.'],
+      ['🔄', 'When both hands are empty 4 more cards are dealt. When the deck runs out, the cards left on the table go to <b>the last player who took</b>.'],
+      ['🧮', 'At the end of a hand every <b>jack</b> and <b>ace</b> is 1, the <b>2 of clubs</b> 2 and the <b>10 of diamonds</b> 3 points. <b>Most cards</b> gets 3 more.'],
+      ['🏆', 'Hands continue until someone reaches the target. If both pass it, the higher score wins. With <b>One hand</b> a single hand decides.']
+    ],
+    turnYou: 'Your turn', turnCpu: 'Computer\'s turn', hintYou: 'Play a card', hintHit: 'Glowing cards take the pile', hintThink: 'The computer is thinking...', hintDeal: 'Dealing...',
+    pisti: 'PISHTI!', jpisti: 'JACK PISHTI!', capYou: (n) => `You took ${n} cards`, capCpu: (n) => `The computer took ${n} cards`,
+    pistiYou: (n) => `Pishti! +${n} points`, pistiCpu: (n) => `The computer scored a pishti, +${n}`, lastDeal: 'Last deal', restYou: (n) => `The last ${n} cards on the table are yours`, restCpu: (n) => `The last ${n} cards on the table go to the computer`,
+    deck: 'Deck', handOver: (n) => `Hand ${n} is over`, handSub: (a, b) => (a === b ? 'This hand is a tie.' : a > b ? 'You won this hand.' : 'The computer won this hand.'),
+    rows: { cards: 'Cards taken', most: 'Most cards', jacks: 'Jacks', aces: 'Aces', club2: '2 of clubs', dia10: '10 of diamonds', pisti: 'Pishti', total: 'This hand', all: 'Total' },
+    nextHand: 'Next hand', seeResult: 'See the result', target: (t) => (t ? `Target ${t}` : 'One hand'), extra: (p, n) => (p ? `⭐${p}` : '') + (n ? ` 🃏${n}` : ''),
+    youWin: 'You win!', cpuWins: 'The computer wins', draw: 'It\'s a draw!', winSub: (a, b, h) => `${Math.max(a, b)} - ${Math.min(a, b)} after ${h} hand${h > 1 ? 's' : ''}`,
+    again: 'Play again', toMenu: 'Change settings', scoreAria: (a, b) => `Scores: you ${a}, computer ${b}`,
+    cardName: (c) => `${['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'][rankOf(c) - 1]} of ${['spades', 'hearts', 'diamonds', 'clubs'][suitOf(c)]}`
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Durum ----------
+// G: { level, target, scores, handNo, dealer, h: el durumu }. h: { deck, hands: [ben, bilgisayar], pile, hidden: yerdeki kapalı kartlar,
+// won, pisti: puanlar, pc: pişti sayısı, last: son alan, turn, seen: bilgisayarın gördüğü kartlar, done: el bitti mi, res: el sonucu }
+let G = null, setup = { level: 'easy', target: '101' };
+let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false;
+try { const s = JSON.parse(localStorage.getItem('rids_pisti_setup')); if (s && s.level && s.target != null) setup = s; } catch (e) {}
+try { soundOn = localStorage.getItem('rids_pisti_sound') !== '0'; } catch (e) {}
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'pisti/' + olay, title: 'Pişti: ' + ad, event: true }); } catch (e) {} };
+const lvAd = (lv) => (lv === 'easy' ? 'kolay' : lv === 'mid' ? 'orta' : 'zor');
+const avaPos = (i) => `${i * 100 / 3}% 0`;
+const TURNCOL = ['#ef4444', '#3b82f6'];
+const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
+
+// ---------- Kartlar (DOM) ----------
+const stage = $('stage'), els = [];
+const SUIT = ['♠', '♥', '♦', '♣'], RANK = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+function makeCard(c) {
+  const s = suitOf(c), r = rankOf(c), red = s === 1 || s === 2, el = document.createElement('div');
+  const mid = r === 1 ? `<div class="mid ace">${SUIT[s]}</div>` : r > 10 ? `<div class="mid pic">${RANK[r - 1]}<small>${SUIT[s]}</small></div>` : `<div class="mid">${SUIT[s]}</div>`;
+  el.className = 'card'; el.dataset.c = c;
+  el.innerHTML = `<div class="in"><div class="face front${red ? ' r' : ''}"><div class="cr a"><b>${RANK[r - 1]}</b><i>${SUIT[s]}</i></div>${mid}<div class="cr z"><b>${RANK[r - 1]}</b><i>${SUIT[s]}</i></div></div><div class="face back"></div></div>`;
+  el.addEventListener('pointerdown', (e) => { if (e.button === 0) { e.preventDefault(); tapCard(c); } });
+  stage.appendChild(el); return el;
+}
+for (let c = 0; c < 52; c++) els[c] = makeCard(c);
+
+// Yerleşim: masanın ölçüsünden kart boyu ve yerler
+let L = null;
+function layout() {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const cw = Math.floor(Math.max(36, Math.min(W / 4.15, H / 2.95 / 1.4, 128))), ch = Math.round(cw * 1.4);
+  const handY = H - ch / 2 - ch * .1, oppY = ch * .5 - ch / 2 + 6 - ch * .02; // rakibin eli üstten yarısı görünür
+  const oppBottom = ch * .5 + 6, midY = (oppBottom + (handY - ch / 2)) / 2;
+  const rowW = 3.8 * cw, x0 = (W - rowW) / 2;
+  const sp = Math.min(cw * 1.1, (W - cw - 16) / 3);
+  L = { W, H, cw, ch, handY, oppY: oppY, midY, sp, deckX: x0 + cw / 2, pileX: x0 + cw * 2.05, wonX: x0 + cw * 3.35, wonY: [midY - ch * .26, midY + ch * .26] };
+  stage.style.setProperty('--cw', cw + 'px'); stage.style.setProperty('--ch', ch + 'px');
+  $('pop').style.fontSize = Math.round(Math.max(30, Math.min(56, cw * .5))) + 'px';
+  render(0);
+}
+const hash = (c, k) => { const x = Math.sin(c * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+function put(c, x, y, rot, sc, up, z, dur) {
+  const el = els[c];
+  el.style.transitionDuration = (dur / speed) + 'ms';
+  el.style.transform = `translate(${x - L.cw / 2}px, ${y - L.ch / 2}px) rotate(${rot}deg) scale(${sc})`;
+  el.style.zIndex = z; el.classList.toggle('up', !!up);
+}
+let hotCard = -1;
+function render(dur = 380) {
+  if (!L) return;
+  const h = G && G.h, play = canPlay(), hits = play ? hitCards() : [];
+  if (!h) { for (let c = 0; c < 52; c++) { put(c, L.deckX - Math.min(c, 30) * .2, L.midY - Math.min(c, 30) * .2, 0, 1, false, c, 0); els[c].className = c < 50 ? 'card flat' : 'card'; } badges(); return; }
+  h.deck.forEach((c, i) => put(c, L.deckX - Math.min(i, 30) * .2, L.midY - Math.min(i, 30) * .2, 0, 1, false, i + 1, dur));
+  const flat = new Set([...h.deck.slice(0, -2), ...h.won[0].slice(0, -2), ...h.won[1].slice(0, -2)]);
+  h.pile.forEach((c, i) => {
+    const hid = h.hidden.includes(c), j = hid ? 0 : 1;
+    put(c, L.pileX + (hash(c, 1) - .5) * L.cw * .16 * j, L.midY + (hash(c, 2) - .5) * L.cw * .12 * j, (hash(c, 3) - .5) * 22 * j, 1, !hid, 100 + i, dur);
+  });
+  for (const p of [0, 1]) {
+    h.won[p].forEach((c, i) => put(c, L.wonX + Math.min(i, 20) * .25, L.wonY[1 - p] - Math.min(i, 20) * .25, 90, .62, false, 40 + i, dur));
+    const hand = h.hands[p], n = hand.length;
+    hand.forEach((c, i) => {
+      const off = (i - (n - 1) / 2);
+      if (p === 0) put(c, L.W / 2 + off * L.sp, L.handY, off * 2.5, 1, true, 200 + i, dur);
+      else put(c, L.W / 2 + off * L.cw * .62, L.oppY, 180 - off * 3, 1, false, 200 + i, dur);
+    });
+  }
+  for (let c = 0; c < 52; c++) {
+    const el = els[c], mine = h.hands[0].includes(c);
+    el.classList.toggle('flat', flat.has(c)); el.classList.toggle('play', play && mine); el.classList.toggle('hit', play && hits.includes(c)); el.classList.toggle('hot', play && hotCard === c && mine);
+  }
+  badges();
+}
+function badges() {
+  const h = G && G.h, t = T();
+  const set = (id, n, x, y) => { const b = $(id); b.textContent = n; b.classList.toggle('zero', !n); b.style.left = x + 'px'; b.style.top = y + 'px'; };
+  set('bDeck', h ? h.deck.length : 52, L.deckX, L.midY + L.ch / 2 + 4);
+  set('bPile', h ? h.pile.length : 0, L.pileX + L.cw * .5, L.midY - L.ch * .5);
+  set('bW0', h ? h.won[0].length : 0, L.wonX + L.ch * .31 + 4, L.wonY[1] + L.cw * .31);
+  set('bW1', h ? h.won[1].length : 0, L.wonX + L.ch * .31 + 4, L.wonY[0] - L.cw * .31);
+  const ld = $('lDeck'); ld.textContent = h && h.deck.length === 0 && (h.hands[0].length || h.hands[1].length) ? t.lastDeal : ''; ld.style.left = L.deckX + 'px'; ld.style.top = (L.midY - 8) + 'px';
+}
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), gn = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(delay, vol, freq, len, type = 'bandpass') { // kartın kumaşa sürtünmesi
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, buf = c.createBuffer(1, Math.max(1, c.sampleRate * len), c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), gn = c.createGain();
+    f.type = type; f.frequency.value = freq; f.Q.value = .8; gn.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(gn).connect(c.destination); s.start(t);
+  }
+  return {
+    unlock: ctx,
+    deal() { noise(0, 0.25, 3200, 0.05); },
+    play() { noise(0, 0.35, 2400, 0.07); noise(0.03, 0.2, 900, 0.04); },
+    take(n) { for (let i = 0; i < Math.min(5, n); i++) noise(i * 0.035, 0.22, 2000 + i * 200, 0.06); },
+    pisti(big) { [523, 659, 784, 1047].concat(big ? [1319, 1568] : []).forEach((f, k) => tone(f, f, 0.16, 0.11, 'triangle', k * 0.08)); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); },
+    lose() { [440, 370, 311, 262].forEach((f, k) => tone(f, f * .98, 0.24, 0.1, 'triangle', k * 0.16)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Oyun akışı ----------
+let msgT = null;
+function say(s, gold) {
+  const el = $('msg'); el.textContent = s; el.classList.add('on'); el.classList.toggle('gold', !!gold);
+  clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2600);
+}
+function popText(s) { const p = $('pop'); p.textContent = s; p.style.left = L.pileX + 'px'; p.style.top = L.midY + 'px'; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go'); }
+const pack = () => JSON.stringify(G, (k, v) => (v instanceof Set ? [...v] : v));
+function save() { try { if (G && !G.over) localStorage.setItem('rids_pisti_game', pack()); } catch (e) {} }
+function loadSaved() {
+  try {
+    const s = JSON.parse(localStorage.getItem('rids_pisti_game')); if (!s || !s.h || !Array.isArray(s.scores)) return null;
+    const h = s.h, all = [...h.deck, ...h.pile, ...h.hands[0], ...h.hands[1], ...h.won[0], ...h.won[1]];
+    if (all.length !== 52 || new Set(all).size !== 52) return null;
+    h.seen = new Set(h.seen || []); return s;
+  } catch (e) { return null; }
+}
+const canPlay = () => G && G.h && !G.over && !busy && G.h.turn === 0 && !G.h.done && $('setupOv').hidden && $('rulesOv').hidden && $('handOv').hidden && $('winOv').hidden;
+const hitCards = () => G.h.hands[0].filter((c) => outcome(G.h.pile, c).cap);
+function updateDock(hint) {
+  const t = T(), h = G && G.h, p = h ? h.turn : 0;
+  $('dock').style.setProperty('--turn', TURNCOL[p]);
+  const chip = $('chip'); if (chip.dataset.p !== String(p)) { chip.dataset.p = p; chip.style.backgroundPosition = avaPos(p); chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
+  $('av0').style.backgroundPosition = avaPos(0); $('av1').style.backgroundPosition = avaPos(1);
+  $('turnName').textContent = p === 0 ? t.turnYou : t.turnCpu;
+  if (hint == null) hint = !h || h.done ? '' : p === 1 ? t.hintThink : hitCards().length ? t.hintHit : t.hintYou;
+  $('turnMsg').textContent = hint;
+  const sc = G ? G.scores : [0, 0];
+  $('sc0').textContent = sc[0]; $('sc1').textContent = sc[1];
+  $('ex0').textContent = h ? t.extra(h.pisti[0], h.won[0].length) : ''; $('ex1').textContent = h ? t.extra(h.pisti[1], h.won[1].length) : '';
+  $('hedef').textContent = G ? t.target(G.target) : '';
+  $('skor').setAttribute('aria-label', t.scoreAria(sc[0], sc[1]));
+}
+function seeAll(h, ...cs) { for (const c of cs) h.seen.add(c); }
+async function dealRound(my, first) { // 4'er kart, başlayan oyuncudan başlayarak birer birer
+  const h = G.h;
+  busy = true; updateDock(T().hintDeal); render();
+  for (let k = 0; k < 8; k++) {
+    const p = (first + k) % 2; h.hands[p].push(h.deck.pop());
+    Sfx.deal(); render(320); await wait(110); if (my !== epoch) return false;
+  }
+  if (!h.deck.length) say(T().lastDeal);
+  await wait(260); return my === epoch;
+}
+async function startHand() {
+  const my = epoch, nd = 1 - G.dealer;
+  G.handNo++;
+  G.h = { deck: shuffled(), hands: [[], []], pile: [], hidden: [], won: [[], []], pisti: [0, 0], pc: [0, 0], last: -1, turn: nd, seen: new Set(), done: false, res: null };
+  const h = G.h; busy = true; render(0); updateDock(T().hintDeal);
+  await wait(250); if (my !== epoch) return;
+  for (let k = 0; k < 4; k++) { // yere 4 kart: 3 kapalı, sonuncusu açık
+    const c = h.deck.pop(); h.pile.push(c); if (k < 3) h.hidden.push(c); else seeAll(h, c);
+    Sfx.deal(); render(320); await wait(120); if (my !== epoch) return;
+  }
+  if (!(await dealRound(my, nd))) return;
+  save(); nextAction();
+}
+async function nextAction() {
+  const my = epoch, h = G.h; if (!h || G.over) return;
+  if (h.done) return showHand();
+  if (!h.hands[0].length && !h.hands[1].length) {
+    if (h.deck.length) { if (!(await dealRound(my, 1 - G.dealer))) return; save(); return nextAction(); }
+    return endHand();
+  }
+  render(); updateDock();
+  if (h.turn === 1) {
+    busy = true; await wait(650); if (my !== epoch) return;
+    const c = cpuChoose({ hand: h.hands[1], pile: h.pile, seen: h.seen, deckN: h.deck.length, oppN: h.hands[0].length || (h.deck.length ? 4 : 0) }, G.level);
+    return playCard(1, c);
+  }
+  busy = false; render(); updateDock();
+}
+async function playCard(p, c) {
+  const my = epoch, h = G.h, t = T();
+  busy = true; hotCard = -1;
+  const o = outcome(h.pile, c);
+  h.hands[p].splice(h.hands[p].indexOf(c), 1); h.pile.push(c); seeAll(h, c);
+  Sfx.play(); render(360); updateDock(p === 1 ? '' : null);
+  await wait(420); if (my !== epoch) return;
+  if (o.cap) {
+    const n = h.pile.length;
+    if (o.pisti) {
+      h.pisti[p] += o.pisti; h.pc[p]++;
+      popText(o.pisti === 20 ? t.jpisti : t.pisti); Sfx.pisti(o.pisti === 20); buzz([40, 50, 80]);
+      say(p === 0 ? t.pistiYou(o.pisti) : t.pistiCpu(o.pisti), true);
+      if (p === 0) sayac('pisti', 'pişti yapıldı');
+      await wait(700); if (my !== epoch) return;
+    } else say(p === 0 ? t.capYou(n) : t.capCpu(n));
+    for (const q of h.hidden) seeAll(h, q);
+    h.won[p].push(...h.pile); h.pile = []; h.hidden = []; h.last = p;
+    Sfx.take(n); render(480); updateDock('');
+    await wait(520); if (my !== epoch) return;
+  }
+  h.turn = 1 - p; save();
+  nextAction();
+}
+async function endHand() {
+  const my = epoch, h = G.h, t = T();
+  busy = true;
+  if (h.pile.length && h.last >= 0) { // yerde kalanlar son alana
+    const n = h.pile.length;
+    await wait(300); if (my !== epoch) return;
+    say(h.last === 0 ? t.restYou(n) : t.restCpu(n));
+    h.won[h.last].push(...h.pile); h.pile = []; h.hidden = [];
+    Sfx.take(n); render(480); updateDock('');
+    await wait(700); if (my !== epoch) return;
+  }
+  h.res = handScore(h.won, h.pisti); h.done = true;
+  G.scores[0] += h.res[0].total; G.scores[1] += h.res[1].total;
+  save(); updateDock('');
+  showHand();
+}
+function matchWinner() { // -1: sürer, 0 / 1 kazanan, 2 berabere
+  const [a, b] = G.scores;
+  if (G.target === 0) return a > b ? 0 : b > a ? 1 : 2;
+  if (a < G.target && b < G.target) return -1;
+  return a > b ? 0 : b > a ? 1 : -1; // eşitse bir el daha
+}
+function showHand() {
+  const t = T(), r = G.h.res, w = matchWinner();
+  $('handTitle').textContent = t.handOver(G.handNo); $('handSub').textContent = t.handSub(r[0].total, r[1].total);
+  const row = (k, cls) => `<tr class="${cls || ''}"><td>${t.rows[k]}</td>${[0, 1].map((p) => `<td class="${r[p][k] ? '' : 'z'}">${r[p][k]}</td>`).join('')}</tr>`;
+  $('sumTable').innerHTML = `<thead><tr><th></th><th><i class="ava" style="background-position:${avaPos(0)}"></i></th><th><i class="ava" style="background-position:${avaPos(1)}"></i></th></tr></thead><tbody>`
+    + ['cards', 'most', 'pisti', 'jacks', 'aces', 'club2', 'dia10'].map((k) => row(k)).join('') + row('total', 'tot')
+    + `<tr class="all"><td>${t.rows.all}</td><td>${G.scores[0]}</td><td>${G.scores[1]}</td></tr></tbody>`;
+  $('nextBtn').textContent = w >= 0 ? t.seeResult : t.nextHand;
+  $('handOv').hidden = false; $('nextBtn').focus();
+}
+function afterHand() {
+  $('handOv').hidden = true;
+  const w = matchWinner();
+  if (w >= 0) return finish(w);
+  G.dealer = 1 - G.dealer; G.h = null; epoch++; startHand();
+}
+function finish(w) {
+  const t = T(), [a, b] = G.scores;
+  G.over = true; busy = true; try { localStorage.removeItem('rids_pisti_game'); } catch (e) {}
+  sayac('bitti', 'oyun bitti'); bitenVar = true;
+  const k = w === 0 ? 'insan' : w === 1 ? 'bilgisayar' : 'berabere';
+  sayac(`sonuc/${k}-${lvAd(G.level)}`, `sonuç: ${k === 'berabere' ? 'berabere' : k + ' kazandı'} (${lvAd(G.level)})`);
+  $('trophy').textContent = w === 2 ? '🤝' : w === 0 ? '🏆' : '🐳';
+  $('winTitle').textContent = w === 2 ? t.draw : w === 0 ? t.youWin : t.cpuWins;
+  $('winSub').textContent = t.winSub(a, b, G.handNo);
+  $('final').innerHTML = [0, 1].map((p) => `<span class="${w === p ? 'win' : ''}"><i class="ava" style="background-position:${avaPos(p)}"></i>${G.scores[p]}</span>`).join('');
+  if (w === 1) Sfx.lose(); else Sfx.win();
+  buzz([60, 60, 120]); if (w === 0) confetti();
+  updateDock('');
+  $('winOv').hidden = false; $('againBtn').focus();
+}
+function newGame(level, target) {
+  epoch++; closeAll(); sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${lvAd(level)}-${target === 0 ? 'tek' : target}`, `mod: ${lvAd(level)}, ${target === 0 ? 'tek el' : target + ' sayı'}`);
+  G = { level, target, scores: [0, 0], handNo: 0, dealer: 1, h: null, over: false };
+  applyLang(); startHand();
+}
+function resume() {
+  const s = loadSaved(); if (!s) return;
+  epoch++; closeAll(); G = s; G.over = false; busy = true; hotCard = -1;
+  render(0); applyLang(); nextAction();
+}
+function tapCard(c) {
+  if (!canPlay() || !G.h.hands[0].includes(c)) return;
+  Sfx.unlock();
+  // dokunmatikte ilk dokunuş kartı kaldırır, ikincisi atar; farede tek tık yeter
+  if (lastPointer !== 'mouse' && hotCard !== c) { hotCard = c; render(160); return; }
+  playCard(0, c);
+}
+let lastPointer = 'mouse';
+addEventListener('pointerdown', (e) => { lastPointer = e.pointerType; if (hotCard >= 0 && !e.target.closest('.card')) { hotCard = -1; render(160); } }, true);
+function confetti() {
+  if (reduce) return;
+  const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
+  k.hidden = false; k.width = innerWidth * d; k.height = innerHeight * d;
+  const cols = ['#ef4444', '#22d3ee', '#ffd43b', '#ffffff', '#84cc16', '#8b5cf6', '#ff6fb5'];
+  const bits = Array.from({ length: 170 }, () => ({
+    x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160,
+    w: 6 + Math.random() * 6, h: 9 + Math.random() * 8, a: Math.random() * 6, va: (Math.random() - 0.5) * 10, col: cols[Math.floor(Math.random() * cols.length)]
+  }));
+  let last = performance.now(); const end = last + 4200;
+  (function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) {
+      b.vy = Math.min(b.vy + 220 * dt, 260); b.x += (b.vx + Math.sin(now / 300 + b.a) * 40) * dt; b.y += b.vy * dt; b.a += b.va * dt;
+      c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(Math.cos(b.a * 1.7), 1);
+      c.fillStyle = b.col; c.globalAlpha = Math.min(1, (end - now) / 600); c.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); c.restore();
+    }
+    if (now < end) requestAnimationFrame(tick); else { c.clearRect(0, 0, k.width, k.height); k.hidden = true; }
+  })(last);
+}
+
+// ---------- Pencereler ve dil ----------
+function closeAll() { for (const id of ['setupOv', 'rulesOv', 'handOv', 'winOv']) $(id).hidden = true; }
+function renderSetup() {
+  const t = T();
+  $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub; $('lvlLbl').textContent = t.lvlLbl; $('tgtLbl').textContent = t.tgtLbl;
+  const lab = { easy: t.easy, mid: t.mid, hard: t.hard, 0: t.one, 101: '101', 151: '151' };
+  const cur = { lvlSeg: setup.level, tgtSeg: String(setup.target) };
+  for (const id in cur) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.textContent = lab[b.dataset.v]; b.setAttribute('aria-pressed', b.dataset.v === cur[id]); });
+  $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume; $('resumeBtn').hidden = !loadSaved();
+}
+function openSetup() {
+  save(); epoch++; busy = true; hotCard = -1;
+  closeAll(); renderSetup(); render(0); $('setupOv').hidden = false; $('startBtn').focus();
+}
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langAria);
+  $('rights').textContent = t.rights; $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('toMenuBtn').textContent = t.toMenu; stage.setAttribute('aria-label', t.stage);
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  for (let c = 0; c < 52; c++) els[c].setAttribute('aria-label', t.cardName(c));
+  renderSetup(); updateDock(G && G.h && busy && G.h.turn === 0 ? '' : null); if (L) badges();
+  if (!$('handOv').hidden && G && G.h && G.h.res) showHand();
+  if (!$('winOv').hidden && G && G.over) { const w = matchWinner(); $('winTitle').textContent = w === 2 ? t.draw : w === 0 ? t.youWin : t.cpuWins; $('winSub').textContent = t.winSub(G.scores[0], G.scores[1], G.handNo); }
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+// ---------- Girdi ----------
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { if (!$('rulesOv').hidden) $('rulesOv').hidden = true; return; }
+  if (/^[1-4]$/.test(e.key) && canPlay()) { const c = G.h.hands[0][+e.key - 1]; if (c != null) playCard(0, c); }
+});
+document.querySelectorAll('.seg').forEach((s) => s.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  if (s.id === 'lvlSeg') setup.level = b.dataset.v; else setup.target = b.dataset.v;
+  renderSetup();
+}));
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); try { localStorage.setItem('rids_pisti_setup', JSON.stringify(setup)); } catch (e) {} newGame(setup.level, +setup.target); });
+$('resumeBtn').addEventListener('click', () => { Sfx.unlock(); resume(); });
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; render(); });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') { $('rulesOv').hidden = true; render(); } });
+$('nextBtn').addEventListener('click', afterHand);
+$('againBtn').addEventListener('click', () => newGame(G.level, G.target));
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem('rids_pisti_sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+const relayout = () => layout();
+addEventListener('resize', relayout); document.addEventListener('fullscreenchange', relayout); document.addEventListener('webkitfullscreenchange', relayout);
+if (window.ResizeObserver) new ResizeObserver(relayout).observe(stage);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+// Deneme kancası: hızlandırma ve durum okuma (oyuncuya görünmez)
+window.__pisti = {
+  setSpeed: (s) => { speed = s; },
+  state: () => ({ G, busy, canPlay: !!canPlay(), hand: G && G.h ? G.h.hands[0].slice() : [], epoch }),
+  card: (c) => { const r = els[c].getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; },
+  setHand: (o) => { Object.assign(G.h, o); render(0); updateDock(); }
+};
+
+applySound(); layout(); applyLang(); openSetup();
+</script>
+</body>
+</html>
