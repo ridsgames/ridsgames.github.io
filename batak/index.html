@@ -351,7 +351,9 @@ table.sum td.neg { color: #f87171; font-weight: 800; }
 const suitOf = (c) => (c / 13) | 0, rk = (c) => (c % 13 === 0 ? 14 : (c % 13) + 1);
 const idOf = (s, r) => s * 13 + (r === 14 ? 0 : r - 1);
 // min: en az ihale, force: herkes pas derse son kalanın almak zorunda olduğu ihale
-const MODES = { tekli: { min: 5, force: 5, deal: 13 }, esli: { min: 8, force: 7, deal: 13 }, gommeli: { min: 8, force: 7, deal: 12 }, ihalesiz: { min: 0, force: 0, deal: 13 } };
+const MODES = { tekli: { min: 5, force: 5, deal: 13 }, esli: { min: 8, force: 7, deal: 13 }, gommeli: { min: 8, force: 7, deal: 16 }, ihalesiz: { min: 0, force: 0, deal: 13 } };
+// Gömmeli üç kişiyle oynanır: üstteki koltuk (2) boş kalır
+const seatsOf = (mode) => (mode === 'gommeli' ? [0, 1, 3] : [0, 1, 2, 3]);
 function shuffled(rnd = Math.random, a = Array.from({ length: 52 }, (_, i) => i)) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 const allyOf = (mode, a, b) => a === b || (mode === 'esli' && a % 2 === b % 2);
 // s: { trick: [{ p, c }], trump, broken: koz açıldı mı }
@@ -418,7 +420,7 @@ function cpuBid(st, level, rnd = Math.random) {
   if (st.mode === 'gommeli') est += 0.7; // ortadaki 4 kart ve gömme
   if (st.mode === 'esli' && st.bidder === (st.me + 2) % 4) est -= 1.5; // ortağın ihalesini zorla yükseltme
   est += level === 'easy' ? (rnd() - 0.35) * 2.4 : level === 'mid' ? (rnd() - 0.5) * 1.2 : -0.15;
-  const max = Math.min(st.mode === 'gommeli' ? 12 : 13, Math.floor(est));
+  const max = Math.min(m.deal, Math.floor(est));
   if (st.forced) return Math.max(need, max);
   return max >= need ? need : 0;
 }
@@ -438,7 +440,8 @@ function cpuPlay(st, level, rnd = Math.random) {
   const low = (a) => a.slice().sort((x, y) => val(x) - val(y))[0];
   const unseenTr = Array.from({ length: 13 }, (_, i) => st.trump * 13 + i).filter((c) => !known.has(c)).length;
   const ally = (p) => allyOf(st.mode, p, st.me);
-  const later = []; for (let k = st.trick.length + 1; k < 4; k++) later.push((st.me + k - st.trick.length) % 4);
+  const seats = seatsOf(st.mode), n = seats.length, mi = seats.indexOf(st.me);
+  const later = []; for (let k = 1; k < n - st.trick.length; k++) later.push(seats[(mi + k) % n]);
   const mayRuff = (s) => level === 'hard' && s !== st.trump && unseenTr > 0 && later.some((p) => !ally(p) && st.voids[p][s]);
   const lenOf = (s) => st.hand.filter((c) => suitOf(c) === s).length;
   if (!st.trick.length) { // ilk kart
@@ -458,7 +461,7 @@ function cpuPlay(st, level, rnd = Math.random) {
     }
     return low(legal);
   }
-  const w = trickWinner(st.trick, st.trump), last = st.trick.length === 3;
+  const w = trickWinner(st.trick, st.trump), last = st.trick.length === n - 1;
   const wins = legal.filter((c) => trickWinner([...st.trick, { p: st.me, c }], st.trump) === st.me);
   if (ally(w)) { // ortak alıyor: küçük at
     const wc = st.trick.find((x) => x.p === w).c, safe = last || (boss(wc) && !mayRuff(suitOf(wc))) || suitOf(wc) === st.trump;
@@ -498,10 +501,10 @@ const STR = {
     setupSub: 'İhaleyi al, kozu seç, söylediğin kadar eli topla.', modeLbl: 'Oyun türü', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
     lenLbl: 'Kaç el oynansın?', deckLbl: 'Deste', red: 'Kırmızı', black: 'Siyah', hands: (n) => `${n} el`, start: 'Başla', resume: 'Kaldığın yerden devam et',
     modes: { ihalesiz: 'Koz Maça', tekli: 'İhaleli', esli: 'Eşli', gommeli: 'Gömmeli' },
-    modeSub: { tekli: 'Herkes kendi için oynar, ihaleyi alan kozu seçer.', esli: 'Karşındaki Kurbağa ortağın; eller ortak sayılır.', gommeli: 'Herkese 12 kart, 4 kart ortada. İhaleyi alan ortadakileri alıp 4 kart gömer.', ihalesiz: 'İhale yok, koz hep maça. Herkes aldığı el kadar yazar.' },
+    modeSub: { tekli: 'Herkes kendi için oynar, ihaleyi alan kozu seçer.', esli: 'Karşındaki Kurbağa ortağın; eller ortak sayılır.', gommeli: 'Üç kişi oynanır: herkese 16 kart, 4 kart ortada. İhaleyi alan ortadakileri alıp 4 kart gömer.', ihalesiz: 'İhale yok, koz hep maça. Herkes aldığı el kadar yazar.' },
     rulesTitle: 'Nasıl oynanır?', rulesSub: 'Dört kişi oynanır, as en büyük karttır.', ok: 'Tamam',
     ruleList: [
-      ['🃏', 'Herkese 13 kart dağıtılır. <b>Gömmeli</b> batakta herkese 12 kart verilir, 4 kart ortaya kapalı konur.'],
+      ['🃏', 'Herkese 13 kart dağıtılır. <b>Gömmeli</b> batak üç kişiyle oynanır: herkese 16 kart verilir, 4 kart ortaya kapalı konur.'],
       ['♠️', '<b>Koz Maça:</b> İhale yapılmaz, koz hep <b>maçadır</b>. Dağıtanın solundaki ilk kartı açar.'],
       ['📣', '<b>İhale:</b> Sırayla kaç el alacağını söylersin ya da pas dersin. En yükseği söyleyen ihaleyi alır, <b>kozu seçer</b> ve ilk kartı o açar. En az ihale 5; eşli ve gömmelide 8. Herkes pas derse dağıtan ihaleyi almak zorundadır: eşli ve gömmelide 7 ile, ihalelide 5 ile.'],
       ['🪏', '<b>Gömmeli:</b> İhaleyi alan ortadaki 4 kartı eline alır, sonra elinden istediği 4 kartı gömer. Gömülen kartlar oyuna girmez.'],
@@ -534,10 +537,10 @@ const STR = {
     setupSub: 'Win the bid, pick trumps and take as many tricks as you said.', modeLbl: 'Game type', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
     lenLbl: 'Number of hands', deckLbl: 'Deck', red: 'Red', black: 'Black', hands: (n) => `${n} hands`, start: 'Start', resume: 'Resume game',
     modes: { ihalesiz: 'Spades', tekli: 'Bidding', esli: 'Partners', gommeli: 'Kitty' },
-    modeSub: { tekli: 'Everyone plays alone, the high bidder picks trumps.', esli: 'Frog, across from you, is your partner; tricks count together.', gommeli: '12 cards each, 4 in the middle. The high bidder takes them and buries 4.', ihalesiz: 'No bidding, spades are always trumps. Everyone scores their tricks.' },
+    modeSub: { tekli: 'Everyone plays alone, the high bidder picks trumps.', esli: 'Frog, across from you, is your partner; tricks count together.', gommeli: 'Three players: 16 cards each, 4 in the middle. The high bidder takes them and buries 4.', ihalesiz: 'No bidding, spades are always trumps. Everyone scores their tricks.' },
     rulesTitle: 'How to play', rulesSub: 'Four players, the ace is the highest card.', ok: 'OK',
     ruleList: [
-      ['🃏', 'Everyone gets 13 cards. In <b>Kitty</b> mode everyone gets 12 and 4 cards are placed face down in the middle.'],
+      ['🃏', 'Everyone gets 13 cards. <b>Kitty</b> is played by three: everyone gets 16 and 4 cards are placed face down in the middle.'],
       ['♠️', '<b>Spades:</b> There is no bidding and <b>spades</b> are always trumps. The player left of the dealer leads.'],
       ['📣', '<b>Bidding:</b> In turn, say how many tricks you will take or pass. The highest bidder wins, <b>picks trumps</b> and leads first. The minimum bid is 5, or 8 in Partners and Kitty. If everyone passes the dealer must take the bid: at 7 in Partners and Kitty, at 5 in Bidding.'],
       ['🪏', '<b>Kitty:</b> The high bidder adds the 4 middle cards to their hand and then buries any 4 cards. Buried cards are out of play.'],
@@ -714,7 +717,7 @@ function ui() { // koltuklar, koz işareti, seçim pencerelerinin yeri
       if (p === h.bidder) { txt += '/' + h.cur; cls = (team ? h.taken[p] + h.taken[(p + 2) % 4] : n) >= h.cur ? 'ok' : 'bid'; }
     }
     b.textContent = txt; b.className = cls + (team ? ' team' : ''); b.style.setProperty('--t', p % 2 ? '#94a3b8' : '#22d3ee');
-    s.hidden = p === 0 && !h;
+    s.hidden = (p === 0 && !h) || !!(h && !seats().includes(p));
   }
   const tb = $('trumpB'), on = h && h.trump >= 0 && (h.phase === 'play' || h.phase === 'done');
   tb.classList.toggle('off', !on);
@@ -771,6 +774,7 @@ function loadSaved() {
     const s = JSON.parse(localStorage.getItem('rids_batak_game')); if (!s || !s.h || !MODES[s.mode] || !Array.isArray(s.scores)) return null;
     const h = s.h, all = [...h.deck, ...h.kitty, ...h.buried, ...h.hands.flat(), ...h.won.flat(), ...h.trick.map((x) => x.c)];
     if (h.hands.length !== 4 || all.length !== 52 || new Set(all).size !== 52) return null;
+    if (s.mode === 'gommeli' && (h.hands[2].length || h.won[2].length)) return null; // eski dört kişilik gömmeli kaydı
     h.mid = false; h.sel = []; return s;
   } catch (e) { return null; }
 }
@@ -792,23 +796,25 @@ function updateDock(hn) {
   const chip = $('chip'); if (chip.dataset.p !== String(p)) { chip.dataset.p = p; chip.style.backgroundPosition = avaPos(p); chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
   $('turnName').textContent = p === 0 ? t.turnYou : t.turnOf(p);
   $('turnMsg').textContent = hn == null ? (G ? hint() : '') : hn;
-  const sk = $('skor'), sc = G ? G.scores : [0, 0, 0, 0], best = Math.max(...sc), lead = G && G.handNo > 1;
+  const sk = $('skor'), sc = G ? G.scores : [0, 0, 0, 0], ids = G && !team ? seats() : sc.map((_, i) => i), best = Math.max(...ids.map((i) => sc[i])), lead = G && G.handNo > 1;
   sk.classList.toggle('g4', !team);
   const cell = (i, v) => (team ? `<span class="pair"><span class="ava" style="background-position:${avaPos(i)}"></span><span class="ava" style="background-position:${avaPos(i + 2)}"></span></span>` : `<span class="ava" style="background-position:${avaPos(i)}"></span>`) + `<span>${v}</span>`;
-  sk.innerHTML = sc.map((v, i) => `<div class="${lead && v === best ? 'w' : ''}">${cell(i, v)}</div>`).join('') + `<div id="hedef" class="full">${G ? t.progress(Math.max(1, G.handNo), G.len) : ''}</div>`;
-  sk.setAttribute('aria-label', t.scoreAria(team ? t.teams : t.names, sc));
+  sk.innerHTML = ids.map((i) => [sc[i], i]).map(([v, i]) => `<div class="${lead && v === best ? 'w' : ''}">${cell(i, v)}</div>`).join('') + `<div id="hedef" class="full">${G ? t.progress(Math.max(1, G.handNo), G.len) : ''}</div>`;
+  sk.setAttribute('aria-label', t.scoreAria(ids.map((i) => (team ? t.teams : t.names)[i]), ids.map((i) => sc[i])));
 }
-const nextP = (p) => (p + 1) % 4;
+const seats = () => seatsOf(G.mode);
+const nextP = (p) => { const s = seats(); return s[(s.indexOf(p) + 1) % s.length]; };
 async function startHand() {
   const my = epoch, mode = G.mode, m = MODES[mode];
-  G.handNo++; G.dealer = (G.dealer + 1) % 4;
-  G.h = { deck: shuffled(), hands: [[], [], [], []], kitty: [], buried: [], phase: 'deal', bids: [null, null, null, null], passed: [false, false, false, false], cur: 0, bidder: -1,
+  G.handNo++; G.dealer = nextP(G.dealer);
+  G.h = { deck: shuffled(), hands: [[], [], [], []], kitty: [], buried: [], phase: 'deal', bids: [null, null, null, null], passed: [0, 1, 2, 3].map((p) => !seats().includes(p)), cur: 0, bidder: -1,
     turn: nextP(G.dealer), trump: mode === 'ihalesiz' ? 0 : -1, broken: false, trick: [], leader: nextP(G.dealer), taken: [0, 0, 0, 0], won: [[], [], [], []], played: [],
     voids: [0, 1, 2, 3].map(() => [false, false, false, false]), res: null, mid: true, sel: [] };
   const h = G.h; busy = true; hotCard = -1; render(0); updateDock();
   await wait(250); if (my !== epoch) return;
-  for (let k = 0; k < m.deal * 4; k++) {
-    const p = (G.dealer + 1 + k) % 4; h.hands[p].push(h.deck.pop()); if (p === 0) sortMine();
+  const ss = seats(), d0 = ss.indexOf(G.dealer);
+  for (let k = 0; k < m.deal * ss.length; k++) {
+    const p = ss[(d0 + 1 + k) % ss.length]; h.hands[p].push(h.deck.pop()); if (p === 0) sortMine();
     if (k % 2 === 0) Sfx.deal(); render(260); await wait(34); if (my !== epoch) return;
   }
   if (h.deck.length) { h.kitty = h.deck.splice(0); render(300); await wait(300); if (my !== epoch) return; }
@@ -829,8 +835,8 @@ const stFor = (p) => { const h = G.h; return { ...tbl(h), hand: h.hands[p], me: 
 
 // İhale
 async function bidTurn(my) {
-  const h = G.h, t = T(), m = MODES[G.mode], act = [0, 1, 2, 3].filter((p) => !h.passed[p]);
-  if (h.cur && (act.length === 1 || h.cur >= (G.mode === 'gommeli' ? 12 : 13))) return winBid(my, h.bidder, false);
+  const h = G.h, t = T(), m = MODES[G.mode], act = seats().filter((p) => !h.passed[p]);
+  if (h.cur && (act.length === 1 || h.cur >= m.deal)) return winBid(my, h.bidder, false);
   if (!act.length) { h.cur = m.force; return winBid(my, G.dealer, true); }
   while (h.passed[h.turn]) h.turn = nextP(h.turn);
   const p = h.turn, forced = !h.cur && act.length === 1; // herkes pas dedi: son kalan pas diyemez
@@ -844,7 +850,7 @@ async function bidTurn(my) {
 }
 let bidRes = null;
 function askBid(forced) {
-  const h = G.h, t = T(), m = MODES[G.mode], max = G.mode === 'gommeli' ? 12 : 13, need = forced ? m.force : Math.max(m.min, h.cur + 1);
+  const h = G.h, t = T(), m = MODES[G.mode], max = m.deal, need = forced ? m.force : Math.max(m.min, h.cur + 1);
   $('bpT').textContent = t.bidT; $('bpS').textContent = t.bidS(h.cur, h.bidder);
   let html = ''; for (let v = Math.min(need, m.min); v <= max; v++) html += `<button type="button" data-b="${v}"${v < need ? ' disabled' : ''}>${v}</button>`;
   $('bpB').innerHTML = html; $('bidPass').textContent = t.pass; $('bidPass').disabled = !!forced; if (forced) $('bpS').textContent = t.bidForced(m.force);
@@ -910,7 +916,7 @@ async function playCard(p, c) {
   Sfx.play(); render(320); updateDock('');
   if (brk) { say(t.broken); Sfx.trump(); }
   await wait(380); if (my !== epoch) return;
-  if (h.trick.length < 4) { h.turn = nextP(p); h.mid = false; save(); return nextAction(); }
+  if (h.trick.length < seats().length) { h.turn = nextP(p); h.mid = false; save(); return nextAction(); }
   const w = trickWinner(h.trick, h.trump);
   await wait(500); if (my !== epoch) return;
   h.taken[w]++; h.won[w].push(...h.trick.map((x) => x.c)); h.played.push(...h.trick.map((x) => x.c)); h.trick = [];
@@ -947,7 +953,7 @@ function showHand() {
   const best = Math.max(...G.scores);
   const rows = team
     ? [0, 1].map((i) => ({ nm: `<i class="ava" style="background-position:${avaPos(i)}"></i><i class="ava" style="background-position:${avaPos(i + 2)}"></i>${t.teams[i]}`, bid: h.bidder % 2 === i ? bid : '–', got: h.taken[i] + h.taken[i + 2], res: h.res[i], tot: G.scores[i] }))
-    : [0, 1, 2, 3].map((i) => ({ nm: `<i class="ava" style="background-position:${avaPos(i)}"></i>${t.names[i]}`, bid: G.mode !== 'ihalesiz' && h.bidder === i ? bid : '–', got: h.taken[i], res: h.res[i], tot: G.scores[i] }));
+    : seats().map((i) => ({ nm: `<i class="ava" style="background-position:${avaPos(i)}"></i>${t.names[i]}`, bid: G.mode !== 'ihalesiz' && h.bidder === i ? bid : '–', got: h.taken[i], res: h.res[i], tot: G.scores[i] }));
   $('sumTable').innerHTML = `<thead><tr>${t.cols.map((c) => `<th>${c}</th>`).join('')}</tr></thead><tbody>`
     + rows.map((r) => `<tr class="${r.tot === best && G.handNo > 0 ? 'win' : ''}"><td class="nm">${r.nm}</td><td class="${r.bid === '–' ? 'z' : ''}">${r.bid}</td><td>${r.got}</td><td class="${r.res < 0 ? 'neg' : r.res ? '' : 'z'}">${r.res > 0 ? '+' + r.res : r.res}</td><td>${r.tot}</td></tr>`).join('') + '</tbody>';
   $('nextBtn').textContent = lastHand() ? t.seeResult : t.nextHand;
@@ -958,7 +964,7 @@ function afterHand() {
   if (lastHand()) return finish();
   G.h = null; epoch++; startHand();
 }
-function winners() { const m = Math.max(...G.scores); return G.scores.map((s, i) => (s === m ? i : -1)).filter((i) => i >= 0); }
+function winners() { const ss = isTeam() ? [0, 1] : seats(), m = Math.max(...ss.map((i) => G.scores[i])); return ss.filter((i) => G.scores[i] === m); }
 function winText(ws) {
   const t = T();
   if (isTeam()) return ws.length > 1 ? t.draw : ws[0] === 0 ? t.teamWin : t.theyWin;
@@ -974,7 +980,7 @@ function finish() {
   $('winTitle').textContent = winText(ws);
   $('winSub').textContent = t.winSub(G.handNo);
   const team = isTeam();
-  $('final').innerHTML = G.scores.map((v, p) => `<span class="${ws.includes(p) ? 'win' : ''}">${team ? `<i class="ava" style="background-position:${avaPos(p)}"></i><i class="ava" style="background-position:${avaPos(p + 2)};margin-left:-14px"></i>` : `<i class="ava" style="background-position:${avaPos(p)}"></i>`}${v}</span>`).join('');
+  $('final').innerHTML = G.scores.map((v, p) => (!team && !seats().includes(p) ? '' : `<span class="${ws.includes(p) ? 'win' : ''}">${team ? `<i class="ava" style="background-position:${avaPos(p)}"></i><i class="ava" style="background-position:${avaPos(p + 2)};margin-left:-14px"></i>` : `<i class="ava" style="background-position:${avaPos(p)}"></i>`}${v}</span>`)).join('');
   $('final').style.fontSize = team ? '' : '22px'; $('final').style.gap = team ? '' : '8px'; $('final').style.flexWrap = 'wrap';
   if (win || draw) Sfx.win(); else Sfx.lose();
   buzz([60, 60, 120]); if (win) confetti();
@@ -985,7 +991,7 @@ function newGame(mode, level, len) {
   epoch++; closeAll(); sayac('basladi', 'oyun başladı');
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
   sayac(`mod/${mode}-${lvAd(level)}-${len}`, `mod: ${mode}, ${lvAd(level)}, ${len} el`);
-  G = { mode, level, len, scores: mode === 'esli' ? [0, 0] : [0, 0, 0, 0], handNo: 0, dealer: Math.floor(Math.random() * 4), h: null, over: false };
+  G = { mode, level, len, scores: mode === 'esli' ? [0, 0] : [0, 0, 0, 0], handNo: 0, dealer: seatsOf(mode)[Math.floor(Math.random() * seatsOf(mode).length)], h: null, over: false };
   layout(); applyLang(); startHand();
 }
 function resume() {
