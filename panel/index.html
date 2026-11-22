@@ -499,7 +499,7 @@ function modeLabel(slug, m) {
   if (slug === 'bomba') return `${p[3] || ''} kişi · ${p[0] || ''} heceler · ${p[1] || ''} sn · hece ${p[2] === 'degisir' ? 'her pasta değişir' : 'tur boyunca sabit'}${p[4] ? ` · ${p[4] === 'karisik' ? 'yer karışık' : 'her yerde'}` : ''}`;
   if (slug === 'mayin-tarlasi') return { kolay: 'Kolay 9×9', orta: 'Orta 16×16', zor: 'Zor 22×16' }[p[0]] || `Özel · ${p[1] || ''}×${p[2] || ''} · ${p[3] || ''} mayın`;
   if (slug === 'dama') return p[0] === '2' ? '2 oyuncu' : 'bilgisayara karşı, ' + (p[1] || '');
-  if (slug === 'batak') return `${{ tekli: 'İhaleli', esli: 'Eşli', gommeli: 'Gömmeli', ihalesiz: 'İhalesiz' }[p[0]] || p[0]} · bilgisayara karşı, ${p[1] || ''} · ${p[2] || ''} el`;
+  if (slug === 'batak') return `${{ ihalesiz: 'Koz Maça', tekli: 'İhaleli', esli: 'Eşli', gommeli: 'Gömmeli' }[p[0]] || p[0]} · bilgisayara karşı, ${p[1] || ''} · ${p[2] || ''} el`;
   if (slug === 'pis-yedili') return `bilgisayara karşı, ${p[0]} · ${p[1] || ''} rakip · ${p[2] === 'tek' ? 'tek el' : (p[2] || '') + ' ceza'}`;
   if (slug === 'pisti') return 'bilgisayara karşı, ' + p[0] + ' · ' + (p[1] === 'tek' ? 'tek el' : (p[1] || '') + ' sayı');
   return m;

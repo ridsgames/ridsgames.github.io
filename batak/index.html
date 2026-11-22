@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Batak | Ridsgames</title>
-<meta name="description" content="Batak: ihaleli, eşli, gömmeli ve ihalesiz batak. İhaleyi al, kozu seç, söylediğin kadar el al. 3 bilgisayara karşı, üç zorluk.">
+<meta name="description" content="Batak: koz maça, ihaleli, eşli ve gömmeli batak. İhaleyi al, kozu seç, söylediğin kadar el al. 3 bilgisayara karşı, üç zorluk.">
 <meta name="theme-color" content="#0a0e17">
 <link rel="icon" href="../assets/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -300,7 +300,7 @@ table.sum td.neg { color: #f87171; font-weight: 800; }
   <div class="card2" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
     <h2 id="setupTitle">Batak</h2>
     <p class="sub" id="setupSub"></p>
-    <div class="field"><span id="modeLbl"></span><div class="seg" id="modeSeg"><button type="button" data-v="tekli"></button><button type="button" data-v="esli"></button><button type="button" data-v="gommeli"></button><button type="button" data-v="ihalesiz"></button></div></div>
+    <div class="field"><span id="modeLbl"></span><div class="seg" id="modeSeg"><button type="button" data-v="ihalesiz"></button><button type="button" data-v="tekli"></button><button type="button" data-v="esli"></button><button type="button" data-v="gommeli"></button></div></div>
     <div class="field"><span id="lvlLbl"></span><div class="seg" id="lvlSeg"><button type="button" data-v="easy"></button><button type="button" data-v="mid"></button><button type="button" data-v="hard"></button></div></div>
     <div class="field"><span id="lenLbl"></span><div class="seg" id="lenSeg"><button type="button" data-v="4"></button><button type="button" data-v="8"></button><button type="button" data-v="12"></button></div></div>
     <div class="field"><span id="deckLbl"></span><div class="seg" id="deckSeg"><button type="button" data-v="red"></button><button type="button" data-v="black"></button></div></div>
@@ -496,15 +496,15 @@ const STR = {
     rights: 'Tüm hakları saklıdır.', stage: 'Masa', names: ['Sen', 'Balina', 'Kurbağa', 'Civciv'], teams: ['Siz', 'Onlar'],
     setupSub: 'İhaleyi al, kozu seç, söylediğin kadar eli topla.', modeLbl: 'Oyun türü', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
     lenLbl: 'Kaç el oynansın?', deckLbl: 'Deste', red: 'Kırmızı', black: 'Siyah', hands: (n) => `${n} el`, start: 'Başla', resume: 'Kaldığın yerden devam et',
-    modes: { tekli: 'İhaleli', esli: 'Eşli', gommeli: 'Gömmeli', ihalesiz: 'İhalesiz' },
+    modes: { ihalesiz: 'Koz Maça', tekli: 'İhaleli', esli: 'Eşli', gommeli: 'Gömmeli' },
     modeSub: { tekli: 'Herkes kendi için oynar, ihaleyi alan kozu seçer.', esli: 'Karşındaki Kurbağa ortağın; eller ortak sayılır.', gommeli: 'Herkese 12 kart, 4 kart ortada. İhaleyi alan ortadakileri alıp 4 kart gömer.', ihalesiz: 'İhale yok, koz hep maça. Herkes aldığı el kadar yazar.' },
     rulesTitle: 'Nasıl oynanır?', rulesSub: 'Dört kişi oynanır, as en büyük karttır.', ok: 'Tamam',
     ruleList: [
       ['🃏', 'Herkese 13 kart dağıtılır. <b>Gömmeli</b> batakta herkese 12 kart verilir, 4 kart ortaya kapalı konur.'],
+      ['♠️', '<b>Koz Maça:</b> İhale yapılmaz, koz hep <b>maçadır</b>. Dağıtanın solundaki ilk kartı açar.'],
       ['📣', '<b>İhale:</b> Sırayla kaç el alacağını söylersin ya da pas dersin. En yükseği söyleyen ihaleyi alır, <b>kozu seçer</b> ve ilk kartı o açar. En az ihale 5, eşlide 7. Herkes pas derse dağıtan en az ihaleyle almak zorundadır.'],
       ['🪏', '<b>Gömmeli:</b> İhaleyi alan ortadaki 4 kartı eline alır, sonra elinden istediği 4 kartı gömer. Gömülen kartlar oyuna girmez.'],
       ['🤝', '<b>Eşli:</b> Karşında oturan ortağındır. İhale ikinizin aldığı ellerin toplamıyla tutturulur.'],
-      ['♠️', '<b>İhalesiz:</b> İhale yapılmaz, koz hep <b>maçadır</b>. Dağıtanın solundaki ilk kartı açar.'],
       ['👆', 'Yerdeki renkten varsa <b>onu atmak zorundasın</b>, yerdekinden büyüğün varsa <b>büyüğünü</b> atmalısın. O renk yoksa <b>koz atmalısın</b>; koz atılmışsa ve daha büyük kozun varsa onu atmalısın. Kozun da yoksa istediğini atarsın.'],
       ['🔒', 'Koz bir elde atılmadan ilk kart olarak koz açılamaz (elinde yalnız koz kalmadıysa).'],
       ['🏅', 'Eli en büyük koz, koz yoksa açılan renkten en büyük kart alır. Eli alan sonrakini açar.'],
@@ -532,15 +532,15 @@ const STR = {
     rights: 'All rights reserved.', stage: 'Table', names: ['You', 'Whale', 'Frog', 'Chick'], teams: ['You', 'Them'],
     setupSub: 'Win the bid, pick trumps and take as many tricks as you said.', modeLbl: 'Game type', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
     lenLbl: 'Number of hands', deckLbl: 'Deck', red: 'Red', black: 'Black', hands: (n) => `${n} hands`, start: 'Start', resume: 'Resume game',
-    modes: { tekli: 'Bidding', esli: 'Partners', gommeli: 'Kitty', ihalesiz: 'No bid' },
+    modes: { ihalesiz: 'Spades', tekli: 'Bidding', esli: 'Partners', gommeli: 'Kitty' },
     modeSub: { tekli: 'Everyone plays alone, the high bidder picks trumps.', esli: 'Frog, across from you, is your partner; tricks count together.', gommeli: '12 cards each, 4 in the middle. The high bidder takes them and buries 4.', ihalesiz: 'No bidding, spades are always trumps. Everyone scores their tricks.' },
     rulesTitle: 'How to play', rulesSub: 'Four players, the ace is the highest card.', ok: 'OK',
     ruleList: [
       ['🃏', 'Everyone gets 13 cards. In <b>Kitty</b> mode everyone gets 12 and 4 cards are placed face down in the middle.'],
+      ['♠️', '<b>Spades:</b> There is no bidding and <b>spades</b> are always trumps. The player left of the dealer leads.'],
       ['📣', '<b>Bidding:</b> In turn, say how many tricks you will take or pass. The highest bidder wins, <b>picks trumps</b> and leads first. The minimum bid is 5, 7 with partners. If everyone passes the dealer must take the minimum bid.'],
       ['🪏', '<b>Kitty:</b> The high bidder adds the 4 middle cards to their hand and then buries any 4 cards. Buried cards are out of play.'],
       ['🤝', '<b>Partners:</b> The player across from you is your partner. The bid is made with the tricks you take together.'],
-      ['♠️', '<b>No bid:</b> There is no bidding and <b>spades</b> are always trumps. The player left of the dealer leads.'],
       ['👆', 'You must <b>follow suit</b>, and if you can beat the highest card of that suit you <b>must</b>. If you cannot follow you <b>must trump</b>; if a trump is down and you can overtrump, you must. With no trumps either, play anything.'],
       ['🔒', 'You cannot lead trumps until a trump has been played, unless you hold only trumps.'],
       ['🏅', 'The highest trump wins the trick, otherwise the highest card of the suit led. The winner leads next.'],
