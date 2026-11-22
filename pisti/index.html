@@ -69,9 +69,9 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-item
 .card { position: absolute; left: 0; top: 0; width: var(--cw); height: var(--ch); transition-property: transform; transition-timing-function: cubic-bezier(.25, .8, .3, 1); will-change: transform; }
 .card .in { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateY(180deg); transition: transform .35s, translate .15s; }
 .card.up .in { transform: none; }
-.face { position: absolute; inset: 0; border-radius: calc(var(--cw) * .09); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .35); overflow: hidden; }
-.front { background: #fffdf8; }
-.front svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.face { position: absolute; inset: 0; border-radius: calc(var(--cw) * .05); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .35); overflow: hidden; }
+.front { background: #fff; }
+.front img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
 .back { transform: rotateY(180deg); background: var(--back) center / 100% 100% no-repeat, #fffdf8; }
 .card.play { cursor: pointer; }
 .card.play:hover .in { translate: 0 calc(var(--ch) * -.1); }
@@ -431,54 +431,9 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
 
 // ---------- Kartlar (DOM) ----------
 const stage = $('stage'), els = [];
-// Gerçek iskambil düzeni: köşe işaretleri, 2-10 için klasik sembol dizilişi, resimli kartlar ve Ridsgames sırtı
-const RANK = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'], RED = '#c8102e', BLK = '#16161a';
-const SUITD = [
-  '<path d="M50 3C62 24 96 40 96 62c0 14-10 22-22 22-10 0-17-5-21-12 1 12 5 20 14 25H33c9-5 13-13 14-25-4 7-11 12-21 12C14 84 4 76 4 62 4 40 38 24 50 3z"/>',
-  '<path d="M50 93C20 67 2 49 2 28 2 12 14 3 28 3c10 0 18 6 22 15 4-9 12-15 22-15 14 0 26 9 26 25 0 21-18 39-48 65z"/>',
-  '<path d="M50 2Q68 30 88 50Q68 70 50 98Q32 70 12 50Q32 30 50 2z"/>',
-  '<circle cx="50" cy="27" r="21"/><circle cx="26" cy="57" r="21"/><circle cx="74" cy="57" r="21"/><circle cx="50" cy="50" r="10"/><path d="M46 56c0 18-5 30-14 41h36c-9-11-14-23-14-41z"/>'
-];
-document.body.insertAdjacentHTML('afterbegin', `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${SUITD.map((d, i) => `<symbol id="su${i}" viewBox="0 0 100 100">${d}</symbol>`).join('')}</defs></svg>`);
-const pip = (s, x, y, z) => `<use href="#su${s}" x="${x - z / 2}" y="${y - z / 2}" width="${z}" height="${z}"${y > 176 ? ` transform="rotate(180 ${x} ${y})"` : ''}/>`;
-const PIPS = (() => {
-  const T4 = [[80, 82], [170, 82], [80, 268], [170, 268]], c = [125, 175];
-  const side = [[80, 82], [170, 82], [80, 144], [170, 144], [80, 206], [170, 206], [80, 268], [170, 268]];
-  return { 2: [[125, 82], [125, 268]], 3: [[125, 82], c, [125, 268]], 4: T4, 5: [...T4, c], 6: [...T4, [80, 175], [170, 175]],
-    7: [...T4, [80, 175], [170, 175], [125, 128]], 8: [...T4, [80, 175], [170, 175], [125, 128], [125, 222]], 9: [...side, c], 10: [...side, [125, 113], [125, 237]] };
-})();
-function court(s, r, ink) { // resimli kart: üst yarı çizilir, alt yarı ters çevrilmiş kopyası
-  const red = s === 1 || s === 2, robe = (red ? r !== 12 : r === 12) ? RED : '#1d4fa3', trim = robe === RED ? '#1d4fa3' : RED, gold = '#e3a92b', hair = r === 12 ? '#f0c14b' : '#6b3e1c';
-  let hat = '', extra = '';
-  if (r === 13) {
-    hat = `<path d="M102 86V60l11 11 12-17 12 17 11-11v26z" fill="${gold}" stroke="#7a5408" stroke-width="2"/><circle cx="125" cy="76" r="4" fill="${RED}"/><circle cx="110" cy="80" r="3" fill="#1d4fa3"/><circle cx="140" cy="80" r="3" fill="#1d4fa3"/>`;
-    extra = `<path d="M107 104q0 24 18 28 18-4 18-28-8 10-18 10t-18-10z" fill="${hair}"/><path d="M171 44v104" stroke="#8d98a5" stroke-width="5"/><path d="M161 128h20" stroke="${gold}" stroke-width="5"/>`;
-  } else if (r === 12) {
-    hat = `<path d="M104 100q-2-26 21-26t21 26l5 28-12-6v-22q-2-14-14-14t-14 14v22l-12 6z" fill="${hair}"/><path d="M106 82q19-24 38 0z" fill="${gold}" stroke="#7a5408" stroke-width="2"/><circle cx="125" cy="70" r="3.5" fill="${RED}"/>`;
-    extra = `<path d="M78 150V104" stroke="#2f7a3a" stroke-width="3"/><circle cx="78" cy="100" r="8" fill="${RED}"/><circle cx="78" cy="100" r="3" fill="${gold}"/>`;
-  } else {
-    hat = `<path d="M106 94q0-12 19-12t19 12q-8-6-19-6t-19 6z" fill="${hair}"/><path d="M99 87q4-24 26-24 25 0 27 24z" fill="${trim}" stroke="#0e1d3a" stroke-width="1.5"/><path d="M146 72q22-22 30-34-6 22-24 40z" fill="${gold}"/>`;
-    extra = `<path d="M74 148l14-60" stroke="#8d98a5" stroke-width="4"/>`;
-  }
-  const half = `<path d="M64 175v-22q8-25 40-31h42q32 6 40 31v22z" fill="${robe}" stroke="#0e1d3a" stroke-width="1.5"/>`
-    + `<path d="M104 122l21 30 21-30z" fill="${gold}" stroke="#7a5408" stroke-width="1.5"/><path d="M64 164h122" stroke="${gold}" stroke-width="5"/><path d="M64 164h122" stroke="${trim}" stroke-width="1.5" stroke-dasharray="4 4"/>`
-    + `<circle cx="125" cy="101" r="19" fill="#f6d7b0" stroke="#6b3e1c" stroke-width="1.5"/><circle cx="118" cy="99" r="2" fill="#222"/><circle cx="132" cy="99" r="2" fill="#222"/><path d="M119 110q6 4 12 0" stroke="#8a3b2a" stroke-width="2" fill="none"/>`
-    + hat + extra + `<g fill="${ink}">${pip(s, 74, 52, 24)}</g>`;
-  return `<rect x="54" y="32" width="142" height="286" rx="5" fill="#fbf1d6" stroke="${ink}" stroke-width="2.5"/>`
-    + `<clipPath id="cl${s}${r}"><rect x="55" y="33" width="140" height="284" rx="4"/></clipPath><g clip-path="url(#cl${s}${r})">${half}<g transform="rotate(180 125 175)">${half}</g></g>`
-    + `<path d="M54 175h142" stroke="${ink}" stroke-width="1.5"/>`;
-}
-function cardSvg(c) {
-  const s = suitOf(c), r = rankOf(c), ink = s === 1 || s === 2 ? RED : BLK, R = RANK[r - 1];
-  const idx = `<text x="29" y="56" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="50"${R === '10' ? ' textLength="46" lengthAdjust="spacingAndGlyphs"' : ''}>${R}</text>${pip(s, 29, 82, 30)}`;
-  let body;
-  if (r === 1) body = s === 0
-    ? `<circle cx="125" cy="170" r="74" fill="none" stroke="${ink}" stroke-width="2"/><circle cx="125" cy="170" r="66" fill="none" stroke="${ink}" stroke-width="1" stroke-dasharray="2 5"/>${pip(s, 125, 166, 104)}<text x="125" y="286" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="15" letter-spacing="5">RIDSGAMES</text>`
-    : pip(s, 125, 175, 96);
-  else if (r > 10) body = court(s, r, ink);
-  else body = PIPS[r].map(([x, y]) => pip(s, x, y, r > 8 ? 42 : 46)).join('');
-  return `<svg viewBox="0 0 250 350" fill="${ink}" aria-hidden="true">${body}${idx}<g transform="rotate(180 125 175)">${idx}</g></svg>`;
-}
+// Kart yüzleri: Adrian Kennard'ın geleneksel İngiliz desenli iskambil çizimleri (CC0, kart/ klasörü); sırtlar Ridsgames tasarımı
+const SUITC = 'SHDC', RANK = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const cardSvg = (c) => `<img src="kart/${SUITC[suitOf(c)]}${RANK[rankOf(c) - 1]}.svg" alt="" draggable="false" decoding="async">`;
 function backSvg(ink) { // klasik iskambil sırtı: tek renk kafes, ortada Ridsgames R'si ile rozet
   const R = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z', W = '#fffdf8';
   const rot = (n, f) => Array.from({ length: n }, (_, i) => f(i * 360 / n)).join('');
