@@ -350,7 +350,8 @@ table.sum td.neg { color: #f87171; font-weight: 800; }
 // Kart 0-51: renk = id / 13 (0 maça, 1 kupa, 2 karo, 3 sinek), değer = id % 13 + 1 (1 as, 11 vale, 12 kız, 13 papaz); batakta as en büyüğüdür
 const suitOf = (c) => (c / 13) | 0, rk = (c) => (c % 13 === 0 ? 14 : (c % 13) + 1);
 const idOf = (s, r) => s * 13 + (r === 14 ? 0 : r - 1);
-const MODES = { tekli: { min: 5, deal: 13 }, esli: { min: 7, deal: 13 }, gommeli: { min: 5, deal: 12 }, ihalesiz: { min: 0, deal: 13 } };
+// min: en az ihale, force: herkes pas derse son kalanın almak zorunda olduğu ihale
+const MODES = { tekli: { min: 5, force: 5, deal: 13 }, esli: { min: 8, force: 7, deal: 13 }, gommeli: { min: 8, force: 7, deal: 12 }, ihalesiz: { min: 0, force: 0, deal: 13 } };
 function shuffled(rnd = Math.random, a = Array.from({ length: 52 }, (_, i) => i)) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 const allyOf = (mode, a, b) => a === b || (mode === 'esli' && a % 2 === b % 2);
 // s: { trick: [{ p, c }], trump, broken: koz açıldı mı }
@@ -411,7 +412,7 @@ function handEval(hand, trump) {
 function bestTrump(hand) { let b = 0, v = -1; for (let s = 0; s < 4; s++) { const e = handEval(hand, s) + hand.filter((c) => suitOf(c) === s).length * 0.01; if (e > v) { v = e; b = s; } } return [b, v]; }
 // st: { hand, mode, me, cur: en yüksek ihale, bidder, forced: pas diyemez, partnerBid }
 function cpuBid(st, level, rnd = Math.random) {
-  const m = MODES[st.mode], need = Math.max(m.min, st.cur + 1);
+  const m = MODES[st.mode], need = st.forced ? m.force : Math.max(m.min, st.cur + 1);
   let est = bestTrump(st.hand)[1];
   if (st.mode === 'esli') est += st.partnerBid > 0 ? 3.3 : 2.9; // ortağın beklenen elleri
   if (st.mode === 'gommeli') est += 0.7; // ortadaki 4 kart ve gömme
@@ -502,7 +503,7 @@ const STR = {
     ruleList: [
       ['🃏', 'Herkese 13 kart dağıtılır. <b>Gömmeli</b> batakta herkese 12 kart verilir, 4 kart ortaya kapalı konur.'],
       ['♠️', '<b>Koz Maça:</b> İhale yapılmaz, koz hep <b>maçadır</b>. Dağıtanın solundaki ilk kartı açar.'],
-      ['📣', '<b>İhale:</b> Sırayla kaç el alacağını söylersin ya da pas dersin. En yükseği söyleyen ihaleyi alır, <b>kozu seçer</b> ve ilk kartı o açar. En az ihale 5, eşlide 7. Herkes pas derse dağıtan en az ihaleyle almak zorundadır.'],
+      ['📣', '<b>İhale:</b> Sırayla kaç el alacağını söylersin ya da pas dersin. En yükseği söyleyen ihaleyi alır, <b>kozu seçer</b> ve ilk kartı o açar. En az ihale 5; eşli ve gömmelide 8. Herkes pas derse dağıtan ihaleyi almak zorundadır: eşli ve gömmelide 7 ile, ihalelide 5 ile.'],
       ['🪏', '<b>Gömmeli:</b> İhaleyi alan ortadaki 4 kartı eline alır, sonra elinden istediği 4 kartı gömer. Gömülen kartlar oyuna girmez.'],
       ['🤝', '<b>Eşli:</b> Karşında oturan ortağındır. İhale ikinizin aldığı ellerin toplamıyla tutturulur.'],
       ['👆', 'Yerdeki renkten varsa <b>onu atmak zorundasın</b>, yerdekinden büyüğün varsa <b>büyüğünü</b> atmalısın. O renk yoksa <b>koz atmalısın</b>; koz atılmışsa ve daha büyük kozun varsa onu atmalısın. Kozun da yoksa istediğini atarsın.'],
@@ -513,8 +514,8 @@ const STR = {
     ],
     suit: ['Maça', 'Kupa', 'Karo', 'Sinek'], trump: 'Koz',
     turnYou: 'Sıra sende', turnOf: (p) => `Sıra: ${STR.tr.names[p]}`, hintThink: 'Düşünüyor...', hintDeal: 'Kartlar dağıtılıyor...', hintBidWait: 'İhale sürüyor...',
-    hintBid: 'Kaç el alacağını söyle ya da pas de', hintTrump: 'Kozu seç', hintBury: 'Gömeceğin 4 kartı seç', hintLead: 'İlk kartı sen açıyorsun', hintPlay: 'Bir kart at',
-    bidT: 'Kaç el alırsın?', bidS: (b, p) => (b ? `En yüksek: ${STR.tr.names[p]} ${b}` : 'Henüz ihale yok'), bidForced: 'Herkes pas dedi, ihaleyi almak zorundasın', pass: 'Pas',
+    hintBid: 'Kaç el alacağını söyle ya da pas de', hintBidForced: 'Kaç el alacağını söyle', hintTrump: 'Kozu seç', hintBury: 'Gömeceğin 4 kartı seç', hintLead: 'İlk kartı sen açıyorsun', hintPlay: 'Bir kart at',
+    bidT: 'Kaç el alırsın?', bidS: (b, p) => (b ? `En yüksek: ${STR.tr.names[p]} ${b}` : 'Henüz ihale yok'), bidForced: (n) => `Herkes pas dedi, en az ${n} ile almak zorundasın`, pass: 'Pas',
     pickTrump: 'Kozu seç', buryT: (n) => `Gömeceğin 4 kartı seç (${n}/4)`, bury: 'Göm',
     whyNot: { lead: 'Koz henüz açılmadı, başka renk aç', follow: 'Yerdeki renkten atmalısın', higher: 'Daha büyüğünü atmalısın', trump: 'O renk yok, koz atmalısın' },
     bidSay: (p, b) => (b ? `${STR.tr.names[p]}: ${b}` : `${STR.tr.names[p]}: pas`), bidWon: (p, b) => (p === 0 ? `İhale sende: ${b}` : `İhale ${STR.tr.names[p]} oyuncusunda: ${b}`),
@@ -538,7 +539,7 @@ const STR = {
     ruleList: [
       ['🃏', 'Everyone gets 13 cards. In <b>Kitty</b> mode everyone gets 12 and 4 cards are placed face down in the middle.'],
       ['♠️', '<b>Spades:</b> There is no bidding and <b>spades</b> are always trumps. The player left of the dealer leads.'],
-      ['📣', '<b>Bidding:</b> In turn, say how many tricks you will take or pass. The highest bidder wins, <b>picks trumps</b> and leads first. The minimum bid is 5, 7 with partners. If everyone passes the dealer must take the minimum bid.'],
+      ['📣', '<b>Bidding:</b> In turn, say how many tricks you will take or pass. The highest bidder wins, <b>picks trumps</b> and leads first. The minimum bid is 5, or 8 in Partners and Kitty. If everyone passes the dealer must take the bid: at 7 in Partners and Kitty, at 5 in Bidding.'],
       ['🪏', '<b>Kitty:</b> The high bidder adds the 4 middle cards to their hand and then buries any 4 cards. Buried cards are out of play.'],
       ['🤝', '<b>Partners:</b> The player across from you is your partner. The bid is made with the tricks you take together.'],
       ['👆', 'You must <b>follow suit</b>, and if you can beat the highest card of that suit you <b>must</b>. If you cannot follow you <b>must trump</b>; if a trump is down and you can overtrump, you must. With no trumps either, play anything.'],
@@ -549,8 +550,8 @@ const STR = {
     ],
     suit: ['Spades', 'Hearts', 'Diamonds', 'Clubs'], trump: 'Trumps',
     turnYou: 'Your turn', turnOf: (p) => `${STR.en.names[p]}'s turn`, hintThink: 'Thinking...', hintDeal: 'Dealing...', hintBidWait: 'Bidding...',
-    hintBid: 'Bid the tricks you will take or pass', hintTrump: 'Pick trumps', hintBury: 'Pick 4 cards to bury', hintLead: 'You lead', hintPlay: 'Play a card',
-    bidT: 'How many tricks?', bidS: (b, p) => (b ? `Highest: ${STR.en.names[p]} ${b}` : 'No bid yet'), bidForced: 'Everyone passed, you must take the bid', pass: 'Pass',
+    hintBid: 'Bid the tricks you will take or pass', hintBidForced: 'Bid the tricks you will take', hintTrump: 'Pick trumps', hintBury: 'Pick 4 cards to bury', hintLead: 'You lead', hintPlay: 'Play a card',
+    bidT: 'How many tricks?', bidS: (b, p) => (b ? `Highest: ${STR.en.names[p]} ${b}` : 'No bid yet'), bidForced: (n) => `Everyone passed, you must bid at least ${n}`, pass: 'Pass',
     pickTrump: 'Pick trumps', buryT: (n) => `Pick 4 cards to bury (${n}/4)`, bury: 'Bury',
     whyNot: { lead: 'Trumps are not open yet, lead another suit', follow: 'You must follow suit', higher: 'You must play higher', trump: 'You cannot follow, you must trump' },
     bidSay: (p, b) => (b ? `${STR.en.names[p]}: ${b}` : `${STR.en.names[p]}: pass`), bidWon: (p, b) => (p === 0 ? `You win the bid: ${b}` : `${STR.en.names[p]} wins the bid: ${b}`),
@@ -780,7 +781,7 @@ function hint() {
   if (!h || h.phase === 'done') return '';
   if (h.phase === 'deal') return t.hintDeal;
   if (h.turn !== 0) return h.phase === 'bid' ? t.hintBidWait : t.hintThink;
-  if (h.phase === 'bid') return t.hintBid;
+  if (h.phase === 'bid') return $('bidPass').disabled && !$('bidPick').hidden ? t.hintBidForced : t.hintBid;
   if (h.phase === 'bury') return t.hintBury;
   if (h.phase === 'trump') return t.hintTrump;
   return h.trick.length ? t.hintPlay : t.hintLead;
@@ -830,7 +831,7 @@ const stFor = (p) => { const h = G.h; return { ...tbl(h), hand: h.hands[p], me: 
 async function bidTurn(my) {
   const h = G.h, t = T(), m = MODES[G.mode], act = [0, 1, 2, 3].filter((p) => !h.passed[p]);
   if (h.cur && (act.length === 1 || h.cur >= (G.mode === 'gommeli' ? 12 : 13))) return winBid(my, h.bidder, false);
-  if (!act.length) { h.cur = m.min; return winBid(my, G.dealer, true); }
+  if (!act.length) { h.cur = m.force; return winBid(my, G.dealer, true); }
   while (h.passed[h.turn]) h.turn = nextP(h.turn);
   const p = h.turn, forced = !h.cur && act.length === 1; // herkes pas dedi: son kalan pas diyemez
   render(); updateDock();
@@ -843,10 +844,10 @@ async function bidTurn(my) {
 }
 let bidRes = null;
 function askBid(forced) {
-  const h = G.h, t = T(), m = MODES[G.mode], max = G.mode === 'gommeli' ? 12 : 13, need = Math.max(m.min, h.cur + 1);
+  const h = G.h, t = T(), m = MODES[G.mode], max = G.mode === 'gommeli' ? 12 : 13, need = forced ? m.force : Math.max(m.min, h.cur + 1);
   $('bpT').textContent = t.bidT; $('bpS').textContent = t.bidS(h.cur, h.bidder);
-  let html = ''; for (let v = m.min; v <= max; v++) html += `<button type="button" data-b="${v}"${v < need ? ' disabled' : ''}>${v}</button>`;
-  $('bpB').innerHTML = html; $('bidPass').textContent = t.pass; $('bidPass').disabled = !!forced; if (forced) $('bpS').textContent = t.bidForced;
+  let html = ''; for (let v = Math.min(need, m.min); v <= max; v++) html += `<button type="button" data-b="${v}"${v < need ? ' disabled' : ''}>${v}</button>`;
+  $('bpB').innerHTML = html; $('bidPass').textContent = t.pass; $('bidPass').disabled = !!forced; if (forced) $('bpS').textContent = t.bidForced(m.force);
   $('bidPick').hidden = false; updateDock();
   return new Promise((res) => { bidRes = (v) => { bidRes = null; $('bidPick').hidden = true; res(v); }; });
 }
