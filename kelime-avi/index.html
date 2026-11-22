@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Kelime Avı | Ridsgames</title>
+<meta name="description" content="Kelime Avı: harf tablosunda gizlenmiş kelimeleri bul. Hayvanlar, şehirler, meslekler ve daha fazla tema; üç zorluk, ipucu ve süre rekoru.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --glow: rgba(251, 191, 36, 0.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--glow) 28%, transparent) 0%, transparent 62%), radial-gradient(ellipse at 50% 100%, #111a2c 0%, var(--bg) 70%), var(--bg);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.tall button { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.seg.tall small { font-size: 11px; font-weight: 600; opacity: .75; white-space: nowrap; }
+.seg.tall .em { font-size: 19px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.custom { display: grid; gap: 6px; margin-top: 10px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.mrow button { height: 44px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 24px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.mrow button:disabled { opacity: .35; cursor: default; }
+.mrow output { text-align: center; font-size: 24px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score.lost { color: #fca5a5; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; pencereler menü panelini örtmez; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .gname { display: inline; font-size: 11px; white-space: nowrap; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  main { grid-column: 2; grid-row: 1; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) 6px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
+  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
+  footer { display: none; }
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 4px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #winOv .card { max-width: 560px; padding: 14px 18px 16px; }
+  #winOv .trophy { font-size: 38px; } #winOv .score { font-size: 34px; margin-bottom: 8px; } #winOv .sub { margin-bottom: 8px; }
+  #winOv .rank { grid-template-columns: 1fr 1fr; }
+  #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
+}
+
+/* ---------- Oyuna özel ---------- */
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; align-content: center; gap: 10px; align-items: stretch; max-width: 760px; }
+.info { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; color: #cbd5e1; font-variant-numeric: tabular-nums; min-width: 0; }
+.info .th { color: #67e8f9; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.info #iTime { color: #fde68a; min-width: 40px; text-align: right; }
+.info button { height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, .3); background: rgba(15, 23, 42, .8); color: #e2e8f0; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 5px; }
+.bw { min-height: 0; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.grid { --s: 300px; --n: 10; position: relative; width: var(--s); height: var(--s); border-radius: 14px; background: #0b1220; border: 2px solid rgba(103, 232, 249, .45); box-shadow: 0 10px 30px rgba(0, 0, 0, .45); touch-action: none; user-select: none; -webkit-user-select: none; }
+.cells { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), 1fr); grid-template-rows: repeat(var(--n), 1fr); }
+.cells span { display: grid; place-items: center; font-weight: 800; font-size: calc(var(--s) / var(--n) * .52); color: #e2e8f0; line-height: 1; cursor: pointer; }
+.cells span.fd { color: #fff; }
+.cells span.an { color: #0f172a; background: #fde68a; border-radius: 50%; }
+.cells span.hn { animation: hn 1s ease-in-out 3; }
+@keyframes hn { 50% { color: #0f172a; background: #fbbf24; border-radius: 50%; } }
+.marks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.marks line { stroke-linecap: round; }
+.marks .cur { stroke: rgba(253, 230, 138, .55); }
+.grid.done { animation: done .7s ease-out; }
+@keyframes done { 50% { box-shadow: 0 0 0 4px #34d399, 0 0 30px rgba(52, 211, 153, .6); } }
+.words { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.words span { padding: 5px 11px; border-radius: 999px; background: rgba(2, 6, 23, .55); border: 1px solid rgba(148, 163, 184, .2); font-size: 13.5px; font-weight: 700; color: #e2e8f0; letter-spacing: .02em; }
+.words span.f { color: #64748b; text-decoration: line-through; text-decoration-thickness: 2px; border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+.words span.pop { animation: wpop .4s ease-out; }
+@keyframes wpop { 40% { transform: scale(1.15); } }
+@media (orientation: landscape) {
+  main { grid-template-columns: minmax(0, 1fr) clamp(180px, 30vw, 300px); grid-template-rows: auto minmax(0, 1fr); align-content: stretch; max-width: 1100px; }
+  .bw { grid-column: 1; grid-row: 1 / 3; }
+  .info { grid-column: 2; grid-row: 1; flex-wrap: wrap; }
+  .words { grid-column: 2; grid-row: 2; align-content: flex-start; justify-content: flex-start; overflow: auto; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  main { gap: 6px; } .info { gap: 6px; font-size: 13px; } .info .th { flex-basis: 100%; } .info button { height: 32px; margin-left: auto; }
+  .words { gap: 4px; } .words span { padding: 3px 8px; font-size: 12px; }
+}
+@media (min-width: 700px) and (min-height: 900px) { .words span { font-size: 15px; padding: 6px 13px; } .info { font-size: 16px; } }
+
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="kelime-avi" data-name="Kelime Avı"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Kelime Avı</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="info" id="info"><span class="th" id="iTh"></span><span id="iCnt"></span><span id="iTime">0:00</span><button type="button" id="hintBtn"><span>💡</span><small id="tHint"></small></button></div>
+<div class="bw" id="bw"><div class="grid" id="grid"><svg class="marks" id="marks"></svg><div class="cells" id="cells"></div></div></div>
+<div class="words" id="words"></div>
+
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Yeni oyun -->
+<div class="ov" id="setupOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Kelime Avı</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="thLbl"></div>
+      <div class="seg four tall" id="thSeg"><button type="button" data-t="karisik"></button><button type="button" data-t="hayvan"></button><button type="button" data-t="yiyecek"></button><button type="button" data-t="sehir"></button><button type="button" data-t="meslek"></button><button type="button" data-t="spor"></button><button type="button" data-t="ev"></button><button type="button" data-t="doga"></button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="lvLbl"></div>
+      <div class="seg" id="lvSeg"><button type="button" data-l="kolay"></button><button type="button" data-l="orta"></button><button type="button" data-l="zor"></button></div>
+      <div class="note" id="lvNote"></div>
+    </div>
+
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore"></div>
+    <ol class="rank" id="statList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="viewBtn" type="button">Tahtaya bak</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Ortak: dil, ses, pencereler, sayaç ----------
+const COMMON = {
+  tr: { homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
+    lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
+  en: { homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
+    lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_kelimeavi_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (n) => Math.floor(Math.random() * n);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(KEY + k); } catch (e) {} }
+};
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'kelime-avi/' + olay, title: 'Kelime Avı: ' + ad, event: true }); } catch (e) {} };
+let soundOn = store.get('sound', 1) !== 0, bitenVar = false;
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock: ctx, tone,
+    click() { tone(900, 700, 0.05, 0.05, 'triangle'); },
+    tap() { tone(540, 880, 0.07, 0.07); },
+    good() { tone(660, 990, 0.12, 0.08, 'triangle'); },
+    bad() { tone(220, 110, 0.22, 0.09, 'sawtooth'); },
+    win() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, f, 0.4, 0.1, 'triangle', i * 0.065)); },
+    lose() { [392, 329.6, 261.6].forEach((f, i) => tone(f, f * 0.98, 0.3, 0.09, 'triangle', i * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+const OVS = ['setupOv', 'rulesOv', 'winOv'];
+function closeAll() { for (const id of OVS) $(id).hidden = true; }
+const anyOpen = () => OVS.some((id) => !$(id).hidden);
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
+  closeAll();
+  $('winIco').textContent = o.ico; $('winTitle').textContent = o.title; $('winSub').textContent = o.sub || '';
+  $('winScore').textContent = o.score || ''; $('winScore').hidden = !o.score; $('winScore').classList.toggle('lost', !!o.lost);
+  $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
+}
+
+// ---------- Oyun ----------
+const WL = {
+  tr: {
+    hayvan: 'ASLAN KAPLAN ZÜRAFA FİL TAVŞAN KİRPİ SİNCAP PENGUEN YUNUS BALİNA KARTAL BAYKUŞ KAPLUMBAĞA TİMSAH KANGURU MAYMUN ZEBRA CEYLAN GERGEDAN ÖRDEK KELEBEK AHTAPOT TİLKİ KURT AYI KEDİ KÖPEK İNEK KOYUN KEÇİ HOROZ TAVUK ARI KARINCA LEYLEK PAPAĞAN',
+    yiyecek: 'ELMA ARMUT KİRAZ ÇİLEK MUZ KAYISI ŞEFTALİ KARPUZ KAVUN ÜZÜM İNCİR NAR ERİK PORTAKAL MANDALİNA LİMON AYVA VİŞNE DUT KİVİ ANANAS HAVUÇ DOMATES BİBER PATLICAN ISPANAK MARUL SOĞAN SARIMSAK PATATES BEZELYE KABAK TURP PIRASA SALATALIK',
+    sehir: 'İSTANBUL ANKARA İZMİR BURSA ANTALYA ADANA KONYA TRABZON SAMSUN RİZE ARTVİN MARDİN VAN KARS SİVAS MALATYA ESKİŞEHİR DENİZLİ MUĞLA AYDIN EDİRNE ÇORUM HATAY KAYSERİ ORDU GİRESUN BOLU BARTIN SİNOP ERZURUM ELAZIĞ TOKAT AMASYA IĞDIR KİLİS BATMAN YALOVA DÜZCE MANİSA UŞAK',
+    meslek: 'DOKTOR ÖĞRETMEN MÜHENDİS AŞÇI PİLOT HEMŞİRE AVUKAT POLİS İTFAİYECİ ÇİFTÇİ BERBER TERZİ MİMAR GAZETECİ RESSAM MÜZİSYEN FIRINCI MARANGOZ ECZACI KAPTAN ASKER HAKİM VETERİNER GARSON ŞOFÖR KASAP BAKKAL DİŞÇİ YAZAR OYUNCU',
+    spor: 'FUTBOL BASKETBOL VOLEYBOL TENİS YÜZME GÜREŞ BOKS OKÇULUK KAYAK BİSİKLET KOŞU HENTBOL GOLF SATRANÇ JUDO KARATE ESKRİM KÜREK YELKEN ATICILIK BEYZBOL RAGBİ KRİKET SÖRF DALIŞ HALTER CİMNASTİK MARATON',
+    ev: 'MASA SANDALYE KOLTUK YATAK DOLAP HALI PERDE LAMBA AYNA KAPI PENCERE MUTFAK TABAK BARDAK KAŞIK ÇATAL BIÇAK TENCERE YASTIK YORGAN BATTANİYE SEHPA KİTAPLIK VAZO SAAT ÇEKMECE FIRIN SÜPÜRGE HAVLU ÇAYDANLIK',
+    doga: 'DAĞ DENİZ NEHİR GÖL ORMAN AĞAÇ ÇİÇEK YAPRAK BULUT YAĞMUR KAR RÜZGAR GÜNEŞ YILDIZ ŞELALE VADİ ÇÖL ADA KUM TAŞ TOPRAK GÖKKUŞAĞI ŞİMŞEK OVA YAYLA MAĞARA KAYA ÇİMEN DERE TEPE'
+  },
+  en: {
+    hayvan: 'LION TIGER GIRAFFE ELEPHANT RABBIT HEDGEHOG SQUIRREL PENGUIN DOLPHIN WHALE EAGLE OWL TURTLE CROCODILE KANGAROO MONKEY ZEBRA GAZELLE RHINO DUCK BUTTERFLY OCTOPUS FOX WOLF BEAR CAT DOG HORSE COW SHEEP GOAT ROOSTER BEE ANT STORK PARROT',
+    yiyecek: 'APPLE PEAR CHERRY STRAWBERRY BANANA APRICOT PEACH MELON GRAPE FIG PLUM ORANGE LEMON QUINCE KIWI PINEAPPLE CARROT TOMATO PEPPER EGGPLANT SPINACH LETTUCE ONION GARLIC POTATO PEAS PUMPKIN RADISH LEEK CUCUMBER MANGO',
+    sehir: 'LONDON PARIS ROME BERLIN MADRID LISBON VIENNA PRAGUE ATHENS CAIRO TOKYO SEOUL BEIJING DELHI DUBAI SYDNEY TORONTO CHICAGO BOSTON MIAMI DALLAS DENVER LIMA SANTIAGO BOGOTA OSLO DUBLIN WARSAW BUDAPEST ISTANBUL',
+    meslek: 'DOCTOR TEACHER ENGINEER CHEF PILOT NURSE LAWYER POLICE FARMER BARBER TAILOR ARCHITECT REPORTER PAINTER MUSICIAN BAKER CARPENTER PHARMACIST CAPTAIN SOLDIER JUDGE VET WAITER DRIVER BUTCHER DENTIST WRITER ACTOR PLUMBER',
+    spor: 'FOOTBALL BASKETBALL VOLLEYBALL TENNIS SWIMMING WRESTLING BOXING ARCHERY SKIING CYCLING RUNNING HANDBALL GOLF CHESS JUDO KARATE FENCING ROWING SAILING BASEBALL RUGBY CRICKET SURFING DIVING HOCKEY MARATHON',
+    ev: 'TABLE CHAIR SOFA BED WARDROBE CARPET CURTAIN LAMP MIRROR DOOR WINDOW KITCHEN PLATE GLASS SPOON FORK KNIFE POT PILLOW BLANKET SHELF VASE CLOCK DRAWER OVEN BROOM TOWEL KETTLE STOOL',
+    doga: 'MOUNTAIN SEA RIVER LAKE FOREST TREE FLOWER LEAF CLOUD RAIN SNOW WIND SUN STAR WATERFALL VALLEY DESERT ISLAND SAND STONE SOIL RAINBOW THUNDER PLAIN CAVE ROCK GRASS STREAM HILL MEADOW'
+  }
+};
+const ABC = { tr: 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ', en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' };
+const STR = {
+  tr: { ...COMMON.tr, title: 'Kelime Avı | Ridsgames', game: 'Kelime Avı',
+    setupSub: 'Harf tablosunda gizlenmiş kelimeleri bul. Parmağını ilk harften son harfe kaydır.',
+    thLbl: 'Tema', th: { karisik: ['🎲', 'Karışık'], hayvan: ['🦁', 'Hayvanlar'], yiyecek: ['🍎', 'Meyve, sebze'], sehir: ['🏙️', 'Şehirler'], meslek: ['🧑‍⚕️', 'Meslekler'], spor: ['⚽', 'Spor'], ev: ['🛋️', 'Ev eşyaları'], doga: ['🌲', 'Doğa'] },
+    lvLbl: 'Zorluk', lvNote: { kolay: '8×8 tablo, 6 kelime. Yalnızca soldan sağa ve yukarıdan aşağı.', orta: '10×10 tablo, 8 kelime. Çapraz kelimeler de var.', zor: '12×12 tablo, 10 kelime. Sekiz yön, tersten yazılmış kelimeler de var.' },
+    hint: 'İpucu', found: (a, b) => `${a}/${b}`, noHint: 'Bütün kelimeler bulundu',
+    winT: 'Hepsini buldun!', winSub: (n) => `${n} kelimenin hepsi işaretlendi.`, newBest: 'Yeni rekor!', tTime: 'Süre', tHints: 'İpucu', tBest: 'En iyi süre', tLv: 'Zorluk',
+    rulesSub: 'Tablodaki gizli kelimeleri bul.',
+    ruleList: [
+      ['🔤', 'Aşağıdaki listede yazan kelimeler tablonun içine gizlenmiştir.'],
+      ['👆', 'Kelimenin ilk harfine bas ve parmağını son harfe kadar kaydır. İstersen önce ilk, sonra son harfe dokunabilirsin.'],
+      ['↗️', 'Kolayda kelimeler soldan sağa ya da yukarıdan aşağı yazılır. Ortada çaprazlar, zorda ters yönler de eklenir.'],
+      ['💡', 'Takılırsan ipucu bulunmamış bir kelimenin ilk harfini gösterir.'],
+      ['⏱️', 'Bütün kelimeleri bulduğunda süren kaydedilir; her zorlukta en iyi süren tutulur.']
+    ] },
+  en: { ...COMMON.en, title: 'Word Hunt | Ridsgames', game: 'Word Hunt',
+    setupSub: 'Find the words hidden in the letter grid. Slide from the first letter to the last.',
+    thLbl: 'Theme', th: { karisik: ['🎲', 'Mixed'], hayvan: ['🦁', 'Animals'], yiyecek: ['🍎', 'Fruit & veg'], sehir: ['🏙️', 'Cities'], meslek: ['🧑‍⚕️', 'Jobs'], spor: ['⚽', 'Sports'], ev: ['🛋️', 'Home'], doga: ['🌲', 'Nature'] },
+    lvLbl: 'Difficulty', lvNote: { kolay: '8×8 grid, 6 words. Left to right and top to bottom only.', orta: '10×10 grid, 8 words. Diagonals too.', zor: '12×12 grid, 10 words. All eight directions, including backwards.' },
+    hint: 'Hint', found: (a, b) => `${a}/${b}`, noHint: 'All words found',
+    winT: 'All found!', winSub: (n) => `You marked all ${n} words.`, newBest: 'New record!', tTime: 'Time', tHints: 'Hints', tBest: 'Best time', tLv: 'Difficulty',
+    rulesSub: 'Find the hidden words in the grid.',
+    ruleList: [
+      ['🔤', 'The words in the list are hidden inside the grid.'],
+      ['👆', 'Press the first letter and slide to the last one. You can also tap the first letter, then the last.'],
+      ['↗️', 'Easy words run left to right or top to bottom. Medium adds diagonals, hard adds backwards directions.'],
+      ['💡', 'Stuck? A hint shows the first letter of a word you have not found.'],
+      ['⏱️', 'Your time is saved when every word is found; the best time per difficulty is kept.']
+    ] }
+};
+const T = () => STR[lang];
+let setup = Object.assign({ theme: 'karisik', level: 'orta' }, store.get('setup', {}));
+if (!STR.tr.th[setup.theme]) setup.theme = 'karisik'; if (!['kolay', 'orta', 'zor'].includes(setup.level)) setup.level = 'orta';
+const LV = { kolay: { n: 8, w: 6, d: [[0, 1], [1, 0]] }, orta: { n: 10, w: 8, d: [[0, 1], [1, 0], [1, 1], [-1, 1]] }, zor: { n: 12, w: 10, d: [[0, 1], [1, 0], [1, 1], [-1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1]] } };
+const PAL = ['#22d3ee', '#f472b6', '#a3e635', '#fbbf24', '#c084fc', '#fb7185', '#34d399', '#60a5fa', '#f97316', '#e879f9'];
+let G = null, sel = null, anchor = -1, hintT = 0;
+const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+const save = () => { if (G) store.set('game', G); };
+const split = (w) => [...w];
+
+function generate(lng, theme, level) {
+  const cfg = LV[level], n = cfg.n;
+  let pool;
+  if (theme === 'karisik') pool = Object.values(WL[lng]).flatMap((s) => s.split(' ')); else pool = WL[lng][theme].split(' ');
+  pool = [...new Set(pool)].filter((w) => split(w).length <= n && split(w).length >= 3);
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const grid = Array(n * n).fill(''), words = [];
+    const cand = shuffle(pool.slice()).sort((a, b) => split(b).length - split(a).length + (Math.random() - 0.5) * 14);
+    for (const w of cand) {
+      if (words.length >= cfg.w) break;
+      if (words.some((x) => x.w.includes(w) || w.includes(x.w) || x.w.includes([...w].reverse().join('')))) continue;
+      const L = split(w), opts = [];
+      for (const [dr, dc] of cfg.d) for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+        const er = r + dr * (L.length - 1), ec = c + dc * (L.length - 1);
+        if (er < 0 || er >= n || ec < 0 || ec >= n) continue;
+        let ok = true, ov = 0;
+        for (let k = 0; k < L.length; k++) { const ch = grid[(r + dr * k) * n + c + dc * k]; if (ch && ch !== L[k]) { ok = false; break; } if (ch) ov++; }
+        if (ok && ov < L.length) opts.push({ r, c, dr, dc, ov });
+      }
+      if (!opts.length) continue;
+      const withOv = opts.filter((o) => o.ov > 0), pick = withOv.length && Math.random() < 0.35 ? withOv[rnd(withOv.length)] : opts[rnd(opts.length)];
+      const cells = L.map((_, k) => (pick.r + pick.dr * k) * n + pick.c + pick.dc * k);
+      cells.forEach((i, k) => { grid[i] = L[k]; });
+      words.push({ w, cells, f: false, col: -1 });
+    }
+    if (words.length < cfg.w) continue;
+    const abc = split(ABC[lng]);
+    for (let i = 0; i < grid.length; i++) if (!grid[i]) grid[i] = abc[rnd(abc.length)];
+    return { grid, words, n };
+  }
+  return null;
+}
+function newGame() {
+  closeAll();
+  const g = generate(lang, setup.theme, setup.level);
+  G = { ...g, lang, theme: setup.theme, level: setup.level, time: 0, started: true, over: false, hints: 0, nf: 0 };
+  sel = null; anchor = -1;
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${G.level}-${G.theme}`, `mod: ${G.level}, ${G.theme}`);
+  $('grid').classList.remove('done');
+  save(); buildGrid(); render();
+}
+function startFromSetup() { store.set('setup', setup); newGame(); }
+function again() { newGame(); }
+
+// ---------- Seçim ----------
+function cellFromPoint(x, y) {
+  const r = $('grid').getBoundingClientRect(), n = G.n;
+  const c = Math.floor((x - r.left) / r.width * n), rr = Math.floor((y - r.top) / r.height * n);
+  return { r: clamp(rr, 0, n - 1), c: clamp(c, 0, n - 1), inside: x >= r.left && x <= r.right && y >= r.top && y <= r.bottom };
+}
+function lineCells(a, b) {
+  const n = G.n, ar = Math.floor(a / n), ac = a % n; let dr = Math.floor(b / n) - ar, dc = b % n - ac;
+  if (!dr && !dc) return [a];
+  if (dr && dc && Math.abs(dr) !== Math.abs(dc)) {
+    // en yakın 8 yöne yasla
+    const ang = Math.atan2(dr, dc), step = Math.round(ang / (Math.PI / 4)), len = Math.max(Math.abs(dr), Math.abs(dc));
+    const ud = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]][(step + 8) % 8];
+    dr = ud[0] * len; dc = ud[1] * len;
+  }
+  const len = Math.max(Math.abs(dr), Math.abs(dc)), sr = Math.sign(dr), sc = Math.sign(dc), out = [];
+  for (let k = 0; k <= len; k++) { const r = ar + sr * k, c = ac + sc * k; if (r < 0 || r >= n || c < 0 || c >= n) break; out.push(r * n + c); }
+  return out;
+}
+function tryWord(cells) {
+  if (cells.length < 2) return false;
+  const key = cells.join(','), rev = cells.slice().reverse().join(',');
+  const w = G.words.find((x) => !x.f && (x.cells.join(',') === key || x.cells.join(',') === rev));
+  if (!w) return false;
+  w.f = true; w.col = G.nf % PAL.length; G.nf++;
+  Sfx.good(); buzz(12);
+  if (G.words.every((x) => x.f)) { G.over = true; save(); render(w.w); $('grid').classList.add('done'); setTimeout(finish, REDUCED ? 200 : 900); return true; }
+  save(); render(w.w); return true;
+}
+function finish() {
+  const t = T(), k = `best_${G.level}`, prev = store.get(k, 0), rec = !prev || G.time < prev;
+  if (rec) store.set(k, G.time);
+  bitenVar = true; sayac('bitti', 'oyun bitti'); sayac(`sonuc/kazandi-${G.level}`, `kazandı (${G.level})`);
+  Sfx.win();
+  showEnd({ ico: '🔎', title: t.winT, sub: rec && prev ? t.newBest : t.winSub(G.words.length),
+    stats: [[t.tTime, fmt(G.time)], [t.tHints, G.hints], [t.tBest, fmt(rec ? G.time : prev)], [t.tLv, t.lv[G.level]]] });
+}
+function hint() {
+  if (!G || G.over) return;
+  const left = G.words.filter((w) => !w.f); if (!left.length) { toast(T().noHint); return; }
+  const w = left[rnd(left.length)]; G.hints++; Sfx.click(); save();
+  clearTimeout(hintT); document.querySelectorAll('#cells .hn').forEach((e) => e.classList.remove('hn'));
+  const e = $('cells').children[w.cells[0]]; void e.offsetWidth; e.classList.add('hn');
+  hintT = setTimeout(() => e.classList.remove('hn'), 3100);
+}
+
+// ---------- Çizim ----------
+function buildGrid() {
+  $('grid').style.setProperty('--n', G.n);
+  $('cells').innerHTML = G.grid.map((ch) => `<span>${ch}</span>`).join('');
+  fit();
+}
+function fit() {
+  const bw = $('bw'), land = matchMedia('(orientation: landscape)').matches;
+  if (!land) { const m = $('main'), cs = getComputedStyle(m); const h = m.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - $('info').offsetHeight - $('words').offsetHeight - 22; bw.style.height = Math.max(120, Math.min(bw.clientWidth, h)) + 'px'; } else bw.style.height = '';
+  const s = Math.floor(Math.min(bw.clientWidth, bw.clientHeight, 760));
+  if (s > 40) $('grid').style.setProperty('--s', s + 'px');
+}
+function render(pop) {
+  if (!G) return;
+  const t = T(), n = G.n, cs = 100 / n;
+  const ctr = (i) => [((i % n) + 0.5) * cs, (Math.floor(i / n) + 0.5) * cs];
+  const line = (a, b, cls, col) => { const [x1, y1] = ctr(a), [x2, y2] = ctr(b); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="${cs * 0.78}" ${cls ? `class="${cls}"` : `stroke="${col}" stroke-opacity=".38"`}/>`; };
+  let svg = G.words.filter((w) => w.f).map((w) => line(w.cells[0], w.cells[w.cells.length - 1], '', PAL[w.col])).join('');
+  if (sel && sel.cells.length) svg += line(sel.cells[0], sel.cells[sel.cells.length - 1], 'cur');
+  $('marks').setAttribute('viewBox', '0 0 100 100'); $('marks').setAttribute('preserveAspectRatio', 'none');
+  $('marks').innerHTML = svg;
+  const fd = new Set(G.words.filter((w) => w.f).flatMap((w) => w.cells));
+  [...$('cells').children].forEach((e, i) => { e.classList.toggle('fd', fd.has(i)); e.classList.toggle('an', i === anchor); });
+  $('words').innerHTML = G.words.map((w) => `<span class="${w.f ? 'f' : ''}${w.w === pop ? ' pop' : ''}" style="--c:${w.f ? PAL[w.col] : 'transparent'}">${w.w}</span>`).join('');
+  $('iTh').textContent = `${t.th[G.theme][0]} ${t.th[G.theme][1]}`;
+  $('iCnt').textContent = t.found(G.words.filter((w) => w.f).length, G.words.length);
+  $('iTime').textContent = fmt(G.time);
+  $('hintBtn').disabled = G.over;
+  fit();
+}
+
+// ---------- Etkileşim ----------
+const grid = $('grid');
+grid.addEventListener('pointerdown', (e) => {
+  if (!G || G.over || e.button > 0) return;
+  Sfx.unlock(); e.preventDefault();
+  const p = cellFromPoint(e.clientX, e.clientY), i = p.r * G.n + p.c;
+  sel = { a: i, cells: [i], pid: e.pointerId, moved: false };
+  try { grid.setPointerCapture(e.pointerId); } catch (_) { }
+  render();
+});
+grid.addEventListener('pointermove', (e) => {
+  if (!sel || e.pointerId !== sel.pid) return;
+  const p = cellFromPoint(e.clientX, e.clientY), i = p.r * G.n + p.c;
+  const cells = lineCells(sel.a, i);
+  if (cells.length > 1) sel.moved = true;
+  if (cells.join() !== sel.cells.join()) { sel.cells = cells; render(); }
+});
+function up(e) {
+  if (!sel || e.pointerId !== sel.pid) return;
+  const s = sel; sel = null;
+  if (s.moved && s.cells.length > 1) { anchor = -1; if (!tryWord(s.cells)) { Sfx.tap(); render(); } return; }
+  // dokunma: önce ilk harf, sonra son harf
+  if (anchor >= 0 && anchor !== s.a) { const cells = lineCells(anchor, s.a); anchor = -1; if (!tryWord(cells)) { Sfx.tap(); render(); } return; }
+  anchor = anchor === s.a ? -1 : s.a; Sfx.click(); render();
+}
+grid.addEventListener('pointerup', up);
+grid.addEventListener('pointercancel', () => { sel = null; render(); });
+$('hintBtn').addEventListener('click', hint);
+setInterval(() => {
+  if (G && !G.over && !document.hidden && !anyOpen()) { G.time++; $('iTime').textContent = fmt(G.time); if (G.time % 5 === 0) save(); }
+}, 1000);
+new ResizeObserver(() => fit()).observe($('main'));
+
+function renderSetup() { segPress('thSeg', 't', setup.theme); segPress('lvSeg', 'l', setup.level); $('lvNote').textContent = T().lvNote[setup.level]; }
+function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.over; $('startBtn').focus({ preventScroll: true }); }
+function gameLang() {
+  const t = T();
+  $('thLbl').textContent = t.thLbl; $('lvLbl').textContent = t.lvLbl; $('tHint').textContent = t.hint; $('hintBtn').title = t.hint;
+  document.querySelectorAll('#thSeg button').forEach((b) => { const [em, nm] = t.th[b.dataset.t]; b.innerHTML = `<span class="em">${em}</span><small>${nm}</small>`; });
+  document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
+  renderSetup(); render();
+}
+const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b = e.target.closest(`button[data-${attr}]`); if (b) { fn(b.dataset[attr]); renderSetup(); } });
+segH('thSeg', 't', (v) => { setup.theme = v; });
+segH('lvSeg', 'l', (v) => { setup.level = v; });
+
+function boot() {
+  const s = store.get('game', null);
+  if (s && s.grid && !s.over && s.lang === lang) { G = s; buildGrid(); render(); }
+  else openSetup();
+}
+window.__kelime = { state: () => G, tryWord, generate, lineCells };
+
+
+// ---------- Ortak bağlantılar ----------
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  gameLang();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('winOv').hidden) closeAll();
+});
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
+$('backBtn').addEventListener('click', closeAll);
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
+$('viewBtn').addEventListener('click', closeAll);
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+applySound(); applyLang(); boot();
+</script>
+</body>
+</html>
