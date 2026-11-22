@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Çin Daması | Ridsgames</title>
+<meta name="description" content="Çin Daması: yıldız tahtada on taşını zincirleme atlayışlarla karşı köşeye taşı. 2, 3, 4 ya da 6 kişi; bilgisayara karşı ya da aynı cihazda.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --glow: rgba(251, 191, 36, 0.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--glow) 28%, transparent) 0%, transparent 62%), radial-gradient(ellipse at 50% 100%, #111a2c 0%, var(--bg) 70%), var(--bg);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.tall button { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.seg.tall small { font-size: 11px; font-weight: 600; opacity: .75; white-space: nowrap; }
+.seg.tall .em { font-size: 19px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.custom { display: grid; gap: 6px; margin-top: 10px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.mrow button { height: 44px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 24px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.mrow button:disabled { opacity: .35; cursor: default; }
+.mrow output { text-align: center; font-size: 24px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score.lost { color: #fca5a5; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; pencereler menü panelini örtmez; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .gname { display: inline; font-size: 11px; white-space: nowrap; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  main { grid-column: 2; grid-row: 1; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) 6px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
+  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
+  footer { display: none; }
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 4px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #winOv .card { max-width: 560px; padding: 14px 18px 16px; }
+  #winOv .trophy { font-size: 38px; } #winOv .score { font-size: 34px; margin-bottom: 8px; } #winOv .sub { margin-bottom: 8px; }
+  #winOv .rank { grid-template-columns: 1fr 1fr; }
+  #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
+}
+
+/* ---------- Oyuna özel ---------- */
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px; align-items: stretch; max-width: 760px; }
+.pls { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.pl { display: flex; align-items: center; gap: 6px; padding: 5px 10px 5px 7px; border-radius: 999px; background: rgba(2, 6, 23, .55); border: 1.5px solid rgba(148, 163, 184, .16); font-size: 13px; font-weight: 700; color: #cbd5e1; white-space: nowrap; }
+.pl i { width: 14px; height: 14px; border-radius: 50%; background: var(--c); box-shadow: inset 0 -2px 3px rgba(0, 0, 0, .35); }
+.pl small { color: #94a3b8; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pl.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, rgba(2, 6, 23, .6)); color: #fff; }
+.pl.win { border-color: #fbbf24; }
+.bw { min-height: 0; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.star { width: 100%; height: 100%; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.star .hole { fill: #0b1220; stroke: rgba(148, 163, 184, .28); stroke-width: .045; }
+.star .tri { opacity: .16; }
+.star .dst { fill: #fde68a; opacity: .9; pointer-events: none; animation: dp 1s ease-in-out infinite; }
+@keyframes dp { 50% { opacity: .45; } }
+.star .pc { transition: transform .13s linear; cursor: pointer; }
+.star .pc circle { stroke: rgba(0, 0, 0, .35); stroke-width: .05; }
+.star .pc .hl { fill: rgba(255, 255, 255, .45); stroke: none; }
+.star .pc.sel circle.b { stroke: #fff; stroke-width: .11; }
+.star .pc.hint circle.b { stroke: #fbbf24; stroke-width: .13; }
+.star .trail { fill: none; stroke: rgba(253, 230, 138, .55); stroke-width: .09; stroke-dasharray: .18 .14; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.star .lastTo { fill: none; stroke: rgba(253, 230, 138, .7); stroke-width: .07; pointer-events: none; }
+.star .hintTo { fill: none; stroke: #fbbf24; stroke-width: .12; pointer-events: none; }
+.side { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.status { text-align: center; font-size: 15px; font-weight: 700; color: #e2e8f0; min-height: 1.4em; }
+.acts { display: flex; gap: 8px; justify-content: center; }
+.acts button { height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, .3); background: rgba(15, 23, 42, .8); color: #e2e8f0; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+.acts button span { font-size: 16px; }
+.acts button:disabled { opacity: .4; }
+@media (orientation: landscape) {
+  main { grid-template-columns: minmax(0, 1fr) clamp(170px, 24vw, 250px); grid-template-rows: minmax(0, 1fr) auto; max-width: 1100px; }
+  .bw { grid-column: 1; grid-row: 1 / 3; }
+  .pls { grid-column: 2; grid-row: 1; flex-direction: column; flex-wrap: nowrap; justify-content: flex-start; align-items: stretch; }
+  .side { grid-column: 2; grid-row: 2; }
+  .acts { flex-direction: column; width: 100%; } .acts button { justify-content: center; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  main { gap: 6px; } .pl { padding: 3px 8px 3px 6px; font-size: 12px; } .status { font-size: 13px; } .acts button { height: 34px; }
+}
+
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="cin-damasi" data-name="Çin Daması"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Çin Daması</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="pls" id="pls"></div>
+<div class="bw" id="bw"><svg id="svg" class="star" role="img"></svg></div>
+<div class="side" id="side">
+  <div class="status" id="status"></div>
+  <div class="acts">
+    <button type="button" id="undoBtn"><span>↶</span><small id="tUndo"></small></button>
+    <button type="button" id="hintBtn"><span>💡</span><small id="tHint"></small></button>
+  </div>
+</div>
+
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Yeni oyun -->
+<div class="ov" id="setupOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Çin Daması</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="plLbl"></div>
+      <div class="seg" id="plSeg"><button type="button" data-n="2"></button><button type="button" data-n="3"></button><button type="button" data-n="4"></button><button type="button" data-n="6"></button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="vsLbl"></div>
+      <div class="seg two" id="vsSeg"><button type="button" data-v="cpu"></button><button type="button" data-v="iki"></button></div>
+    </div>
+    <div class="sec" id="lvSec">
+      <div class="lbl" id="lvLbl"></div>
+      <div class="seg" id="lvSeg"><button type="button" data-l="kolay"></button><button type="button" data-l="orta"></button><button type="button" data-l="zor"></button></div>
+    </div>
+    <div class="note" id="setNote"></div>
+
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore"></div>
+    <ol class="rank" id="statList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="viewBtn" type="button">Tahtaya bak</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Ortak: dil, ses, pencereler, sayaç ----------
+const COMMON = {
+  tr: { homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
+    lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
+  en: { homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
+    lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_cindama_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (n) => Math.floor(Math.random() * n);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(KEY + k); } catch (e) {} }
+};
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'cin-damasi/' + olay, title: 'Çin Daması: ' + ad, event: true }); } catch (e) {} };
+let soundOn = store.get('sound', 1) !== 0, bitenVar = false;
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock: ctx, tone,
+    click() { tone(900, 700, 0.05, 0.05, 'triangle'); },
+    tap() { tone(540, 880, 0.07, 0.07); },
+    good() { tone(660, 990, 0.12, 0.08, 'triangle'); },
+    bad() { tone(220, 110, 0.22, 0.09, 'sawtooth'); },
+    win() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, f, 0.4, 0.1, 'triangle', i * 0.065)); },
+    lose() { [392, 329.6, 261.6].forEach((f, i) => tone(f, f * 0.98, 0.3, 0.09, 'triangle', i * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+const OVS = ['setupOv', 'rulesOv', 'winOv'];
+function closeAll() { for (const id of OVS) $(id).hidden = true; }
+const anyOpen = () => OVS.some((id) => !$(id).hidden);
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
+  closeAll();
+  $('winIco').textContent = o.ico; $('winTitle').textContent = o.title; $('winSub').textContent = o.sub || '';
+  $('winScore').textContent = o.score || ''; $('winScore').hidden = !o.score; $('winScore').classList.toggle('lost', !!o.lost);
+  $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
+}
+
+// ---------- Oyun ----------
+const STR = {
+  tr: { ...COMMON.tr, title: 'Çin Daması | Ridsgames', game: 'Çin Daması',
+    setupSub: 'Yıldız biçimli tahtada on taşını karşı köşeye ilk taşıyan kazanır. Taşların üstünden zincirleme atla.',
+    plLbl: 'Oyuncu sayısı', plN: (n) => `${n} kişi`, vsLbl: 'Rakipler', vs: { cpu: 'Bilgisayar', iki: 'Aynı cihazda' }, lvLbl: 'Zorluk',
+    note: { cpu: 'Sen alttaki kırmızı taşlarla oynarsın, ilk hamle senin.', iki: 'Herkes sırayla aynı cihazda oynar. Kırmızı başlar.' },
+    you: 'Sen', cpuN: ['Ahmet', 'Elif', 'Can', 'Zeynep', 'Mert'], col: ['Kırmızı', 'Mavi', 'Yeşil', 'Sarı', 'Mor', 'Turkuaz'],
+    yourTurn: 'Sıra sende: bir taş seç', pickDst: 'Gideceği yeri seç', turnOf: (n) => `Sıra ${n} oyuncusunda`, thinking: (n) => `${n} düşünüyor…`,
+    noHint: 'Önerilecek hamle yok', undo: 'Geri al', hint: 'İpucu', inT: (k) => `${k}/10`,
+    winT: 'Kazandın!', loseT: 'Kaybettin', winSub: 'Bütün taşların karşı köşede.', loseSub: (n) => `${n} taşlarını önce yerleştirdi.`,
+    friendT: (n) => `${n} kazandı!`, friendSub: 'Bütün taşlarını karşı köşeye ilk o taşıdı.',
+    tMoves: 'Hamle sayısı', tIn: 'Hedefteki taşların', tWinner: 'Kazanan',
+    rulesSub: '2, 3, 4 ya da 6 kişiyle yıldız tahtada oynanır.',
+    ruleList: [
+      ['⭐', 'Her oyuncunun on taşı yıldızın bir köşesinde başlar. Amaç hepsini <b>tam karşıdaki köşeye</b> taşımak.'],
+      ['👣', 'Taş komşu boş deliğe bir adım gider <b>ya da</b> yanındaki bir taşın üstünden atlayıp arkasındaki boş deliğe konar.'],
+      ['🔗', 'Atlamalar zincirlenebilir: aynı hamlede atlayabildiğin kadar atla. Adımdan sonra atlanmaz.'],
+      ['🎨', 'Kendi taşlarının da rakiplerin taşlarının da üstünden atlayabilirsin. Taşlar alınmaz.'],
+      ['🏆', 'On taşını karşı köşeye ilk yerleştiren kazanır. Hedef köşen tamamen dolmuşsa ve içinde en az bir taşın varsa da kazanırsın; köşesinde taş bekleten rakip seni engelleyemez.']
+    ] },
+  en: { ...COMMON.en, title: 'Chinese Checkers | Ridsgames', game: 'Chinese Checkers',
+    setupSub: 'Be the first to move all ten pieces to the opposite point of the star. Chain jumps over pieces.',
+    plLbl: 'Players', plN: (n) => `${n} players`, vsLbl: 'Opponents', vs: { cpu: 'Computer', iki: 'Same device' }, lvLbl: 'Difficulty',
+    note: { cpu: 'You play the red pieces at the bottom and move first.', iki: 'Everyone takes turns on this device. Red starts.' },
+    you: 'You', cpuN: ['Alex', 'Maya', 'Leo', 'Nora', 'Sam'], col: ['Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Teal'],
+    yourTurn: 'Your turn: pick a piece', pickDst: 'Pick where it goes', turnOf: (n) => `${n} to move`, thinking: (n) => `${n} is thinking…`,
+    noHint: 'No move to suggest', undo: 'Undo', hint: 'Hint', inT: (k) => `${k}/10`,
+    winT: 'You win!', loseT: 'You lose', winSub: 'All your pieces reached the far point.', loseSub: (n) => `${n} got home first.`,
+    friendT: (n) => `${n} wins!`, friendSub: 'First to bring every piece across.',
+    tMoves: 'Moves', tIn: 'Your pieces home', tWinner: 'Winner',
+    rulesSub: 'For 2, 3, 4 or 6 players on a star board.',
+    ruleList: [
+      ['⭐', 'Each player starts with ten pieces in one point of the star. Move them all to the <b>opposite point</b>.'],
+      ['👣', 'A piece steps to an adjacent empty hole <b>or</b> jumps over a neighbouring piece into the empty hole beyond.'],
+      ['🔗', 'Jumps can be chained in one move. You cannot jump after a step.'],
+      ['🎨', 'You may jump over any piece, yours or a rival’s. Nothing is captured.'],
+      ['🏆', 'The first to fill the opposite point with all ten pieces wins. You also win when your target point is completely full and holds at least one of your pieces, so a rival cannot block you by staying home.']
+    ] }
+};
+const T = () => STR[lang];
+let setup = Object.assign({ n: 2, vs: 'cpu', level: 'orta' }, store.get('setup', {}));
+if (![2, 3, 4, 6].includes(setup.n)) setup.n = 2; if (!['cpu', 'iki'].includes(setup.vs)) setup.vs = 'cpu'; if (!['kolay', 'orta', 'zor'].includes(setup.level)) setup.level = 'orta';
+const COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#06b6d4'];
+const SEATS = { 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 6: [0, 1, 2, 3, 4, 5] };
+// köşeler saat yönünde: 0 alt, 1 sol alt, 2 sol üst, 3 üst, 4 sağ üst, 5 sağ alt
+const CORNER = [(c) => c.z >= 5, (c) => c.x <= -5, (c) => c.y >= 5, (c) => c.z <= -5, (c) => c.x >= 5, (c) => c.y <= -5];
+const AXIS = [(c) => c.z, (c) => -c.x, (c) => c.y, (c) => -c.z, (c) => c.x, (c) => -c.y]; // köşeye doğru ilerleme
+const LAT = [(c) => Math.abs(c.x - c.y), (c) => Math.abs(c.y - c.z), (c) => Math.abs(c.x - c.z), (c) => Math.abs(c.x - c.y), (c) => Math.abs(c.y - c.z), (c) => Math.abs(c.x - c.z)];
+const DIRS = [[1, -1, 0], [1, 0, -1], [0, 1, -1], [-1, 1, 0], [-1, 0, 1], [0, -1, 1]];
+const CELLS = [], IDX = new Map();
+for (let x = -8; x <= 8; x++) for (let y = -8; y <= 8; y++) {
+  const z = -x - y; if (z < -8 || z > 8) continue;
+  const inA = x >= -4 && y >= -4 && z >= -4, inB = x <= 4 && y <= 4 && z <= 4;
+  if (!inA && !inB) continue;
+  IDX.set(`${x},${y}`, CELLS.length); CELLS.push({ x, y, z, px: x + z / 2, py: z * Math.sqrt(3) / 2 });
+}
+const NB = CELLS.map((c) => DIRS.map(([a, b]) => { const k = IDX.get(`${c.x + a},${c.y + b}`); return k == null ? -1 : k; }));
+const CC = CORNER.map((f) => CELLS.map((c, i) => (f(c) ? i : -1)).filter((i) => i >= 0));
+const PROG = AXIS.map((f) => CELLS.map(f)), LATV = LAT.map((f) => CELLS.map(f));
+
+let G = null, sel = -1, busy = false, epoch = 0, hintMv = null;
+const H = [];
+const pname = (p) => G.vs === 'cpu' ? (p === 0 ? T().you : T().cpuN[p - 1]) : T().col[G.seat[p]];
+const save = () => { if (G) store.set('game', G); };
+const tgtOf = (p) => (G.seat[p] + 3) % 6;
+function occOf(pos) { const o = Array(CELLS.length).fill(-1); pos.forEach((ps, p) => ps.forEach((i) => { o[i] = p; })); return o; }
+
+function movesFrom(occ, i) {
+  const out = [], seen = new Set([i]), me = occ[i]; occ[i] = -1;
+  for (const j of NB[i]) if (j >= 0 && occ[j] < 0) { out.push({ from: i, to: j, path: [i, j] }); seen.add(j); }
+  const q = [[i, [i]]], jumped = new Set([i]);
+  while (q.length) {
+    const [c, path] = q.shift();
+    for (let d = 0; d < 6; d++) {
+      const m = NB[c][d]; if (m < 0 || occ[m] < 0) continue;
+      const t = NB[m][d]; if (t < 0 || occ[t] >= 0 || jumped.has(t)) continue;
+      jumped.add(t); const np = [...path, t];
+      if (!seen.has(t)) { seen.add(t); out.push({ from: i, to: t, path: np }); }
+      q.push([t, np]);
+    }
+  }
+  occ[i] = me; return out;
+}
+function allMoves(pos, p, occ) { occ = occ || occOf(pos); const out = []; for (const i of pos[p]) out.push(...movesFrom(occ, i)); return out; }
+function won(pos, p) { const occ = occOf(pos), t = CC[tgtOf(p)]; return t.every((i) => occ[i] >= 0) && t.some((i) => occ[i] === p); }
+function homeCount(pos, p) { const t = CC[tgtOf(p)]; return pos[p].filter((i) => t.includes(i)).length; }
+
+// ---------- Yapay zekâ ----------
+function score(pos, p, m) {
+  const tg = tgtOf(p), P = PROG[tg], Lt = LATV[tg];
+  let s = P[m.to] - P[m.from];
+  const mn = Math.min(...pos[p].map((i) => P[i]));
+  if (P[m.from] === mn) s += 0.35;
+  if (P[m.from] <= mn + 1 && s > 0) s += 0.15;
+  s -= 0.12 * (Lt[m.to] - Lt[m.from]);
+  const inT = CC[tg];
+  if (inT.includes(m.from) && !inT.includes(m.to)) s -= 3;
+  // köşe dışında kalan rakip köşesine park etme
+  return s;
+}
+function pickMove(pos, p, lv) {
+  const occ = occOf(pos), ms = allMoves(pos, p, occ);
+  if (!ms.length) return null;
+  const sc = ms.map((m) => ({ m, s: score(pos, p, m) }));
+  if (lv === 'kolay') {
+    const pos2 = sc.filter((x) => x.s > 0.5);
+    if (pos2.length && Math.random() < 0.6) return pos2[rnd(pos2.length)].m;
+  }
+  if (lv === 'zor') {
+    const tg = tgtOf(p), P = PROG[tg];
+    for (const x of sc) {
+      const np = pos.map((a) => a.slice()); const k = np[p].indexOf(x.m.from); np[p][k] = x.m.to;
+      const o2 = occOf(np); let b = -9;
+      for (const i of np[p]) for (const m2 of movesFrom(o2, i)) { const g = score(np, p, m2); if (g > b) b = g; }
+      x.s += won(np, p) ? 1000 : 0.75 * Math.max(0, b) + 0.02 * P[x.m.to];
+    }
+  }
+  sc.sort((a, b) => b.s - a.s);
+  const top = sc.filter((x) => x.s >= sc[0].s - 1e-6);
+  return top[rnd(top.length)].m;
+}
+
+// ---------- Akış ----------
+function newGame() {
+  closeAll();
+  const n = setup.n, seat = SEATS[n];
+  G = { n, vs: setup.vs, level: setup.level, seat, pos: seat.map((c) => CC[c].slice()), turn: 0, moves: 0, over: false, winner: -1, last: null, mc: Array(n).fill(0) };
+  H.length = 0; sel = -1; hintMv = null; epoch++; busy = false;
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(G.vs === 'cpu' ? `mod/cpu-${n}k-${G.level}` : `mod/iki-${n}k`, `mod: ${G.vs} ${n} kişi`);
+  save(); drawBoard(); render(); next();
+}
+function startFromSetup() { store.set('setup', setup); newGame(); }
+function again() { newGame(); }
+const isCpu = (p) => G.vs === 'cpu' && p !== 0;
+function next() {
+  if (!G || G.over) return;
+  if (isCpu(G.turn)) {
+    busy = true; render(); const ep = epoch, p = G.turn;
+    setTimeout(() => {
+      if (ep !== epoch) return;
+      const m = pickMove(G.pos, p, G.level);
+      if (!m) { pass(); return; }
+      play(m);
+    }, REDUCED ? 120 : 380);
+  } else { busy = false; render(); }
+}
+function pass() { G.turn = (G.turn + 1) % G.n; save(); next(); }
+function play(m) {
+  if (!isCpu(G.turn)) H.push(JSON.stringify({ pos: G.pos, turn: G.turn, moves: G.moves, last: G.last, mc: G.mc }));
+  if (H.length > 80) H.shift();
+  const p = G.turn, k = G.pos[p].indexOf(m.from);
+  busy = true; sel = -1; hintMv = null; const ep = epoch;
+  animate(p * 10 + k, m.path, () => {
+    if (ep !== epoch) return;
+    G.pos[p][k] = m.to; G.last = m.path; G.moves++; G.mc[p]++;
+    if (won(G.pos, p)) { G.over = true; G.winner = p; save(); render(); setTimeout(finish, 500); return; }
+    G.turn = (p + 1) % G.n; save(); render(); next();
+  });
+}
+function animate(pid, path, done) {
+  const g = PCS[pid]; if (!g) { done(); return; }
+  if (REDUCED) { const c = CELLS[path[path.length - 1]]; g.setAttribute('transform', `translate(${c.px} ${c.py})`); Sfx.tap(); done(); return; }
+  g.parentNode.appendChild(g);
+  let k = 1;
+  const stepF = () => {
+    if (k >= path.length) { done(); return; }
+    const c = CELLS[path[k]]; g.setAttribute('transform', `translate(${c.px} ${c.py})`);
+    Sfx.tone(440 + k * 60, 520 + k * 60, 0.04, 0.05, 'triangle');
+    k++; setTimeout(stepF, 140);
+  };
+  stepF();
+}
+function undo() {
+  if (!G || G.over || busy || !H.length) return;
+  epoch++; const s = JSON.parse(H.pop()); Object.assign(G, s); sel = -1; hintMv = null; busy = false;
+  Sfx.click(); save(); drawPieces(); render(); next();
+}
+function hint() {
+  if (!G || G.over || busy || isCpu(G.turn)) return;
+  const m = pickMove(G.pos, G.turn, 'zor'); Sfx.click();
+  if (!m) { toast(T().noHint); return; }
+  hintMv = m; sel = -1; render();
+}
+function finish() {
+  const t = T(), w = G.winner; bitenVar = true; sayac('bitti', 'oyun bitti');
+  if (G.vs === 'cpu') {
+    const won = w === 0;
+    sayac(`sonuc/${won ? 'insan' : 'bilgisayar'}-${G.level}`, `sonuç (${G.level})`);
+    won ? Sfx.win() : Sfx.lose();
+    showEnd({ ico: won ? '🏆' : '⭐', title: won ? t.winT : t.loseT, sub: won ? t.winSub : t.loseSub(pname(w)), lost: !won,
+      stats: [[t.tMoves, G.mc[0]], [t.tIn, t.inT(homeCount(G.pos, 0))], [t.tWinner, pname(w)]] });
+  } else {
+    Sfx.win();
+    showEnd({ ico: '🏆', title: t.friendT(pname(w)), sub: t.friendSub, stats: [[t.tMoves, G.mc[w]], ...G.pos.map((_, p) => [pname(p), t.inT(homeCount(G.pos, p))])] });
+  }
+}
+
+// ---------- Çizim ----------
+const NS = 'http://www.w3.org/2000/svg', svg = $('svg');
+let PCS = [], LAY = {};
+const mk = (tag, at, par) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); (par || svg).appendChild(e); return e; };
+function drawBoard() {
+  svg.innerHTML = '';
+  const xs = CELLS.map((c) => c.px), ys = CELLS.map((c) => c.py), m = 0.75;
+  const x0 = Math.min(...xs) - m, y0 = Math.min(...ys) - m, w = Math.max(...xs) - x0 + m, h = Math.max(...ys) - y0 + m;
+  svg.setAttribute('viewBox', `${x0} ${y0} ${w} ${h}`);
+  LAY.bg = mk('g', {});
+  if (G) G.seat.forEach((c) => {
+    const pts = CC[c].map((i) => CELLS[i]);
+    const ex = pts.reduce((a, q) => ((AXIS[c](q) > AXIS[c](a)) ? q : a));
+    const base = pts.filter((q) => AXIS[c](q) === 5);
+    const b1 = base.reduce((a, q) => (q.px + q.py * 0.01 < a.px + a.py * 0.01 ? q : a)), b2 = base.reduce((a, q) => (q.px + q.py * 0.01 > a.px + a.py * 0.01 ? q : a));
+    const cx = (ex.px + b1.px + b2.px) / 3, cy = (ex.py + b1.py + b2.py) / 3, sc = 1.32;
+    const P = [ex, b1, b2].map((q) => `${cx + (q.px - cx) * sc},${cy + (q.py - cy) * sc}`).join(' ');
+    mk('polygon', { points: P, class: 'tri', fill: COLORS[c], 'stroke-linejoin': 'round' }, LAY.bg);
+    const tg = (c + 3) % 6, tp = CC[tg].map((i) => CELLS[i]);
+    const ex2 = tp.reduce((a, q) => ((AXIS[tg](q) > AXIS[tg](a)) ? q : a));
+    mk('circle', { cx: ex2.px, cy: ex2.py, r: 0.62, fill: 'none', stroke: COLORS[c], 'stroke-width': 0.08, opacity: 0.55 }, LAY.bg);
+  });
+  LAY.holes = mk('g', {});
+  CELLS.forEach((c) => mk('circle', { cx: c.px, cy: c.py, r: 0.3, class: 'hole' }, LAY.holes));
+  LAY.fx = mk('g', {}); LAY.pcs = mk('g', {}); LAY.top = mk('g', {});
+  drawPieces();
+}
+function drawPieces() {
+  LAY.pcs.innerHTML = ''; PCS = [];
+  if (!G) return;
+  G.pos.forEach((ps, p) => ps.forEach((i, k) => {
+    const c = CELLS[i], g = mk('g', { class: 'pc', transform: `translate(${c.px} ${c.py})`, 'data-p': p, 'data-k': k }, LAY.pcs);
+    mk('circle', { r: 0.38, fill: COLORS[G.seat[p]], class: 'b' }, g);
+    mk('circle', { r: 0.14, cx: -0.11, cy: -0.13, class: 'hl' }, g);
+    PCS[p * 10 + k] = g;
+  }));
+}
+function render() {
+  if (!G) return;
+  const t = T();
+  if (PCS.length !== G.n * 10 || !LAY.pcs) drawBoard();
+  G.pos.forEach((ps, p) => ps.forEach((i, k) => {
+    const g = PCS[p * 10 + k], c = CELLS[i];
+    if (!busy || G.over) g.setAttribute('transform', `translate(${c.px} ${c.py})`);
+    g.classList.toggle('sel', sel === i); g.classList.toggle('hint', !!hintMv && hintMv.from === i);
+  }));
+  LAY.fx.innerHTML = ''; LAY.top.innerHTML = '';
+  if (G.last && !hintMv) {
+    mk('polyline', { points: G.last.map((i) => `${CELLS[i].px},${CELLS[i].py}`).join(' '), class: 'trail' }, LAY.fx);
+  }
+  if (sel >= 0) {
+    const occ = occOf(G.pos);
+    for (const m of movesFrom(occ, sel)) mk('circle', { cx: CELLS[m.to].px, cy: CELLS[m.to].py, r: 0.16, class: 'dst' }, LAY.top);
+  }
+  if (hintMv) {
+    mk('polyline', { points: hintMv.path.map((i) => `${CELLS[i].px},${CELLS[i].py}`).join(' '), class: 'trail' }, LAY.fx);
+    mk('circle', { cx: CELLS[hintMv.to].px, cy: CELLS[hintMv.to].py, r: 0.4, class: 'hintTo' }, LAY.top);
+  }
+  $('pls').innerHTML = G.pos.map((_, p) => `<span class="pl${!G.over && G.turn === p ? ' on' : ''}${G.over && G.winner === p ? ' win' : ''}" style="--c:${COLORS[G.seat[p]]}"><i></i>${pname(p)} <small>${t.inT(homeCount(G.pos, p))}</small></span>`).join('');
+  const human = !isCpu(G.turn);
+  $('status').textContent = G.over ? '' : busy && isCpu(G.turn) ? t.thinking(pname(G.turn)) : G.vs === 'cpu' ? (sel >= 0 ? t.pickDst : t.yourTurn) : (sel >= 0 ? `${pname(G.turn)}: ${t.pickDst.toLowerCase()}` : t.turnOf(pname(G.turn)));
+  $('undoBtn').disabled = G.over || busy || !H.length; $('hintBtn').disabled = G.over || busy || !human;
+}
+
+// ---------- Etkileşim ----------
+function cellAt(e) {
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const m = svg.getScreenCTM(); if (!m) return -1;
+  const q = pt.matrixTransform(m.inverse());
+  let best = -1, bd = 0.55;
+  CELLS.forEach((c, i) => { const d = Math.hypot(c.px - q.x, c.py - q.y); if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+svg.addEventListener('click', (e) => {
+  if (!G || G.over || busy || isCpu(G.turn)) return;
+  Sfx.unlock();
+  const i = cellAt(e); if (i < 0) return;
+  const occ = occOf(G.pos);
+  if (occ[i] === G.turn) { sel = sel === i ? -1 : i; hintMv = null; Sfx.click(); render(); return; }
+  if (sel >= 0) {
+    const m = movesFrom(occ, sel).find((x) => x.to === i);
+    if (m) { play(m); return; }
+    sel = -1; render();
+  } else if (hintMv && i === hintMv.to) { play(hintMv); }
+});
+$('undoBtn').addEventListener('click', undo);
+$('hintBtn').addEventListener('click', hint);
+
+function renderSetup() {
+  segPress('plSeg', 'n', String(setup.n)); segPress('vsSeg', 'v', setup.vs); segPress('lvSeg', 'l', setup.level);
+  $('lvSec').hidden = setup.vs !== 'cpu'; $('setNote').textContent = T().note[setup.vs];
+}
+function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.over; $('startBtn').focus({ preventScroll: true }); }
+function gameLang() {
+  const t = T();
+  $('plLbl').textContent = t.plLbl; $('vsLbl').textContent = t.vsLbl; $('lvLbl').textContent = t.lvLbl;
+  document.querySelectorAll('#plSeg button').forEach((b) => { b.textContent = t.plN(+b.dataset.n); });
+  document.querySelectorAll('#vsSeg button').forEach((b) => { b.textContent = t.vs[b.dataset.v]; });
+  document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
+  $('tUndo').textContent = t.undo; $('tHint').textContent = t.hint;
+  svg.setAttribute('aria-label', t.game);
+  renderSetup(); render();
+}
+const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b = e.target.closest(`button[data-${attr}]`); if (b) { fn(b.dataset[attr]); renderSetup(); } });
+segH('plSeg', 'n', (v) => { setup.n = +v; });
+segH('vsSeg', 'v', (v) => { setup.vs = v; });
+segH('lvSeg', 'l', (v) => { setup.level = v; });
+
+function boot() {
+  const s = store.get('game', null);
+  if (s && s.pos && !s.over && SEATS[s.n]) { G = s; drawBoard(); render(); next(); }
+  else { drawBoard(); openSetup(); }
+}
+window.__cin = { state: () => G, busy: () => busy, pickMove, allMoves, movesFrom, occOf, play, CELLS, CC, homeCount, won };
+
+
+// ---------- Ortak bağlantılar ----------
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  gameLang();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('winOv').hidden) closeAll();
+});
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
+$('backBtn').addEventListener('click', closeAll);
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
+$('viewBtn').addEventListener('click', closeAll);
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+applySound(); applyLang(); boot();
+</script>
+</body>
+</html>
