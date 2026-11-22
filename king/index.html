@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>King | Ridsgames</title>
+<meta name="description" content="King: el almaz, kupa almaz, erkek almaz, kız almaz, rıfkı, son iki ve koz partileri. 3 bilgisayara karşı, üç zorluk.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --turn: #ef4444;
+  --red: #d32f2f;
+  --ink: #1b1b1f;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); white-space: nowrap; }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı: ileti, masa, puan paneli */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 10px 8px; }
+.slot { flex: none; height: 32px; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 6; margin-bottom: -32px; } /* masanın üstünde süzülür, yer kaplamaz */
+.msg {
+  max-width: 100%; padding: 6px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 800; color: #fff; text-align: center; line-height: 1.25;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; pointer-events: none;
+}
+.msg.on { opacity: 1; transform: none; }
+.msg.gold { border-color: #ffd43b; }
+#stage { flex: 1; min-height: 0; width: 100%; max-width: 760px; position: relative; z-index: 0; isolation: isolate; overflow: hidden; touch-action: manipulation; }
+
+/* Kartlar: konum JS'ten transform ile, çevirme içteki katmanla */
+.card { position: absolute; left: 0; top: 0; width: var(--cw); height: var(--ch); transition-property: transform; transition-timing-function: cubic-bezier(.25, .8, .3, 1); will-change: transform; }
+.card .in { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateY(180deg); transition: transform .35s, translate .15s; }
+.card.up .in { transform: none; }
+.face { position: absolute; inset: 0; border-radius: calc(var(--cw) * .05); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .35); overflow: hidden; }
+.front { background: #fff; }
+.front img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+.back { transform: rotateY(180deg); background: var(--back) center / 100% 100% no-repeat, #fffdf8; }
+.card.play { cursor: pointer; }
+.card.play:hover .in { translate: 0 calc(var(--ch) * -.1); }
+.card.hit .front { box-shadow: 0 0 0 2px #ffd43b, 0 0 14px rgba(255, 212, 59, .8), 0 2px 6px rgba(0, 0, 0, .45); }
+.card.hot .in { translate: 0 calc(var(--ch) * -.14); }
+.card.flat .face { box-shadow: none; } /* destede yığılan gölgeler kararmasın */
+
+.badge { position: absolute; z-index: 300; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 12.5px; font-weight: 800; color: #fff; background: rgba(2, 6, 23, .82); border: 1px solid rgba(255, 220, 170, .35); font-variant-numeric: tabular-nums; pointer-events: none; translate: -50% -50%; transition: opacity .2s; }
+.badge.zero { opacity: 0; }
+.lbl2 { position: absolute; z-index: 300; font-size: 11px; font-weight: 700; color: rgba(255, 235, 200, .8); text-shadow: 0 1px 2px rgba(0, 0, 0, .8); translate: -50% 0; pointer-events: none; white-space: nowrap; }
+#pop { position: absolute; z-index: 320; left: 0; top: 0; translate: -50% -50%; pointer-events: none; font-weight: 900; font-size: 44px; color: #ffe066; letter-spacing: .02em; white-space: nowrap;
+  text-shadow: 0 3px 0 #8a5a00, 0 0 18px rgba(255, 200, 0, .7), 0 6px 14px rgba(0, 0, 0, .7); opacity: 0; }
+#pop.go { animation: popIn 1.3s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+@keyframes popIn { 0% { opacity: 0; scale: .3; } 18% { opacity: 1; scale: 1.15; } 30% { scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; scale: 1.05; translate: -50% -90%; } }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+/* Puan paneli: keçeli ahşap tepsi */
+.dock {
+  flex: none; width: 100%; max-width: 440px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+  border-style: solid; border-width: 20px 17px 24px; border-image: url("../kizma-birader/tepsi.webp") 60 50 72 50 fill / 20px 17px 24px stretch;
+  padding: 0 4px 0 8px; background: none;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .5)) drop-shadow(0 0 7px color-mix(in srgb, var(--turn) 60%, transparent));
+  transition: filter .3s;
+}
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ava { flex: none; display: inline-block; border-radius: 50%; background: url("../kizma-birader/karakterler.webp") 0 0 / 400% 100%; }
+.chip { width: 46px; height: 46px; box-shadow: 0 0 0 3px var(--turn), 0 3px 8px rgba(0, 0, 0, .45); transition: box-shadow .3s; }
+.chip.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .4; } 100% { scale: 1; } }
+.who .t { min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+#turnName { font-size: 17px; font-weight: 800; line-height: 1.2; color: #fff; }
+#turnMsg { font-size: 14px; color: #d8f3dc; line-height: 1.3; margin-top: 2px; min-height: 1.3em; }
+.skor { display: grid; gap: 6px; padding: 6px 8px; border-radius: 12px; background: rgba(2, 6, 23, .35); }
+.skor > div { display: flex; align-items: center; gap: 7px; font-size: 17px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.skor .ava { width: 24px; height: 24px; }
+.skor small { font-size: 11.5px; font-weight: 700; color: #ffe066; min-width: 3.2em; }
+#hedef { font-size: 11px; font-weight: 700; color: rgba(255, 235, 200, .75); text-align: center; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Yatay telefon: üst çubuk solda dar menü sütunu, masa ortada, sağda ileti ve puan paneli; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(64px, 9vw, 80px) minmax(0, 1fr) clamp(150px, 25vw, 200px); grid-template-rows: auto minmax(0, 1fr); }
+  main { display: contents; }
+  .top { grid-column: 1; grid-row: 1 / 3; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; max-width: none; flex-direction: column; justify-content: flex-start; padding: 10px 6px; gap: 12px; }
+  .logo img { width: 100%; max-width: 56px; height: auto; }
+  .gname, .pill .lbl { display: none; }
+  .tools { flex-direction: column; gap: 7px; }
+  .pill { padding: 0 8px; }
+  .pill.lang { font-size: 11px; padding: 0 6px; white-space: nowrap; }
+  #stage { grid-column: 2; grid-row: 1 / 3; width: auto; max-width: none; }
+  .slot { grid-column: 3; grid-row: 1; width: auto; height: auto; min-height: 40px; margin: 0; padding: 8px 8px 0 0; }
+  .msg { font-size: 12.5px; padding: 6px 10px; border-radius: 14px; }
+  .dock { grid-column: 3; grid-row: 2; width: auto; max-width: none; margin: 8px 8px 8px 0; grid-template-columns: 1fr; align-content: space-evenly; justify-items: center; gap: 10px; padding: 4px 4px 8px; }
+  .who { flex-direction: column; text-align: center; gap: 8px; }
+  .chip { width: 50px; height: 50px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(64px, 9vw, 80px) + 8px); }
+  footer { display: none; }
+  #setupOv .card2 { max-width: 560px; padding: 14px 18px; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 8px; }
+  #setupOv .field { grid-template-columns: 130px 1fr; align-items: center; padding: 8px 0; }
+  #setupOv .btns { margin-top: 8px; grid-auto-flow: column; grid-auto-columns: 1fr; }
+  #handOv .card2 { max-width: 520px; padding: 10px 16px; }
+  #handOv h2 { font-size: 19px; }
+  #handOv .sub { margin-bottom: 4px; font-size: 12.5px; }
+  #handOv table.sum { font-size: 12.5px; }
+  #handOv table.sum td, #handOv table.sum th { padding: 2px 6px; }
+  #handOv table.sum thead .ava { width: 20px; height: 20px; }
+  #handOv tr.tot td, #handOv tr.all td { font-size: 14px; }
+  #handOv .btns { margin-top: 8px; }
+  #handOv .big { height: 40px; font-size: 15px; }
+}
+/* Geniş yatay ekran: masa solda büyük, panel sağda */
+@media (orientation: landscape) and (min-height: 501px) and (min-width: 900px) {
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto minmax(0, 1fr); gap: 12px 18px; max-width: 1200px; width: 100%; margin: 0 auto; padding: 14px 18px; }
+  #stage { grid-column: 1; grid-row: 1 / 3; max-width: none; align-self: stretch; }
+  .slot { grid-column: 2; grid-row: 1; height: auto; min-height: 44px; margin: 0; align-items: flex-end; }
+  .msg { border-radius: 16px; }
+  .dock { grid-column: 2; grid-row: 2; align-self: start; grid-template-columns: 1fr; justify-items: center; gap: 14px; padding: 10px 6px 14px; }
+  .who { flex-direction: column; text-align: center; gap: 10px; }
+  .chip { width: 64px; height: 64px; }
+}
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card2 {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card2 h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card2 .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.field { display: grid; gap: 8px; padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { min-height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button .mini { display: inline-block; width: 15px; height: 21px; border-radius: 2px; vertical-align: middle; margin-right: 7px; background: var(--b) center / 100% 100%; box-shadow: 0 0 0 1px rgba(255, 255, 255, .5); }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.btns { display: grid; gap: 10px; margin-top: 14px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.final { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 4px 0 6px; font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.final span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; background: rgba(2, 6, 23, .55); }
+.final span.win { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.final .ava { width: 32px; height: 32px; }
+table.sum { width: 100%; border-collapse: collapse; font-size: 14px; color: #cbd5e1; font-variant-numeric: tabular-nums; }
+table.sum th, table.sum td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(148, 163, 184, .12); }
+table.sum th:first-child, table.sum td:first-child { text-align: left; }
+table.sum thead th { color: #fff; }
+table.sum thead .ava { width: 26px; height: 26px; vertical-align: middle; }
+table.sum tr.tot td { color: #fff; font-weight: 800; font-size: 15px; }
+table.sum tr.all td { color: #67e8f9; font-weight: 800; font-size: 16px; border-bottom: 0; }
+table.sum td.z { color: #475569; }
+
+/* Batak'a özel */
+.card.dim .front img { filter: brightness(.58) saturate(.6); }
+.card.sel .in { translate: 0 calc(var(--ch) * -.2); }
+.card.sel .front { box-shadow: 0 0 0 2.5px #ffd43b, 0 0 14px rgba(255, 212, 59, .8), 0 2px 6px rgba(0, 0, 0, .45); }
+.card.gone { visibility: hidden; }
+.card { touch-action: none; }
+.card.drag { cursor: grabbing; }
+.card.drag .in { translate: none !important; }
+.card.drag .face { box-shadow: 0 14px 28px rgba(0, 0, 0, .55), 0 0 0 .5px rgba(0, 0, 0, .35); }
+.seat { position: absolute; z-index: 310; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; }
+.seat .ava { width: 38px; height: 38px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .3), 0 3px 8px rgba(0, 0, 0, .5); transition: box-shadow .3s, scale .3s; }
+.seat.on .ava { box-shadow: 0 0 0 3px var(--c), 0 0 16px var(--c); scale: 1.14; }
+.seat b { font-size: 11px; font-weight: 800; color: #fff; background: rgba(2, 6, 23, .78); padding: 1px 7px; border-radius: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.seat b.bid { color: #1a1200; background: #ffd43b; }
+.seat b.ok { color: #052e16; background: #4ade80; }
+.seat b.neg { color: #fff; background: #b91c1c; }
+.seat b.team { box-shadow: 0 0 0 1.5px var(--t); }
+#seat0 { flex-direction: row; gap: 6px; translate: 0 -50%; }
+#seat0 .ava { width: 28px; height: 28px; }
+#trumpB { position: absolute; z-index: 305; translate: -50% -50%; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: opacity .2s, scale .2s; }
+#trumpB.off { opacity: 0; scale: .5; }
+#trumpB i { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 27px; line-height: 1; box-shadow: 0 0 0 2.5px #ffd43b, 0 3px 10px rgba(0, 0, 0, .55); font-family: Georgia, serif; }
+#trumpB b { font-size: 10.5px; font-weight: 800; color: #ffe066; background: rgba(2, 6, 23, .8); padding: 1px 6px; border-radius: 7px; }
+.pick { position: absolute; z-index: 400; translate: -50% -50%; padding: 10px 12px 12px; border-radius: 16px; background: rgba(2, 6, 23, .94); border: 1px solid rgba(34, 211, 238, .55); box-shadow: 0 12px 30px rgba(0, 0, 0, .6); text-align: center; max-width: calc(100% - 16px); }
+.pick .t { font-size: 13.5px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+.pick .s { font-size: 12px; color: var(--dim); margin: -4px 0 8px; }
+#suitPick .b { display: grid; grid-template-columns: repeat(4, 52px); gap: 8px; justify-content: center; }
+#suitPick button { height: 62px; border-radius: 10px; border: 0; background: #fff; font-size: 36px; line-height: 1; box-shadow: 0 3px 8px rgba(0, 0, 0, .45); font-family: Georgia, serif; }
+#suitPick button:hover { filter: brightness(.93); }
+#conPick { width: min(440px, calc(100% - 16px)); }
+#cpB { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#cpB button { position: relative; display: grid; grid-template-columns: 26px 1fr auto; grid-template-rows: auto auto; column-gap: 6px; align-items: center; text-align: left; padding: 6px 8px; min-height: 48px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, .45); background: rgba(15, 23, 42, .95); color: #fff; font: inherit; }
+#cpB button:first-child { grid-column: 1 / -1; border-color: rgba(255, 212, 59, .8); }
+#cpB button:not(:disabled):hover { background: rgba(30, 41, 59, .98); }
+#cpB button:disabled { opacity: .3; }
+#cpB i { grid-row: 1 / 3; font-style: normal; font-size: 20px; text-align: center; font-family: Georgia, serif; color: #ffe066; }
+#cpB b { font-size: 14px; font-weight: 800; line-height: 1.15; }
+#cpB small { grid-column: 2 / 4; font-size: 11px; color: var(--dim); line-height: 1.2; }
+#cpB em { font-style: normal; font-size: 10.5px; color: #67e8f9; font-weight: 700; white-space: nowrap; }
+#trumpB i.txt { font-size: 19px; color: #b91c1c; }
+@media (max-height: 520px) { #cpB { grid-template-columns: 1fr 1fr 1fr; } #cpB button { min-height: 40px; padding: 4px 6px; } #cpB small { display: none; } #conPick .s { display: none; } }
+#buryBtn { width: 100%; margin-top: 2px; padding: 0 18px; border-color: #ffd43b; color: #ffe066; }
+#buryBtn:disabled { opacity: .35; }
+.skor.g4 { grid-template-columns: auto auto; column-gap: 14px; }
+.skor > div.full { grid-column: 1 / -1; }
+.skor > div.w { color: #ffe066; }
+.skor .pair { display: inline-flex; }
+.skor .pair .ava + .ava { margin-left: -7px; }
+table.sum td.nm { display: flex; align-items: center; gap: 7px; }
+table.sum td.nm .ava { width: 22px; height: 22px; }
+table.sum td.nm .ava + .ava { margin-left: -12px; }
+table.sum tr.win td { color: #ffe066; font-weight: 800; }
+table.sum td.neg { color: #f87171; font-weight: 800; }
+@keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+.card.no .in { animation: shake .25s 2; }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="king" data-name="King"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">King</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dili değiştir">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
+  <div id="stage" aria-label="Masa">
+    <div class="seat" id="seat0"><i class="ava"></i><b></b></div>
+    <div class="seat" id="seat1"><i class="ava"></i><b></b></div>
+    <div class="seat" id="seat2"><i class="ava"></i><b></b></div>
+    <div class="seat" id="seat3"><i class="ava"></i><b></b></div>
+    <div id="trumpB" class="off"><i></i><b id="trumpLbl"></b></div>
+    <div id="conPick" class="pick" hidden><div class="t" id="cpT"></div><div class="s" id="cpS"></div><div id="cpB"></div></div>
+    <div id="suitPick" class="pick" hidden><div class="t" id="spT"></div><div class="b"><button type="button" data-s="0" style="color:#16161a">♠&#xFE0E;</button><button type="button" data-s="1" style="color:#d40000">♥&#xFE0E;</button><button type="button" data-s="2" style="color:#d40000">♦&#xFE0E;</button><button type="button" data-s="3" style="color:#16161a">♣&#xFE0E;</button></div></div>
+    <div id="pop"></div>
+  </div>
+  <div class="dock" id="dock">
+    <div class="who">
+      <span class="chip ava" id="chip" aria-hidden="true"></span>
+      <div class="t"><div id="turnName"></div><div id="turnMsg"></div></div>
+    </div>
+    <div class="skor" id="skor" role="status"></div>
+  </div>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">King</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="field"><span id="lvlLbl"></span><div class="seg" id="lvlSeg"><button type="button" data-v="easy"></button><button type="button" data-v="mid"></button><button type="button" data-v="hard"></button></div></div>
+    <div class="field"><span id="lenLbl"></span><div class="seg" id="lenSeg"><button type="button" data-v="8"></button><button type="button" data-v="20"></button></div></div>
+    <div class="field"><span id="deckLbl"></span><div class="seg" id="deckSeg"><button type="button" data-v="red"></button><button type="button" data-v="black"></button></div></div>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button"></button>
+      <button class="big alt" id="resumeBtn" type="button" hidden></button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1" style="outline:none"></h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button"></button></div>
+  </div>
+</div>
+
+<!-- El sonu -->
+<div class="ov" id="handOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="handTitle">
+    <h2 id="handTitle"></h2>
+    <p class="sub" id="handSub"></p>
+    <table class="sum" id="sumTable"></table>
+    <div class="btns"><button class="big" id="nextBtn" type="button"></button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 id="winTitle"></h2>
+    <div class="final" id="final"></div>
+    <p class="sub" id="winSub"></p>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button"></button>
+      <button class="big alt" id="toMenuBtn" type="button"></button>
+    </div>
+  </div>
+</div>
+
+<script id="motor">
+// ---------- Motor: King kuralları ve bilgisayar (arayüzden bağımsız) ----------
+// Kart 0-51: renk = id / 13 (0 maça, 1 kupa, 2 karo, 3 sinek), değer = id % 13 + 1 (1 as, 11 vale, 12 kız, 13 papaz); as en büyüğüdür
+const suitOf = (c) => (c / 13) | 0, rk = (c) => (c % 13 === 0 ? 14 : (c % 13) + 1);
+const idOf = (s, r) => s * 13 + (r === 14 ? 0 : r - 1);
+const RIFKI = idOf(1, 13);
+// Partiler: koz ve altı ceza. TOTAL: bir partide dağıtılan toplam puan
+const CONS = ['koz', 'el', 'kupa', 'erkek', 'kiz', 'rifki', 'son'];
+const PEN = { el: 50, kupa: 30, erkek: 60, kiz: 100, rifki: 320, son: 180 }, KOZ = 50;
+const TOTAL = { koz: 650, el: 650, kupa: 390, erkek: 480, kiz: 400, rifki: 320, son: 360 };
+function shuffled(rnd = Math.random, a = Array.from({ length: 52 }, (_, i) => i)) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// Cezalı kart mı
+function isPen(con, c) {
+  if (con === 'kupa') return suitOf(c) === 1;
+  if (con === 'erkek') return c % 13 === 12 || c % 13 === 10;
+  if (con === 'kiz') return c % 13 === 11;
+  if (con === 'rifki') return c === RIFKI;
+  return false;
+}
+const penCards = (con) => (['kupa', 'erkek', 'kiz', 'rifki'].includes(con) ? Array.from({ length: 52 }, (_, i) => i).filter((c) => isPen(con, c)) : []);
+// Bir elin puanı (idx: 0'dan başlayan el sırası)
+function trickPts(con, cards, idx) {
+  if (con === 'koz') return KOZ;
+  if (con === 'el') return -PEN.el;
+  if (con === 'son') return idx >= 11 ? -PEN.son : 0;
+  return -PEN[con] * cards.filter((c) => isPen(con, c)).length;
+}
+// Açılamayan renk: koz partisinde koz, kupa almaz ve rıfkıda kupa (o renk oyunda atılana kadar)
+const blockedSuit = (s) => (s.con === 'koz' ? s.trump : s.con === 'kupa' || s.con === 'rifki' ? 1 : -1);
+// s: { trick: [{ p, c }], con, trump, broken }
+// Renge uymak zorunlu. Koz partisinde renk yoksa koz atmak zorunlu. Cezada renk yoksa cezalı kartı atmak zorunlu;
+// erkek, kız ve rıfkıda yerde daha büyüğü varsa o renkteki cezalı kartı basmak zorunlu.
+function legalCards(hand, s) {
+  if (!s.trick.length) {
+    const b = blockedSuit(s);
+    if (b >= 0 && !s.broken) { const nb = hand.filter((c) => suitOf(c) !== b); if (nb.length) return nb; }
+    return hand.slice();
+  }
+  const cards = s.trick.map((x) => x.c), L = suitOf(cards[0]), follow = hand.filter((c) => suitOf(c) === L);
+  if (follow.length) {
+    if (s.con === 'erkek' || s.con === 'kiz' || s.con === 'rifki') {
+      const top = Math.max(...cards.filter((c) => suitOf(c) === L).map(rk)), must = follow.filter((c) => isPen(s.con, c) && rk(c) < top);
+      if (must.length) return must;
+    }
+    return follow;
+  }
+  if (s.con === 'koz') { const tr = hand.filter((c) => suitOf(c) === s.trump); return tr.length ? tr : hand.slice(); }
+  const pen = hand.filter((c) => isPen(s.con, c));
+  return pen.length ? pen : hand.slice();
+}
+function whyNot(c, hand, s) {
+  if (!s.trick.length) return s.con === 'koz' ? 'leadKoz' : 'leadKupa';
+  const L = suitOf(s.trick[0].c);
+  if (suitOf(c) !== L && hand.some((x) => suitOf(x) === L)) return 'follow';
+  if (suitOf(c) === L) return 'press';
+  return s.con === 'koz' ? 'trump' : 'dump';
+}
+function trickWinner(trick, trump) {
+  let b = trick[0];
+  for (const x of trick.slice(1)) { const bs = suitOf(b.c), xs = suitOf(x.c); if (xs === bs ? rk(x.c) > rk(b.c) : xs === trump) b = x; }
+  return b.p;
+}
+
+// ---------- Bilgisayar ----------
+// Koz partisinde kaç el alınacağının tahmini
+function handEval(hand, trump) {
+  let t = 0; const tn = hand.filter((c) => suitOf(c) === trump).length;
+  for (let s = 0; s < 4; s++) {
+    const cs = hand.filter((c) => suitOf(c) === s).map(rk).sort((a, b) => b - a), n = cs.length;
+    if (s === trump) {
+      t += (cs.includes(14) ? 1 : 0) + (cs.includes(13) ? (n >= 2 ? 0.9 : 0.3) : 0) + (cs.includes(12) ? (n >= 3 ? 0.7 : 0.2) : 0) + (cs.includes(11) && n >= 4 ? 0.4 : 0);
+      t += Math.max(0, n - 3) * 0.85;
+    } else {
+      if (cs[0] === 14) t += 0.95;
+      if (cs.includes(13)) t += n >= 2 ? (cs[0] === 14 ? 0.8 : 0.55) : 0.15;
+      if (cs.includes(12) && n >= 3 && cs[0] >= 13) t += 0.3;
+      if (n >= 6) t -= 0.3;
+      if (tn >= 3 && n <= 1) t += (n === 0 ? 0.9 : 0.5) * Math.min(1, (tn - 2) / 2);
+    }
+  }
+  return Math.max(0, t);
+}
+function bestTrump(hand) { let b = 0, v = -1; for (let s = 0; s < 4; s++) { const e = handEval(hand, s) + hand.filter((c) => suitOf(c) === s).length * 0.01; if (e > v) { v = e; b = s; } } return [b, v]; }
+// Cezalarda beklenen kayıp (puan olarak, pozitif)
+function penaltyGuess(con, hand) {
+  const len = [0, 1, 2, 3].map((s) => hand.filter((c) => suitOf(c) === s).length);
+  let tricks = 0; for (const c of hand) tricks += Math.max(0, rk(c) - 8) / 6 * (len[suitOf(c)] >= 5 ? 1.1 : 0.85);
+  tricks = Math.max(0, tricks - hand.filter((c) => rk(c) <= 5).length * 0.12);
+  const own = (f, shortW, longW) => hand.filter(f).reduce((a, c) => a + (len[suitOf(c)] <= 2 ? shortW : longW), 0);
+  if (con === 'el') return 50 * tricks;
+  if (con === 'kupa') return 30 * (tricks + hand.filter((c) => suitOf(c) === 1 && rk(c) >= 11).length * 0.5);
+  if (con === 'erkek') return 60 * (tricks * 8 / 13 * 0.6 + own((c) => c % 13 === 12 || c % 13 === 10, 0.6, 0.25));
+  if (con === 'kiz') return 100 * (tricks * 4 / 13 * 0.6 + own((c) => c % 13 === 11, 0.6, 0.22));
+  if (con === 'rifki') return 320 * (hand.includes(RIFKI) ? (len[1] <= 2 ? 0.75 : len[1] <= 4 ? 0.45 : 0.25) : 0.12 + (hand.includes(idOf(1, 14)) ? 0.1 : 0));
+  if (con === 'son') return 360 * Math.min(0.9, 0.2 + hand.filter((c) => rk(c) >= 13).length * 0.04 + (Math.max(...len) >= 6 ? 0.15 : 0));
+  return 0;
+}
+// Parti seçimi: ortalamaya göre en kârlısı. avail: seçilebilecek partiler
+function cpuChoose(hand, avail, level, rnd = Math.random) {
+  const [tr, est] = bestTrump(hand);
+  const noise = level === 'easy' ? 160 : level === 'mid' ? 60 : 0;
+  let best = null, bv = -1e9;
+  for (const con of avail) {
+    const v = (con === 'koz' ? KOZ * est - TOTAL.koz / 4 : TOTAL[con] / 4 - penaltyGuess(con, hand)) + (rnd() - 0.5) * noise;
+    if (v > bv) { bv = v; best = con; }
+  }
+  return { con: best, trump: best === 'koz' ? tr : -1 };
+}
+// st: { hand, trick, con, trump, broken, me, chooser, idx: el sırası, played, voids }
+function cpuPlay(st, level, rnd = Math.random) {
+  const legal = legalCards(st.hand, st);
+  if (legal.length === 1) return legal[0];
+  if (level === 'easy' && rnd() < 0.4) return legal[Math.floor(rnd() * legal.length)];
+  return st.con === 'koz' ? kozPlay(st, legal, level) : penPlay(st, legal, level);
+}
+function kozPlay(st, legal, level) {
+  const known = new Set([...st.played, ...st.trick.map((x) => x.c), ...st.hand]);
+  const boss = (c) => { const s = suitOf(c); for (let r = rk(c) + 1; r <= 14; r++) if (!known.has(idOf(s, r))) return false; return true; };
+  const val = (c) => rk(c) + (suitOf(c) === st.trump ? 20 : 0);
+  const low = (a) => a.slice().sort((x, y) => val(x) - val(y))[0];
+  const unseenTr = Array.from({ length: 13 }, (_, i) => st.trump * 13 + i).filter((c) => !known.has(c)).length;
+  const later = []; for (let k = 1; k < 4 - st.trick.length; k++) later.push((st.me + k) % 4);
+  const mayRuff = (s) => level === 'hard' && s !== st.trump && unseenTr > 0 && later.some((p) => st.voids[p][s]);
+  const lenOf = (s) => st.hand.filter((c) => suitOf(c) === s).length;
+  if (!st.trick.length) {
+    const myTr = lenOf(st.trump);
+    if (st.me === st.chooser && myTr > 0 && unseenTr > 0 && myTr >= unseenTr * (level === 'hard' ? 0.6 : 1)) {
+      const tr = legal.filter((c) => suitOf(c) === st.trump);
+      if (tr.length) { const b = tr.filter(boss); return b.length ? b.sort((x, y) => rk(y) - rk(x))[0] : low(tr); }
+    }
+    const bosses = legal.filter((c) => boss(c) && suitOf(c) !== st.trump && !mayRuff(suitOf(c)));
+    if (bosses.length) return bosses.sort((x, y) => rk(y) - rk(x))[0];
+    const side = legal.filter((c) => suitOf(c) !== st.trump);
+    if (side.length) {
+      const pool = side.filter((c) => !mayRuff(suitOf(c))), use = pool.length ? pool : side;
+      const key = (c) => (myTr > 1 ? lenOf(suitOf(c)) : -lenOf(suitOf(c))) * 3 + rk(c) * 0.2 + (rk(c) >= 12 ? 4 : 0);
+      return use.slice().sort((x, y) => key(x) - key(y))[0];
+    }
+    return low(legal);
+  }
+  const last = st.trick.length === 3;
+  const wins = legal.filter((c) => trickWinner([...st.trick, { p: st.me, c }], st.trump) === st.me);
+  if (wins.length) {
+    if (last) return low(wins);
+    const L = suitOf(st.trick[0].c);
+    const sure = wins.filter((c) => (suitOf(c) === st.trump ? boss(c) || !later.some((p) => st.voids[p][L]) : boss(c) && !mayRuff(L)));
+    if (sure.length) return low(sure);
+    const tr = wins.filter((c) => suitOf(c) === st.trump && suitOf(c) !== L);
+    if (tr.length) return low(tr);
+    return level === 'hard' && wins.length < legal.length ? low(legal) : low(wins);
+  }
+  const side = legal.filter((c) => suitOf(c) !== st.trump), pool = side.length ? side : legal;
+  return pool.slice().sort((x, y) => (val(x) + lenOf(suitOf(x)) * 0.6) - (val(y) + lenOf(suitOf(y)) * 0.6))[0];
+}
+// Cezada: eli almamaya çalış; alamayacağın yerde cezalı ve büyük kartları boşalt
+function penPlay(st, legal, level) {
+  const con = st.con, pv = (c) => (isPen(con, c) ? PEN[con] : 0);
+  const known = new Set([...st.played, ...st.trick.map((x) => x.c), ...st.hand]);
+  const lenOf = (s) => st.hand.filter((c) => suitOf(c) === s).length;
+  const under = (c) => { let n = 0; for (let r = 2; r < rk(c); r++) if (!known.has(idOf(suitOf(c), r))) n++; return n; }; // dışarıda kalan küçük kart sayısı
+  const shed = con === 'son' && st.idx < 9; // son ikide baştaki ellerde büyükler boşaltılır
+  if (!st.trick.length) {
+    if (shed) return legal.slice().sort((x, y) => rk(y) - rk(x))[0];
+    // dışarıda küçüğü az kalan (başkasının basacağı) en küçük kartla aç; cezalı kartla açma
+    const key = (c) => under(c) * 3 + rk(c) * 0.4 + pv(c) * 0.2 - (lenOf(suitOf(c)) <= 2 && level === 'hard' ? 1 : 0);
+    return legal.slice().sort((x, y) => key(x) - key(y))[0];
+  }
+  const winsNow = (c) => trickWinner([...st.trick, { p: st.me, c }], -1) === st.me, last = st.trick.length === 3;
+  if (shed) return legal.slice().sort((x, y) => rk(y) - rk(x))[0];
+  const safe = legal.filter((c) => !winsNow(c));
+  if (safe.length) {
+    const L = suitOf(st.trick[0].c), follow = suitOf(safe[0]) === L;
+    // uyuyorsan en büyük güvenli kartı, uyamıyorsan önce cezalıyı sonra kısa renkteki büyüğü at
+    const key = (c) => pv(c) * 10 + rk(c) + (follow ? 0 : (6 - Math.min(6, lenOf(suitOf(c)))) * 1.5);
+    return safe.slice().sort((x, y) => key(y) - key(x))[0];
+  }
+  const key = (c) => pv(c) * 10 + (last ? -rk(c) : rk(c));
+  return legal.slice().sort((x, y) => key(x) - key(y))[0];
+}
+</script>
+<script>
+// ---------- Metinler ----------
+const SUITCH = ['♠︎', '♥︎', '♦︎', '♣︎'], SUITCOL = ['#16161a', '#d40000', '#d40000', '#16161a'];
+const STR = {
+  tr: {
+    title: 'King | Ridsgames', game: 'King', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
+    rights: 'Tüm hakları saklıdır.', stage: 'Masa', names: ['Sen', 'Balina', 'Kurbağa', 'Civciv'],
+    setupSub: 'Sırayla parti seç: cezalardan kaç, kozda el topla.', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
+    lenLbl: 'Oyun uzunluğu', full: 'Tam (20 parti)', short: 'Kısa (8 parti)', deckLbl: 'Deste', red: 'Kırmızı', black: 'Siyah', start: 'Başla', resume: 'Kaldığın yerden devam et',
+    cons: { koz: 'Koz', el: 'El almaz', kupa: 'Kupa almaz', erkek: 'Erkek almaz', kiz: 'Kız almaz', rifki: 'Rıfkı', son: 'Son iki' },
+    conHelp: { koz: 'Kozu sen seçersin, her el +50', el: 'Her el −50', kupa: 'Her kupa −30', erkek: 'Her papaz ve vale −60', kiz: 'Her kız −100', rifki: 'Kupa papazı −320', son: 'Son iki elin her biri −180' },
+    rulesTitle: 'Nasıl oynanır?', rulesSub: 'Dört kişi oynanır, herkese 13 kart dağıtılır, as en büyük karttır.', ok: 'Tamam',
+    ruleList: [
+      ['🎯', 'Her elde sıradaki oyuncu <b>partiyi seçer</b> ve ilk kartı o açar. Tam oyunda herkes 2 koz ve 3 ceza seçer (20 parti), kısa oyunda 1 koz ve 1 ceza (8 parti). Her ceza oyunda en çok 2 kez oynanır.'],
+      ['✋', '<b>El almaz:</b> aldığın her el −50.'],
+      ['♥️', '<b>Kupa almaz:</b> aldığın her kupa −30. Kupa atılmadan kupayla el açılamaz.'],
+      ['🤴', '<b>Erkek almaz:</b> aldığın her papaz ve vale −60.'],
+      ['👸', '<b>Kız almaz:</b> aldığın her kız −100.'],
+      ['💔', '<b>Rıfkı:</b> kupa papazını alan −320. Kupa atılmadan kupayla el açılamaz.'],
+      ['⏬', '<b>Son iki:</b> son iki elin her birini alan −180.'],
+      ['👑', '<b>Koz:</b> seçen kozu belirler, aldığın her el +50. Koz atılmadan kozla el açılamaz.'],
+      ['👆', 'Yerdeki renkten varsa <b>onu atmak zorundasın</b>. Yoksa koz partisinde <b>koz</b>, cezada <b>cezalı kartı</b> (kupa, papaz, vale, kız ya da rıfkı) atmak zorundasın.'],
+      ['🔨', 'Erkek almaz, kız almaz ve rıfkıda yerde daha büyüğü varken o renkteki cezalı kartını <b>basmak zorundasın</b>.'],
+      ['🏅', 'Eli en büyük koz, koz yoksa açılan renkten en büyük kart alır. Cezalı kartların hepsi alınınca parti erken biter.'],
+      ['🏆', 'Partiler bitince en çok puanı olan kazanır.']
+    ],
+    suit: ['Maça', 'Kupa', 'Karo', 'Sinek'], trump: 'Koz',
+    turnYou: 'Sıra sende', turnOf: (p) => `Sıra: ${STR.tr.names[p]}`, hintThink: 'Düşünüyor...', hintDeal: 'Kartlar dağıtılıyor...', hintChooseWait: 'Parti seçiliyor...',
+    hintChoose: 'Oynanacak partiyi seç', hintTrump: 'Kozu seç', hintLead: 'İlk kartı sen açıyorsun', hintPlay: 'Bir kart at',
+    pickCon: 'Ne oynanacak?', left: (n) => `${n} kaldı`, mine: (k, c) => `Senin hakkın: koz ${k}, ceza ${c}`, pickTrump: 'Kozu seç',
+    whyNot: { leadKoz: 'Koz henüz atılmadı, başka renk aç', leadKupa: 'Kupa henüz atılmadı, başka renk aç', follow: 'Yerdeki renkten atmalısın', press: 'Cezalı kartını basmalısın', trump: 'O renk yok, koz atmalısın', dump: 'O renk yok, cezalı kartı atmalısın' },
+    chose: (p, s) => (p === 0 ? `Seçimin: ${s}` : `${STR.tr.names[p]}: ${s}`), trumpIs: (s) => `Koz ${STR.tr.suit[s].toLowerCase()}`,
+    brokenKoz: 'Koz atıldı!', brokenKupa: 'Kupa atıldı!', took: (p) => (p === 0 ? 'Eli aldın' : `Eli ${STR.tr.names[p]} aldı`), early: 'Cezalar bitti',
+    handOver: (n, t) => `${n}/${t}. parti bitti`, cols: ['', 'Aldı', 'Bu parti', 'Toplam'], nextHand: 'Sonraki parti', seeResult: 'Sonucu gör', progress: (h, t) => `${h}/${t}. parti`,
+    youWin: 'Kazandın!', draw: 'Berabere!', wins: (ps) => `${ps.map((p) => STR.tr.names[p]).join(' ve ')} kazandı`,
+    winSub: (h) => `${h} parti sonunda en yüksek puan`, again2: 'Tekrar oyna', toMenu: 'Ayarları değiştir', scoreAria: (names, sc) => 'Puanlar: ' + sc.map((v, i) => `${names[i]} ${v}`).join(', '),
+    cardName: (c) => `${STR.tr.suit[suitOf(c)]} ${['As', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Vale', 'Kız', 'Papaz'][c % 13]}`
+  },
+  en: {
+    title: 'King | Ridsgames', game: 'King', homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langAria: 'Change language',
+    rights: 'All rights reserved.', stage: 'Table', names: ['You', 'Whale', 'Frog', 'Chick'],
+    setupSub: 'Take turns choosing the contract: dodge penalties, take tricks in trumps.', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
+    lenLbl: 'Game length', full: 'Full (20 deals)', short: 'Short (8 deals)', deckLbl: 'Deck', red: 'Red', black: 'Black', start: 'Start', resume: 'Continue where you left off',
+    cons: { koz: 'Trumps', el: 'No tricks', kupa: 'No hearts', erkek: 'No kings/jacks', kiz: 'No queens', rifki: 'King of hearts', son: 'Last two' },
+    conHelp: { koz: 'You pick trumps, +50 a trick', el: '−50 a trick', kupa: '−30 a heart', erkek: '−60 a king or jack', kiz: '−100 a queen', rifki: 'King of hearts −320', son: 'Each of the last two tricks −180' },
+    rulesTitle: 'How to play', rulesSub: 'Four players, 13 cards each, the ace is the highest card.', ok: 'OK',
+    ruleList: [
+      ['🎯', 'Each deal the next player <b>chooses the contract</b> and leads first. In a full game everyone picks 2 trump and 3 penalty contracts (20 deals); in a short game 1 of each (8 deals). Each penalty can be played at most twice.'],
+      ['✋', '<b>No tricks:</b> −50 for each trick you take.'],
+      ['♥️', '<b>No hearts:</b> −30 for each heart. You cannot lead hearts until one has been played.'],
+      ['🤴', '<b>No kings/jacks:</b> −60 for each king or jack.'],
+      ['👸', '<b>No queens:</b> −100 for each queen.'],
+      ['💔', '<b>King of hearts:</b> −320 for whoever takes it. You cannot lead hearts until one has been played.'],
+      ['⏬', '<b>Last two:</b> −180 for each of the last two tricks.'],
+      ['👑', '<b>Trumps:</b> the chooser names trumps, +50 for each trick. You cannot lead trumps until one has been played.'],
+      ['👆', 'You must <b>follow suit</b>. If you cannot, you must play a <b>trump</b> in trumps, or a <b>penalty card</b> (heart, king, jack, queen or the king of hearts) in a penalty deal.'],
+      ['🔨', 'In kings/jacks, queens and king of hearts, if a higher card of the suit is already down you <b>must play</b> your penalty card of that suit.'],
+      ['🏅', 'The highest trump wins, otherwise the highest card of the suit led. A penalty deal ends early once all its penalty cards are taken.'],
+      ['🏆', 'After the last deal the highest score wins.']
+    ],
+    suit: ['Spades', 'Hearts', 'Diamonds', 'Clubs'], trump: 'Trumps',
+    turnYou: 'Your turn', turnOf: (p) => `${STR.en.names[p]}'s turn`, hintThink: 'Thinking...', hintDeal: 'Dealing...', hintChooseWait: 'Choosing the contract...',
+    hintChoose: 'Choose the contract', hintTrump: 'Pick trumps', hintLead: 'You lead', hintPlay: 'Play a card',
+    pickCon: 'What will you play?', left: (n) => `${n} left`, mine: (k, c) => `Yours: trumps ${k}, penalties ${c}`, pickTrump: 'Pick trumps',
+    whyNot: { leadKoz: 'No trump played yet, lead another suit', leadKupa: 'No heart played yet, lead another suit', follow: 'You must follow suit', press: 'You must play your penalty card', trump: 'You cannot follow, play a trump', dump: 'You cannot follow, play a penalty card' },
+    chose: (p, s) => (p === 0 ? `You chose: ${s}` : `${STR.en.names[p]}: ${s}`), trumpIs: (s) => `${STR.en.suit[s]} are trumps`,
+    brokenKoz: 'Trumps played!', brokenKupa: 'Hearts played!', took: (p) => (p === 0 ? 'You took the trick' : `${STR.en.names[p]} took the trick`), early: 'All penalties taken',
+    handOver: (n, t) => `Deal ${n}/${t} over`, cols: ['', 'Tricks', 'This deal', 'Total'], nextHand: 'Next deal', seeResult: 'See the result', progress: (h, t) => `Deal ${h}/${t}`,
+    youWin: 'You won!', draw: 'Draw!', wins: (ps) => `${ps.map((p) => STR.en.names[p]).join(' and ')} won`,
+    winSub: (h) => `Highest score after ${h} deals`, again2: 'Play again', toMenu: 'Change settings', scoreAria: (names, sc) => 'Scores: ' + sc.map((v, i) => `${names[i]} ${v}`).join(', '),
+    cardName: (c) => `${['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'][c % 13]} of ${STR.en.suit[suitOf(c)].toLowerCase()}`
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Durum ----------
+// G: { level, len: parti sayısı, scores, handNo, first: ilk seçen, kz/cz: oyuncuların seçtiği koz/ceza sayısı, cnt: cezaların oynanma sayısı, h, over }
+// h: { deck, hands, kitty, buried, phase: deal|choose|play|done, chooser, bidder (-1), con, turn, trump, broken, trick, leader, taken, pts, won, played, voids, idx, res, mid }
+let G = null, setup = { level: 'mid', len: '20', deck: 'red' };
+let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false;
+try { const s = JSON.parse(localStorage.getItem('rids_king_setup')); if (s) setup = { ...setup, ...s }; } catch (e) {}
+try { soundOn = localStorage.getItem('rids_king_sound') !== '0'; } catch (e) {}
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'king/' + olay, title: 'King: ' + ad, event: true }); } catch (e) {} };
+const lvAd = (lv) => (lv === 'easy' ? 'kolay' : lv === 'mid' ? 'orta' : 'zor');
+const avaPos = (i) => `${i * 100 / 3}% 0`;
+const TURNCOL = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
+const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
+const isTeam = () => false;
+const LIM = (len) => (len >= 20 ? { koz: 2, ceza: 3 } : { koz: 1, ceza: 1 });
+// p oyuncusunun seçebileceği partiler
+function availFor(p) {
+  const lim = LIM(G.len);
+  return CONS.filter((c) => (c === 'koz' ? G.kz[p] < lim.koz : G.cz[p] < lim.ceza && G.cnt[c] < 2));
+}
+const CONICO = { el: '✋', kupa: '♥', erkek: '♚', kiz: '♛', rifki: '♥K', son: '⏬' };
+
+// ---------- Kartlar (DOM) ----------
+const stage = $('stage'), els = [];
+// Kart yüzleri: Adrian Kennard'ın geleneksel İngiliz desenli kartları (CC0); ayrıntı: ../assets/kart/LISANS.txt
+const SUITC = 'SHDC', RANK = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const cardSvg = (c) => `<img src="../assets/kart/${SUITC[suitOf(c)]}${RANK[c % 13]}.svg" alt="" draggable="false" decoding="async">`;
+function backSvg(ink) { // klasik iskambil sırtı: tek renk kafes, ortada Ridsgames R'si ile rozet
+  const R = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z', W = '#fffdf8';
+  const rot = (n, f) => Array.from({ length: n }, (_, i) => f(i * 360 / n)).join('');
+  const rosette = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${W}"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rot(8, (a) => `<ellipse cx="${x}" cy="${y - r * .5}" rx="${r * .2}" ry="${r * .42}" fill="${ink}" transform="rotate(${a} ${x} ${y})"/>`) + `<circle cx="${x}" cy="${y}" r="${r * .2}" fill="${W}" stroke="${ink}" stroke-width="1.4"/>`;
+  const diamond = (y) => `<path d="M125 ${y - 22}l15 22-15 22-15-22z" fill="${W}" stroke="${ink}" stroke-width="2.2"/><path d="M125 ${y - 12}l8 12-8 12-8-12z" fill="${ink}"/><circle cx="125" cy="${y}" r="2" fill="${W}"/>`;
+  const C = [125, 175];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" preserveAspectRatio="none"><defs>`
+    + `<pattern id="k" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 175)"><rect width="13" height="13" fill="${W}"/><path d="M0 0H13M0 0V13" stroke="${ink}" stroke-width="2.4"/><circle cx="6.5" cy="6.5" r="1.5" fill="${ink}"/></pattern></defs>`
+    + `<rect width="250" height="350" fill="${W}"/>`
+    + `<rect x="13" y="13" width="224" height="324" rx="9" fill="${ink}"/>`
+    + `<rect x="22" y="22" width="206" height="306" rx="5" fill="none" stroke="${W}" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0 6.2"/>`
+    + `<rect x="30" y="30" width="190" height="290" fill="url(#k)" stroke="${W}" stroke-width="1.5"/>`
+    + `<rect x="34" y="34" width="182" height="282" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rosette(50, 50, 13) + rosette(200, 50, 13) + rosette(50, 300, 13) + rosette(200, 300, 13)
+    + diamond(72) + diamond(278)
+    // orta rozet: taç yaprakları, iki halka, içinde logodaki köşeli R
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="82" fill="${W}"/><circle cx="${C[0]}" cy="${C[1]}" r="79" fill="none" stroke="${ink}" stroke-width="2.6"/>`
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="74" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0 5.8"/>`
+    + rot(16, (a) => `<path d="M125 105c11 7 11 19 0 24-11-5-11-17 0-24z" fill="${ink}" transform="rotate(${a} 125 175)"/><path d="M125 111c5 4 5 10 0 13-5-3-5-9 0-13z" fill="${W}" transform="rotate(${a} 125 175)"/>`)
+    + rot(16, (a) => `<circle cx="125" cy="109" r="2.6" fill="${ink}" transform="rotate(${a + 11.25} 125 175)"/>`)
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="45" fill="${ink}"/><circle cx="${C[0]}" cy="${C[1]}" r="40" fill="none" stroke="${W}" stroke-width="1.4"/>`
+    + rot(24, (a) => `<path d="M125 136.5v3" stroke="${W}" stroke-width="1.6" transform="rotate(${a} 125 175)"/>`)
+    + `<path transform="translate(111.4 154.6) scale(.68)" d="${R}" fill="${W}"/></svg>`;
+}
+const DECKS = { red: '#b3141b', black: '#1d1f26' };
+for (const k in DECKS) document.documentElement.style.setProperty('--back-' + k, `url("data:image/svg+xml,${encodeURIComponent(backSvg(DECKS[k]))}")`);
+const applyDeck = () => stage.style.setProperty('--back', `var(--back-${DECKS[setup.deck] ? setup.deck : 'red'})`);
+function makeCard(c) {
+  const el = document.createElement('div');
+  el.className = 'card'; el.dataset.c = c;
+  el.innerHTML = `<div class="in"><div class="face front">${cardSvg(c)}</div><div class="face back"></div></div>`;
+  el.addEventListener('pointerdown', (e) => dragStart(e, c)); el.addEventListener('pointermove', dragMove); el.addEventListener('pointerup', dragEnd); el.addEventListener('pointercancel', dragEnd);
+  stage.appendChild(el); return el;
+}
+for (let c = 0; c < 52; c++) els[c] = makeCard(c);
+
+// Yerleşim: sen altta, sonra saat yönünde sol (1), üst (2), sağ (3)
+let L = null;
+function layout() {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const cw = Math.floor(Math.max(34, Math.min(W / 4.9, H / 3.6 / 1.4, 112))), ch = Math.round(cw * 1.4);
+  const os = 0.6, och = ch * os, ocw = cw * os;
+  const topVis = och * 0.5, topSeatY = topVis + 24;
+  const handY = H - ch / 2 - Math.max(4, ch * 0.05), handTop = handY - ch / 2;
+  const upper = topSeatY + 26, midY = Math.round((upper + handTop - 8) / 2);
+  L = { W, H, cw, ch, os, och, ocw, handY, topY: topVis - och / 2, topSeatY, midY, cx: W / 2, sideX: och * 0.55 - och / 2, sideSeatX: och * 0.55 + 24, bandTop: upper, bandBot: handTop - 6 };
+  const tx = Math.min(cw * 0.7, (W / 2 - L.sideSeatX - 30 - cw / 2)), ty = Math.min(ch * 0.3, (handTop - midY - ch / 2 - 4));
+  L.tp = [[L.cx, midY + Math.max(ch * 0.16, ty)], [L.cx - Math.max(cw * 0.55, tx), midY], [L.cx, midY - Math.max(ch * 0.16, ty)], [L.cx + Math.max(cw * 0.55, tx), midY]];
+  stage.style.setProperty('--cw', cw + 'px'); stage.style.setProperty('--ch', ch + 'px');
+  $('pop').style.fontSize = Math.round(Math.max(28, Math.min(52, cw * 0.48))) + 'px';
+  render(0);
+}
+const hash = (c, k) => { const x = Math.sin(c * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+function put(c, x, y, rot, sc, up, z, dur) {
+  const el = els[c];
+  el.style.transitionDuration = (dur / speed) + 'ms';
+  el.style.transform = `translate(${x - L.cw / 2}px, ${y - L.ch / 2}px) rotate(${rot}deg) scale(${sc})`;
+  el.style.zIndex = z; el.classList.toggle('up', !!up);
+}
+const tbl = (h) => ({ trick: h.trick, con: h.con, trump: h.trump, broken: h.broken });
+const sortKey = (c, tr) => { const s = suitOf(c), order = tr >= 0 ? [tr, ...[0, 1, 3, 2].filter((x) => x !== tr)] : [0, 1, 3, 2]; return order.indexOf(s) * 20 + (14 - rk(c)); };
+const sortMine = () => { const h = G.h; h.hands[0].sort((a, b) => sortKey(a, h.trump) - sortKey(b, h.trump)); };
+const wonSpot = (p) => (p === 0 ? [L.W - L.ocw * 0.8, L.handY - L.ch * 0.5 - L.och * 0.4] : p === 2 ? [L.cx + L.ocw * 2.6, L.topSeatY] : [p === 1 ? L.sideSeatX + 4 : L.W - L.sideSeatX - 4, L.midY + 64]);
+let hotCard = -1;
+function render(dur = 360) {
+  if (!L) return;
+  const h = G && G.h;
+  if (!h) { for (let c = 0; c < 52; c++) { put(c, L.cx - Math.min(c, 24) * 0.18, L.midY - Math.min(c, 24) * 0.18, 0, 1, false, c + 1, 0); els[c].className = 'card flat'; } ui(); return; }
+  const flat = new Set(), mine = h.hands[0], play = canPlay(), legal = play ? legalCards(mine, tbl(h)) : [], gone = new Set();
+  h.deck.forEach((c, i) => { put(c, L.cx - Math.min(i, 24) * 0.18, L.midY - Math.min(i, 24) * 0.18, 0, 1, false, i + 1, dur); if (i < h.deck.length - 2) flat.add(c); });
+  h.kitty.forEach((c, i) => put(c, L.cx + (i - 1.5) * L.cw * 0.34, L.midY, (i - 1.5) * 5, 0.85, false, 60 + i, dur));
+  // senin elin: sığmazsa iki sıra
+  const k = mine.length, maxW = L.W - 10 - L.cw, two = k > 1 && maxW / (k - 1) < L.cw * 0.3, backN = two ? Math.ceil(k / 2) : 0;
+  L.myTop = L.handY - L.ch / 2 - (two ? L.ch * 0.42 : 0);
+  mine.forEach((c, i) => {
+    const row = i < backN ? 0 : 1, m = two ? (row ? k - backN : backN) : k, ii = two && row ? i - backN : i;
+    const sp = Math.min(L.cw * 0.62, maxW / Math.max(1, m - 1)), off = ii - (m - 1) / 2;
+    put(c, L.cx + off * sp, L.handY - (two && !row ? L.ch * 0.42 : 0), off * Math.min(1.4, 12 / m), 1, true, c === hotCard ? 399 : 300 + i, dur);
+  });
+  for (let p = 1; p < 4; p++) {
+    const hand = h.hands[p], m = hand.length;
+    hand.forEach((c, i) => {
+      const off = i - (m - 1) / 2;
+      if (p === 2) { const sp = Math.min(L.ocw * 0.36, (L.W * 0.5 - L.ocw) / Math.max(1, m - 1)); put(c, L.cx + off * sp, L.topY, -off * 1, L.os, false, 200 + i, dur); }
+      else {
+        const sp = Math.min(L.ocw * 0.3, (L.bandBot - L.bandTop - L.ocw) / Math.max(1, m - 1)), x = p === 1 ? L.sideX : L.W - L.sideX;
+        put(c, x, L.midY + off * sp * (p === 1 ? 1 : -1), p === 1 ? 90 : -90, L.os, false, 200 + i, dur);
+      }
+    });
+  }
+  h.trick.forEach((x, i) => { const [tx, ty] = L.tp[x.p]; put(x.c, tx + (hash(x.c, 1) - 0.5) * 6, ty + (hash(x.c, 2) - 0.5) * 6, (hash(x.c, 3) - 0.5) * 14, 1, true, 500 + i, dur); });
+  for (let p = 0; p < 4; p++) {
+    const [wx, wy] = wonSpot(p), pile = h.won[p];
+    pile.forEach((c, i) => { put(c, wx + Math.min(i, 12) * 0.25, wy - Math.min(i, 12) * 0.25, p === 1 || p === 3 ? 90 : 0, 0.34, false, 40 + i, dur); if (i < pile.length - 2) flat.add(c); });
+  }
+  if (h.bidder >= 0) { const [wx, wy] = wonSpot(h.bidder); h.buried.forEach((c, i) => { put(c, wx - L.cw * 0.42, wy + i * 0.3, 12, 0.34, false, 30 + i, dur); if (i) flat.add(c); }); }
+  for (let c = 0; c < 52; c++) {
+    const el = els[c], my = mine.includes(c), ok = play && legal.includes(c);
+    el.classList.toggle('flat', flat.has(c)); el.classList.toggle('play', ok);
+    el.classList.toggle('dim', play && my && !ok); el.classList.toggle('hot', ok && hotCard === c); el.classList.toggle('gone', gone.has(c));
+  }
+  ui();
+}
+function ui() { // koltuklar, koz işareti, seçim pencerelerinin yeri
+  const h = G && G.h, t = T();
+  for (let p = 0; p < 4; p++) {
+    const s = $('seat' + p);
+    let x, y;
+    if (p === 0) { x = 6; y = (L.myTop || L.handY - L.ch / 2) - 16; }
+    else if (p === 2) { x = L.cx; y = L.topSeatY; }
+    else { x = p === 1 ? L.sideSeatX : L.W - L.sideSeatX; y = L.midY; }
+    s.style.left = x + 'px'; s.style.top = y + 'px'; s.style.setProperty('--c', TURNCOL[p]);
+    s.querySelector('.ava').style.backgroundPosition = avaPos(p);
+    s.classList.toggle('on', !!(h && h.phase !== 'done' && h.turn === p && !(G.over)));
+    const b = s.querySelector('b'); let txt = t.names[p], cls = '';
+    if (h && (h.phase === 'play' || h.phase === 'done')) { const v = h.pts[p]; txt += ' · ' + (v > 0 ? '+' + v : v); cls = v > 0 ? 'ok' : v < 0 ? 'neg' : ''; }
+    if (h && p === h.chooser && h.phase !== 'deal') txt = '👑 ' + txt;
+    b.textContent = txt; b.className = cls;
+    s.hidden = p === 0 && !h;
+  }
+  const tb = $('trumpB'), on = h && h.con && (h.phase === 'play' || h.phase === 'done'), ic = tb.querySelector('i');
+  tb.classList.toggle('off', !on);
+  if (on) {
+    if (h.con === 'koz') { ic.textContent = SUITCH[h.trump]; ic.style.color = SUITCOL[h.trump]; ic.className = ''; $('trumpLbl').textContent = t.trump; }
+    else { ic.textContent = CONICO[h.con]; ic.style.color = ''; ic.className = 'txt'; $('trumpLbl').textContent = t.cons[h.con]; }
+  }
+  tb.style.left = Math.max(34, L.sideSeatX - 4) + 'px'; tb.style.top = Math.max(30, L.topSeatY - 8) + 'px';
+  for (const id of ['conPick', 'suitPick']) { const e = $(id); e.style.left = L.cx + 'px'; e.style.top = L.midY + 'px'; }
+}
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), gn = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(delay, vol, freq, len, type = 'bandpass') { // kartın kumaşa sürtünmesi
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, buf = c.createBuffer(1, Math.max(1, c.sampleRate * len), c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), gn = c.createGain();
+    f.type = type; f.frequency.value = freq; f.Q.value = .8; gn.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(gn).connect(c.destination); s.start(t);
+  }
+  return {
+    unlock: ctx,
+    deal() { noise(0, 0.25, 3200, 0.05); },
+    play() { noise(0, 0.35, 2400, 0.07); noise(0.03, 0.2, 900, 0.04); },
+    take(n) { for (let i = 0; i < Math.min(5, n); i++) noise(i * 0.035, 0.22, 2000 + i * 200, 0.06); },
+    bid() { tone(660, 880, 0.12, 0.08, 'triangle'); },
+    pass() { tone(330, 300, 0.1, 0.05, 'triangle'); },
+    won() { [587, 784, 988].forEach((f, k) => tone(f, f, 0.14, 0.1, 'triangle', k * 0.08)); },
+    trump() { tone(392, 784, 0.18, 0.09, 'square'); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); },
+    lose() { [440, 370, 311, 262].forEach((f, k) => tone(f, f * .98, 0.24, 0.1, 'triangle', k * 0.16)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Oyun akışı ----------
+let msgT = null;
+function say(s, gold) {
+  const el = $('msg'); el.textContent = s; el.classList.add('on'); el.classList.toggle('gold', !!gold);
+  clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2600);
+}
+function popText(s, x, y) { const p = $('pop'); p.textContent = s; p.style.left = (x ?? L.cx) + 'px'; p.style.top = (y ?? L.midY) + 'px'; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go'); }
+function save() { try { if (G && !G.over && !(G.h && G.h.mid)) localStorage.setItem('rids_king_game', JSON.stringify(G)); } catch (e) {} }
+function loadSaved() {
+  try {
+    const s = JSON.parse(localStorage.getItem('rids_king_game')); if (!s || !s.h || !Array.isArray(s.scores) || !s.cnt) return null;
+    const h = s.h, all = [...h.deck, ...h.hands.flat(), ...h.won.flat(), ...h.trick.map((x) => x.c)];
+    if (h.hands.length !== 4 || all.length !== 52 || new Set(all).size !== 52) return null;
+    h.mid = false; h.kitty = []; h.buried = []; h.bidder = -1; return s;
+  } catch (e) { return null; }
+}
+const noOv = () => $('setupOv').hidden && $('rulesOv').hidden && $('handOv').hidden && $('winOv').hidden;
+const canPlay = () => G && G.h && !G.over && !busy && G.h.phase === 'play' && G.h.turn === 0 && noOv();
+function hint() {
+  const t = T(), h = G.h;
+  if (!h || h.phase === 'done') return '';
+  if (h.phase === 'deal') return t.hintDeal;
+  if (h.turn !== 0) return h.phase === 'choose' ? t.hintChooseWait : t.hintThink;
+  if (h.phase === 'choose') return $('suitPick').hidden ? t.hintChoose : t.hintTrump;
+  return h.trick.length ? t.hintPlay : t.hintLead;
+}
+function updateDock(hn) {
+  const t = T(), h = G && G.h, p = h ? h.turn : 0;
+  $('dock').style.setProperty('--turn', TURNCOL[p]);
+  const chip = $('chip'); if (chip.dataset.p !== String(p)) { chip.dataset.p = p; chip.style.backgroundPosition = avaPos(p); chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
+  $('turnName').textContent = p === 0 ? t.turnYou : t.turnOf(p);
+  $('turnMsg').textContent = hn == null ? (G ? hint() : '') : hn;
+  const sk = $('skor'), sc = G ? G.scores : [0, 0, 0, 0], best = Math.max(...sc), lead = G && G.handNo > 1;
+  sk.classList.add('g4');
+  sk.innerHTML = sc.map((v, i) => `<div class="${lead && v === best ? 'w' : ''}"><span class="ava" style="background-position:${avaPos(i)}"></span><span>${v}</span></div>`).join('') + `<div id="hedef" class="full">${G ? t.progress(Math.max(1, G.handNo), G.len) : ''}</div>`;
+  sk.setAttribute('aria-label', t.scoreAria(t.names, sc));
+}
+const nextP = (p) => (p + 1) % 4;
+const conName = (h) => (h.con === 'koz' ? `${T().cons.koz}: ${T().suit[h.trump]}` : T().cons[h.con]);
+async function startHand() {
+  const my = epoch;
+  G.handNo++;
+  const chooser = (G.first + G.handNo - 1) % 4;
+  G.h = { deck: shuffled(), hands: [[], [], [], []], kitty: [], buried: [], phase: 'deal', chooser, bidder: -1, con: null,
+    turn: chooser, trump: -1, broken: false, trick: [], leader: chooser, taken: [0, 0, 0, 0], pts: [0, 0, 0, 0], won: [[], [], [], []], played: [],
+    voids: [0, 1, 2, 3].map(() => [false, false, false, false]), idx: 0, res: null, mid: true };
+  const h = G.h; busy = true; hotCard = -1; render(0); updateDock();
+  await wait(250); if (my !== epoch) return;
+  for (let k = 0; k < 52; k++) {
+    const p = (chooser + k) % 4; h.hands[p].push(h.deck.pop()); if (p === 0) sortMine();
+    if (k % 2 === 0) Sfx.deal(); render(260); await wait(30); if (my !== epoch) return;
+  }
+  h.phase = 'choose'; h.mid = false;
+  save(); nextAction();
+}
+async function nextAction() {
+  const my = epoch, h = G.h; if (!h || G.over) return;
+  if (h.phase === 'done') { if (h.res) return showHand(); return; }
+  render(); updateDock();
+  if (h.phase === 'choose') return chooseTurn(my);
+  if (h.turn !== 0) { busy = true; await wait(h.trick.length ? 620 : 760); if (my !== epoch) return; return playCard(h.turn, cpuPlay(stFor(h.turn), G.level)); }
+  busy = false; render(); updateDock();
+}
+const stFor = (p) => { const h = G.h; return { ...tbl(h), hand: h.hands[p], me: p, chooser: h.chooser, idx: h.idx, played: h.played, voids: h.voids }; };
+
+// Parti seçimi
+let conRes = null, suitRes = null;
+async function chooseTurn(my) {
+  const h = G.h, t = T(), p = h.chooser, av = availFor(p);
+  let con, trump = -1;
+  if (p === 0) {
+    busy = false;
+    for (;;) {
+      con = await askCon(av); if (my !== epoch) return;
+      if (con !== 'koz') break;
+      $('spT').textContent = t.pickTrump; $('suitPick').hidden = false; updateDock(); $('suitPick').querySelector('button').focus();
+      trump = await new Promise((res) => { suitRes = (v) => { suitRes = null; $('suitPick').hidden = true; res(v); }; });
+      if (my !== epoch) return;
+      if (trump >= 0) break;
+    }
+    busy = true;
+  } else {
+    busy = true; await wait(900); if (my !== epoch) return;
+    ({ con, trump } = cpuChoose(h.hands[p], av, G.level));
+  }
+  h.con = con; h.trump = con === 'koz' ? trump : -1; h.mid = true;
+  if (con === 'koz') G.kz[p]++; else { G.cz[p]++; G.cnt[con]++; }
+  const name = conName(h);
+  say(t.chose(p, name), true); popText(con === 'koz' ? SUITCH[trump] : CONICO[con], L.tp[p][0], L.tp[p][1]); Sfx.won();
+  sortMine(); render(300); await wait(900); if (my !== epoch) return;
+  h.phase = 'play'; h.leader = h.turn = p; h.mid = false; save(); nextAction();
+}
+function askCon(av) {
+  const t = T(), lim = LIM(G.len);
+  $('cpT').textContent = t.pickCon; $('cpS').textContent = t.mine(lim.koz - G.kz[0], lim.ceza - G.cz[0]);
+  $('cpB').innerHTML = CONS.map((c) => {
+    const n = c === 'koz' ? lim.koz - G.kz[0] : Math.min(2 - G.cnt[c], lim.ceza - G.cz[0]);
+    return `<button type="button" data-k="${c}"${av.includes(c) ? '' : ' disabled'}><i>${c === 'koz' ? '♠♥' : CONICO[c]}</i><b>${t.cons[c]}</b><small>${t.conHelp[c]}</small><em>${c === 'koz' ? '' : t.left(Math.max(0, 2 - G.cnt[c]))}</em></button>`;
+  }).join('');
+  $('conPick').hidden = false; updateDock();
+  return new Promise((res) => { conRes = (v) => { conRes = null; $('conPick').hidden = true; res(v); }; });
+}
+
+// Oyun
+async function playCard(p, c) {
+  const my = epoch, h = G.h, t = T();
+  busy = true; hotCard = -1; h.mid = true;
+  if (h.trick.length) { const L0 = suitOf(h.trick[0].c); if (suitOf(c) !== L0) { h.voids[p][L0] = true; if (h.con === 'koz' && suitOf(c) !== h.trump) h.voids[p][h.trump] = true; } }
+  h.hands[p].splice(h.hands[p].indexOf(c), 1); h.trick.push({ p, c });
+  const b = blockedSuit(tbl(h)), brk = !h.broken && b >= 0 && suitOf(c) === b; if (brk) h.broken = true;
+  Sfx.play(); render(320); updateDock('');
+  if (brk) { say(h.con === 'koz' ? t.brokenKoz : t.brokenKupa); Sfx.trump(); }
+  await wait(380); if (my !== epoch) return;
+  if (h.trick.length < 4) { h.turn = nextP(p); h.mid = false; save(); return nextAction(); }
+  const w = trickWinner(h.trick, h.con === 'koz' ? h.trump : -1), cards = h.trick.map((x) => x.c), pt = trickPts(h.con, cards, h.idx);
+  await wait(500); if (my !== epoch) return;
+  h.taken[w]++; h.pts[w] += pt; h.idx++; h.won[w].push(...cards); h.played.push(...cards); h.trick = [];
+  say(t.took(w)); Sfx.take(4);
+  if (pt) { popText((pt > 0 ? '+' : '') + pt, L.tp[w][0], L.tp[w][1]); if (w === 0) buzz(pt > 0 ? 25 : [30, 30, 30]); }
+  h.turn = h.leader = w; render(420); updateDock('');
+  await wait(520); if (my !== epoch) return;
+  const pc = penCards(h.con), over = pc.length && pc.every((x) => h.played.includes(x));
+  if (over && h.hands[0].length) say(t.early, true);
+  if (over || !h.hands[0].length) return endHand();
+  h.mid = false; save(); nextAction();
+}
+async function endHand() {
+  const my = epoch, h = G.h;
+  h.phase = 'done'; busy = true;
+  h.res = h.pts.slice();
+  h.res.forEach((v, i) => { G.scores[i] += v; });
+  if (h.res[0] > 0 || (h.con !== 'koz' && h.res[0] === 0)) Sfx.win(); else if (h.res[0] < 0) Sfx.lose();
+  h.mid = false; save(); render(300); updateDock('');
+  await wait(1000); if (my !== epoch) return;
+  showHand();
+}
+const lastHand = () => G.handNo >= G.len;
+function showHand() {
+  const t = T(), h = G.h;
+  $('handTitle').textContent = t.handOver(G.handNo, G.len);
+  $('handSub').textContent = `${t.names[h.chooser]} · ${conName(h)}`;
+  const best = Math.max(...G.scores);
+  $('sumTable').innerHTML = `<thead><tr>${t.cols.map((c) => `<th>${c}</th>`).join('')}</tr></thead><tbody>`
+    + [0, 1, 2, 3].map((i) => `<tr class="${G.scores[i] === best ? 'win' : ''}"><td class="nm"><i class="ava" style="background-position:${avaPos(i)}"></i>${t.names[i]}</td><td>${h.taken[i]}</td><td class="${h.res[i] < 0 ? 'neg' : h.res[i] ? '' : 'z'}">${h.res[i] > 0 ? '+' + h.res[i] : h.res[i]}</td><td>${G.scores[i]}</td></tr>`).join('') + '</tbody>';
+  $('nextBtn').textContent = lastHand() ? t.seeResult : t.nextHand;
+  $('handOv').hidden = false; $('nextBtn').focus();
+}
+function afterHand() {
+  $('handOv').hidden = true;
+  if (lastHand()) return finish();
+  G.h = null; epoch++; startHand();
+}
+function winners() { const m = Math.max(...G.scores); return G.scores.map((s, i) => (s === m ? i : -1)).filter((i) => i >= 0); }
+function winText(ws) { const t = T(); return ws.length === 1 && ws[0] === 0 ? t.youWin : ws.includes(0) ? t.draw : t.wins(ws); }
+function finish() {
+  const t = T(), ws = winners(), win = ws.length === 1 && ws[0] === 0, draw = ws.includes(0) && !win;
+  G.over = true; busy = true; try { localStorage.removeItem('rids_king_game'); } catch (e) {}
+  sayac('bitti', 'oyun bitti'); bitenVar = true;
+  const k = win ? 'insan' : draw ? 'berabere' : 'bilgisayar';
+  sayac(`sonuc/${k}-${lvAd(G.level)}`, `sonuç: ${k === 'berabere' ? 'berabere' : k + ' kazandı'} (${lvAd(G.level)})`);
+  $('trophy').textContent = draw ? '🤝' : win ? '🏆' : '🃏';
+  $('winTitle').textContent = winText(ws);
+  $('winSub').textContent = t.winSub(G.handNo);
+  $('final').innerHTML = G.scores.map((v, p) => `<span class="${ws.includes(p) ? 'win' : ''}"><i class="ava" style="background-position:${avaPos(p)}"></i>${v}</span>`).join('');
+  $('final').style.fontSize = '20px'; $('final').style.gap = '8px'; $('final').style.flexWrap = 'wrap';
+  if (win || draw) Sfx.win(); else Sfx.lose();
+  buzz([60, 60, 120]); if (win) confetti();
+  updateDock('');
+  $('winOv').hidden = false; $('againBtn').focus();
+}
+function newGame(level, len) {
+  epoch++; closeAll(); sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${len}-${lvAd(level)}`, `mod: ${len} parti, ${lvAd(level)}`);
+  G = { level, len, scores: [0, 0, 0, 0], handNo: 0, first: Math.floor(Math.random() * 4), kz: [0, 0, 0, 0], cz: [0, 0, 0, 0], cnt: { el: 0, kupa: 0, erkek: 0, kiz: 0, rifki: 0, son: 0 }, h: null, over: false };
+  layout(); applyLang(); startHand();
+}
+function resume() {
+  const s = loadSaved(); if (!s) return;
+  epoch++; closeAll(); G = s; G.over = false; busy = true; hotCard = -1;
+  if (G.h.phase === 'choose' && G.h.con) { G.h.con = null; } // seçim yarıda kaldıysa yeniden seçilir
+  layout(); applyLang(); nextAction();
+}
+function tapCard(c) {
+  if (!G || !G.h) return;
+  const h = G.h;
+  if (!canPlay() || !h.hands[0].includes(c)) return;
+  Sfx.unlock();
+  if (!legalCards(h.hands[0], tbl(h)).includes(c)) { const el = els[c]; el.classList.remove('no'); void el.offsetWidth; el.classList.add('no'); say(T().whyNot[whyNot(c, h.hands[0], tbl(h))]); return; }
+  // dokunmatikte ilk dokunuş kartı kaldırır, ikincisi atar; farede tek tık yeter
+  if (lastPointer !== 'mouse' && hotCard !== c) { hotCard = c; render(160); return; }
+  playCard(0, c);
+}
+let lastPointer = 'mouse';
+addEventListener('pointerdown', (e) => { lastPointer = e.pointerType; if (hotCard >= 0 && !e.target.closest('.card')) { hotCard = -1; render(160); } }, true);
+// Sürükle bırak: eldeki kartı tutup masaya çekince atılır; yerinde bırakılırsa dokunuş gibi sayılır
+let drag = null;
+const dragOk = (c) => canPlay() && G.h.hands[0].includes(c) && legalCards(G.h.hands[0], tbl(G.h)).includes(c);
+function dragStart(e, c) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  if (!dragOk(c)) return tapCard(c);
+  const r = els[c].getBoundingClientRect();
+  drag = { c, id: e.pointerId, x0: e.clientX, y0: e.clientY, ox: r.left + r.width / 2 - e.clientX, oy: r.top + r.height / 2 - e.clientY, moved: false };
+  try { els[c].setPointerCapture(e.pointerId); } catch (er) {}
+}
+function dragMove(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.moved) { if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 8) return; drag.moved = true; hotCard = -1; render(160); els[drag.c].classList.add('drag'); }
+  const s = stage.getBoundingClientRect();
+  put(drag.c, e.clientX + drag.ox - s.left, e.clientY + drag.oy - s.top, 0, 1.06, true, 900, 0);
+}
+function dragEnd(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag, s = stage.getBoundingClientRect(); drag = null;
+  els[d.c].classList.remove('drag');
+  if (!d.moved) { if (e.type === 'pointerup') tapCard(d.c); return; }
+  if (e.type === 'pointerup' && e.clientY - s.top < L.handY - L.ch * 0.62 && dragOk(d.c)) { Sfx.unlock(); hotCard = -1; return playCard(0, d.c); }
+  render(220);
+}
+function confetti() {
+  if (reduce) return;
+  const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
+  k.hidden = false; k.width = innerWidth * d; k.height = innerHeight * d;
+  const cols = ['#ef4444', '#22d3ee', '#ffd43b', '#ffffff', '#84cc16', '#8b5cf6', '#ff6fb5'];
+  const bits = Array.from({ length: 170 }, () => ({
+    x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160,
+    w: 6 + Math.random() * 6, h: 9 + Math.random() * 8, a: Math.random() * 6, va: (Math.random() - 0.5) * 10, col: cols[Math.floor(Math.random() * cols.length)]
+  }));
+  let last = performance.now(); const end = last + 4200;
+  (function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) {
+      b.vy = Math.min(b.vy + 220 * dt, 260); b.x += (b.vx + Math.sin(now / 300 + b.a) * 40) * dt; b.y += b.vy * dt; b.a += b.va * dt;
+      c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(Math.cos(b.a * 1.7), 1);
+      c.fillStyle = b.col; c.globalAlpha = Math.min(1, (end - now) / 600); c.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); c.restore();
+    }
+    if (now < end) requestAnimationFrame(tick); else { c.clearRect(0, 0, k.width, k.height); k.hidden = true; }
+  })(last);
+}
+
+// ---------- Pencereler ve dil ----------
+function closeAll() {
+  for (const id of ['setupOv', 'rulesOv', 'handOv', 'winOv']) $(id).hidden = true;
+  for (const id of ['conPick', 'suitPick']) $(id).hidden = true;
+  conRes = null; suitRes = null;
+}
+function renderSetup() {
+  const t = T();
+  $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub; $('lvlLbl').textContent = t.lvlLbl; $('lenLbl').textContent = t.lenLbl; $('deckLbl').textContent = t.deckLbl;
+  const lab = { easy: t.easy, mid: t.mid, hard: t.hard, 8: t.short, 20: t.full, red: `<i class="mini" style="--b:var(--back-red)"></i>${t.red}`, black: `<i class="mini" style="--b:var(--back-black)"></i>${t.black}` };
+  const cur = { lvlSeg: setup.level, lenSeg: String(setup.len), deckSeg: setup.deck };
+  for (const id in cur) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.innerHTML = lab[b.dataset.v]; b.setAttribute('aria-pressed', b.dataset.v === cur[id]); });
+  $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume; $('resumeBtn').hidden = !loadSaved();
+}
+function openSetup() {
+  save(); epoch++; busy = true; hotCard = -1;
+  closeAll(); renderSetup(); render(0); $('setupOv').hidden = false; $('startBtn').focus();
+}
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langAria);
+  $('rights').textContent = t.rights; $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again2; $('toMenuBtn').textContent = t.toMenu; stage.setAttribute('aria-label', t.stage); $('spT').textContent = t.pickTrump;
+  document.querySelectorAll('#suitPick button').forEach((b) => b.setAttribute('aria-label', t.suit[b.dataset.s]));
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  for (let c = 0; c < 52; c++) els[c].setAttribute('aria-label', t.cardName(c));
+  renderSetup(); updateDock(G && G.h && busy && G.h.turn === 0 ? '' : null); if (L) ui();
+  if (G && G.h && !$('conPick').hidden && conRes) { const r = conRes; conRes = null; askCon(availFor(0)).then(r); }
+  if (!$('handOv').hidden && G && G.h && G.h.res) showHand();
+  if (!$('winOv').hidden && G && G.over) { $('winTitle').textContent = winText(winners()); $('winSub').textContent = t.winSub(G.handNo); }
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+// ---------- Girdi ----------
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { if (!$('rulesOv').hidden) $('rulesOv').hidden = true; return; }
+  if (!$('suitPick').hidden && /^[1-4]$/.test(e.key) && suitRes) { suitRes(+e.key - 1); return; }
+  if (!$('suitPick').hidden && e.key === 'Escape' && suitRes) suitRes(-1);
+});
+$('suitPick').addEventListener('click', (e) => { const b = e.target.closest('button[data-s]'); if (b && suitRes) suitRes(+b.dataset.s); });
+$('cpB').addEventListener('click', (e) => { const b = e.target.closest('button[data-k]'); if (b && !b.disabled && conRes) { Sfx.unlock(); conRes(b.dataset.k); } });
+document.querySelectorAll('.seg').forEach((s) => s.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  if (s.id === 'lvlSeg') setup.level = b.dataset.v;
+  else if (s.id === 'deckSeg') { setup.deck = b.dataset.v; applyDeck(); try { localStorage.setItem('rids_king_setup', JSON.stringify(setup)); } catch (e) {} }
+  else setup.len = b.dataset.v;
+  renderSetup();
+}));
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); try { localStorage.setItem('rids_king_setup', JSON.stringify(setup)); } catch (e) {} newGame(setup.level, +setup.len); });
+$('resumeBtn').addEventListener('click', () => { Sfx.unlock(); resume(); });
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; render(); });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') { $('rulesOv').hidden = true; render(); } });
+$('nextBtn').addEventListener('click', afterHand);
+$('againBtn').addEventListener('click', () => newGame(G.level, G.len));
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem('rids_king_sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+const relayout = () => layout();
+addEventListener('resize', relayout); document.addEventListener('fullscreenchange', relayout); document.addEventListener('webkitfullscreenchange', relayout);
+if (window.ResizeObserver) new ResizeObserver(relayout).observe(stage);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+// Deneme kancası: hızlandırma ve durum okuma (oyuncuya görünmez)
+window.__king = {
+  setSpeed: (s) => { speed = s; },
+  state: () => ({ G, busy, canPlay: !!canPlay(), hand: G && G.h ? G.h.hands[0].slice() : [], legal: canPlay() ? legalCards(G.h.hands[0], tbl(G.h)) : [], phase: G && G.h ? G.h.phase : null,
+    conOpen: !$('conPick').hidden, suitOpen: !$('suitPick').hidden, epoch }),
+  card: (c) => { const r = els[c].querySelector('.in').getBoundingClientRect(); return [r.left + r.width * 0.15, r.top + r.height * 0.18]; }, // kartın her zaman görünen sol üst köşesi
+  stop: () => { epoch++; closeAll(); busy = false; },
+  setHand: (o) => { Object.assign(G.h, o); render(0); updateDock(); }
+};
+
+applySound(); applyDeck(); layout(); applyLang(); openSetup();
+</script>
+</body>
+</html>
