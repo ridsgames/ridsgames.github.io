@@ -239,7 +239,7 @@ table.sum td.z { color: #475569; }
 <main>
   <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
   <div id="stage" aria-label="Masa">
-    <span class="badge" id="bDeck"></span><span class="badge" id="bW0"></span><span class="badge" id="bW1"></span><span class="badge" id="bPile"></span>
+    <span class="badge" id="bDeck"></span>
     <span class="lbl2" id="lDeck"></span>
     <div id="pop"></div>
   </div>
@@ -389,11 +389,11 @@ const STR = {
       ['🏆', 'Eller sürer, seçtiğin sayıya ilk ulaşan kazanır. İkiniz birden geçerseniz çok olan kazanır. <b>Tek el</b> seçersen tek el sonucu belirler.']
     ],
     turnYou: 'Sıra sende', turnCpu: 'Sıra bilgisayarda', hintYou: 'Bir kart at', hintHit: 'Parlayan kartlar yerdekileri alır', hintThink: 'Bilgisayar düşünüyor...', hintDeal: 'Kartlar dağıtılıyor...',
-    pisti: 'PİŞTİ!', jpisti: 'VALE PİŞTİ!', capYou: (n) => `${n} kart aldın`, capCpu: (n) => `Bilgisayar ${n} kart aldı`,
-    pistiYou: (n) => `Pişti! +${n} puan`, pistiCpu: (n) => `Bilgisayar pişti yaptı, +${n}`, lastDeal: 'Son dağıtım', restYou: (n) => `Yerde kalan ${n} kart sana geldi`, restCpu: (n) => `Yerde kalan ${n} kart bilgisayara gitti`,
+    pisti: 'PİŞTİ!', jpisti: 'VALE PİŞTİ!', capYou: 'Yerdekileri aldın', capCpu: 'Bilgisayar yerdekileri aldı',
+    pistiYou: (n) => `Pişti! +${n} puan`, pistiCpu: (n) => `Bilgisayar pişti yaptı, +${n}`, lastDeal: 'Son dağıtım', restYou: 'Yerde kalanlar sana geldi', restCpu: 'Yerde kalanlar bilgisayara gitti',
     deck: 'Deste', handOver: (n) => `${n}. el bitti`, handSub: (a, b) => (a === b ? 'Bu el berabere.' : a > b ? 'Bu eli sen aldın.' : 'Bu eli bilgisayar aldı.'),
     rows: { cards: 'Kart sayısı', most: 'En çok kart', jacks: 'Vale', aces: 'As', club2: 'Sinek 2', dia10: 'Karo 10', pisti: 'Pişti', total: 'Bu el', all: 'Toplam' },
-    nextHand: 'Sonraki el', seeResult: 'Sonucu gör', target: (t) => (t ? `Hedef ${t}` : 'Tek el'), extra: (p, n) => (p ? `⭐${p}` : '') + (n ? ` 🃏${n}` : ''),
+    nextHand: 'Sonraki el', seeResult: 'Sonucu gör', target: (t) => (t ? `Hedef ${t}` : 'Tek el'), extra: (p) => (p ? `⭐${p}` : ''),
     youWin: 'Kazandın!', cpuWins: 'Bilgisayar kazandı', draw: 'Berabere!', winSub: (a, b, h) => `${h} elde ${Math.max(a, b)} - ${Math.min(a, b)}`,
     again: 'Tekrar oyna', toMenu: 'Ayarları değiştir', scoreAria: (a, b) => `Puanlar: sen ${a}, bilgisayar ${b}`,
     cardName: (c) => `${['Maça', 'Kupa', 'Karo', 'Sinek'][suitOf(c)]} ${['As', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Vale', 'Kız', 'Papaz'][rankOf(c) - 1]}`
@@ -414,11 +414,11 @@ const STR = {
       ['🏆', 'Hands continue until someone reaches the target. If both pass it, the higher score wins. With <b>One hand</b> a single hand decides.']
     ],
     turnYou: 'Your turn', turnCpu: 'Computer\'s turn', hintYou: 'Play a card', hintHit: 'Glowing cards take the pile', hintThink: 'The computer is thinking...', hintDeal: 'Dealing...',
-    pisti: 'PISHTI!', jpisti: 'JACK PISHTI!', capYou: (n) => `You took ${n} cards`, capCpu: (n) => `The computer took ${n} cards`,
-    pistiYou: (n) => `Pishti! +${n} points`, pistiCpu: (n) => `The computer scored a pishti, +${n}`, lastDeal: 'Last deal', restYou: (n) => `The last ${n} cards on the table are yours`, restCpu: (n) => `The last ${n} cards on the table go to the computer`,
+    pisti: 'PISHTI!', jpisti: 'JACK PISHTI!', capYou: 'You took the pile', capCpu: 'The computer took the pile',
+    pistiYou: (n) => `Pishti! +${n} points`, pistiCpu: (n) => `The computer scored a pishti, +${n}`, lastDeal: 'Last deal', restYou: 'The cards left on the table are yours', restCpu: 'The cards left on the table go to the computer',
     deck: 'Deck', handOver: (n) => `Hand ${n} is over`, handSub: (a, b) => (a === b ? 'This hand is a tie.' : a > b ? 'You won this hand.' : 'The computer won this hand.'),
     rows: { cards: 'Cards taken', most: 'Most cards', jacks: 'Jacks', aces: 'Aces', club2: '2 of clubs', dia10: '10 of diamonds', pisti: 'Pishti', total: 'This hand', all: 'Total' },
-    nextHand: 'Next hand', seeResult: 'See the result', target: (t) => (t ? `Target ${t}` : 'One hand'), extra: (p, n) => (p ? `⭐${p}` : '') + (n ? ` 🃏${n}` : ''),
+    nextHand: 'Next hand', seeResult: 'See the result', target: (t) => (t ? `Target ${t}` : 'One hand'), extra: (p) => (p ? `⭐${p}` : ''),
     youWin: 'You win!', cpuWins: 'The computer wins', draw: 'It\'s a draw!', winSub: (a, b, h) => `${Math.max(a, b)} - ${Math.min(a, b)} after ${h} hand${h > 1 ? 's' : ''}`,
     again: 'Play again', toMenu: 'Change settings', scoreAria: (a, b) => `Scores: you ${a}, computer ${b}`,
     cardName: (c) => `${['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'][rankOf(c) - 1]} of ${['spades', 'hearts', 'diamonds', 'clubs'][suitOf(c)]}`
@@ -485,7 +485,12 @@ function render(dur = 380) {
   if (!h) { for (let c = 0; c < 52; c++) { put(c, L.deckX - Math.min(c, 30) * .2, L.midY - Math.min(c, 30) * .2, 0, 1, false, c, 0); els[c].className = c < 50 ? 'card flat' : 'card'; } badges(); return; }
   h.deck.forEach((c, i) => put(c, L.deckX - Math.min(i, 30) * .2, L.midY - Math.min(i, 30) * .2, 0, 1, false, i + 1, dur));
   const flat = new Set([...h.deck.slice(0, -2), ...h.won[0].slice(0, -2), ...h.won[1].slice(0, -2)]);
+  // kapalılar açıldığında yer kartları destenin sağına yelpaze gibi açılır; sığmazsa bütün genişliğe yayılır
+  let fa = L.deckX + L.cw * 1.05, fb = L.W - 8 - L.cw / 2, n1 = Math.max(1, h.pile.length - 1);
+  if ((fb - fa) / n1 < L.cw * .3) { fa = 8 + L.cw / 2; }
+  const fanSp = Math.min(L.cw * .5, (fb - fa) / n1);
   h.pile.forEach((c, i) => {
+    if (h.fan) return put(c, Math.max(fa, (fa + fb) / 2 - (h.pile.length - 1) * fanSp / 2) + i * fanSp, L.midY, (hash(c, 3) - .5) * 6, 1, true, 100 + i, dur);
     const hid = h.hidden.includes(c), j = hid ? 0 : 1;
     put(c, L.pileX + (hash(c, 1) - .5) * L.cw * .16 * j, L.midY + (hash(c, 2) - .5) * L.cw * .12 * j, (hash(c, 3) - .5) * 22 * j, 1, !hid, 100 + i, dur);
   });
@@ -508,9 +513,6 @@ function badges() {
   const h = G && G.h, t = T();
   const set = (id, n, x, y) => { const b = $(id); b.textContent = n; b.classList.toggle('zero', !n); b.style.left = x + 'px'; b.style.top = y + 'px'; };
   set('bDeck', h ? h.deck.length : 52, L.deckX, L.midY + L.ch / 2 + 4);
-  set('bPile', h ? h.pile.length : 0, L.pileX + L.cw * .5, L.midY - L.ch * .5);
-  set('bW0', h ? h.won[0].length : 0, L.wonX + L.ch * .31 + 4, L.wonY[1] + L.cw * .31);
-  set('bW1', h ? h.won[1].length : 0, L.wonX + L.ch * .31 + 4, L.wonY[0] - L.cw * .31);
   const ld = $('lDeck'); ld.textContent = h && h.deck.length === 0 && (h.hands[0].length || h.hands[1].length) ? t.lastDeal : ''; ld.style.left = L.deckX + 'px'; ld.style.top = (L.midY - 8) + 'px';
 }
 
@@ -553,13 +555,13 @@ function say(s, gold) {
 }
 function popText(s) { const p = $('pop'); p.textContent = s; p.style.left = L.pileX + 'px'; p.style.top = L.midY + 'px'; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go'); }
 const pack = () => JSON.stringify(G, (k, v) => (v instanceof Set ? [...v] : v));
-function save() { try { if (G && !G.over) localStorage.setItem('rids_pisti_game', pack()); } catch (e) {} }
+function save() { try { if (G && !G.over && !(G.h && G.h.mid)) localStorage.setItem('rids_pisti_game', pack()); } catch (e) {} }
 function loadSaved() {
   try {
     const s = JSON.parse(localStorage.getItem('rids_pisti_game')); if (!s || !s.h || !Array.isArray(s.scores)) return null;
     const h = s.h, all = [...h.deck, ...h.pile, ...h.hands[0], ...h.hands[1], ...h.won[0], ...h.won[1]];
     if (all.length !== 52 || new Set(all).size !== 52) return null;
-    h.seen = new Set(h.seen || []); return s;
+    h.seen = new Set(h.seen || []); h.fan = false; h.mid = false; return s;
   } catch (e) { return null; }
 }
 const canPlay = () => G && G.h && !G.over && !busy && G.h.turn === 0 && !G.h.done && $('setupOv').hidden && $('rulesOv').hidden && $('handOv').hidden && $('winOv').hidden;
@@ -574,25 +576,26 @@ function updateDock(hint) {
   $('turnMsg').textContent = hint;
   const sc = G ? G.scores : [0, 0];
   $('sc0').textContent = sc[0]; $('sc1').textContent = sc[1];
-  $('ex0').textContent = h ? t.extra(h.pisti[0], h.won[0].length) : ''; $('ex1').textContent = h ? t.extra(h.pisti[1], h.won[1].length) : '';
+  $('ex0').textContent = h ? t.extra(h.pisti[0]) : ''; $('ex1').textContent = h ? t.extra(h.pisti[1]) : '';
   $('hedef').textContent = G ? t.target(G.target) : '';
   $('skor').setAttribute('aria-label', t.scoreAria(sc[0], sc[1]));
 }
 function seeAll(h, ...cs) { for (const c of cs) h.seen.add(c); }
 async function dealRound(my, first) { // 4'er kart, başlayan oyuncudan başlayarak birer birer
   const h = G.h;
-  busy = true; updateDock(T().hintDeal); render();
+  busy = true; h.mid = true; updateDock(T().hintDeal); render();
   for (let k = 0; k < 8; k++) {
     const p = (first + k) % 2; h.hands[p].push(h.deck.pop());
     Sfx.deal(); render(320); await wait(110); if (my !== epoch) return false;
   }
+  h.mid = false;
   if (!h.deck.length) say(T().lastDeal);
   await wait(260); return my === epoch;
 }
 async function startHand() {
   const my = epoch, nd = 1 - G.dealer;
   G.handNo++;
-  G.h = { deck: shuffled(), hands: [[], []], pile: [], hidden: [], won: [[], []], pisti: [0, 0], pc: [0, 0], last: -1, turn: nd, seen: new Set(), done: false, res: null };
+  G.h = { deck: shuffled(), hands: [[], []], pile: [], hidden: [], won: [[], []], pisti: [0, 0], pc: [0, 0], last: -1, turn: nd, seen: new Set(), done: false, res: null, mid: true, fan: false };
   const h = G.h; busy = true; render(0); updateDock(T().hintDeal);
   await wait(250); if (my !== epoch) return;
   for (let k = 0; k < 4; k++) { // yere 4 kart: 3 kapalı, sonuncusu açık
@@ -619,7 +622,7 @@ async function nextAction() {
 }
 async function playCard(p, c) {
   const my = epoch, h = G.h, t = T();
-  busy = true; hotCard = -1;
+  busy = true; hotCard = -1; h.mid = true;
   const o = outcome(h.pile, c);
   h.hands[p].splice(h.hands[p].indexOf(c), 1); h.pile.push(c); seeAll(h, c);
   Sfx.play(); render(360); updateDock(p === 1 ? '' : null);
@@ -632,13 +635,18 @@ async function playCard(p, c) {
       say(p === 0 ? t.pistiYou(o.pisti) : t.pistiCpu(o.pisti), true);
       if (p === 0) sayac('pisti', 'pişti yapıldı');
       await wait(700); if (my !== epoch) return;
-    } else say(p === 0 ? t.capYou(n) : t.capCpu(n));
-    for (const q of h.hidden) seeAll(h, q);
+    } else say(p === 0 ? t.capYou : t.capCpu);
+    if (h.hidden.length) { // ilk alışta kapalı 3 kart açılıp gösterilir
+      for (const q of h.hidden) seeAll(h, q);
+      h.hidden = []; h.fan = true; Sfx.deal(); render(420);
+      await wait(1500); if (my !== epoch) return;
+      h.fan = false;
+    }
     h.won[p].push(...h.pile); h.pile = []; h.hidden = []; h.last = p;
     Sfx.take(n); render(480); updateDock('');
     await wait(520); if (my !== epoch) return;
   }
-  h.turn = 1 - p; save();
+  h.turn = 1 - p; h.mid = false; save();
   nextAction();
 }
 async function endHand() {
@@ -647,7 +655,7 @@ async function endHand() {
   if (h.pile.length && h.last >= 0) { // yerde kalanlar son alana
     const n = h.pile.length;
     await wait(300); if (my !== epoch) return;
-    say(h.last === 0 ? t.restYou(n) : t.restCpu(n));
+    say(h.last === 0 ? t.restYou : t.restCpu);
     h.won[h.last].push(...h.pile); h.pile = []; h.hidden = [];
     Sfx.take(n); render(480); updateDock('');
     await wait(700); if (my !== epoch) return;
