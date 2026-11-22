@@ -70,25 +70,9 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-item
 .card .in { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateY(180deg); transition: transform .35s, translate .15s; }
 .card.up .in { transform: none; }
 .face { position: absolute; inset: 0; border-radius: calc(var(--cw) * .09); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .35); overflow: hidden; }
-.front { background: linear-gradient(160deg, #ffffff, #f4efe4); color: var(--ink); }
-.front.r { color: var(--red); }
-.back { transform: rotateY(180deg); background: #9b1c1c; border: calc(var(--cw) * .05) solid #fdf6e3; }
-.back::before { content: ""; position: absolute; inset: 0; background:
-  repeating-linear-gradient(45deg, rgba(255, 255, 255, .16) 0 2px, transparent 2px 9px),
-  repeating-linear-gradient(-45deg, rgba(255, 255, 255, .16) 0 2px, transparent 2px 9px),
-  radial-gradient(circle at 50% 50%, #c53030, #7f1414); }
-.back::after { content: "R"; position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 44%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
-  background: #fdf6e3; color: #9b1c1c; font-weight: 800; font-size: calc(var(--cw) * .26); box-shadow: 0 0 0 2px #9b1c1c, 0 0 0 4px #fdf6e3; }
-.cr { position: absolute; display: flex; flex-direction: column; align-items: center; line-height: .95; font-weight: 800; }
-.cr b { font-size: calc(var(--cw) * .25); letter-spacing: -.04em; }
-.cr i { font-style: normal; font-size: calc(var(--cw) * .2); }
-.cr.a { left: 6%; top: 4%; }
-.cr.z { right: 6%; bottom: 4%; transform: rotate(180deg); }
-.mid { position: absolute; left: 50%; top: 52%; translate: -50% -50%; font-size: calc(var(--cw) * .5); line-height: 1; }
-.mid.ace { font-size: calc(var(--cw) * .72); }
-.mid.pic { width: 52%; height: 58%; top: 52%; display: grid; place-items: center; border-radius: 6px; border: 2px solid currentColor; font-size: calc(var(--cw) * .38); font-weight: 800;
-  background: linear-gradient(180deg, rgba(255, 212, 59, .35), rgba(255, 212, 59, .08)); }
-.mid.pic small { display: block; font-size: .55em; margin-top: -.15em; text-align: center; }
+.front { background: #fffdf8; }
+.front svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.back { transform: rotateY(180deg); background: var(--back) center / 100% 100% no-repeat, #9e1b1f; }
 .card.play { cursor: pointer; }
 .card.play:hover .in { translate: 0 calc(var(--ch) * -.1); }
 .card.hit .front { box-shadow: 0 0 0 2px #ffd43b, 0 0 14px rgba(255, 212, 59, .8), 0 2px 6px rgba(0, 0, 0, .45); }
@@ -446,12 +430,74 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
 
 // ---------- Kartlar (DOM) ----------
 const stage = $('stage'), els = [];
-const SUIT = ['♠', '♥', '♦', '♣'], RANK = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+// Gerçek iskambil düzeni: köşe işaretleri, 2-10 için klasik sembol dizilişi, resimli kartlar ve Ridsgames sırtı
+const RANK = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'], RED = '#c8102e', BLK = '#16161a';
+const SUITD = [
+  '<path d="M50 3C62 24 96 40 96 62c0 14-10 22-22 22-10 0-17-5-21-12 1 12 5 20 14 25H33c9-5 13-13 14-25-4 7-11 12-21 12C14 84 4 76 4 62 4 40 38 24 50 3z"/>',
+  '<path d="M50 93C20 67 2 49 2 28 2 12 14 3 28 3c10 0 18 6 22 15 4-9 12-15 22-15 14 0 26 9 26 25 0 21-18 39-48 65z"/>',
+  '<path d="M50 2Q68 30 88 50Q68 70 50 98Q32 70 12 50Q32 30 50 2z"/>',
+  '<circle cx="50" cy="27" r="21"/><circle cx="26" cy="57" r="21"/><circle cx="74" cy="57" r="21"/><circle cx="50" cy="50" r="10"/><path d="M46 56c0 18-5 30-14 41h36c-9-11-14-23-14-41z"/>'
+];
+document.body.insertAdjacentHTML('afterbegin', `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${SUITD.map((d, i) => `<symbol id="su${i}" viewBox="0 0 100 100">${d}</symbol>`).join('')}</defs></svg>`);
+const pip = (s, x, y, z) => `<use href="#su${s}" x="${x - z / 2}" y="${y - z / 2}" width="${z}" height="${z}"${y > 176 ? ` transform="rotate(180 ${x} ${y})"` : ''}/>`;
+const PIPS = (() => {
+  const T4 = [[80, 82], [170, 82], [80, 268], [170, 268]], c = [125, 175];
+  const side = [[80, 82], [170, 82], [80, 144], [170, 144], [80, 206], [170, 206], [80, 268], [170, 268]];
+  return { 2: [[125, 82], [125, 268]], 3: [[125, 82], c, [125, 268]], 4: T4, 5: [...T4, c], 6: [...T4, [80, 175], [170, 175]],
+    7: [...T4, [80, 175], [170, 175], [125, 128]], 8: [...T4, [80, 175], [170, 175], [125, 128], [125, 222]], 9: [...side, c], 10: [...side, [125, 113], [125, 237]] };
+})();
+function court(s, r, ink) { // resimli kart: üst yarı çizilir, alt yarı ters çevrilmiş kopyası
+  const red = s === 1 || s === 2, robe = (red ? r !== 12 : r === 12) ? RED : '#1d4fa3', trim = robe === RED ? '#1d4fa3' : RED, gold = '#e3a92b', hair = r === 12 ? '#f0c14b' : '#6b3e1c';
+  let hat = '', extra = '';
+  if (r === 13) {
+    hat = `<path d="M102 86V60l11 11 12-17 12 17 11-11v26z" fill="${gold}" stroke="#7a5408" stroke-width="2"/><circle cx="125" cy="76" r="4" fill="${RED}"/><circle cx="110" cy="80" r="3" fill="#1d4fa3"/><circle cx="140" cy="80" r="3" fill="#1d4fa3"/>`;
+    extra = `<path d="M107 104q0 24 18 28 18-4 18-28-8 10-18 10t-18-10z" fill="${hair}"/><path d="M171 44v104" stroke="#8d98a5" stroke-width="5"/><path d="M161 128h20" stroke="${gold}" stroke-width="5"/>`;
+  } else if (r === 12) {
+    hat = `<path d="M104 100q-2-26 21-26t21 26l5 28-12-6v-22q-2-14-14-14t-14 14v22l-12 6z" fill="${hair}"/><path d="M106 82q19-24 38 0z" fill="${gold}" stroke="#7a5408" stroke-width="2"/><circle cx="125" cy="70" r="3.5" fill="${RED}"/>`;
+    extra = `<path d="M78 150V104" stroke="#2f7a3a" stroke-width="3"/><circle cx="78" cy="100" r="8" fill="${RED}"/><circle cx="78" cy="100" r="3" fill="${gold}"/>`;
+  } else {
+    hat = `<path d="M106 94q0-12 19-12t19 12q-8-6-19-6t-19 6z" fill="${hair}"/><path d="M99 87q4-24 26-24 25 0 27 24z" fill="${trim}" stroke="#0e1d3a" stroke-width="1.5"/><path d="M146 72q22-22 30-34-6 22-24 40z" fill="${gold}"/>`;
+    extra = `<path d="M74 148l14-60" stroke="#8d98a5" stroke-width="4"/>`;
+  }
+  const half = `<path d="M64 175v-22q8-25 40-31h42q32 6 40 31v22z" fill="${robe}" stroke="#0e1d3a" stroke-width="1.5"/>`
+    + `<path d="M104 122l21 30 21-30z" fill="${gold}" stroke="#7a5408" stroke-width="1.5"/><path d="M64 164h122" stroke="${gold}" stroke-width="5"/><path d="M64 164h122" stroke="${trim}" stroke-width="1.5" stroke-dasharray="4 4"/>`
+    + `<circle cx="125" cy="101" r="19" fill="#f6d7b0" stroke="#6b3e1c" stroke-width="1.5"/><circle cx="118" cy="99" r="2" fill="#222"/><circle cx="132" cy="99" r="2" fill="#222"/><path d="M119 110q6 4 12 0" stroke="#8a3b2a" stroke-width="2" fill="none"/>`
+    + hat + extra + `<g fill="${ink}">${pip(s, 74, 52, 24)}</g>`;
+  return `<rect x="54" y="32" width="142" height="286" rx="5" fill="#fbf1d6" stroke="${ink}" stroke-width="2.5"/>`
+    + `<clipPath id="cl${s}${r}"><rect x="55" y="33" width="140" height="284" rx="4"/></clipPath><g clip-path="url(#cl${s}${r})">${half}<g transform="rotate(180 125 175)">${half}</g></g>`
+    + `<path d="M54 175h142" stroke="${ink}" stroke-width="1.5"/>`;
+}
+function cardSvg(c) {
+  const s = suitOf(c), r = rankOf(c), ink = s === 1 || s === 2 ? RED : BLK, R = RANK[r - 1];
+  const idx = `<text x="29" y="56" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="50"${R === '10' ? ' textLength="46" lengthAdjust="spacingAndGlyphs"' : ''}>${R}</text>${pip(s, 29, 82, 30)}`;
+  let body;
+  if (r === 1) body = s === 0
+    ? `<circle cx="125" cy="170" r="74" fill="none" stroke="${ink}" stroke-width="2"/><circle cx="125" cy="170" r="66" fill="none" stroke="${ink}" stroke-width="1" stroke-dasharray="2 5"/>${pip(s, 125, 166, 104)}<text x="125" y="286" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="15" letter-spacing="5">RIDSGAMES</text>`
+    : pip(s, 125, 175, 96);
+  else if (r > 10) body = court(s, r, ink);
+  else body = PIPS[r].map(([x, y]) => pip(s, x, y, r > 8 ? 42 : 46)).join('');
+  return `<svg viewBox="0 0 250 350" fill="${ink}" aria-hidden="true">${body}${idx}<g transform="rotate(180 125 175)">${idx}</g></svg>`;
+}
+function backSvg() { // sırt: Ridsgames logosundaki köşeli R ve G harfleri
+  const Rl = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z';
+  const Gl = 'M8 0h32v10H13l-3 3v34l3 3h17V38h-8v-8h18v22l-8 8H8l-8-8V8z';
+  const oct = (i) => `M${77 + i} ${128 + i}H${173 - i}L${195 - i} ${150 + i}V${200 - i}L${173 - i} ${222 - i}H${77 + i}L${55 + i} ${200 - i}V${150 + i}z`;
+  const gem = (x, y) => `<path d="M${x} ${y - 9}l7 9-7 9-7-9z" fill="#f3d9a4"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" preserveAspectRatio="none"><defs>`
+    + `<pattern id="p" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 175)"><rect width="18" height="18" fill="#9e1b1f"/><path d="M0 0H18M0 0V18" stroke="#c4413b" stroke-width="2"/><circle cx="9" cy="9" r="2.4" fill="#f3d9a4"/></pattern>`
+    + `<linearGradient id="m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4450"/><stop offset="1" stop-color="#11151b"/></linearGradient>`
+    + `<linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".48" stop-color="#a7b2bd"/><stop offset=".52" stop-color="#66717d"/><stop offset="1" stop-color="#dce3e9"/></linearGradient></defs>`
+    + `<rect width="250" height="350" fill="#fbf5e6"/><rect x="12" y="12" width="226" height="326" rx="9" fill="url(#p)"/>`
+    + `<rect x="19" y="19" width="212" height="312" rx="6" fill="none" stroke="#fbf5e6" stroke-width="2.5"/><rect x="25" y="25" width="200" height="300" rx="4" fill="none" stroke="#f3d9a4" stroke-width="1" stroke-dasharray="3 3"/>`
+    + gem(125, 48) + gem(125, 302) + gem(48, 175) + gem(202, 175)
+    + `<path d="${oct(-6)}" fill="#fbf5e6"/><path d="${oct(0)}" fill="url(#m)"/><path d="${oct(5)}" fill="none" stroke="#22d3ee" stroke-width="1.5" opacity=".85"/>`
+    + `<g fill="url(#l)" stroke="#0b0e12" stroke-width="1.2" stroke-linejoin="round"><path transform="translate(79 145)" d="${Rl}"/><path transform="translate(131 145)" d="${Gl}"/></g></svg>`;
+}
+stage.style.setProperty('--back', `url("data:image/svg+xml,${encodeURIComponent(backSvg())}")`);
 function makeCard(c) {
-  const s = suitOf(c), r = rankOf(c), red = s === 1 || s === 2, el = document.createElement('div');
-  const mid = r === 1 ? `<div class="mid ace">${SUIT[s]}</div>` : r > 10 ? `<div class="mid pic">${RANK[r - 1]}<small>${SUIT[s]}</small></div>` : `<div class="mid">${SUIT[s]}</div>`;
+  const el = document.createElement('div');
   el.className = 'card'; el.dataset.c = c;
-  el.innerHTML = `<div class="in"><div class="face front${red ? ' r' : ''}"><div class="cr a"><b>${RANK[r - 1]}</b><i>${SUIT[s]}</i></div>${mid}<div class="cr z"><b>${RANK[r - 1]}</b><i>${SUIT[s]}</i></div></div><div class="face back"></div></div>`;
+  el.innerHTML = `<div class="in"><div class="face front">${cardSvg(c)}</div><div class="face back"></div></div>`;
   el.addEventListener('pointerdown', (e) => { if (e.button === 0) { e.preventDefault(); tapCard(c); } });
   stage.appendChild(el); return el;
 }
@@ -500,7 +546,7 @@ function render(dur = 380) {
     hand.forEach((c, i) => {
       const off = (i - (n - 1) / 2);
       if (p === 0) put(c, L.W / 2 + off * L.sp, L.handY, off * 2.5, 1, true, 200 + i, dur);
-      else put(c, L.W / 2 + off * L.cw * .62, L.oppY, 180 - off * 3, 1, false, 200 + i, dur);
+      else put(c, L.W / 2 + off * L.cw * .62, L.oppY, -off * 3, 1, false, 200 + i, dur);
     });
   }
   for (let c = 0; c < 52; c++) {
