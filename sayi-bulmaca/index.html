@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Sayı Bulmaca | Ridsgames</title>
+<meta name="description" content="Sayı Bulmaca: rakamları farklı gizli sayıyı artı ve eksi ipuçlarıyla en az tahminde bul. Tek başına oyna ya da bilgisayara karşı yarış.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --glow: rgba(251, 191, 36, 0.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--glow) 28%, transparent) 0%, transparent 62%), radial-gradient(ellipse at 50% 100%, #111a2c 0%, var(--bg) 70%), var(--bg);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.tall button { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.seg.tall small { font-size: 11px; font-weight: 600; opacity: .75; white-space: nowrap; }
+.seg.tall .em { font-size: 19px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.custom { display: grid; gap: 6px; margin-top: 10px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.mrow button { height: 44px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 24px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.mrow button:disabled { opacity: .35; cursor: default; }
+.mrow output { text-align: center; font-size: 24px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score.lost { color: #fca5a5; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; pencereler menü panelini örtmez; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .gname { display: inline; font-size: 11px; white-space: nowrap; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  main { grid-column: 2; grid-row: 1; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) 6px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
+  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
+  footer { display: none; }
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 4px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #winOv .card { max-width: 560px; padding: 14px 18px 16px; }
+  #winOv .trophy { font-size: 38px; } #winOv .score { font-size: 34px; margin-bottom: 8px; } #winOv .sub { margin-bottom: 8px; }
+  #winOv .rank { grid-template-columns: 1fr 1fr; }
+  #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
+}
+
+/* ---------- Oyuna özel ---------- */
+:root { --glow: rgba(168, 85, 247, .38); }
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; align-items: stretch; gap: 8px; max-width: 560px; }
+.hud { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 10px; padding: 8px 12px; }
+.secret { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.secret .lb { font-size: 12px; font-weight: 700; color: var(--dim); white-space: nowrap; }
+.digs { display: flex; gap: 5px; }
+.digs i { font-style: normal; width: 30px; height: 38px; border-radius: 8px; display: grid; place-items: center; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #312e81, #1e1b4b); border: 1px solid rgba(167, 139, 250, .45); color: #ddd6fe; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08); }
+.digs.open i { background: linear-gradient(180deg, #065f46, #064e3b); border-color: rgba(52, 211, 153, .6); color: #d1fae5; }
+.meta { text-align: right; font-size: 12.5px; color: var(--dim); font-variant-numeric: tabular-nums; line-height: 1.35; white-space: nowrap; }
+.meta b { color: #fff; font-size: 15px; }
+#giveUp { grid-column: 1 / -1; justify-self: center; height: 28px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(248, 113, 113, .45); background: rgba(127, 29, 29, .35); color: #fecaca; font-size: 12.5px; font-weight: 700; }
+.mine { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.mine .digs i { width: 24px; height: 30px; font-size: 17px; background: linear-gradient(180deg, #0c4a6e, #082f49); border-color: rgba(56, 189, 248, .5); color: #e0f2fe; }
+
+.hist { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.hist.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.col { min-height: 0; display: flex; flex-direction: column; padding: 8px; }
+.col h3 { margin: 0 0 6px; font-size: 12.5px; font-weight: 700; color: var(--dim); text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.col h3.turn { color: #fde68a; }
+.list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scroll-behavior: smooth; }
+.hist:not(.two) .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-content: start; }
+.row { display: grid; grid-template-columns: 22px auto minmax(0, 1fr); align-items: center; gap: 6px; padding: 4px 6px; border-radius: 10px; background: rgba(15, 23, 42, .7); }
+.row.new { animation: pop .25s ease-out; }
+.row .n { font-size: 11px; color: #64748b; text-align: right; font-variant-numeric: tabular-nums; }
+.row .g { font-size: 19px; font-weight: 800; letter-spacing: .14em; font-variant-numeric: tabular-nums; color: #f8fafc; }
+.row .g span.k { color: #fca5a5; text-decoration: line-through; text-decoration-thickness: 2px; opacity: .55; }
+.row .g span.v { color: #86efac; }
+.fb { justify-self: end; display: flex; gap: 4px; }
+.fb b { min-width: 30px; height: 24px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.fb .p { background: #16a34a; color: #fff; }
+.fb .m { background: #d97706; color: #fff; }
+.fb .z { background: #334155; color: #cbd5e1; }
+.row.hit { background: linear-gradient(90deg, rgba(22, 163, 74, .45), rgba(15, 23, 42, .7)); }
+.empty { margin: auto; font-size: 13px; color: #64748b; text-align: center; line-height: 1.5; padding: 10px; }
+@keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.input { display: grid; gap: 6px; padding: 8px; }
+.entry { display: flex; justify-content: center; align-items: center; gap: 7px; min-height: 52px; }
+.entry i { font-style: normal; width: 42px; height: 50px; border-radius: 10px; display: grid; place-items: center; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums;
+  background: rgba(2, 6, 23, .8); border: 2px solid rgba(148, 163, 184, .25); color: #fff; transition: border-color .15s; }
+.entry i.cur { border-color: #a78bfa; box-shadow: 0 0 12px rgba(167, 139, 250, .45); }
+.entry.bad { animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.prompt { text-align: center; font-size: 13px; font-weight: 700; color: #c4b5fd; min-height: 1.3em; }
+.notes { display: grid; grid-template-columns: auto repeat(10, minmax(0, 1fr)); gap: 3px; align-items: center; }
+.notes .lb { font-size: 11px; font-weight: 700; color: var(--dim); padding-right: 3px; }
+.notes button { height: 26px; border-radius: 7px; border: 1px solid rgba(148, 163, 184, .2); background: rgba(15, 23, 42, .7); font-size: 13px; font-weight: 800; color: #cbd5e1; padding: 0; }
+.notes button.k { background: rgba(127, 29, 29, .55); border-color: rgba(248, 113, 113, .5); color: #fca5a5; text-decoration: line-through; }
+.notes button.v { background: rgba(20, 83, 45, .7); border-color: rgba(74, 222, 128, .55); color: #bbf7d0; }
+.pad { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.pad button { height: 50px; border-radius: 12px; border: 1px solid rgba(167, 139, 250, .35); background: linear-gradient(180deg, #1e1b4b, #0f0d2e); font-size: 24px; font-weight: 800; color: #ede9fe;
+  box-shadow: 0 3px 0 #0b0a1f, 0 6px 14px rgba(0, 0, 0, .35); touch-action: manipulation; transition: transform .06s; }
+.pad button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #0b0a1f; }
+.pad button:disabled { opacity: .3; cursor: default; }
+.pad button.k { color: #fca5a5; }
+.pad button.v { color: #86efac; }
+.pad .act { grid-column: span 2; font-size: 17px; }
+.pad .ok { grid-column: span 3; font-size: 17px; background: linear-gradient(135deg, #7c3aed, #a855f7); border-color: #c4b5fd; color: #fff; }
+.pad .del { font-size: 20px; }
+
+@media (max-height: 680px) and (orientation: portrait) {
+  .pad button { height: 44px; font-size: 21px; } .entry i { width: 38px; height: 44px; font-size: 24px; } .entry { min-height: 46px; }
+}
+/* Yatay: geçmiş solda tam yükseklikte, giriş ve tuşlar sağda */
+@media (orientation: landscape) {
+  main { max-width: 980px; grid-template-columns: minmax(0, 1fr) clamp(300px, 40vw, 400px); grid-template-rows: auto minmax(0, 1fr); }
+  .hud { grid-column: 2; grid-row: 1; }
+  .hist { grid-column: 1; grid-row: 1 / -1; }
+  .input { grid-column: 2; grid-row: 2; align-self: end; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  main { grid-template-columns: minmax(0, 1fr) clamp(260px, 42vw, 340px); gap: 6px 8px; }
+  .hud { padding: 6px 8px; } .digs i { width: 24px; height: 30px; font-size: 17px; } .mine .digs i { width: 20px; height: 26px; font-size: 14px; }
+  .input { padding: 6px; gap: 4px; }
+  .entry { min-height: 38px; } .entry i { width: 32px; height: 38px; font-size: 21px; }
+  .pad { gap: 4px; } .pad button { height: 36px; font-size: 18px; } .pad .ok, .pad .act { font-size: 14px; }
+  .notes button { height: 22px; font-size: 12px; }
+  .row .g { font-size: 16px; } .row { padding: 3px 6px; }
+  .prompt { font-size: 12px; }
+}
+
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="sayi-bulmaca" data-name="Sayı Bulmaca"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Sayı Bulmaca</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="hud panel" id="hud">
+    <div class="secret"><span class="lb" id="secLbl">Gizli sayı</span><div class="digs" id="secDigs"></div></div>
+    <div class="meta" id="meta"></div>
+    <div class="mine" id="mineBox" hidden><span class="lb" id="mineLbl">Senin sayın</span><div class="digs" id="mineDigs"></div></div>
+  </div>
+  <div class="hist" id="hist">
+    <div class="col panel"><h3 id="myHead">Tahminlerin</h3><div class="list" id="myList"></div></div>
+    <div class="col panel" id="cpuCol" hidden><h3 id="cpuHead">Bilgisayar</h3><div class="list" id="cpuList"></div></div>
+  </div>
+  <div class="input panel">
+    <div class="prompt" id="prompt"></div>
+    <div class="entry" id="entry"></div>
+    <div class="notes" id="notes"></div>
+    <div class="pad" id="pad"></div>
+  </div>
+
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Yeni oyun -->
+<div class="ov" id="setupOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Sayı Bulmaca</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="modeLbl"></div>
+      <div class="seg two tall" id="modeSeg">
+        <button type="button" data-m="tek"><span class="em">🧩</span><small></small></button>
+        <button type="button" data-m="vs"><span class="em">🤖</span><small></small></button>
+      </div>
+      <div class="note" id="modeNote"></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="lenLbl"></div>
+      <div class="seg" id="lenSeg"><button type="button" data-n="3"></button><button type="button" data-n="4"></button><button type="button" data-n="5"></button></div>
+      <div class="note" id="lenNote"></div>
+    </div>
+    <div class="sec wide" id="lvSec">
+      <div class="lbl" id="lvLbl"></div>
+      <div class="seg" id="lvSeg"><button type="button" data-l="kolay"></button><button type="button" data-l="orta"></button><button type="button" data-l="zor"></button></div>
+    </div>
+
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore"></div>
+    <ol class="rank" id="statList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="viewBtn" type="button">Tahtaya bak</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Ortak: dil, ses, pencereler, sayaç ----------
+const COMMON = {
+  tr: { homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
+    lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
+  en: { homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
+    lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_sayi_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (n) => Math.floor(Math.random() * n);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(KEY + k); } catch (e) {} }
+};
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'sayi-bulmaca/' + olay, title: 'Sayı Bulmaca: ' + ad, event: true }); } catch (e) {} };
+let soundOn = store.get('sound', 1) !== 0, bitenVar = false;
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock: ctx, tone,
+    click() { tone(900, 700, 0.05, 0.05, 'triangle'); },
+    tap() { tone(540, 880, 0.07, 0.07); },
+    good() { tone(660, 990, 0.12, 0.08, 'triangle'); },
+    bad() { tone(220, 110, 0.22, 0.09, 'sawtooth'); },
+    win() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, f, 0.4, 0.1, 'triangle', i * 0.065)); },
+    lose() { [392, 329.6, 261.6].forEach((f, i) => tone(f, f * 0.98, 0.3, 0.09, 'triangle', i * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+const OVS = ['setupOv', 'rulesOv', 'winOv'];
+function closeAll() { for (const id of OVS) $(id).hidden = true; }
+const anyOpen = () => OVS.some((id) => !$(id).hidden);
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
+  closeAll();
+  $('winIco').textContent = o.ico; $('winTitle').textContent = o.title; $('winSub').textContent = o.sub || '';
+  $('winScore').textContent = o.score || ''; $('winScore').hidden = !o.score; $('winScore').classList.toggle('lost', !!o.lost);
+  $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
+}
+
+// ---------- Oyun ----------
+const STR = {
+  tr: { ...COMMON.tr, title: 'Sayı Bulmaca | Ridsgames', game: 'Sayı Bulmaca',
+    setupSub: 'Gizli sayıyı en az tahminle bul. Her tahminden sonra artı ve eksi ipuçları gelir.',
+    modeLbl: 'Oyun', modes: { tek: 'Tek başına', vs: 'Bilgisayara karşı' },
+    modeNote: { tek: 'Bilgisayarın tuttuğu sayıyı bul. Tahmin sayın ve süren rekor olarak saklanır.', vs: 'Sen de bir sayı tutarsın. Sırayla tahmin edersiniz; önce bulan kazanır.' },
+    lenLbl: 'Basamak', lenBtn: (n) => `${n} basamak`, lenNote: (n, c) => `Rakamlar birbirinden farklı, ilk rakam 0 olamaz. ${c.toLocaleString('tr-TR')} olası sayı.`,
+    lvLbl: 'Bilgisayarın ustalığı',
+    secret: 'Gizli sayı', mine: 'Senin sayın', yours: 'Tahminlerin', cpu: 'Bilgisayar', notes: 'Not',
+    guesses: 'tahmin', best: 'Rekor', giveUp: 'Pes et', guess: 'Tahmin et', del: 'Sil', pick: 'Sayımı tut',
+    empty: 'İlk tahminini yaz.<br><b style="color:#86efac">+</b> doğru yerdeki, <b style="color:#fbbf24">−</b> yanlış yerdeki rakam sayısıdır.',
+    cpuEmpty: 'Bilgisayarın tahminleri burada görünür.',
+    pPick: (n) => `Bilgisayarın bulacağı ${n} basamaklı sayını tut`, pGuess: 'Tahminini yaz', pWait: 'Bilgisayar düşünüyor…', pOver: 'Oyun bitti',
+    sure: 'Pes edip sayıyı görmek için bir kez daha dokun',
+    errLen: (n) => `${n} rakam gir`, errZero: 'İlk rakam 0 olamaz', errRep: 'Aynı tahmini zaten yaptın',
+    winTitle: 'Buldun!', winSub: (n, k) => `${n} basamaklı sayıyı ${k}. tahminde buldun.`, newRecord: 'Yeni rekor!',
+    loseTitle: 'Sayı buydu', loseSub: (k) => `${k} tahminden sonra pes ettin.`,
+    vsWin: 'Kazandın!', vsWinSub: (k) => `Bilgisayardan önce, ${k}. tahminde buldun.`,
+    vsLose: 'Bilgisayar kazandı', vsLoseSub: (k, s) => `Senin sayını ${k}. tahminde buldu. Onun sayısı ${s} idi.`,
+    vsDraw: 'Berabere', vsDrawSub: (k) => `İkiniz de ${k}. tahminde buldunuz.`,
+    cpuFound: 'Bilgisayar senin sayını buldu!',
+    stats: { guesses: 'Tahmin', time: 'Süre', best: 'En iyi', cpu: 'Bilgisayarın tahmini', secret: 'Gizli sayı' },
+    rulesSub: 'Rakamları farklı gizli sayıyı, ipuçlarıyla en az tahminde bul.',
+    ruleList: [
+      ['🔢', 'Gizli sayının <b>rakamları birbirinden farklıdır</b> ve <b>ilk rakamı 0 olamaz</b>. Tahminler de aynı kurala uyar.'],
+      ['➕', 'Her tahminden sonra <b>+ sayısı</b>: hem sayıda olan hem de yeri doğru olan rakamlar.'],
+      ['➖', '<b>− sayısı</b>: sayıda olan ama yeri yanlış olan rakamlar. Hiçbiri yoksa <b>0</b> yazar.'],
+      ['🧠', 'Örnek: gizli sayı <b>4271</b>, tahmin <b>1234</b> ise 2 yerinde (+1), 1 ve 4 yanlış yerde (−2): <b>+1 −2</b>.'],
+      ['✏️', '<b>Not</b> satırındaki rakamlara dokunarak işaretle: bir kez dokun <span style="color:#fca5a5">yok</span>, bir daha <span style="color:#86efac">var</span>, üçüncüde temizlenir. Tuşlar da aynı renge bürünür.'],
+      ['🤖', '<b>Bilgisayara karşı</b>: sen de bir sayı tutarsın. Önce sen, sonra bilgisayar tahmin eder. Aynı turda ikiniz de bulursanız berabere.'],
+      ['🏆', 'Tek başına oyunda her basamak sayısı için en az tahmin ve en kısa süre saklanır.'],
+      ['⌨️', 'Klavye: rakam tuşları, <b>Backspace</b> siler, <b>Enter</b> tahmin eder.']
+    ] },
+  en: { ...COMMON.en, title: 'Number Guess | Ridsgames', game: 'Number Guess',
+    setupSub: 'Find the secret number in as few guesses as you can. Every guess earns plus and minus clues.',
+    modeLbl: 'Game', modes: { tek: 'Solo', vs: 'Against computer' },
+    modeNote: { tek: 'Find the number the computer picked. Your guess count and time are kept as records.', vs: 'You pick a number too. You take turns guessing; whoever finds it first wins.' },
+    lenLbl: 'Digits', lenBtn: (n) => `${n} digits`, lenNote: (n, c) => `All digits differ and the first digit can't be 0. ${c.toLocaleString('en-US')} possible numbers.`,
+    lvLbl: 'Computer skill',
+    secret: 'Secret number', mine: 'Your number', yours: 'Your guesses', cpu: 'Computer', notes: 'Note',
+    guesses: 'guesses', best: 'Best', giveUp: 'Give up', guess: 'Guess', del: 'Delete', pick: 'Lock my number',
+    empty: 'Type your first guess.<br><b style="color:#86efac">+</b> counts digits in the right place, <b style="color:#fbbf24">−</b> digits in the wrong place.',
+    cpuEmpty: 'The computer\'s guesses show up here.',
+    pPick: (n) => `Pick a ${n}-digit number for the computer to find`, pGuess: 'Type your guess', pWait: 'Computer is thinking…', pOver: 'Game over',
+    sure: 'Tap again to give up and see the number',
+    errLen: (n) => `Enter ${n} digits`, errZero: 'The first digit can\'t be 0', errRep: 'You already tried that',
+    winTitle: 'Got it!', winSub: (n, k) => `You found the ${n}-digit number on guess ${k}.`, newRecord: 'New record!',
+    loseTitle: 'This was the number', loseSub: (k) => `You gave up after ${k} guesses.`,
+    vsWin: 'You win!', vsWinSub: (k) => `You found it on guess ${k}, before the computer.`,
+    vsLose: 'The computer wins', vsLoseSub: (k, s) => `It found your number on guess ${k}. Its number was ${s}.`,
+    vsDraw: 'Draw', vsDrawSub: (k) => `You both found it on guess ${k}.`,
+    cpuFound: 'The computer found your number!',
+    stats: { guesses: 'Guesses', time: 'Time', best: 'Best', cpu: 'Computer\'s guesses', secret: 'Secret number' },
+    rulesSub: 'Find the secret number with distinct digits using the clues, in as few guesses as you can.',
+    ruleList: [
+      ['🔢', 'The secret number has <b>no repeated digits</b> and <b>doesn\'t start with 0</b>. Guesses follow the same rule.'],
+      ['➕', 'After each guess, the <b>+ count</b> is the digits that are in the number and in the right place.'],
+      ['➖', 'The <b>− count</b> is digits that are in the number but in the wrong place. With neither you see <b>0</b>.'],
+      ['🧠', 'Example: secret <b>4271</b>, guess <b>1234</b>: the 2 is in place (+1), 1 and 4 are misplaced (−2): <b>+1 −2</b>.'],
+      ['✏️', 'Tap digits in the <b>Note</b> row to mark them: once for <span style="color:#fca5a5">not in it</span>, again for <span style="color:#86efac">in it</span>, a third time to clear. The keys take the same colour.'],
+      ['🤖', '<b>Against computer</b>: you pick a number too. You guess first, then the computer. If you both find it in the same round it\'s a draw.'],
+      ['🏆', 'In solo play the fewest guesses and fastest time are kept for each digit count.'],
+      ['⌨️', 'Keyboard: digit keys, <b>Backspace</b> deletes, <b>Enter</b> guesses.']
+    ] }
+};
+const T = () => STR[lang];
+const LVTR = { kolay: 'kolay', orta: 'orta', zor: 'zor' };
+const countAll = (n) => { let c = 9; for (let i = 1; i < n; i++) c *= 10 - i; return c; };
+const fmtTime = (s) => (s < 60 ? `${s} ${T().sec}` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`);
+
+// ---------- Kurallar ----------
+const valid = (s, n) => s.length === n && s[0] !== '0' && new Set(s).size === n && /^\d+$/.test(s);
+function score(sec, g) { let p = 0, m = 0; for (let i = 0; i < g.length; i++) { if (g[i] === sec[i]) p++; else if (sec.includes(g[i])) m++; } return [p, m]; }
+function allNums(n) {
+  const out = [], rec = (s) => { if (s.length === n) { out.push(s); return; } for (let d = 0; d < 10; d++) { const c = String(d); if (!s.includes(c) && !(s === '' && d === 0)) rec(s + c); } };
+  rec(''); return out;
+}
+const ALL = {};
+const numsOf = (n) => ALL[n] || (ALL[n] = allNums(n));
+const randNum = (n) => { const a = numsOf(n); return a[rnd(a.length)]; };
+// Bilgisayarın tahmini: geçmişe uyan adaylar arasından. Kolay yalnız son iki ipucuna bakar; zor, en kötü durumda en az aday bırakanı seçer
+function cpuGuess(hist, n, level) {
+  const use = level === 'kolay' ? hist.slice(-2) : hist;
+  let cands = numsOf(n).filter((c) => use.every((h) => { const [p, m] = score(c, h.g); return p === h.p && m === h.m; }));
+  cands = cands.filter((c) => !hist.some((h) => h.g === c));
+  if (!cands.length) cands = numsOf(n).filter((c) => !hist.some((h) => h.g === c));
+  if (level !== 'zor' || cands.length > 1500 || cands.length <= 2) return cands[rnd(cands.length)];
+  const opts = cands.length > 120 ? shuffle(cands.slice()).slice(0, 120) : cands;
+  let best = null, bw = Infinity;
+  for (const o of opts) {
+    const part = {}; let w = 0;
+    for (const c of cands) { const [p, m] = score(c, o); const k = p * 10 + m; part[k] = (part[k] || 0) + 1; if (part[k] > w) w = part[k]; }
+    if (w < bw || (w === bw && Math.random() < 0.3)) { bw = w; best = o; }
+  }
+  return best;
+}
+
+// ---------- Durum ----------
+let setup = Object.assign({ mode: 'tek', n: 4, level: 'orta' }, store.get('setup', {}));
+if (!STR.tr.modes[setup.mode]) setup.mode = 'tek';
+if (![3, 4, 5].includes(setup.n)) setup.n = 4;
+if (!LVTR[setup.level]) setup.level = 'orta';
+let best = store.get('best', {});
+let G = null, cur = '', busy = false, giveArm = 0, tick = null;
+const notesOf = () => (G ? G.notes : Array(10).fill(0));
+function save() {
+  if (!G || G.phase === 'over') { store.del('game'); return; }
+  if (G.phase === 'play' && !G.paused) { G.tPrev = elapsed(); G.t0 = Date.now(); }
+  store.set('game', G);
+}
+const elapsed = () => (G ? (G.paused ? 0 : Math.round(((G.tEnd || Date.now()) - G.t0) / 1000)) + (G.tPrev || 0) : 0);
+
+function newGame() {
+  closeAll();
+  const s = setup;
+  G = { mode: s.mode, n: s.n, level: s.level, secret: randNum(s.n), mine: null, my: [], cpu: [], notes: Array(10).fill(0), phase: s.mode === 'vs' ? 'pick' : 'play', t0: Date.now(), tPrev: 0, tEnd: 0, result: null };
+  cur = ''; busy = false;
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(s.mode === 'vs' ? `mod/vs-${s.n}-${s.level}` : `mod/tek-${s.n}`, `mod: ${s.mode === 'vs' ? 'bilgisayara karşı, ' + s.level : 'tek başına'}, ${s.n} basamak`);
+  save(); render();
+}
+function startFromSetup() { store.set('setup', setup); newGame(); }
+function again() { newGame(); }
+
+function submit() {
+  if (!G || busy || G.phase === 'over') return;
+  const t = T(), n = G.n;
+  const err = cur.length !== n ? t.errLen(n) : cur[0] === '0' ? t.errZero : G.phase === 'play' && G.my.some((h) => h.g === cur) ? t.errRep : '';
+  if (err) { toast(err, '#f87171'); Sfx.bad(); const e = $('entry'); e.classList.remove('bad'); void e.offsetWidth; e.classList.add('bad'); return; }
+  if (G.phase === 'pick') { G.mine = cur; G.phase = 'play'; cur = ''; G.t0 = Date.now(); Sfx.good(); save(); render(); return; }
+  const [p, m] = score(G.secret, cur);
+  G.my.push({ g: cur, p, m }); cur = '';
+  if (p === n) Sfx.win(); else if (p || m) Sfx.good(); else Sfx.tap();
+  buzz(p === n ? [30, 40, 60] : 12);
+  if (G.mode === 'tek') { if (p === n) finish('win'); else { save(); render(); } return; }
+  busy = true; render(); save();
+  const ep = G;
+  setTimeout(() => {
+    if (G !== ep) return;
+    const g = cpuGuess(G.cpu, n, G.level), [cp, cm] = score(G.mine, g);
+    G.cpu.push({ g, p: cp, m: cm }); busy = false;
+    const meFound = p === n, cpuFound = cp === n;
+    if (meFound && cpuFound) finish('draw');
+    else if (meFound) finish('win');
+    else if (cpuFound) { toast(T().cpuFound, '#f87171'); finish('lose'); }
+    else { Sfx.tap(); save(); render(); }
+  }, REDUCED ? 300 : 650 + rnd(500));
+}
+function giveUp() {
+  if (!G || G.phase !== 'play' || busy) return;
+  if (Date.now() - giveArm > 2500) { giveArm = Date.now(); toast(T().sure, '#f87171'); return; }
+  finish('give');
+}
+function finish(kind) {
+  G.phase = 'over'; G.result = kind; G.tEnd = Date.now(); busy = false;
+  const t = T(), k = G.my.length, secs = elapsed();
+  bitenVar = true; sayac('bitti', 'oyun bitti');
+  const stats = [[t.stats.guesses, k], [t.stats.time, fmtTime(secs)]];
+  let o;
+  if (G.mode === 'tek') {
+    const won = kind === 'win';
+    sayac(`sonuc/${won ? 'kazandi' : 'kaybetti'}-${G.n}`, `${won ? 'buldu' : 'pes etti'}, ${G.n} basamak`);
+    let rec = false;
+    if (won) { const b = best[G.n]; if (!b || k < b.k || (k === b.k && secs < b.s)) { best[G.n] = { k, s: secs }; store.set('best', best); rec = true; } }
+    const b = best[G.n]; if (b) stats.push([t.stats.best, `${b.k} ${t.guesses} · ${fmtTime(b.s)}`]);
+    o = won ? { ico: rec ? '🏆' : '🎯', title: rec ? t.newRecord : t.winTitle, sub: t.winSub(G.n, k), score: G.secret, stats }
+            : { ico: '🔓', title: t.loseTitle, sub: t.loseSub(k), score: G.secret, lost: true, stats };
+    if (won) Sfx.win(); else Sfx.lose();
+  } else {
+    const who = kind === 'win' ? 'insan' : kind === 'draw' ? 'berabere' : 'bilgisayar';
+    sayac(`sonuc/${who}-${LVTR[G.level]}`, `sonuç: ${who} (${G.level})`);
+    stats.push([t.stats.cpu, G.cpu.length], [t.stats.secret, G.secret]);
+    o = kind === 'win' ? { ico: '🏆', title: t.vsWin, sub: t.vsWinSub(k), score: `${k}`, stats }
+      : kind === 'draw' ? { ico: '🤝', title: t.vsDraw, sub: t.vsDrawSub(k), score: `${k}`, stats }
+      : { ico: '🤖', title: t.vsLose, sub: t.vsLoseSub(G.cpu.length, G.secret), score: G.secret, lost: true, stats };
+    if (kind === 'win') Sfx.win(); else if (kind !== 'draw') Sfx.lose();
+  }
+  save(); render();
+  setTimeout(() => showEnd(o), REDUCED ? 200 : 900);
+}
+
+// ---------- Giriş ----------
+function press(d) {
+  if (!G || busy || G.phase === 'over') return;
+  if (cur.length >= G.n || cur.includes(d) || (cur === '' && d === '0')) return;
+  cur += d; Sfx.click(); renderInput();
+}
+function back() { if (!G || busy || !cur) return; cur = cur.slice(0, -1); Sfx.click(); renderInput(); }
+function cycleNote(d) { if (!G) return; G.notes[d] = (G.notes[d] + 1) % 3; Sfx.click(); save(); renderInput(); renderLists(); }
+
+// ---------- Çizim ----------
+const NC = ['', 'k', 'v'];
+const digHtml = (s, open) => s.split('').map((c) => `<i>${c}</i>`).join('');
+let shown = { my: 0, cpu: 0 };
+function rowHtml(h, i, mine) {
+  const n = G.n, hit = h.p === n;
+  const g = mine ? h.g.split('').map((c) => `<span class="${NC[G.notes[+c]]}">${c}</span>`).join('') : h.g;
+  const fb = h.p || h.m ? `${h.p ? `<b class="p">+${h.p}</b>` : ''}${h.m ? `<b class="m">−${h.m}</b>` : ''}` : '<b class="z">0</b>';
+  const nw = i >= shown[mine ? 'my' : 'cpu'] ? ' new' : '';
+  return `<div class="row${hit ? ' hit' : ''}${nw}"><span class="n">${i + 1}</span><span class="g">${g}</span><span class="fb">${fb}</span></div>`;
+}
+function renderLists() {
+  if (!G) return;
+  const t = T(), vs = G.mode === 'vs';
+  $('hist').classList.toggle('two', vs); $('cpuCol').hidden = !vs;
+  const ml = $('myList'), cl = $('cpuList');
+  ml.innerHTML = G.my.length ? G.my.map((h, i) => rowHtml(h, i, true)).join('') : `<div class="empty">${G.phase === 'pick' ? '' : t.empty}</div>`;
+  if (vs) cl.innerHTML = G.cpu.length ? G.cpu.map((h, i) => rowHtml(h, i, false)).join('') : `<div class="empty">${t.cpuEmpty}</div>`;
+  shown = { my: G.my.length, cpu: G.cpu.length };
+  ml.scrollTop = ml.scrollHeight; cl.scrollTop = cl.scrollHeight;
+  $('myHead').classList.toggle('turn', vs && G.phase === 'play' && !busy); $('cpuHead').classList.toggle('turn', vs && busy);
+}
+function renderInput() {
+  if (!G) return;
+  const t = T(), n = G.n, over = G.phase === 'over';
+  $('entry').innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i === cur.length && !over ? 'cur' : ''}">${cur[i] || ''}</i>`).join('');
+  $('prompt').textContent = over ? t.pOver : busy ? t.pWait : G.phase === 'pick' ? t.pPick(n) : t.pGuess;
+  const pick = G.phase === 'pick';
+  $('notes').hidden = pick;
+  $('notes').innerHTML = `<span class="lb">${t.notes}</span>` + [...'1234567890'].map((d) => `<button type="button" data-d="${d}" class="${NC[G.notes[+d]]}" aria-label="${t.notes} ${d}">${d}</button>`).join('');
+  $('pad').innerHTML = [...'1234567890'].map((d) => `<button type="button" data-k="${d}" class="${pick ? '' : NC[G.notes[+d]]}" ${over || busy || cur.includes(d) || cur.length >= n || (cur === '' && d === '0') ? 'disabled' : ''}>${d}</button>`).join('')
+    + `<button type="button" class="act del" data-k="del" aria-label="${t.del}" ${over || busy || !cur ? 'disabled' : ''}>⌫</button>`
+    + `<button type="button" class="ok" data-k="ok" ${over || busy || cur.length !== n ? 'disabled' : ''}>${pick ? t.pick : t.guess}</button>`;
+}
+function renderHud() {
+  if (!G) return;
+  const t = T(), over = G.phase === 'over';
+  $('secLbl').textContent = t.secret;
+  $('secDigs').innerHTML = Array.from({ length: G.n }, (_, i) => `<i>${over ? G.secret[i] : '?'}</i>`).join('');
+  $('secDigs').classList.toggle('open', over);
+  $('mineBox').hidden = !(G.mode === 'vs' && G.mine); $('mineLbl').textContent = t.mine;
+  if (G.mine) $('mineDigs').innerHTML = digHtml(G.mine);
+  const b = G.mode === 'tek' && best[G.n];
+  $('meta').innerHTML = `<b>${G.my.length}</b> ${t.guesses} · <span id="clock">${fmtTime(elapsed())}</span>` + (b ? `<br>${t.best} ${b.k} · ${fmtTime(b.s)}` : G.mode === 'vs' ? `<br>${t.lv[G.level]}` : '');
+  let gu = $('giveUp');
+  if (G.mode === 'tek' && G.phase === 'play') {
+    if (!gu) { gu = document.createElement('button'); gu.id = 'giveUp'; gu.type = 'button'; gu.addEventListener('click', giveUp); $('hud').appendChild(gu); }
+    gu.textContent = t.giveUp; gu.hidden = false;
+  } else if (gu) gu.hidden = true;
+}
+function render() { renderHud(); renderLists(); renderInput(); }
+function renderSetup() {
+  const t = T(), s = setup;
+  segPress('modeSeg', 'm', s.mode); segPress('lenSeg', 'n', s.n); segPress('lvSeg', 'l', s.level);
+  $('modeNote').textContent = t.modeNote[s.mode]; $('lenNote').textContent = t.lenNote(s.n, countAll(s.n));
+  $('lvSec').hidden = s.mode !== 'vs';
+}
+function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.phase === 'over'; $('startBtn').focus({ preventScroll: true }); }
+function gameLang() {
+  const t = T();
+  $('modeLbl').textContent = t.modeLbl; $('lenLbl').textContent = t.lenLbl; $('lvLbl').textContent = t.lvLbl;
+  document.querySelectorAll('#modeSeg button').forEach((b) => { b.querySelector('small').textContent = t.modes[b.dataset.m]; });
+  document.querySelectorAll('#lenSeg button').forEach((b) => { b.textContent = t.lenBtn(b.dataset.n); });
+  document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
+  $('myHead').textContent = t.yours; $('cpuHead').textContent = t.cpu;
+  renderSetup(); render();
+}
+
+$('modeSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-m]'); if (b) { setup.mode = b.dataset.m; renderSetup(); } });
+$('lenSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-n]'); if (b) { setup.n = +b.dataset.n; renderSetup(); } });
+$('lvSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-l]'); if (b) { setup.level = b.dataset.l; renderSetup(); } });
+$('pad').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-k]'); if (!b || b.disabled) return; Sfx.unlock();
+  const k = b.dataset.k; if (k === 'del') back(); else if (k === 'ok') submit(); else press(k);
+});
+$('notes').addEventListener('click', (e) => { const b = e.target.closest('button[data-d]'); if (b) cycleNote(+b.dataset.d); });
+addEventListener('keydown', (e) => {
+  if (anyOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/^\d$/.test(e.key)) { e.preventDefault(); Sfx.unlock(); press(e.key); }
+  else if (e.key === 'Backspace') { e.preventDefault(); back(); }
+  else if (e.key === 'Enter') { const a = document.activeElement; if (a && a.tagName === 'BUTTON' && !a.closest('#pad')) return; e.preventDefault(); submit(); }
+});
+setInterval(() => { if (G && G.phase === 'play' && !document.hidden) { const c = $('clock'); if (c) c.textContent = fmtTime(elapsed()); } }, 1000);
+// Sayfadan çıkınca geçen süre sayılmasın: kaydederken toplam süre saklanır
+document.addEventListener('visibilitychange', () => {
+  if (!G || G.phase !== 'play') return;
+  if (document.hidden) { save(); G.paused = true; store.set('game', G); }
+  else if (G.paused) { G.paused = false; G.t0 = Date.now(); }
+});
+
+function boot() {
+  const s = store.get('game', null);
+  if (s && s.secret && valid(s.secret, s.n) && Array.isArray(s.my) && Array.isArray(s.cpu) && s.phase !== 'over') {
+    G = s; G.tPrev = G.tPrev || 0; G.t0 = Date.now(); G.paused = false; G.tEnd = 0;
+    if (!Array.isArray(G.notes) || G.notes.length !== 10) G.notes = Array(10).fill(0);
+    render();
+  } else openSetup();
+}
+// Test kancası (oyun akışını değiştirmez)
+window.__sayi = { state: () => ({ G, cur, busy }), score, cpuGuess, numsOf };
+
+
+// ---------- Ortak bağlantılar ----------
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  gameLang();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('winOv').hidden) closeAll();
+});
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
+$('backBtn').addEventListener('click', closeAll);
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
+$('viewBtn').addEventListener('click', closeAll);
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+applySound(); applyLang(); boot();
+</script>
+</body>
+</html>
