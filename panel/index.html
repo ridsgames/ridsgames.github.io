@@ -281,9 +281,10 @@ const GAMES = [
   { slug: 'yilan-merdiven', name: 'Yılan Merdiven', img: '../assets/yilan-merdiven.jpg', rules: true, cpu: true },
   { slug: 'saniye', name: 'Cuk', img: '../assets/saniye.jpg', rules: true },
   { slug: 'bomba', name: 'Dilimin Ucunda', img: '../assets/bomba.jpg', rules: true },
-  { slug: 'mayin-tarlasi', name: 'Mayın Tarlası', img: '../assets/mayin-tarlasi.jpg?v=2', rules: true, clear: true }
+  { slug: 'mayin-tarlasi', name: 'Mayın Tarlası', img: '../assets/mayin-tarlasi.jpg?v=2', rules: true, clear: true },
+  { slug: 'dama', name: 'Türk Daması', img: '../assets/dama.jpg', rules: true, cpu: true }
 ];
-const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Cuk', bomba: 'Dilimin Ucunda', 'mayin-tarlasi': 'Mayın Tarlası' };
+const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Cuk', bomba: 'Dilimin Ucunda', 'mayin-tarlasi': 'Mayın Tarlası', dama: 'Türk Daması' };
 const SIZES = { phone: 'Telefon', tablet: 'Tablet', desktop: 'Bilgisayar', desktophd: 'Büyük ekran', unknown: 'Bilinmiyor' };
 // Süre dilimleri (olcum.js ile aynı): yol dilimin üst sınırını taşır, toplamda dilimin ortası kullanılır
 const MID = { 1: 0.5, 2: 1.5, 3: 2.5, 5: 4, 7: 6, 10: 8.5, 15: 12.5, 20: 17.5, 30: 25, 45: 37.5, 60: 52.5, 90: 75, 120: 105 };
@@ -494,6 +495,7 @@ function modeLabel(slug, m) {
   if (slug === 'saniye') return `${p[0] === 'grup' ? 'Arkadaşlarla' : 'Tek kişi'} · ${p[1] || ''} sn · ${{ bas: 'baştan gizli', 3: '3. sn\'de gizlenir', yari: 'yarıda gizlenir', hic: 'gizlenmez' }[p[2]] || ''}`;
   if (slug === 'bomba') return `${p[3] || ''} kişi · ${p[0] || ''} heceler · ${p[1] || ''} sn · hece ${p[2] === 'degisir' ? 'her pasta değişir' : 'tur boyunca sabit'}${p[4] ? ` · ${p[4] === 'karisik' ? 'yer karışık' : 'her yerde'}` : ''}`;
   if (slug === 'mayin-tarlasi') return { kolay: 'Kolay 9×9', orta: 'Orta 16×16', zor: 'Zor 22×16' }[p[0]] || `Özel · ${p[1] || ''}×${p[2] || ''} · ${p[3] || ''} mayın`;
+  if (slug === 'dama') return p[0] === '2' ? '2 oyuncu' : 'bilgisayara karşı, ' + (p[1] || '');
   return m;
 }
 function topMode(x, slug) {

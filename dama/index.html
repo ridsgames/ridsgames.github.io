@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Türk Daması | Ridsgames</title>
+<meta name="description" content="Türk Daması: taşlarını ileri ve yana sür, rakibin taşlarını atlayarak al, son sıraya varıp dama ol. Bilgisayara karşı ya da aynı cihazda iki kişi.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --turn: #ef4444;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); white-space: nowrap; }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill:disabled { opacity: .4; cursor: default; }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 560px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı: ileti, tahta, sıra paneli */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 8px 10px 8px; }
+.slot { flex: none; height: 32px; width: 100%; display: flex; align-items: center; justify-content: center; }
+.msg {
+  max-width: 100%; padding: 6px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 800; color: #fff; text-align: center; line-height: 1.25;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s;
+}
+.msg.on { opacity: 1; transform: none; }
+.msg.warn { border-color: #ffd43b; }
+#boardWrap { flex: 1; min-height: 0; width: 100%; max-height: calc(100vw - 16px); position: relative; } /* dikeyde tahta, ileti ve panel ortada toplanır */
+#board { position: absolute; display: block; touch-action: none; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, .55)); }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+/* Sıra paneli: keçeli ahşap tepsi */
+.dock {
+  flex: none; width: 100%; max-width: 440px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+  border-style: solid; border-width: 20px 17px 24px; border-image: url("../kizma-birader/tepsi.webp") 60 50 72 50 fill / 20px 17px 24px stretch;
+  padding: 0 4px 0 8px; background: none;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .5)) drop-shadow(0 0 7px color-mix(in srgb, var(--turn) 60%, transparent));
+  transition: filter .3s;
+}
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ava { flex: none; display: inline-block; border-radius: 50%; background: url("../kizma-birader/karakterler.webp") 0 0 / 400% 100%; }
+.chip { position: relative; width: 46px; height: 46px; box-shadow: 0 0 0 3px var(--turn), 0 3px 8px rgba(0, 0, 0, .45); transition: box-shadow .3s; }
+.chip.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .4; } 100% { scale: 1; } }
+.who .t { min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+#turnName { font-size: 17px; font-weight: 800; line-height: 1.2; color: #fff; }
+#turnMsg { font-size: 14px; color: #d8f3dc; line-height: 1.3; margin-top: 2px; min-height: 1.3em; }
+.skor { display: grid; gap: 6px; padding: 6px 8px; border-radius: 12px; background: rgba(2, 6, 23, .35); }
+.skor div { display: flex; align-items: center; gap: 7px; font-size: 16px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.skor .ava { width: 24px; height: 24px; }
+.tas { flex: none; width: 16px; height: 16px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, .6), inset 0 -2px 0 rgba(0, 0, 0, .25); }
+.tas.w { background: radial-gradient(circle at 35% 30%, #fff, #efe4cf 55%, #c9b896); }
+.tas.b { background: radial-gradient(circle at 35% 30%, #6b6b6b, #2b2b2b 55%, #111); border: 1px solid rgba(255, 255, 255, .25); }
+.skor .k { font-size: 12px; font-weight: 700; color: #ffe066; margin-left: -3px; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Yatay telefon: üst çubuk solda dar menü sütunu, kare tahta ortada, sağda ileti ve sıra paneli; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(64px, 9vw, 80px) minmax(0, 1fr) clamp(150px, 26vw, 210px); grid-template-rows: auto minmax(0, 1fr); }
+  main { display: contents; }
+  .top { grid-column: 1; grid-row: 1 / 3; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; max-width: none; flex-direction: column; justify-content: flex-start; padding: 10px 6px; gap: 12px; }
+  .logo img { width: 100%; max-width: 56px; height: auto; }
+  .gname, .pill .lbl { display: none; }
+  .tools { flex-direction: column; gap: 7px; }
+  .pill { padding: 0 8px; }
+  .pill.lang { font-size: 11px; padding: 0 6px; white-space: nowrap; }
+  #boardWrap { grid-column: 2; grid-row: 1 / 3; width: auto; max-height: none; margin: 6px 4px; }
+  .slot { grid-column: 3; grid-row: 1; width: auto; height: auto; min-height: 40px; padding: 8px 8px 0 0; }
+  .msg { font-size: 12.5px; padding: 6px 10px; border-radius: 14px; }
+  .dock { grid-column: 3; grid-row: 2; width: auto; max-width: none; margin: 8px 8px 8px 0; grid-template-columns: 1fr; align-content: space-evenly; justify-items: center; gap: 10px; padding: 4px 4px 8px; }
+  .who { flex-direction: column; text-align: center; gap: 8px; }
+  .chip { width: 54px; height: 54px; }
+  .skor { grid-template-columns: 1fr; gap: 8px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(64px, 9vw, 80px) + 8px); }
+  footer { display: none; }
+  #setupOv .card { max-width: 560px; padding: 14px 18px; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 8px; }
+  #setupOv .field { grid-template-columns: 130px 1fr; align-items: center; padding: 8px 0; }
+  #setupOv .btns { margin-top: 8px; grid-auto-flow: column; grid-auto-columns: 1fr; }
+}
+/* Geniş yatay ekran (tablet, bilgisayar): tahta ortada büyük, panel sağda */
+@media (orientation: landscape) and (min-height: 501px) and (min-width: 900px) {
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto minmax(0, 1fr); gap: 12px 18px; max-width: 1200px; width: 100%; margin: 0 auto; padding: 14px 18px; }
+  #boardWrap { grid-column: 1; grid-row: 1 / 3; align-self: stretch; justify-self: stretch; max-height: none; }
+  .slot { grid-column: 2; grid-row: 1; height: auto; min-height: 44px; align-items: flex-end; }
+  .msg { border-radius: 16px; }
+  .dock { grid-column: 2; grid-row: 2; align-self: start; grid-template-columns: 1fr; justify-items: center; gap: 14px; padding: 10px 6px 14px; }
+  .who { flex-direction: column; text-align: center; gap: 10px; }
+  .chip { width: 64px; height: 64px; }
+  .skor { grid-template-columns: 1fr 1fr; gap: 12px; }
+}
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.field { display: grid; gap: 8px; padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { min-height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.note { margin: 10px 0 0; font-size: 12.5px; color: var(--dim); text-align: center; line-height: 1.4; }
+.btns { display: grid; gap: 10px; margin-top: 14px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.final { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 4px 0 6px; font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.final span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; background: rgba(2, 6, 23, .55); }
+.final span.win { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.final .ava { width: 32px; height: 32px; }
+
+@media (prefers-reduced-motion: reduce) { .chip.pop { animation: none; } .msg { transition: none; } }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="dama" data-name="Türk Daması"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Türk Daması</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="undoBtn" class="pill" type="button" aria-label="Geri al"><span class="ico">↶</span><span class="lbl" id="undoLbl">Geri al</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dili değiştir">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
+  <div id="boardWrap"><canvas id="board" role="img" aria-label="Dama tahtası"></canvas></div>
+  <div class="dock" id="dock">
+    <div class="who">
+      <span class="chip ava" id="chip" aria-hidden="true"></span>
+      <div class="t"><div id="turnName"></div><div id="turnMsg"></div></div>
+    </div>
+    <div class="skor" id="skor" role="status">
+      <div><span class="ava" id="av0" aria-hidden="true"></span><span class="tas" id="ts0"></span><span id="sc0">16</span><span class="k" id="kc0"></span></div>
+      <div><span class="ava" id="av1" aria-hidden="true"></span><span class="tas" id="ts1"></span><span id="sc1">16</span><span class="k" id="kc1"></span></div>
+    </div>
+  </div>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Türk Daması</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="field"><span id="modeLbl"></span><div class="seg two" id="modeSeg"><button type="button" data-v="cpu"></button><button type="button" data-v="two"></button></div></div>
+    <div class="field" id="lvlField"><span id="lvlLbl"></span><div class="seg" id="lvlSeg"><button type="button" data-v="easy"></button><button type="button" data-v="mid"></button><button type="button" data-v="hard"></button></div></div>
+    <div class="field"><span id="firstLbl"></span><div class="seg" id="firstSeg"><button type="button" data-v="me"></button><button type="button" data-v="other"></button><button type="button" data-v="rnd"></button></div></div>
+    <p class="note" id="firstNote"></p>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button"></button>
+      <button class="big alt" id="resumeBtn" type="button" hidden></button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1" style="outline:none"></h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button"></button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 id="winTitle"></h2>
+    <div class="final" id="final"></div>
+    <p class="sub" id="winSub"></p>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button"></button>
+      <button class="big alt" id="toMenuBtn" type="button"></button>
+    </div>
+  </div>
+</div>
+
+<script id="motor">
+// ---------- Motor: Türk Daması kuralları ve bilgisayar (arayüzden bağımsız) ----------
+// Tahta 64 kare, kare = satır * 8 + sütun, satır 0 en üstte. Değer: 0 boş, 1 / 2 alttaki oyuncunun taşı / daması, -1 / -2 üsttekinin.
+// Alttaki oyuncu (0) yukarı, üstteki (1) aşağı ilerler. Taş bir kare ileri ya da yana gider ve aynı yönlerde atlayarak alır;
+// dama dört yöne istediği kadar gider ve uzaktan atlayarak alır. Almak zorunludur, en çok taşı alan seri seçilir.
+const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]]; // d ile d ^ 1 birbirinin tersi
+function newBoard() {
+  const b = new Int8Array(64);
+  for (let c = 0; c < 8; c++) { b[8 + c] = b[16 + c] = -1; b[40 + c] = b[48 + c] = 1; }
+  return b;
+}
+const ownerOf = (v) => (v > 0 ? 0 : v < 0 ? 1 : -1);
+const isKing = (v) => v === 2 || v === -2;
+const lastRow = (p) => (p === 0 ? 0 : 7);
+
+// Bütün geçerli hamleler: { from, to, path: [geçilen kareler], caps: [alınan kareler, sırayla], promo }
+function genMoves(b, p) {
+  const out = [], fwd = p === 0 ? -1 : 1, enemy = p === 0 ? (v) => v < 0 : (v) => v > 0;
+  let best = 0;
+  const seen = new Set();
+  function leaf(from, to, path, caps) {
+    if (caps.length < best) return;
+    if (caps.length > best) { best = caps.length; out.length = 0; seen.clear(); }
+    const key = from + ':' + to + ':' + caps.slice().sort((x, y) => x - y).join(',');
+    if (seen.has(key)) return; seen.add(key);
+    out.push({ from, to, path: path.slice(), caps: caps.slice(), promo: false });
+  }
+  function dfs(from, cur, king, lastDir, path, caps) {
+    const r = cur >> 3, c = cur & 7;
+    let ext = false;
+    for (let d = 0; d < 4; d++) {
+      const dr = DIRS[d][0], dc = DIRS[d][1];
+      if (!king && dr === -fwd) continue;                      // taş geri gidemez
+      if (king && lastDir >= 0 && d === (lastDir ^ 1)) continue; // dama alırken geri dönemez
+      if (king) {
+        let rr = r + dr, cc = c + dc;
+        while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && b[rr * 8 + cc] === 0) { rr += dr; cc += dc; }
+        if (rr < 0 || rr > 7 || cc < 0 || cc > 7) continue;
+        const q = rr * 8 + cc; if (!enemy(b[q])) continue;
+        let lr = rr + dr, lc = cc + dc;
+        if (lr < 0 || lr > 7 || lc < 0 || lc > 7 || b[lr * 8 + lc] !== 0) continue;
+        const qv = b[q]; b[q] = 0; caps.push(q); // alınan taş hemen kalkar
+        while (lr >= 0 && lr < 8 && lc >= 0 && lc < 8 && b[lr * 8 + lc] === 0) {
+          const t = lr * 8 + lc; path.push(t); dfs(from, t, true, d, path, caps); path.pop(); ext = true; lr += dr; lc += dc;
+        }
+        caps.pop(); b[q] = qv;
+      } else {
+        const lr = r + 2 * dr, lc = c + 2 * dc;
+        if (lr < 0 || lr > 7 || lc < 0 || lc > 7) continue;
+        const q = (r + dr) * 8 + c + dc, t = lr * 8 + lc;
+        if (!enemy(b[q]) || b[t] !== 0) continue;
+        const qv = b[q]; b[q] = 0; caps.push(q); path.push(t);
+        dfs(from, t, false, d, path, caps); // son sıraya varsa da taş olarak devam eder; dama hamle sonunda olur
+        path.pop(); caps.pop(); b[q] = qv; ext = true;
+      }
+    }
+    if (!ext && caps.length) leaf(from, cur, path, caps);
+  }
+  for (let s = 0; s < 64; s++) {
+    const v = b[s]; if (!v || ownerOf(v) !== p) continue;
+    b[s] = 0; dfs(s, s, isKing(v), -1, [s], []); b[s] = v;
+  }
+  if (best === 0) { // alınacak taş yoksa sade hamleler
+    for (let s = 0; s < 64; s++) {
+      const v = b[s]; if (!v || ownerOf(v) !== p) continue;
+      const r = s >> 3, c = s & 7, king = isKing(v);
+      for (let d = 0; d < 4; d++) {
+        const dr = DIRS[d][0], dc = DIRS[d][1];
+        if (!king && dr === -fwd) continue;
+        let rr = r + dr, cc = c + dc;
+        while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && b[rr * 8 + cc] === 0) {
+          const t = rr * 8 + cc; out.push({ from: s, to: t, path: [s, t], caps: [], promo: false });
+          if (!king) break; rr += dr; cc += dc;
+        }
+      }
+    }
+  }
+  for (const m of out) m.promo = !isKing(b[m.from]) && (m.to >> 3) === lastRow(p);
+  return out;
+}
+function applyMove(b, m) {
+  const v = b[m.from]; b[m.from] = 0;
+  for (const q of m.caps) b[q] = 0;
+  b[m.to] = m.promo ? v * 2 : v;
+  return b;
+}
+function countPieces(b) { // [taş, dama] her oyuncu için
+  const n = [[0, 0], [0, 0]];
+  for (let i = 0; i < 64; i++) { const v = b[i]; if (v) n[ownerOf(v)][isKing(v) ? 1 : 0]++; }
+  return n;
+}
+
+// ---------- Bilgisayar ----------
+const AI = { man: 100, king: 330, ms: 750, depth: 14 };
+// ilerleyen taşa satır bonusu (alttaki oyuncunun gözünden; satır 6 başlangıç)
+const ADV = [0, 34, 22, 13, 7, 3, 0, 0];
+function evaluate(b, p) {
+  let s = 0, m0 = 0, m1 = 0;
+  for (let i = 0; i < 64; i++) {
+    const v = b[i]; if (!v) continue;
+    const r = i >> 3, c = i & 7, edge = c === 0 || c === 7 ? -3 : 0;
+    if (v === 1) { s += AI.man + ADV[r] + edge; m0++; }
+    else if (v === -1) { s -= AI.man + ADV[7 - r] + edge; m1++; }
+    else if (v === 2) { s += AI.king; m0++; } else { s -= AI.king; m1++; }
+  }
+  // öndeyken takas iyidir: az taş kaldıkça fark daha çok sayılır
+  const tot = m0 + m1; if (tot) s *= 1 + 8 / (tot + 8);
+  return p === 0 ? s : -s;
+}
+function orderKey(m) { return m.caps.length * 1000 + (m.promo ? 500 : 0); }
+function search(b, p, depth, alpha, beta, ply, st) {
+  if ((++st.nodes & 1023) === 0 && st.budget > 0 && st.clock.now() - st.t0 > st.budget) st.stop = true;
+  if (st.stop) return 0;
+  const ms = genMoves(b, p);
+  if (!ms.length) return -100000 + ply;                     // hamle yok: kaybetti
+  const forced = ms[0].caps.length > 0;
+  if (depth <= 0 && (!forced || depth <= -10)) return evaluate(b, p); // alış serileri sonuna kadar izlenir
+  if (ms.length > 1) ms.sort((x, y) => orderKey(y) - orderKey(x));
+  const next = ms.length === 1 && ply < 30 ? depth : depth - 1; // tek hamle zorunluysa derinlik harcanmaz
+  let best = -Infinity;
+  for (const m of ms) {
+    const v = -search(applyMove(b.slice(), m), 1 - p, next, -beta, -alpha, ply + 1, st);
+    if (st.stop) return 0;
+    if (v > best) best = v;
+    if (v > alpha) alpha = v;
+    if (alpha >= beta) break;
+  }
+  return best;
+}
+// Kökte her hamleyi puanlar (derinleşerek, süre dolarsa son tamamlanan derinlik)
+function rootScores(b, p, maxDepth, budget) {
+  const clock = typeof performance !== 'undefined' ? performance : Date;
+  const st = { nodes: 0, stop: false, budget, t0: clock.now(), clock };
+  let root = genMoves(b, p).map((m) => ({ m, v: 0 })), done = root, depth = 0;
+  if (root.length <= 1) return { list: root, depth: 0, nodes: 0 };
+  for (let d = 1; d <= maxDepth; d++) {
+    const scored = [];
+    let alpha = -Infinity;
+    for (const s of root) {
+      const v = -search(applyMove(b.slice(), s.m), 1 - p, d - 1, -Infinity, -(alpha - 1e-6), 1, st);
+      if (st.stop) break;
+      scored.push({ m: s.m, v }); if (v > alpha) alpha = v;
+    }
+    if (st.stop) break;
+    // budanan hamlelerin puanı tavandır; sıralama için yeter, en iyisi doğru bulunur
+    done = scored.sort((x, y) => y.v - x.v); root = done; depth = d;
+    if (Math.abs(done[0].v) > 50000) break; // sonuç belli
+  }
+  return { list: done, depth, nodes: st.nodes };
+}
+function cpuMove(b, p, level, opts = {}) {
+  const rnd = opts.rnd || Math.random, ms = genMoves(b, p);
+  if (ms.length === 1) return ms[0];
+  if (level === 'random') return ms[Math.floor(rnd() * ms.length)];
+  if (level === 'easy') {
+    if (rnd() < 0.35) return ms[Math.floor(rnd() * ms.length)];
+    const r = rootScores(b, p, 2, 0), top = r.list[0].v, ok = r.list.filter((s) => s.v >= top - 70);
+    return ok[Math.floor(rnd() * ok.length)].m;
+  }
+  if (level === 'mid') {
+    const r = rootScores(b, p, 4, 0), top = r.list[0].v, ok = r.list.filter((s) => s.v >= top - 12);
+    return ok[Math.floor(rnd() * ok.length)].m;
+  }
+  const r = rootScores(b, p, opts.depth || AI.depth, opts.ms == null ? AI.ms : opts.ms), top = r.list[0].v;
+  const eq = r.list.filter((s) => s.v >= top - 1e-9 && s.v > -Infinity);
+  if (opts.info) Object.assign(opts.info, { depth: r.depth, nodes: r.nodes });
+  return (eq.length ? eq : r.list)[Math.floor(rnd() * (eq.length || 1))].m;
+}
+</script>
+<script>
+// ---------- Metinler ----------
+const STR = {
+  tr: {
+    title: 'Türk Daması | Ridsgames', game: 'Türk Daması', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', undo: 'Geri al', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
+    rights: 'Tüm hakları saklıdır.', board: (w, b) => `Dama tahtası. Beyazın ${w}, siyahın ${b} taşı var. Kendi taşların altta.`,
+    setupSub: 'İleri ve yana sür, atlayarak al, dama ol.', modeLbl: 'Mod', modeCpu: 'Bilgisayara karşı', modeTwo: '2 oyuncu', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
+    firstLbl: 'Kim başlasın?', me: 'Ben', cpu: 'Bilgisayar', rnd: 'Rastgele', p1: 'Alttaki', p2: 'Üstteki', firstNote: 'Başlayan beyaz taşlarla oynar.', start: 'Başla', resume: 'Kaldığın yerden devam et',
+    rulesTitle: 'Nasıl oynanır?', rulesSub: 'Rakibin bütün taşlarını alan ya da onu kımıldayamaz bırakan kazanır.', ok: 'Tamam',
+    ruleList: [
+      ['⬆️', 'Taşlar <b>bir kare ileri ya da yana</b> gider. Çapraz ve geri gidilmez. İlk hamleyi beyaz yapar.'],
+      ['⚔️', 'Yanındaki rakip taşın <b>üstünden atlayıp</b> arkasındaki boş kareye geçersen o taşı alırsın. Taş ileri ya da yana atlar, geriye atlayamaz.'],
+      ['🔗', 'Alınan taş hemen kalkar. Yeni yerinden yine alabiliyorsan <b>atlamaya devam edersin</b>.'],
+      ['❗', 'Almak <b>zorunlu</b>. Birden çok seçenek varsa <b>en çok taş alan</b> seriyi oynamalısın; eşitlerden istediğini seçebilirsin.'],
+      ['👑', 'Son sıraya varan taş <b>dama</b> olur. Alış serisinde son sıraya varırsa seriyi taş olarak bitirir, dama hamle sonunda olur.'],
+      ['🏃', 'Dama <b>dört yöne istediği kadar</b> gider. Aynı çizgideki rakip taşı aradaki boş karelerden geçerek atlar ve arkasındaki boş karelerden birine konar. Alış serisinde geldiği yöne geri dönemez.'],
+      ['🤝', 'Taş alınmadan ve dama olmayan taş oynanmadan <b>25 tur</b> geçerse oyun berabere biter.'],
+      ['👆', 'Oynatmak istediğin taşa dokun, sonra gideceği kareye. Yeşil halkalı taşlar oynayabilir.']
+    ],
+    turnYou: 'Sıra sende', turnCpu: 'Sıra bilgisayarda', turnP: (c) => `${c}ın sırası`, W: 'Beyaz', B: 'Siyah',
+    hintPick: 'Oynatacağın taşa dokun', hintTo: 'Gideceği kareye dokun', hintMust: (n) => (n > 1 ? `Almak zorunlu: ${n} taş alan seri` : 'Almak zorunlu'), hintThink: 'Bilgisayar düşünüyor...', hintMove: 'Taş ilerliyor...',
+    hintPath: 'Bu kareye iki yol var: önce ilk atlayacağın kareye dokun',
+    mustSay: 'Almak zorunlu! Halkalı taşlardan birini oynat', notMax: (n) => `En çok taş alan seriyi oynamalısın (${n} taş)`,
+    capYou: (n) => (n > 1 ? `${n} taş aldın!` : 'Taş aldın!'), capCpu: (n) => `Bilgisayar ${n} taş aldı`, capP: (c, n) => `${c} ${n} taş aldı`,
+    kingYou: 'Dama oldun!', kingCpu: 'Bilgisayarın taşı dama oldu', kingP: (c) => `${c}ın taşı dama oldu`,
+    youWin: 'Kazandın!', cpuWins: 'Bilgisayar kazandı', pWins: (c) => `${c} kazandı`, draw: 'Berabere!',
+    whyAll: 'Rakibin hiç taşı kalmadı.', whyBlock: 'Rakibin oynayacak hamlesi kalmadı.', whyLoseAll: 'Hiç taşın kalmadı.', whyLoseBlock: 'Oynayacak hamlen kalmadı.', whyDraw: '25 tur boyunca taş alınmadı.',
+    again: 'Tekrar oyna', toMenu: 'Ayarları değiştir', scoreAria: (a, b) => `Kalan taşlar: ${a} ve ${b}`, kings: (n) => (n ? `👑${n}` : ''),
+    white: 'beyaz', black: 'siyah'
+  },
+  en: {
+    title: 'Turkish Draughts | Ridsgames', game: 'Turkish Draughts', homeLabel: 'Ridsgames home', newGame: 'New game', undo: 'Undo', rules: 'Rules', sound: 'Sound', fs: 'Fullscreen', langAria: 'Switch language',
+    rights: 'All rights reserved.', board: (w, b) => `Draughts board. White has ${w} pieces, black ${b}. Your pieces are at the bottom.`,
+    setupSub: 'Move forward and sideways, jump to capture, crown a king.', modeLbl: 'Mode', modeCpu: 'Vs computer', modeTwo: '2 players', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
+    firstLbl: 'Who starts?', me: 'Me', cpu: 'Computer', rnd: 'Random', p1: 'Bottom', p2: 'Top', firstNote: 'Whoever starts plays white.', start: 'Start', resume: 'Resume game',
+    rulesTitle: 'How to play', rulesSub: 'Capture all your opponent\'s pieces or leave them with no move to win.', ok: 'OK',
+    ruleList: [
+      ['⬆️', 'Pieces move <b>one square forward or sideways</b>, never diagonally or backward. White moves first.'],
+      ['⚔️', '<b>Jump over</b> an adjacent opponent piece onto the empty square behind it to capture it. Men jump forward or sideways, never backward.'],
+      ['🔗', 'A captured piece is removed at once. If you can capture again from the new square, <b>keep jumping</b>.'],
+      ['❗', 'Capturing is <b>compulsory</b>. If there are several options you must play the sequence that takes <b>the most pieces</b>; among equal ones you may choose.'],
+      ['👑', 'A man reaching the last row becomes a <b>king</b>. If it gets there during a capture sequence it finishes as a man and is crowned at the end of the move.'],
+      ['🏃', 'A king moves <b>any distance in all four directions</b>. It captures an opponent piece on the same line from afar and lands on any empty square beyond it. During a sequence it cannot turn back the way it came.'],
+      ['🤝', 'If <b>25 rounds</b> pass with no capture and no man moved, the game is a draw.'],
+      ['👆', 'Tap the piece you want to move, then its target square. Pieces with a green ring can move.']
+    ],
+    turnYou: 'Your turn', turnCpu: 'Computer\'s turn', turnP: (c) => `${c}'s turn`, W: 'White', B: 'Black',
+    hintPick: 'Tap the piece to move', hintTo: 'Tap its target square', hintMust: (n) => (n > 1 ? `Capture is compulsory: take ${n}` : 'Capture is compulsory'), hintThink: 'The computer is thinking...', hintMove: 'Moving...',
+    hintPath: 'Two routes lead there: tap the first square to jump to',
+    mustSay: 'You must capture! Move one of the ringed pieces', notMax: (n) => `You must play the sequence that takes the most (${n})`,
+    capYou: (n) => (n > 1 ? `You captured ${n} pieces!` : 'You captured a piece!'), capCpu: (n) => `The computer captured ${n}`, capP: (c, n) => `${c} captured ${n}`,
+    kingYou: 'You crowned a king!', kingCpu: 'The computer crowned a king', kingP: (c) => `${c} crowned a king`,
+    youWin: 'You win!', cpuWins: 'The computer wins', pWins: (c) => `${c} wins`, draw: 'It\'s a draw!',
+    whyAll: 'Your opponent has no pieces left.', whyBlock: 'Your opponent has no move left.', whyLoseAll: 'You have no pieces left.', whyLoseBlock: 'You have no move left.', whyDraw: 'No capture for 25 rounds.',
+    again: 'Play again', toMenu: 'Change settings', scoreAria: (a, b) => `Pieces left: ${a} and ${b}`, kings: (n) => (n ? `👑${n}` : ''),
+    white: 'white', black: 'black'
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DRAW_PLIES = 50;
+
+// ---------- Durum ----------
+// G: { mode, level, b: 64 kare, turn, white: beyazla oynayan (başlayan) oyuncu, quiet: sessiz yarım hamle sayısı, last: son hamle, ms, hist: geri alma için }
+let G = null, setup = { mode: 'cpu', level: 'easy', first: 'me' };
+let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false;
+let moves = [], sel = -1, prefix = null, hover = -1, hilite = null;
+let view = newBoard(), anim = null;
+const fx = [], ghosts = [];
+try { const s = JSON.parse(localStorage.getItem('rids_dama_setup')); if (s && s.mode && s.level && s.first) setup = s; } catch (e) {}
+try { soundOn = localStorage.getItem('rids_dama_sound') !== '0'; } catch (e) {}
+
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'dama/' + olay, title: 'Türk Daması: ' + ad, event: true }); } catch (e) {} };
+const lvAd = (lv) => (lv === 'easy' ? 'kolay' : lv === 'mid' ? 'orta' : 'zor');
+const isCpu = (p) => G && G.mode === 'cpu' && p === 1;
+const avaIdx = (p) => (p === 0 ? 0 : G && G.mode === 'two' ? 2 : 1);   // tilki, balina, kurbağa
+const avaPos = (i) => `${i * 100 / 3}% 0`;
+const TURNCOL = ['#ef4444', '#3b82f6', '#22c55e'];
+const turnCol = (p) => TURNCOL[avaIdx(p)];
+const isWhite = (p) => (G ? G.white === p : p === 0);
+const colName = (p) => (isWhite(p) ? T().W : T().B);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
+
+// ---------- Geometri ----------
+const cv = $('board'), g = cv.getContext('2d'), bgc = document.createElement('canvas'), bg = bgc.getContext('2d');
+let S = 320, dpr = 1, maxS = 900, fm = 14, cell = 36, sprites = {};
+const avImg = new Image(); avImg.src = '../kizma-birader/karakterler.webp';
+function layout() {
+  const wrap = $('boardWrap');
+  dpr = Math.min(3, window.devicePixelRatio || 1);
+  S = Math.max(200, Math.floor(Math.min(wrap.clientWidth, wrap.clientHeight, maxS)));
+  fm = Math.round(Math.max(8, S * 0.04)); cell = (S - 2 * fm) / 8;
+  bgc.width = cv.width = Math.round(S * dpr); bgc.height = cv.height = Math.round(S * dpr);
+  cv.style.width = cv.style.height = S + 'px';
+  cv.style.left = Math.round((wrap.clientWidth - S) / 2) + 'px'; cv.style.top = Math.round((wrap.clientHeight - S) / 2) + 'px';
+  drawBg(); makeSprites();
+}
+const cx = (i) => fm + ((i & 7) + 0.5) * cell;
+const cy = (i) => fm + ((i >> 3) + 0.5) * cell;
+
+// ---------- Tahta zemini (önbellekte) ----------
+let tohum = 7;
+const rnd = () => { tohum = (tohum * 16807) % 2147483647; return (tohum - 1) / 2147483646; };
+const rr = (c, x, y, w, h, r) => { c.beginPath(); c.roundRect(x, y, w, h, r); };
+function grain(c, x, y, w, h, n, dark, light) { // ahşap damarı
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+  for (let i = 0; i < n; i++) {
+    const y0 = y + rnd() * h, a = 1 + rnd() * 3, f = .02 + rnd() * .05, p = rnd() * 6;
+    c.beginPath();
+    for (let xx = x; xx <= x + w + 4; xx += 4) { const yy = y0 + Math.sin(xx * f + p) * a; xx === x ? c.moveTo(xx, yy) : c.lineTo(xx, yy); }
+    c.strokeStyle = rnd() < .55 ? dark : light; c.globalAlpha = .05 + rnd() * .09; c.lineWidth = .5 + rnd() * 1.3; c.stroke();
+  }
+  c.restore();
+}
+function drawBg() {
+  const c = bg; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, S, S); tohum = 11;
+  rr(c, 0, 0, S, S, Math.max(8, S * .025));
+  let d = c.createLinearGradient(0, 0, S, S); d.addColorStop(0, '#7a4219'); d.addColorStop(.5, '#5e3112'); d.addColorStop(1, '#4a250c'); c.fillStyle = d; c.fill();
+  grain(c, 0, 0, S, S, 60, 'rgb(40,18,4)', 'rgb(255,210,150)');
+  rr(c, 1, 1, S - 2, S - 2, Math.max(8, S * .025)); c.strokeStyle = 'rgba(255,215,160,.25)'; c.lineWidth = 1; c.stroke();
+  const ix = fm, iw = S - 2 * fm;
+  c.fillStyle = 'rgba(0,0,0,.45)'; c.fillRect(ix - 2, ix - 2, iw + 4, iw + 4);
+  for (let r = 0; r < 8; r++) for (let k = 0; k < 8; k++) {
+    const x = ix + k * cell, y = ix + r * cell, dark = (r + k) % 2 === 1;
+    const gr = c.createLinearGradient(x, y, x + cell, y + cell);
+    if (dark) { gr.addColorStop(0, '#a4683a'); gr.addColorStop(1, '#8f5830'); } else { gr.addColorStop(0, '#f0d6aa'); gr.addColorStop(1, '#e2c391'); }
+    c.fillStyle = gr; c.fillRect(x, y, cell + .5, cell + .5);
+    grain(c, x, y, cell, cell, 5, dark ? 'rgb(70,35,10)' : 'rgb(150,95,40)', 'rgb(255,240,210)');
+  }
+  c.strokeStyle = 'rgba(60,28,6,.35)'; c.lineWidth = 1;
+  for (let k = 0; k <= 8; k++) { c.beginPath(); c.moveTo(ix + k * cell, ix); c.lineTo(ix + k * cell, ix + iw); c.stroke(); c.beginPath(); c.moveTo(ix, ix + k * cell); c.lineTo(ix + iw, ix + k * cell); c.stroke(); }
+  c.strokeStyle = 'rgba(255,225,180,.35)'; c.strokeRect(ix - 1.5, ix - 1.5, iw + 3, iw + 3);
+  // kenar harfleri ve sayıları
+  if (fm >= 12) {
+    c.fillStyle = 'rgba(255,225,180,.55)'; c.font = `700 ${Math.round(fm * .55)}px Inter, system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let k = 0; k < 8; k++) { c.fillText('abcdefgh'[k], ix + (k + .5) * cell, S - fm / 2); c.fillText(String(8 - k), fm / 2, ix + (k + .5) * cell); }
+  }
+}
+
+// ---------- Taşlar ----------
+function makeSprites() { // her taş türü bir kez çizilir: beyaz/siyah, taş/dama
+  const R = cell * .4 * dpr, s = Math.ceil(R * 2.6);
+  const mk = (white, king) => {
+    const k = document.createElement('canvas'); k.width = k.height = s; const c = k.getContext('2d'), m = s / 2;
+    const disk = (oy) => {
+      const y = m + oy;
+      c.beginPath(); c.arc(m, y + R * .14, R, 0, 7); c.fillStyle = white ? '#a8977a' : '#050505'; c.fill(); // kenar kalınlığı
+      const d = c.createRadialGradient(m - R * .35, y - R * .4, R * .1, m, y, R);
+      if (white) { d.addColorStop(0, '#ffffff'); d.addColorStop(.6, '#f1e7d3'); d.addColorStop(1, '#cdbb98'); } else { d.addColorStop(0, '#5c5c5c'); d.addColorStop(.6, '#2a2a2a'); d.addColorStop(1, '#141414'); }
+      c.beginPath(); c.arc(m, y, R, 0, 7); c.fillStyle = d; c.fill();
+      c.lineWidth = Math.max(1, R * .05); c.strokeStyle = white ? 'rgba(120,95,60,.55)' : 'rgba(255,255,255,.18)'; c.stroke();
+      c.beginPath(); c.arc(m, y, R * .66, 0, 7); c.strokeStyle = white ? 'rgba(140,110,70,.45)' : 'rgba(255,255,255,.14)'; c.lineWidth = Math.max(1, R * .07); c.stroke();
+      c.beginPath(); c.arc(m, y, R * .4, 0, 7); c.strokeStyle = white ? 'rgba(140,110,70,.3)' : 'rgba(255,255,255,.09)'; c.lineWidth = Math.max(1, R * .05); c.stroke();
+      c.beginPath(); c.ellipse(m - R * .38, y - R * .45, R * .3, R * .14, -.6, 0, 7); c.fillStyle = white ? 'rgba(255,255,255,.8)' : 'rgba(255,255,255,.22)'; c.fill();
+    };
+    if (king) { disk(R * .12); disk(-R * .14); } else disk(0);
+    if (king) { // altın taç
+      const y = m - R * .14, w = R * 1.0, h = R * .62, x0 = m - w / 2, y0 = y + h * .42;
+      c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 - w * .04, y0 - h); c.lineTo(x0 + w * .27, y0 - h * .48); c.lineTo(m, y0 - h * 1.12); c.lineTo(x0 + w * .73, y0 - h * .48); c.lineTo(x0 + w * 1.04, y0 - h); c.lineTo(x0 + w, y0); c.closePath();
+      const gd = c.createLinearGradient(0, y0 - h, 0, y0); gd.addColorStop(0, '#fff3b0'); gd.addColorStop(.5, '#f5c542'); gd.addColorStop(1, '#b8860b');
+      c.fillStyle = gd; c.fill(); c.lineWidth = Math.max(1, R * .05); c.strokeStyle = '#6b4a00'; c.stroke();
+      for (const [px, py] of [[x0 - w * .04, y0 - h], [m, y0 - h * 1.12], [x0 + w * 1.04, y0 - h]]) { c.beginPath(); c.arc(px, py, R * .08, 0, 7); c.fillStyle = '#fff3b0'; c.fill(); }
+    }
+    return k;
+  };
+  sprites = { w1: mk(true, false), w2: mk(true, true), b1: mk(false, false), b2: mk(false, true) };
+}
+function piece(x, y, v, lift = 0, alpha = 1, scale = 1) {
+  const p = ownerOf(v), key = (isWhite(p) ? 'w' : 'b') + (isKing(v) ? 2 : 1), sp = sprites[key], s = sp.width / dpr * scale, R = cell * .4 * scale;
+  g.save(); g.globalAlpha = alpha;
+  g.beginPath(); g.ellipse(x + R * .12, y + R * .3 + lift * .3, R * (1 + lift * .01), R * .9, 0, 0, 7); g.fillStyle = `rgba(20,8,0,${.35 - Math.min(.2, lift * .01)})`; g.fill();
+  // iki kişilik oyunda üstteki oyuncunun daması ona dönük çizilir
+  if (G && G.mode === 'two' && p === 1 && isKing(v)) { g.translate(x, y - lift); g.rotate(Math.PI); g.drawImage(sp, -s / 2, -s / 2, s, s); }
+  else g.drawImage(sp, x - s / 2, y - s / 2 - lift, s, s);
+  g.restore();
+}
+
+// ---------- Efektler ----------
+function ring(x, y, color, big) { fx.push({ k: 'ring', x, y, color, t0: performance.now(), dur: big ? 650 : 420, big }); }
+function sparks(x, y, color, n) {
+  const t0 = performance.now();
+  for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 90; fx.push({ k: 'spark', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, color, r: 1.6 + Math.random() * 2, t0, dur: 450 + Math.random() * 350 }); }
+}
+function floater(x, y, text) { fx.push({ k: 'text', x, y, text, t0: performance.now(), dur: 1100 }); }
+function drawFx(now) {
+  for (let k = fx.length - 1; k >= 0; k--) {
+    const f = fx[k], t = (now - f.t0) / (f.dur / speed);
+    if (t >= 1) { fx.splice(k, 1); continue; }
+    if (t < 0) continue;
+    if (f.k === 'ring') { g.beginPath(); g.arc(f.x, f.y, cell * .4 * (.6 + t * (f.big ? 1.4 : .9)), 0, 7); g.strokeStyle = f.color; g.globalAlpha = (1 - t) * .9; g.lineWidth = 3 * (1 - t) + .5; g.stroke(); g.globalAlpha = 1; }
+    else if (f.k === 'spark') {
+      const e = t * f.dur / 1000;
+      g.beginPath(); g.arc(f.x + f.vx * e, f.y + f.vy * e + 120 * e * e, f.r * (1 - t * .6), 0, 7); g.fillStyle = f.color; g.globalAlpha = 1 - t; g.fill(); g.globalAlpha = 1;
+    } else {
+      g.save(); g.font = `800 ${Math.round(Math.max(16, cell * .45))}px Inter, system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.globalAlpha = 1 - t * t;
+      g.lineWidth = 4; g.strokeStyle = 'rgba(30,10,0,.8)'; g.strokeText(f.text, f.x, f.y - t * 40); g.fillStyle = '#ffe066'; g.fillText(f.text, f.x, f.y - t * 40); g.restore();
+    }
+  }
+}
+
+// ---------- Çizim ----------
+const canPlay = () => G && !G.over && !busy && !isCpu(G.turn) && $('setupOv').hidden && $('rulesOv').hidden && $('winOv').hidden;
+const movers = () => [...new Set(moves.map((m) => m.from))];
+const cands = () => (sel < 0 ? [] : moves.filter((m) => m.from === sel && prefix.every((q, k) => m.path[k] === q)));
+function tint(i, color, a) { g.save(); g.globalAlpha = a; g.fillStyle = color; g.fillRect(fm + (i & 7) * cell, fm + (i >> 3) * cell, cell, cell); g.restore(); }
+function halo(i, color, a, w = 2.4, rad = .45) { g.save(); g.globalAlpha = a; g.shadowColor = color; g.shadowBlur = 10; g.strokeStyle = color; g.lineWidth = w; g.beginPath(); g.arc(cx(i), cy(i), cell * rad, 0, 7); g.stroke(); g.restore(); }
+function drawPath(m, color, a, now) {
+  g.save(); g.globalAlpha = a; g.strokeStyle = color; g.lineWidth = Math.max(2, cell * .07); g.lineCap = 'round'; g.lineJoin = 'round';
+  g.setLineDash([cell * .12, cell * .14]); g.lineDashOffset = -now / 40;
+  g.beginPath(); m.path.forEach((q, k) => (k ? g.lineTo(cx(q), cy(q)) : g.moveTo(cx(q), cy(q)))); g.stroke(); g.restore();
+}
+function cross(i, a) { // alınacak taşın üstünde kırmızı çarpı
+  const x = cx(i), y = cy(i), d = cell * .17;
+  g.save(); g.globalAlpha = a; g.strokeStyle = '#ff4d4d'; g.lineWidth = Math.max(2.5, cell * .09); g.lineCap = 'round'; g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 4;
+  g.beginPath(); g.moveTo(x - d, y - d); g.lineTo(x + d, y + d); g.moveTo(x + d, y - d); g.lineTo(x - d, y + d); g.stroke(); g.restore();
+}
+function draw(now) {
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, S, S); g.drawImage(bgc, 0, 0, S, S);
+  const pulse = reduce ? .85 : .62 + .38 * Math.sin(now / 260), play = canPlay();
+  if (G && G.last && !anim) { tint(G.last.from, '#ffd43b', .22); tint(G.last.to, '#ffd43b', .32); }
+  const cs = play ? cands() : [];
+  if (play && sel >= 0) tint(sel, '#22d3ee', .28);
+  // taşlar
+  for (let i = 0; i < 64; i++) {
+    const v = view[i]; if (!v || (anim && i === anim.from)) continue;
+    const lift = play && sel < 0 && hover === i && moves.some((m) => m.from === i) ? 3 : play && sel === i ? 4 : 0;
+    piece(cx(i), cy(i), v, lift);
+  }
+  for (let k = ghosts.length - 1; k >= 0; k--) { // alınan taşlar sönerek kalkar
+    const q = ghosts[k], t = (now - q.t0) / (380 / speed);
+    if (t >= 1) { ghosts.splice(k, 1); continue; }
+    piece(cx(q.i), cy(q.i), q.v, 0, 1 - t, 1 + t * .25);
+  }
+  if (play) {
+    if (sel < 0) for (const i of movers()) halo(i, '#22c55e', pulse, 3.2, .46);
+    else {
+      halo(sel, '#22d3ee', 1, 3);
+      const hv = cs.find((m) => m.to === hover) || null;
+      for (const m of cs) drawPath(m, m.caps.length ? '#ffd43b' : '#4ade80', hv && hv !== m ? .25 : .85, now);
+      for (const q of new Set((hv ? [hv] : cs).flatMap((m) => m.caps))) cross(q, hv ? 1 : .8);
+      const ends = new Set(cs.map((m) => m.to)), steps = new Set(cs.map((m) => m.path[prefix.length]).filter((q) => q != null && !ends.has(q)));
+      for (const q of ends) { g.beginPath(); g.arc(cx(q), cy(q), cell * (hover === q ? .2 : .15), 0, 7); g.fillStyle = cs.some((m) => m.to === q && m.caps.length) ? 'rgba(255,212,59,.95)' : 'rgba(74,222,128,.95)'; g.fill(); halo(q, '#fff', .5 * pulse, 1.5, .24); }
+      if (cs.length > 1 && cs.every((m) => m.to === cs[0].to)) for (const q of steps) halo(q, '#ffd43b', pulse, 2, .2);
+    }
+  }
+  if (hilite) { halo(hilite.from, '#ffd43b', pulse, 3); drawPath(hilite, '#ffd43b', .9, now); for (const q of hilite.caps) cross(q, .9); }
+  if (anim) { // hareket eden taş
+    const a = anim, t = Math.min(1, (now - a.t0) / a.dur), e = t * t * (3 - 2 * t);
+    const x = a.x0 + (a.x1 - a.x0) * e, y = a.y0 + (a.y1 - a.y0) * e, h = a.hop ? Math.sin(t * Math.PI) * cell * .45 : Math.sin(t * Math.PI) * cell * .08;
+    piece(x, y, a.v, h);
+    if (t >= 1 && a.res) { const r = a.res; a.res = null; r(); }
+  }
+  drawFx(now);
+}
+let lastNow = 0;
+const frame = (now) => {
+  if (G && !G.over && $('setupOv').hidden) G.ms += Math.min(1000, Math.max(0, now - lastNow));
+  lastNow = now; draw(now); requestAnimationFrame(frame);
+};
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), gn = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function knock(delay, vol, freq, len = 0.06) { // ahşap taşın tahtaya değmesi
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 4);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), gn = c.createGain();
+    f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 2.2; gn.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(gn).connect(c.destination); s.start(t);
+  }
+  return {
+    unlock: ctx,
+    pick() { knock(0, 0.18, 1500, 0.04); },
+    place() { knock(0, 0.38, 700); tone(260, 180, 0.06, 0.06, 'triangle'); },
+    capture(k) { knock(0, 0.4, 900); tone(620 + k * 80, 260, 0.2, 0.1, 'triangle'); },
+    king() { [523, 659, 784, 1047].forEach((f, k) => tone(f, f, 0.14, 0.1, 'triangle', k * 0.08)); },
+    err() { tone(220, 160, 0.12, 0.07, 'square'); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); },
+    lose() { [440, 370, 311, 262].forEach((f, k) => tone(f, f * .98, 0.24, 0.1, 'triangle', k * 0.16)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Oyun akışı ----------
+let msgT = null;
+function say(s, warn) {
+  const el = $('msg'); el.textContent = s; el.classList.add('on'); el.classList.toggle('warn', !!warn);
+  clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2800);
+}
+const pack = () => ({ mode: G.mode, level: G.level, b: Array.from(G.b), turn: G.turn, white: G.white, quiet: G.quiet, last: G.last && { from: G.last.from, to: G.last.to }, ms: Math.round(G.ms) });
+function save() { try { if (G && !G.over) localStorage.setItem('rids_dama_game', JSON.stringify(pack())); } catch (e) {} }
+function loadSaved() {
+  try {
+    const s = JSON.parse(localStorage.getItem('rids_dama_game'));
+    return s && Array.isArray(s.b) && s.b.length === 64 && s.b.every((v) => [-2, -1, 0, 1, 2].includes(v)) && (s.turn === 0 || s.turn === 1) && (s.white === 0 || s.white === 1) && s.mode ? s : null;
+  } catch (e) { return null; }
+}
+function updateDock(hint) {
+  const t = T(), p = G ? G.turn : 0, two = G && G.mode === 'two', col = turnCol(p);
+  $('dock').style.setProperty('--turn', col);
+  const chip = $('chip'); if (chip.dataset.p !== String(avaIdx(p))) { chip.dataset.p = avaIdx(p); chip.style.backgroundPosition = avaPos(avaIdx(p)); chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
+  for (const q of [0, 1]) { $('av' + q).style.backgroundPosition = avaPos(avaIdx(q)); $('ts' + q).className = 'tas ' + (isWhite(q) ? 'w' : 'b'); }
+  $('turnName').textContent = two ? t.turnP(colName(p)) : p === 0 ? t.turnYou : t.turnCpu;
+  if (hint == null) {
+    const must = moves.length && moves[0].caps.length;
+    hint = !G || G.over ? '' : isCpu(p) ? t.hintThink : must ? t.hintMust(moves[0].caps.length) : sel >= 0 ? t.hintTo : t.hintPick;
+  }
+  $('turnMsg').textContent = hint;
+  const n = countPieces(view);
+  $('sc0').textContent = n[0][0] + n[0][1]; $('sc1').textContent = n[1][0] + n[1][1];
+  $('kc0').textContent = t.kings(n[0][1]); $('kc1').textContent = t.kings(n[1][1]);
+  $('skor').setAttribute('aria-label', t.scoreAria(n[0][0] + n[0][1], n[1][0] + n[1][1]));
+  const w = G ? G.white : 0; cv.setAttribute('aria-label', t.board(n[w][0] + n[w][1], n[1 - w][0] + n[1 - w][1]));
+  $('undoBtn').disabled = !G || G.over || busy || !G.hist.some((h) => G.mode === 'two' || h.turn === 0);
+}
+function deselect() { sel = -1; prefix = null; }
+async function nextAction() {
+  const my = epoch; if (!G || G.over) return;
+  moves = genMoves(G.b, G.turn); deselect(); view = G.b.slice();
+  if (!moves.length) return finish(1 - G.turn, countPieces(G.b)[G.turn][0] + countPieces(G.b)[G.turn][1] ? 'block' : 'all');
+  if (G.quiet >= DRAW_PLIES) return finish(-1, 'draw');
+  busy = isCpu(G.turn); updateDock();
+  if (isCpu(G.turn)) {
+    await wait(450); if (my !== epoch) return;
+    const t0 = performance.now(), m = cpuMove(G.b, 1, G.level), think = performance.now() - t0;
+    await wait(Math.max(0, 350 - think)); if (my !== epoch) return;
+    hilite = m; Sfx.pick(); await wait(480); if (my !== epoch) return;
+    hilite = null; return playMove(m);
+  }
+  const fr = movers();
+  if (moves[0].caps.length && fr.length === 1) { sel = fr[0]; prefix = [sel]; updateDock(); } // tek seçenek: taş kendiliğinden seçilir
+}
+function slide(from, to, v, hop) {
+  const d = Math.hypot(cx(to) - cx(from), cy(to) - cy(from)) / cell;
+  return new Promise((res) => { anim = { from: anim ? anim.from : from, v, x0: cx(from), y0: cy(from), x1: cx(to), y1: cy(to), t0: performance.now(), dur: (hop ? 260 : 170) / speed + d * 45 / speed, hop, res }; });
+}
+async function playMove(m) {
+  const my = epoch, p = G.turn, t = T(), two = G.mode === 'two', v = G.b[m.from];
+  busy = true; deselect(); hover = -1; hilite = null; updateDock(t.hintMove);
+  G.hist.push(pack()); if (G.hist.length > 60) G.hist.shift();
+  const after = applyMove(G.b.slice(), m);
+  anim = null;
+  for (let k = 1; k < m.path.length; k++) {
+    const cap = m.caps[k - 1];
+    await slide(m.path[k - 1], m.path[k], v, cap != null); if (my !== epoch) return;
+    if (cap != null) {
+      ghosts.push({ i: cap, v: view[cap], t0: performance.now() }); view[cap] = 0;
+      sparks(cx(cap), cy(cap), '#ffd43b', 12); Sfx.capture(k); buzz(25);
+    } else Sfx.place();
+  }
+  if (m.caps.length) Sfx.place();
+  anim = null; view = after.slice();
+  G.b = after; G.last = { from: m.from, to: m.to, caps: m.caps };
+  G.quiet = m.caps.length || !isKing(v) ? 0 : G.quiet + 1;
+  if (m.caps.length) {
+    floater(cx(m.to), cy(m.to) - cell * .5, '+' + m.caps.length);
+    if (m.caps.length > 1 || !two) say(two ? t.capP(colName(p), m.caps.length) : p === 0 ? t.capYou(m.caps.length) : t.capCpu(m.caps.length));
+  }
+  if (m.promo) {
+    ring(cx(m.to), cy(m.to), '#ffd43b', true); sparks(cx(m.to), cy(m.to), '#fff3b0', 22); Sfx.king(); buzz([30, 40, 60]);
+    say(two ? t.kingP(colName(p)) : p === 0 ? t.kingYou : t.kingCpu);
+  }
+  G.turn = 1 - p; save();
+  await wait(m.caps.length || m.promo ? 380 : 140); if (my !== epoch) return;
+  nextAction();
+}
+function finish(w, why) {
+  const t = T(), two = G.mode === 'two';
+  G.over = true; busy = true; moves = []; deselect(); updateDock(''); try { localStorage.removeItem('rids_dama_game'); } catch (e) {}
+  sayac('bitti', 'oyun bitti'); bitenVar = true;
+  if (!two) { const k = w === 0 ? 'insan' : w === 1 ? 'bilgisayar' : 'berabere'; sayac(`sonuc/${k}-${lvAd(G.level)}`, `sonuç: ${k === 'berabere' ? 'berabere' : k + ' kazandı'} (${lvAd(G.level)})`); }
+  const humanWon = w === 0 || (two && w === 1), n = countPieces(G.b);
+  $('trophy').textContent = w < 0 ? '🤝' : humanWon ? '🏆' : '🐳';
+  $('winTitle').textContent = w < 0 ? t.draw : two ? t.pWins(colName(w)) : w === 0 ? t.youWin : t.cpuWins;
+  $('winSub').textContent = w < 0 ? t.whyDraw : two || w === 0 ? (why === 'all' ? t.whyAll : t.whyBlock) : why === 'all' ? t.whyLoseAll : t.whyLoseBlock;
+  $('final').innerHTML = [0, 1].map((p) => `<span class="${w === p ? 'win' : ''}"><i class="ava" style="background-position:${avaPos(avaIdx(p))}"></i>${n[p][0] + n[p][1]}</span>`).join('');
+  if (w < 0 || humanWon) Sfx.win(); else Sfx.lose();
+  buzz([60, 60, 120]); if (humanWon) confetti();
+  const my = epoch; setTimeout(() => { if (my === epoch) { $('winOv').hidden = false; $('againBtn').focus(); } }, 900 / speed);
+}
+function startState(mode, level, b, turn, white, extra = {}) {
+  G = { mode, level, b: Int8Array.from(b), turn, white, quiet: 0, last: null, ms: 0, over: false, hist: [], ...extra };
+  view = G.b.slice(); anim = null; hilite = null; ghosts.length = 0; fx.length = 0; moves = []; deselect();
+}
+function newGame(mode, level, first) {
+  epoch++; closeAll(); sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${mode === 'cpu' ? 'bilgisayar-' + lvAd(level) : '2-oyuncu'}`, `mod: ${mode === 'cpu' ? 'bilgisayara karşı, ' + lvAd(level) : '2 oyuncu'}`);
+  const p = first === 'me' ? 0 : first === 'other' ? 1 : Math.random() < .5 ? 0 : 1;
+  startState(mode, level, newBoard(), p, p);
+  save(); applyLang(); nextAction();
+}
+function resume() {
+  const s = loadSaved(); if (!s) return;
+  epoch++; closeAll();
+  startState(s.mode, s.level, s.b, s.turn, s.white, { quiet: +s.quiet || 0, last: s.last || null, ms: Math.max(0, +s.ms || 0) });
+  applyLang(); nextAction();
+}
+function undo() { // bilgisayara karşı: insanın son hamlesine kadar geri; iki kişide bir hamle
+  if (!G || G.over || busy || !G.hist.length) return;
+  let k = G.hist.length - 1;
+  if (G.mode === 'cpu') while (k >= 0 && G.hist[k].turn !== 0) k--;
+  if (k < 0) return;
+  const s = G.hist[k], hist = G.hist.slice(0, k);
+  epoch++;
+  startState(s.mode, s.level, s.b, s.turn, s.white, { quiet: s.quiet, last: s.last, ms: G.ms, hist });
+  sayac('geri-al', 'hamle geri alındı'); Sfx.pick(); save(); nextAction();
+}
+function confetti() {
+  if (reduce) return;
+  const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
+  k.hidden = false; k.width = innerWidth * d; k.height = innerHeight * d;
+  const cols = ['#ef4444', '#22d3ee', '#ffd43b', '#ffffff', '#84cc16', '#8b5cf6', '#ff6fb5'];
+  const bits = Array.from({ length: 170 }, () => ({
+    x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160,
+    w: 6 + Math.random() * 6, h: 9 + Math.random() * 8, a: Math.random() * 6, va: (Math.random() - 0.5) * 10, col: cols[Math.floor(Math.random() * cols.length)]
+  }));
+  let last = performance.now(); const end = last + 4200;
+  (function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) {
+      b.vy = Math.min(b.vy + 220 * dt, 260); b.x += (b.vx + Math.sin(now / 300 + b.a) * 40) * dt; b.y += b.vy * dt; b.a += b.va * dt;
+      c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(Math.cos(b.a * 1.7), 1);
+      c.fillStyle = b.col; c.globalAlpha = Math.min(1, (end - now) / 600); c.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); c.restore();
+    }
+    if (now < end) requestAnimationFrame(tick); else { c.clearRect(0, 0, k.width, k.height); k.hidden = true; }
+  })(last);
+}
+
+// ---------- Pencereler ve dil ----------
+function closeAll() { for (const id of ['setupOv', 'rulesOv', 'winOv']) $(id).hidden = true; }
+function renderSetup() {
+  const t = T(), two = setup.mode === 'two';
+  $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub; $('modeLbl').textContent = t.modeLbl; $('lvlLbl').textContent = t.lvlLbl; $('firstLbl').textContent = t.firstLbl; $('firstNote').textContent = t.firstNote;
+  $('lvlField').hidden = two;
+  const lab = { cpu: t.modeCpu, two: t.modeTwo, easy: t.easy, mid: t.mid, hard: t.hard, me: two ? t.p1 : t.me, other: two ? t.p2 : t.cpu, rnd: t.rnd };
+  const cur = { modeSeg: setup.mode, lvlSeg: setup.level, firstSeg: setup.first };
+  for (const id in cur) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.textContent = lab[b.dataset.v]; b.setAttribute('aria-pressed', b.dataset.v === cur[id]); });
+  $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume; $('resumeBtn').hidden = !loadSaved();
+}
+function openSetup() {
+  save(); epoch++; busy = true; hover = -1; hilite = null; deselect();
+  if (G && !G.over) { anim = null; view = G.b.slice(); ghosts.length = 0; }
+  closeAll(); renderSetup(); $('setupOv').hidden = false; $('startBtn').focus();
+}
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('undoLbl').textContent = t.undo; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('undoBtn').setAttribute('aria-label', t.undo); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langAria);
+  $('rights').textContent = t.rights; $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  renderSetup(); updateDock(G && G.over ? '' : busy && G && !isCpu(G.turn) && anim ? t.hintMove : null);
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+// ---------- Girdi ----------
+function cellAt(e) {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left - fm, y = e.clientY - r.top - fm;
+  if (x < 0 || y < 0 || x >= cell * 8 || y >= cell * 8) return -1;
+  return Math.floor(y / cell) * 8 + Math.floor(x / cell);
+}
+function tap(i) {
+  if (!canPlay() || i < 0) return;
+  const t = T();
+  if (sel >= 0) {
+    const cs = cands(), byEnd = cs.filter((m) => m.to === i);
+    if (byEnd.length === 1) { Sfx.unlock(); return playMove(byEnd[0]); }
+    if (byEnd.length > 1) { // aynı kareye giden farklı seriler: ortak başlangıçtan sonrası sorulur
+      let k = prefix.length; while (byEnd.every((m) => m.path[k] === byEnd[0].path[k])) k++;
+      prefix = byEnd[0].path.slice(0, k); say(t.hintPath, true); updateDock(t.hintPath); return;
+    }
+    const via = cs.find((m) => m.path.indexOf(i, prefix.length) > 0); // yol üstündeki bir kareye dokunuldu: seri oradan geçenlere daralır
+    if (via) { prefix = via.path.slice(0, via.path.indexOf(i, prefix.length) + 1); const c2 = cands(); if (c2.length === 1) return playMove(c2[0]); updateDock(); return; }
+    if (i === sel) { if (movers().length > 1) deselect(); else prefix = [sel]; updateDock(); return; } // tek oynayabilen taş seçili kalır
+  }
+  if (moves.some((m) => m.from === i)) { sel = i; prefix = [i]; Sfx.pick(); updateDock(); return; }
+  // geçersiz dokunuş: neden olmadığını söyle
+  const v = G.b[i];
+  if (v && ownerOf(v) === G.turn && moves.length && moves[0].caps.length) {
+    Sfx.err(); buzz(20); say(moves[0].caps.length > 1 ? t.notMax(moves[0].caps.length) : t.mustSay, true);
+  }
+  if (sel >= 0 && movers().length > 1) { deselect(); updateDock(); }
+}
+cv.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') { hover = cellAt(e); const clickable = canPlay() && (moves.some((m) => m.from === hover) || cands().some((m) => m.to === hover || m.path[prefix.length] === hover)); cv.style.cursor = clickable ? 'pointer' : 'default'; } });
+cv.addEventListener('pointerleave', () => { hover = -1; });
+cv.addEventListener('pointerdown', (e) => { Sfx.unlock(); e.preventDefault(); tap(cellAt(e)); });
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { if (!$('rulesOv').hidden) $('rulesOv').hidden = true; else if (sel >= 0) { deselect(); updateDock(); } return; }
+  if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); }
+});
+document.querySelectorAll('.seg').forEach((s) => s.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  setup[s.id === 'modeSeg' ? 'mode' : s.id === 'lvlSeg' ? 'level' : 'first'] = b.dataset.v; renderSetup();
+}));
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); try { localStorage.setItem('rids_dama_setup', JSON.stringify(setup)); } catch (e) {} newGame(setup.mode, setup.level, setup.first); });
+$('resumeBtn').addEventListener('click', () => { Sfx.unlock(); resume(); });
+$('menuBtn').addEventListener('click', openSetup);
+$('undoBtn').addEventListener('click', undo);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => newGame(G.mode, G.level, setup.first));
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem('rids_dama_sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+const relayout = () => layout();
+addEventListener('resize', relayout); document.addEventListener('fullscreenchange', relayout); document.addEventListener('webkitfullscreenchange', relayout);
+if (window.ResizeObserver) new ResizeObserver(relayout).observe($('boardWrap'));
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+// Deneme kancası: hızlandırma ve durum okuma (oyuncuya görünmez)
+window.__dama = {
+  setSpeed: (s) => { speed = s; },
+  state: () => ({ G, busy, over: G && G.over, turn: G && G.turn, canPlay: !!canPlay(), sel, moves: moves.map((m) => ({ from: m.from, to: m.to, path: m.path, caps: m.caps })), epoch }),
+  cell: (i) => { const r = cv.getBoundingClientRect(); return [r.left + cx(i), r.top + cy(i)]; },
+  setBoard: (b, turn, opts = {}) => { epoch++; closeAll(); startState(opts.mode || 'cpu', opts.level || 'easy', b, turn, opts.white ?? 0, { quiet: opts.quiet || 0 }); applyLang(); nextAction(); },
+  view: () => Array.from(view)
+};
+
+layout(); applySound();
+applyLang(); openSetup();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
