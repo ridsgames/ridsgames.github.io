@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Sudoku | Ridsgames</title>
+<meta name="description" content="Sudoku: kolay, orta ve zor seviyede her seferinde yeni, tek çözümlü bulmacalar. Not alma, ipucu, geri alma ve en iyi süre rekoru.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --glow: rgba(251, 191, 36, 0.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--glow) 28%, transparent) 0%, transparent 62%), radial-gradient(ellipse at 50% 100%, #111a2c 0%, var(--bg) 70%), var(--bg);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.tall button { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.seg.tall small { font-size: 11px; font-weight: 600; opacity: .75; white-space: nowrap; }
+.seg.tall .em { font-size: 19px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.custom { display: grid; gap: 6px; margin-top: 10px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.mrow button { height: 44px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 24px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.mrow button:disabled { opacity: .35; cursor: default; }
+.mrow output { text-align: center; font-size: 24px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score.lost { color: #fca5a5; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; pencereler menü panelini örtmez; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .gname { display: inline; font-size: 11px; white-space: nowrap; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  main { grid-column: 2; grid-row: 1; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) 6px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
+  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
+  footer { display: none; }
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 4px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #winOv .card { max-width: 560px; padding: 14px 18px 16px; }
+  #winOv .trophy { font-size: 38px; } #winOv .score { font-size: 34px; margin-bottom: 8px; } #winOv .sub { margin-bottom: 8px; }
+  #winOv .rank { grid-template-columns: 1fr 1fr; }
+  #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
+}
+
+/* ---------- Oyuna özel ---------- */
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; align-content: center; gap: 10px; align-items: stretch; max-width: 560px; }
+.info { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #cbd5e1; padding: 0 4px; font-variant-numeric: tabular-nums; }
+.info #iLv { color: #67e8f9; } .info #iErr.bad { color: #f87171; } .info #iTime { color: #fde68a; min-width: 48px; text-align: right; }
+.bw { min-height: 0; display: flex; align-items: center; justify-content: center; }
+.board { --s: 300px; width: var(--s); height: var(--s); display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); background: #0b1220; border: 2.5px solid #67e8f9; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
+.c { position: relative; display: grid; place-items: center; border-right: 1px solid rgba(148, 163, 184, .22); border-bottom: 1px solid rgba(148, 163, 184, .22); font-size: calc(var(--s) / 9 * .58); font-weight: 700; color: #7dd3fc; cursor: pointer; font-variant-numeric: tabular-nums; transition: background .08s; }
+.c.g { color: #f1f5f9; font-weight: 800; }
+.c.br { border-right: 2px solid rgba(103, 232, 249, .75); } .c.bb { border-bottom: 2px solid rgba(103, 232, 249, .75); }
+.c:nth-child(9n) { border-right: 0; } .c:nth-child(n+73) { border-bottom: 0; }
+.c.hl { background: rgba(34, 211, 238, .08); } .c.same { background: rgba(34, 211, 238, .22); }
+.c.sel { background: rgba(34, 211, 238, .38); box-shadow: inset 0 0 0 2px #22d3ee; }
+.c.bad { color: #f87171; } .c.bad.sel { color: #fecaca; }
+.c.hint { color: #fbbf24; }
+.c.pop { animation: pop .25s ease-out; }
+@keyframes pop { 40% { transform: scale(1.18); } }
+.c .ns { position: absolute; inset: 1px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); font-size: calc(var(--s) / 9 * .25); font-weight: 600; color: #94a3b8; line-height: 1; }
+.c .ns span { display: grid; place-items: center; } .c .ns span.m { color: #22d3ee; font-weight: 800; }
+.board.done .c { animation: wave .6s ease-out both; }
+@keyframes wave { 50% { background: rgba(52, 211, 153, .35); } }
+.side { display: flex; flex-direction: column; gap: 8px; }
+.tools2 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.tools2 button { position: relative; height: 52px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, .25); background: rgba(15, 23, 42, .8); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #e2e8f0; }
+.tools2 .ti { font-size: 19px; line-height: 1; } .tools2 small { font-size: 11px; color: #94a3b8; font-weight: 600; }
+.tools2 button[aria-pressed="true"] { border-color: #22d3ee; background: rgba(8, 51, 68, .9); } .tools2 button[aria-pressed="true"] small { color: #67e8f9; }
+.tools2 .nt { display: none;  position: absolute; top: 4px; right: 6px; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 5px; background: #334155; color: #cbd5e1; }
+.tools2 button[aria-pressed="true"] .nt { background: #22d3ee; color: #083344; }
+.tools2 button:disabled { opacity: .4; }
+.pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; }
+.pad button { position: relative; height: 54px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .35); background: linear-gradient(180deg, rgba(15, 23, 42, .95), rgba(8, 15, 30, .95)); font-size: 24px; font-weight: 800; color: #e0f2fe; padding: 0; }
+.pad button small { position: absolute; bottom: 3px; left: 0; right: 0; font-size: 10px; color: #64748b; font-weight: 700; }
+.pad button.full { opacity: .3; }
+.pad button:active { transform: translateY(1px); background: rgba(8, 51, 68, .9); }
+.pad.notes button { color: #67e8f9; font-size: 18px; font-weight: 700; }
+@media (orientation: landscape) {
+  main { max-width: 980px; grid-template-columns: minmax(0, 1fr) clamp(220px, 34vw, 340px); grid-template-rows: auto minmax(0, 1fr); align-content: stretch; column-gap: 16px; }
+  .info { grid-column: 2; grid-row: 1; }
+  .bw { grid-column: 1; grid-row: 1 / 3; }
+  .side { grid-column: 2; grid-row: 2; justify-content: center; }
+  .pad { grid-template-columns: repeat(3, 1fr); }
+  .pad button { height: auto; aspect-ratio: 1.35; font-size: 26px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  main { gap: 6px; column-gap: 10px; }
+  .tools2 button { height: 40px; } .tools2 .ti { font-size: 16px; } .tools2 small { font-size: 10px; }
+  .pad { gap: 4px; } .pad button { aspect-ratio: auto; height: calc((100dvh - 150px) / 3); max-height: 64px; min-height: 34px; font-size: 21px; }
+  .info { font-size: 13px; }
+}
+@media (max-width: 380px) { .pad { gap: 3px; } .pad button { height: 48px; font-size: 21px; } }
+
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="sudoku" data-name="Sudoku"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Sudoku</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="info" id="info"><span id="iLv"></span><span id="iErr"></span><span id="iTime">0:00</span></div>
+<div class="bw" id="bw"><div class="board" id="board" role="grid"></div></div>
+<div class="side" id="side">
+  <div class="tools2" id="tools">
+    <button type="button" data-a="undo"><span class="ti">↶</span><small id="tUndo"></small></button>
+    <button type="button" data-a="erase"><span class="ti">⌫</span><small id="tErase"></small></button>
+    <button type="button" data-a="note" id="noteBtn"><span class="ti">✎</span><small id="tNote"></small><b class="nt" id="noteState"></b></button>
+    <button type="button" data-a="hint"><span class="ti">💡</span><small id="tHint"></small></button>
+  </div>
+  <div class="pad" id="pad"></div>
+</div>
+
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Yeni oyun -->
+<div class="ov" id="setupOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Sudoku</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="lvLbl"></div>
+      <div class="seg" id="lvSeg"><button type="button" data-l="kolay"></button><button type="button" data-l="orta"></button><button type="button" data-l="zor"></button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="errLbl"></div>
+      <div class="seg" id="errSeg"><button type="button" data-e="goster"></button><button type="button" data-e="uc"></button><button type="button" data-e="gizli"></button></div>
+      <div class="note" id="errNote"></div>
+    </div>
+
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore"></div>
+    <ol class="rank" id="statList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="viewBtn" type="button">Tahtaya bak</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Ortak: dil, ses, pencereler, sayaç ----------
+const COMMON = {
+  tr: { homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
+    lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
+  en: { homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
+    lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_sudoku_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (n) => Math.floor(Math.random() * n);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(KEY + k); } catch (e) {} }
+};
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'sudoku/' + olay, title: 'Sudoku: ' + ad, event: true }); } catch (e) {} };
+let soundOn = store.get('sound', 1) !== 0, bitenVar = false;
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock: ctx, tone,
+    click() { tone(900, 700, 0.05, 0.05, 'triangle'); },
+    tap() { tone(540, 880, 0.07, 0.07); },
+    good() { tone(660, 990, 0.12, 0.08, 'triangle'); },
+    bad() { tone(220, 110, 0.22, 0.09, 'sawtooth'); },
+    win() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, f, 0.4, 0.1, 'triangle', i * 0.065)); },
+    lose() { [392, 329.6, 261.6].forEach((f, i) => tone(f, f * 0.98, 0.3, 0.09, 'triangle', i * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+const OVS = ['setupOv', 'rulesOv', 'winOv'];
+function closeAll() { for (const id of OVS) $(id).hidden = true; }
+const anyOpen = () => OVS.some((id) => !$(id).hidden);
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
+  closeAll();
+  $('winIco').textContent = o.ico; $('winTitle').textContent = o.title; $('winSub').textContent = o.sub || '';
+  $('winScore').textContent = o.score || ''; $('winScore').hidden = !o.score; $('winScore').classList.toggle('lost', !!o.lost);
+  $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
+}
+
+// ---------- Oyun ----------
+const STR = {
+  tr: { ...COMMON.tr, title: 'Sudoku | Ridsgames', game: 'Sudoku',
+    setupSub: 'Her satıra, sütuna ve 3×3 kutuya 1’den 9’a kadar rakamları birer kez yerleştir. Her bulmacanın tek çözümü var.',
+    lvLbl: 'Zorluk', errLbl: 'Hatalar', errs: { goster: 'Göster', uc: '3 hata hakkı', gizli: 'Gösterme' },
+    errNote: { goster: 'Yanlış rakam kırmızı görünür.', uc: 'Yanlış rakam kırmızı görünür; üçüncü hatada oyun biter.', gizli: 'Yanlışlar gösterilmez; tablo dolunca kontrol edilir.' },
+    undo: 'Geri al', erase: 'Sil', note: 'Not', hint: 'İpucu', on: 'AÇIK', off: 'KAPALI',
+    errN: (n, max) => max ? `Hata ${n}/${max}` : `Hata ${n}`, hidden: 'Hatalar gizli',
+    pick: 'Önce bir kare seç', given: 'Bu rakam bulmacanın parçası', wrongFull: 'Tablo doldu ama bazı rakamlar yanlış', noHint: 'İpucu verilecek boş kare yok',
+    winT: 'Çözdün!', winSub: (lv) => `${lv} bulmaca tamam.`, loseT: 'Üç hata', loseSub: 'Bu bulmacada hata hakkın bitti.',
+    tTime: 'Süre', tErr: 'Hata', tHint: 'İpucu', tBest: 'En iyi süre', newBest: 'Yeni rekor!',
+    rulesSub: '9×9’luk tabloyu, verilen rakamlardan yola çıkarak doldur.',
+    ruleList: [
+      ['🔢', 'Her <b>satırda</b>, her <b>sütunda</b> ve her <b>3×3 kutuda</b> 1–9 rakamları birer kez bulunur.'],
+      ['👆', 'Bir kare seç, sonra alttaki rakama dokun. Klavyeyle de oynanır: oklar, 1–9, Sil ve N (not).'],
+      ['✎', '<b>Not</b> açıkken rakamlar karenin köşesine küçük aday olarak yazılır. Bir rakam yerleşince aynı satır, sütun ve kutudaki notlardan silinir.'],
+      ['💡', '<b>İpucu</b> seçili kareyi (seçim yoksa rastgele bir boş kareyi) doğru rakamla doldurur.'],
+      ['↶', '<b>Geri al</b> son hamleni geri alır. Rakam düğmesindeki küçük sayı, o rakamdan kaç tane kaldığını gösterir.'],
+      ['⏱️', 'Süre yalnızca oyun ekranı açıkken işler. Her zorlukta en iyi süren saklanır.']
+    ] },
+  en: { ...COMMON.en, title: 'Sudoku | Ridsgames', game: 'Sudoku',
+    setupSub: 'Place 1 to 9 once in every row, column and 3×3 box. Every puzzle has a single solution.',
+    lvLbl: 'Level', errLbl: 'Mistakes', errs: { goster: 'Show', uc: '3 strikes', gizli: 'Hide' },
+    errNote: { goster: 'Wrong digits turn red.', uc: 'Wrong digits turn red; the third mistake ends the game.', gizli: 'Mistakes stay hidden; the grid is checked when it is full.' },
+    undo: 'Undo', erase: 'Erase', note: 'Notes', hint: 'Hint', on: 'ON', off: 'OFF',
+    errN: (n, max) => max ? `Mistakes ${n}/${max}` : `Mistakes ${n}`, hidden: 'Mistakes hidden',
+    pick: 'Select a cell first', given: 'That digit is part of the puzzle', wrongFull: 'The grid is full but some digits are wrong', noHint: 'No empty cell for a hint',
+    winT: 'Solved!', winSub: (lv) => `${lv} puzzle complete.`, loseT: 'Three strikes', loseSub: 'You ran out of mistakes on this puzzle.',
+    tTime: 'Time', tErr: 'Mistakes', tHint: 'Hints', tBest: 'Best time', newBest: 'New record!',
+    rulesSub: 'Fill the 9×9 grid starting from the given digits.',
+    ruleList: [
+      ['🔢', 'Every <b>row</b>, <b>column</b> and <b>3×3 box</b> contains the digits 1–9 exactly once.'],
+      ['👆', 'Select a cell, then tap a digit below. Keyboard works too: arrows, 1–9, Backspace and N (notes).'],
+      ['✎', 'With <b>Notes</b> on, digits go in as small candidates. Placing a digit clears it from notes in the same row, column and box.'],
+      ['💡', '<b>Hint</b> fills the selected cell (or a random empty one) with the correct digit.'],
+      ['↶', '<b>Undo</b> takes back your last move. The small number on each digit button shows how many are left.'],
+      ['⏱️', 'The timer runs only while the game screen is open. Your best time for each level is kept.']
+    ] }
+};
+const T = () => STR[lang];
+let setup = Object.assign({ level: 'orta', err: 'goster' }, store.get('setup', {}));
+if (!COMMON.tr.lv[setup.level]) setup.level = 'orta'; if (!STR.tr.errs[setup.err]) setup.err = 'goster';
+let G = null, tick = null, lastSave = 0, popAt = -1;
+const ROW = (i) => Math.floor(i / 9), COL = (i) => i % 9, BOX = (i) => Math.floor(ROW(i) / 3) * 3 + Math.floor(COL(i) / 3);
+const PEERS = Array.from({ length: 81 }, (_, i) => { const s = new Set(); for (let j = 0; j < 81; j++) if (j !== i && (ROW(j) === ROW(i) || COL(j) === COL(i) || BOX(j) === BOX(i))) s.add(j); return [...s]; });
+const UNITS = []; for (let k = 0; k < 9; k++) { UNITS.push([...Array(9).keys()].map((x) => k * 9 + x)); UNITS.push([...Array(9).keys()].map((x) => x * 9 + k)); UNITS.push([...Array(9).keys()].map((x) => (Math.floor(k / 3) * 3 + Math.floor(x / 3)) * 9 + (k % 3) * 3 + (x % 3))); }
+const fmt = (s) => { s = Math.floor(s); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+const bits = (m) => { let c = 0; while (m) { m &= m - 1; c++; } return c; };
+
+// ---------- Üretici ----------
+function candMask(g, i) { let m = 0; for (const j of PEERS[i]) if (g[j]) m |= 1 << g[j]; return ~m & 0x3fe; }
+function countSol(g, limit = 2) {
+  g = g.slice(); let n = 0;
+  const rec = () => {
+    let bi = -1, bm = 0, bc = 10;
+    for (let i = 0; i < 81; i++) if (!g[i]) { const m = candMask(g, i), c = bits(m); if (c < bc) { bc = c; bi = i; bm = m; if (!c) return; if (c === 1) break; } }
+    if (bi < 0) { n++; return; }
+    for (let d = 1; d <= 9 && n < limit; d++) if (bm & (1 << d)) { g[bi] = d; rec(); g[bi] = 0; }
+  };
+  rec(); return n;
+}
+function fullGrid() {
+  const g = Array(81).fill(0);
+  const rec = (i) => {
+    if (i === 81) return true;
+    const m = candMask(g, i); const ds = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => m & (1 << d)));
+    for (const d of ds) { g[i] = d; if (rec(i + 1)) return true; }
+    g[i] = 0; return false;
+  };
+  rec(0); return g;
+}
+function singlesSolvable(p) { // yalnız tek aday + gizli tek ile çözülebiliyor mu
+  const g = p.slice(); let prog = true;
+  while (prog) {
+    prog = false;
+    for (let i = 0; i < 81; i++) if (!g[i]) { const m = candMask(g, i); if (!m) return false; if (bits(m) === 1) { g[i] = 31 - Math.clz32(m); prog = true; } }
+    if (prog) continue;
+    for (const u of UNITS) for (let d = 1; d <= 9; d++) {
+      if (u.some((i) => g[i] === d)) continue;
+      const pl = u.filter((i) => !g[i] && candMask(g, i) & (1 << d));
+      if (pl.length === 1) { g[pl[0]] = d; prog = true; }
+    }
+  }
+  return g.every(Boolean);
+}
+function makePuzzle(level) {
+  const target = { kolay: 38, orta: 30, zor: 24 }[level];
+  let best = null;
+  for (let tries = 0; tries < 6; tries++) {
+    const sol = fullGrid(), p = sol.slice();
+    let clues = 81;
+    for (const i of shuffle([...Array(41).keys()])) { // simetrik çiftler
+      if (clues <= target) break;
+      const j = 80 - i, a = p[i], b = p[j];
+      p[i] = 0; p[j] = 0;
+      const ok = countSol(p) === 1 && (level === 'zor' || singlesSolvable(p));
+      if (ok) clues -= i === j ? 1 : 2; else { p[i] = a; p[j] = b; }
+    }
+    const hard = !singlesSolvable(p);
+    const cand = { p, sol, clues };
+    if (level !== 'zor' || hard) { if (level !== 'zor' || clues <= 28) return cand; }
+    if (!best || (hard && clues < best.clues)) best = cand;
+  }
+  return best;
+}
+
+// ---------- Akış ----------
+function newGame() {
+  closeAll();
+  const { p, sol } = makePuzzle(setup.level);
+  G = { level: setup.level, err: setup.err, giv: p.map(Boolean), sol, val: p.slice(), notes: Array(81).fill(0), hintC: Array(81).fill(false), sel: -1, mistakes: 0, hints: 0, time: 0, undo: [], noteMode: false, done: false, lost: false };
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${G.level}-${G.err}`, `mod: ${G.level}, hatalar ${G.err}`);
+  save(true); render(); startTick();
+}
+function startFromSetup() { store.set('setup', setup); newGame(); }
+function again() { newGame(); }
+function save(force) { if (G) { store.set('game', G); lastSave = Date.now(); } }
+function startTick() {
+  clearInterval(tick);
+  tick = setInterval(() => {
+    if (!G || G.done || G.lost || document.hidden || anyOpen()) return;
+    G.time += 1; $('iTime').textContent = fmt(G.time);
+    if (Date.now() - lastSave > 5000) save();
+  }, 1000);
+}
+const showBad = () => G.err !== 'gizli';
+const isBad = (i) => G.val[i] && !G.giv[i] && G.val[i] !== G.sol[i];
+function place(i, d) {
+  if (!G || G.done || G.lost) return;
+  if (i < 0) { toast(T().pick); return; }
+  if (G.giv[i]) { toast(T().given); Sfx.bad(); return; }
+  if (G.hintC[i] && G.val[i] === G.sol[i]) return;
+  Sfx.unlock();
+  if (G.noteMode && d) {
+    if (G.val[i]) return;
+    G.undo.push({ i, v: G.val[i], n: G.notes[i], peers: [] });
+    G.notes[i] ^= 1 << d; Sfx.click(); save(); render(); return;
+  }
+  if (G.val[i] === d) return;
+  const rec = { i, v: G.val[i], n: G.notes[i], peers: [], d };
+  G.val[i] = d; G.notes[i] = 0;
+  if (d) for (const j of PEERS[i]) if (G.notes[j] & (1 << d)) { rec.peers.push(j); G.notes[j] &= ~(1 << d); }
+  G.undo.push(rec); if (G.undo.length > 400) G.undo.shift();
+  if (d && d !== G.sol[i]) {
+    G.mistakes++;
+    if (showBad()) { Sfx.bad(); buzz(30); } else Sfx.tap();
+    if (G.err === 'uc' && G.mistakes >= 3) { G.lost = true; save(); render(); setTimeout(lose, 350); return; }
+  } else if (d) { Sfx.tap(); popAt = i; }
+  save(); render();
+  if (G.val.every(Boolean)) { if (G.val.every((v, k) => v === G.sol[k])) win(); else toast(T().wrongFull, '#f87171'); }
+}
+function undo() {
+  if (!G || G.done || G.lost) return; const r = G.undo.pop(); if (!r) return;
+  G.val[r.i] = r.v; G.notes[r.i] = r.n;
+  if (r.d) for (const j of r.peers) G.notes[j] |= 1 << r.d;
+  Sfx.click(); G.sel = r.i; save(); render();
+}
+function hint() {
+  if (!G || G.done || G.lost) return;
+  let i = G.sel;
+  if (i < 0 || G.giv[i] || G.val[i] === G.sol[i]) { const e = [...Array(81).keys()].filter((k) => G.val[k] !== G.sol[k]); if (!e.length) { toast(T().noHint); return; } i = e[rnd(e.length)]; }
+  G.hints++; G.sel = i; G.hintC[i] = true; const nm = G.noteMode; G.noteMode = false;
+  const d = G.sol[i], rec = { i, v: G.val[i], n: G.notes[i], peers: [], d };
+  G.val[i] = d; G.notes[i] = 0; for (const j of PEERS[i]) if (G.notes[j] & (1 << d)) { rec.peers.push(j); G.notes[j] &= ~(1 << d); }
+  G.undo.push(rec); G.noteMode = nm; popAt = i; Sfx.good(); save(); render();
+  if (G.val.every((v, k) => v === G.sol[k])) win();
+}
+function win() {
+  G.done = true; G.sel = -1; save(); render(); $('board').classList.add('done');
+  const t = T(), best = store.get('best', {}), prev = best[G.level], rec = !prev || G.time < prev;
+  if (rec) { best[G.level] = G.time; store.set('best', best); }
+  bitenVar = true; sayac('bitti', 'oyun bitti'); sayac(`sonuc/kazandi-${G.level}`, `çözdü (${G.level})`);
+  setTimeout(() => { Sfx.win(); showEnd({ ico: '🧩', title: t.winT, sub: t.winSub(t.lv[G.level]), score: rec && prev ? t.newBest : '', stats: [[t.tTime, fmt(G.time)], [t.tErr, G.mistakes], [t.tHint, G.hints], [t.tBest, fmt(best[G.level])]] }); }, 700);
+}
+function lose() {
+  const t = T(); bitenVar = true; sayac('bitti', 'oyun bitti'); sayac(`sonuc/kaybetti-${G.level}`, `3 hata (${G.level})`);
+  Sfx.lose(); showEnd({ ico: '❌', title: t.loseT, sub: t.loseSub, lost: true, stats: [[t.tTime, fmt(G.time)], [t.tHint, G.hints]] });
+}
+
+// ---------- Çizim ----------
+function sizeBoard() {
+  const bw = $('bw'), main = $('main');
+  let s;
+  if (!matchMedia('(orientation: landscape)').matches) {
+    const cs = getComputedStyle(main), padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom), padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    s = Math.floor(Math.min(main.clientWidth - padH, main.clientHeight - padV - $('info').offsetHeight - $('side').offsetHeight - 22, 620));
+    bw.style.height = Math.max(200, s) + 'px';
+  } else { bw.style.height = ''; s = Math.floor(Math.min(bw.clientWidth, bw.clientHeight, 640)); }
+  $('board').style.setProperty('--s', Math.max(200, s) + 'px');
+}
+function buildBoard() {
+  $('board').innerHTML = Array.from({ length: 81 }, (_, i) => `<div class="c${COL(i) % 3 === 2 && COL(i) < 8 ? ' br' : ''}${ROW(i) % 3 === 2 && ROW(i) < 8 ? ' bb' : ''}" data-i="${i}" role="gridcell"></div>`).join('');
+  $('pad').innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => `<button type="button" data-d="${d}">${d}<small></small></button>`).join('');
+}
+function render() {
+  if (!G) return;
+  const t = T(), s = G.sel, sv = s >= 0 ? G.val[s] : 0;
+  sizeBoard();
+  const cells = $('board').children;
+  for (let i = 0; i < 81; i++) {
+    const c = cells[i], v = G.val[i];
+    let cls = 'c' + (COL(i) % 3 === 2 && COL(i) < 8 ? ' br' : '') + (ROW(i) % 3 === 2 && ROW(i) < 8 ? ' bb' : '');
+    if (G.giv[i]) cls += ' g'; else if (G.hintC[i] && v === G.sol[i]) cls += ' hint';
+    if (s >= 0 && !G.done) { if (i === s) cls += ' sel'; else if (sv && v === sv) cls += ' same'; else if (ROW(i) === ROW(s) || COL(i) === COL(s) || BOX(i) === BOX(s)) cls += ' hl'; }
+    if (showBad() && isBad(i)) cls += ' bad';
+    if (i === popAt && !REDUCED) cls += ' pop';
+    if (c.className !== cls) c.className = cls;
+    const html = v ? String(v) : G.notes[i] ? `<div class="ns">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => `<span${sv === d ? ' class="m"' : ''}>${G.notes[i] & (1 << d) ? d : ''}</span>`).join('')}</div>` : '';
+    if (c.innerHTML !== html) c.innerHTML = html;
+    c.setAttribute('aria-label', `${ROW(i) + 1}-${COL(i) + 1}: ${v || ''}`);
+  }
+  popAt = -1;
+  const cnt = Array(10).fill(0); G.val.forEach((v, i) => { if (v && (!showBad() || v === G.sol[i])) cnt[v]++; });
+  $('pad').classList.toggle('notes', G.noteMode);
+  [...$('pad').children].forEach((b) => { const d = +b.dataset.d, left = 9 - cnt[d]; b.classList.toggle('full', left <= 0 && showBad()); b.querySelector('small').textContent = showBad() ? (left > 0 ? left : '') : ''; });
+  $('noteBtn').setAttribute('aria-pressed', G.noteMode); $('tNote').textContent = t.note + (G.noteMode ? ' ✓' : '');
+  $('iLv').textContent = t.lv[G.level];
+  $('iErr').textContent = showBad() ? t.errN(G.mistakes, G.err === 'uc' ? 3 : 0) : t.hidden; $('iErr').classList.toggle('bad', showBad() && G.mistakes > 0);
+  $('iTime').textContent = fmt(G.time);
+  document.querySelectorAll('#tools button').forEach((b) => { b.disabled = G.done || G.lost || (b.dataset.a === 'undo' && !G.undo.length); });
+}
+function renderSetup() { segPress('lvSeg', 'l', setup.level); segPress('errSeg', 'e', setup.err); $('errNote').textContent = T().errNote[setup.err]; }
+function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.done || G.lost; $('startBtn').focus({ preventScroll: true }); }
+function gameLang() {
+  const t = T();
+  $('lvLbl').textContent = t.lvLbl; $('errLbl').textContent = t.errLbl;
+  document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
+  document.querySelectorAll('#errSeg button').forEach((b) => { b.textContent = t.errs[b.dataset.e]; });
+  $('tUndo').textContent = t.undo; $('tErase').textContent = t.erase; $('tNote').textContent = t.note; $('tHint').textContent = t.hint;
+  renderSetup(); render();
+}
+const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b = e.target.closest(`button[data-${attr}]`); if (b) { fn(b.dataset[attr]); renderSetup(); } });
+segH('lvSeg', 'l', (v) => { setup.level = v; });
+segH('errSeg', 'e', (v) => { setup.err = v; });
+$('board').addEventListener('pointerdown', (e) => { const c = e.target.closest('.c'); if (!c || !G || G.done) return; G.sel = +c.dataset.i; Sfx.unlock(); render(); });
+$('pad').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && G) place(G.sel, +b.dataset.d); });
+$('tools').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b || !G) return; Sfx.unlock();
+  const a = b.dataset.a;
+  if (a === 'undo') undo();
+  else if (a === 'erase') { if (G.sel < 0) toast(T().pick); else if (G.giv[G.sel]) toast(T().given); else if (G.val[G.sel] || G.notes[G.sel]) { G.undo.push({ i: G.sel, v: G.val[G.sel], n: G.notes[G.sel], peers: [] }); G.val[G.sel] = 0; G.notes[G.sel] = 0; Sfx.click(); save(); render(); } }
+  else if (a === 'note') { G.noteMode = !G.noteMode; Sfx.click(); save(); render(); }
+  else if (a === 'hint') hint();
+});
+addEventListener('keydown', (e) => {
+  if (!G || anyOpen() || G.done || G.lost) return;
+  const k = e.key;
+  if (/^[1-9]$/.test(k)) { place(G.sel, +k); e.preventDefault(); return; }
+  if (k === 'Backspace' || k === 'Delete' || k === '0') { if (G.sel >= 0 && !G.giv[G.sel] && (G.val[G.sel] || G.notes[G.sel])) { G.undo.push({ i: G.sel, v: G.val[G.sel], n: G.notes[G.sel], peers: [] }); G.val[G.sel] = 0; G.notes[G.sel] = 0; save(); render(); } e.preventDefault(); return; }
+  if (k === 'n' || k === 'N') { G.noteMode = !G.noteMode; render(); return; }
+  if ((k === 'z' || k === 'Z') && (e.ctrlKey || e.metaKey)) { undo(); e.preventDefault(); return; }
+  const mv = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 }[k];
+  if (mv) { e.preventDefault(); let s = G.sel < 0 ? 40 : G.sel; if (mv === -1 && COL(s) === 0) s += 8; else if (mv === 1 && COL(s) === 8) s -= 8; else s = (s + mv + 81) % 81; G.sel = s; render(); }
+});
+addEventListener('resize', () => G && render());
+addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+function boot() {
+  buildBoard();
+  const s = store.get('game', null);
+  if (s && s.sol && s.val && !s.done && !s.lost) { G = s; render(); startTick(); }
+  else openSetup();
+}
+window.__sudoku = { state: () => G, place, hint, undo, countSol, singlesSolvable, makePuzzle };
+
+
+// ---------- Ortak bağlantılar ----------
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  gameLang();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('winOv').hidden) closeAll();
+});
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
+$('backBtn').addEventListener('click', closeAll);
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
+$('viewBtn').addEventListener('click', closeAll);
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+applySound(); applyLang(); boot();
+</script>
+</body>
+</html>
