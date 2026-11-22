@@ -72,7 +72,7 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-item
 .face { position: absolute; inset: 0; border-radius: calc(var(--cw) * .09); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .35); overflow: hidden; }
 .front { background: #fffdf8; }
 .front svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.back { transform: rotateY(180deg); background: var(--back) center / 100% 100% no-repeat, #9e1b1f; }
+.back { transform: rotateY(180deg); background: var(--back) center / 100% 100% no-repeat, #fffdf8; }
 .card.play { cursor: pointer; }
 .card.play:hover .in { translate: 0 calc(var(--ch) * -.1); }
 .card.hit .front { box-shadow: 0 0 0 2px #ffd43b, 0 0 14px rgba(255, 212, 59, .8), 0 2px 6px rgba(0, 0, 0, .45); }
@@ -167,8 +167,9 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 .card2 h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
 .card2 .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
 .field { display: grid; gap: 8px; padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
-.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
 .seg button { min-height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button .mini { display: inline-block; width: 15px; height: 21px; border-radius: 2px; vertical-align: middle; margin-right: 7px; background: var(--b) center / 100% 100%; box-shadow: 0 0 0 1px rgba(255, 255, 255, .5); }
 .seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
 .btns { display: grid; gap: 10px; margin-top: 14px; }
 .big {
@@ -250,6 +251,7 @@ table.sum td.z { color: #475569; }
     <p class="sub" id="setupSub"></p>
     <div class="field"><span id="lvlLbl"></span><div class="seg" id="lvlSeg"><button type="button" data-v="easy"></button><button type="button" data-v="mid"></button><button type="button" data-v="hard"></button></div></div>
     <div class="field"><span id="tgtLbl"></span><div class="seg" id="tgtSeg"><button type="button" data-v="0"></button><button type="button" data-v="101"></button><button type="button" data-v="151"></button></div></div>
+    <div class="field"><span id="deckLbl"></span><div class="seg" id="deckSeg"><button type="button" data-v="red"></button><button type="button" data-v="black"></button></div></div>
     <div class="btns">
       <button class="big" id="startBtn" type="button"></button>
       <button class="big alt" id="resumeBtn" type="button" hidden></button>
@@ -361,7 +363,7 @@ const STR = {
     title: 'Pişti | Ridsgames', game: 'Pişti', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
     rights: 'Tüm hakları saklıdır.', stage: 'Masa',
     setupSub: 'Aynısını at, valeyle topla, pişti yap.', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
-    tgtLbl: 'Oyun kaç sayı?', one: 'Tek el', start: 'Başla', resume: 'Kaldığın yerden devam et',
+    tgtLbl: 'Oyun kaç sayı?', deckLbl: 'Deste', red: 'Kırmızı', black: 'Siyah', one: 'Tek el', start: 'Başla', resume: 'Kaldığın yerden devam et',
     rulesTitle: 'Nasıl oynanır?', rulesSub: 'Puanları toplayıp hedefe ilk ulaşan kazanır.', ok: 'Tamam',
     ruleList: [
       ['🃏', 'İki oyuncuya 4\'er kart, ortaya 4 kart dağıtılır: 3\'ü kapalı, en üstteki açık.'],
@@ -386,7 +388,7 @@ const STR = {
     title: 'Pishti | Ridsgames', game: 'Pishti', homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Fullscreen', langAria: 'Switch language',
     rights: 'All rights reserved.', stage: 'Table',
     setupSub: 'Match the top card, sweep with a jack, score a pishti.', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
-    tgtLbl: 'Play to', one: 'One hand', start: 'Start', resume: 'Resume game',
+    tgtLbl: 'Play to', deckLbl: 'Deck', red: 'Red', black: 'Black', one: 'One hand', start: 'Start', resume: 'Resume game',
     rulesTitle: 'How to play', rulesSub: 'Collect points; the first to reach the target wins.', ok: 'OK',
     ruleList: [
       ['🃏', 'Each player gets 4 cards and 4 go to the table: 3 face down, the top one face up.'],
@@ -418,9 +420,9 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // ---------- Durum ----------
 // G: { level, target, scores, handNo, dealer, h: el durumu }. h: { deck, hands: [ben, bilgisayar], pile, hidden: yerdeki kapalı kartlar,
 // won, pisti: puanlar, pc: pişti sayısı, last: son alan, turn, seen: bilgisayarın gördüğü kartlar, done: el bitti mi, res: el sonucu }
-let G = null, setup = { level: 'easy', target: '101' };
+let G = null, setup = { level: 'easy', target: '101', deck: 'red' };
 let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false;
-try { const s = JSON.parse(localStorage.getItem('rids_pisti_setup')); if (s && s.level && s.target != null) setup = s; } catch (e) {}
+try { const s = JSON.parse(localStorage.getItem('rids_pisti_setup')); if (s && s.level && s.target != null) setup = { deck: 'red', ...s }; } catch (e) {}
 try { soundOn = localStorage.getItem('rids_pisti_sound') !== '0'; } catch (e) {}
 const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'pisti/' + olay, title: 'Pişti: ' + ad, event: true }); } catch (e) {} };
 const lvAd = (lv) => (lv === 'easy' ? 'kolay' : lv === 'mid' ? 'orta' : 'zor');
@@ -478,22 +480,34 @@ function cardSvg(c) {
   else body = PIPS[r].map(([x, y]) => pip(s, x, y, r > 8 ? 42 : 46)).join('');
   return `<svg viewBox="0 0 250 350" fill="${ink}" aria-hidden="true">${body}${idx}<g transform="rotate(180 125 175)">${idx}</g></svg>`;
 }
-function backSvg() { // sırt: Ridsgames logosundaki köşeli R ve G harfleri
-  const Rl = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z';
-  const Gl = 'M8 0h32v10H13l-3 3v34l3 3h17V38h-8v-8h18v22l-8 8H8l-8-8V8z';
-  const oct = (i) => `M${77 + i} ${128 + i}H${173 - i}L${195 - i} ${150 + i}V${200 - i}L${173 - i} ${222 - i}H${77 + i}L${55 + i} ${200 - i}V${150 + i}z`;
-  const gem = (x, y) => `<path d="M${x} ${y - 9}l7 9-7 9-7-9z" fill="#f3d9a4"/>`;
+function backSvg(ink) { // klasik iskambil sırtı: tek renk kafes, ortada Ridsgames R'si ile rozet
+  const R = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z', W = '#fffdf8';
+  const rot = (n, f) => Array.from({ length: n }, (_, i) => f(i * 360 / n)).join('');
+  const rosette = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${W}"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rot(8, (a) => `<ellipse cx="${x}" cy="${y - r * .5}" rx="${r * .2}" ry="${r * .42}" fill="${ink}" transform="rotate(${a} ${x} ${y})"/>`) + `<circle cx="${x}" cy="${y}" r="${r * .2}" fill="${W}" stroke="${ink}" stroke-width="1.4"/>`;
+  const diamond = (y) => `<path d="M125 ${y - 22}l15 22-15 22-15-22z" fill="${W}" stroke="${ink}" stroke-width="2.2"/><path d="M125 ${y - 12}l8 12-8 12-8-12z" fill="${ink}"/><circle cx="125" cy="${y}" r="2" fill="${W}"/>`;
+  const C = [125, 175];
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" preserveAspectRatio="none"><defs>`
-    + `<pattern id="p" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 175)"><rect width="18" height="18" fill="#9e1b1f"/><path d="M0 0H18M0 0V18" stroke="#c4413b" stroke-width="2"/><circle cx="9" cy="9" r="2.4" fill="#f3d9a4"/></pattern>`
-    + `<linearGradient id="m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4450"/><stop offset="1" stop-color="#11151b"/></linearGradient>`
-    + `<linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".48" stop-color="#a7b2bd"/><stop offset=".52" stop-color="#66717d"/><stop offset="1" stop-color="#dce3e9"/></linearGradient></defs>`
-    + `<rect width="250" height="350" fill="#fbf5e6"/><rect x="12" y="12" width="226" height="326" rx="9" fill="url(#p)"/>`
-    + `<rect x="19" y="19" width="212" height="312" rx="6" fill="none" stroke="#fbf5e6" stroke-width="2.5"/><rect x="25" y="25" width="200" height="300" rx="4" fill="none" stroke="#f3d9a4" stroke-width="1" stroke-dasharray="3 3"/>`
-    + gem(125, 48) + gem(125, 302) + gem(48, 175) + gem(202, 175)
-    + `<path d="${oct(-6)}" fill="#fbf5e6"/><path d="${oct(0)}" fill="url(#m)"/><path d="${oct(5)}" fill="none" stroke="#22d3ee" stroke-width="1.5" opacity=".85"/>`
-    + `<g fill="url(#l)" stroke="#0b0e12" stroke-width="1.2" stroke-linejoin="round"><path transform="translate(79 145)" d="${Rl}"/><path transform="translate(131 145)" d="${Gl}"/></g></svg>`;
+    + `<pattern id="k" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 175)"><rect width="13" height="13" fill="${W}"/><path d="M0 0H13M0 0V13" stroke="${ink}" stroke-width="2.4"/><circle cx="6.5" cy="6.5" r="1.5" fill="${ink}"/></pattern></defs>`
+    + `<rect width="250" height="350" fill="${W}"/>`
+    + `<rect x="13" y="13" width="224" height="324" rx="9" fill="${ink}"/>`
+    + `<rect x="22" y="22" width="206" height="306" rx="5" fill="none" stroke="${W}" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0 6.2"/>`
+    + `<rect x="30" y="30" width="190" height="290" fill="url(#k)" stroke="${W}" stroke-width="1.5"/>`
+    + `<rect x="34" y="34" width="182" height="282" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rosette(50, 50, 13) + rosette(200, 50, 13) + rosette(50, 300, 13) + rosette(200, 300, 13)
+    + diamond(72) + diamond(278)
+    // orta rozet: taç yaprakları, iki halka, içinde logodaki köşeli R
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="82" fill="${W}"/><circle cx="${C[0]}" cy="${C[1]}" r="79" fill="none" stroke="${ink}" stroke-width="2.6"/>`
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="74" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0 5.8"/>`
+    + rot(16, (a) => `<path d="M125 105c11 7 11 19 0 24-11-5-11-17 0-24z" fill="${ink}" transform="rotate(${a} 125 175)"/><path d="M125 111c5 4 5 10 0 13-5-3-5-9 0-13z" fill="${W}" transform="rotate(${a} 125 175)"/>`)
+    + rot(16, (a) => `<circle cx="125" cy="109" r="2.6" fill="${ink}" transform="rotate(${a + 11.25} 125 175)"/>`)
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="45" fill="${ink}"/><circle cx="${C[0]}" cy="${C[1]}" r="40" fill="none" stroke="${W}" stroke-width="1.4"/>`
+    + rot(24, (a) => `<path d="M125 136.5v3" stroke="${W}" stroke-width="1.6" transform="rotate(${a} 125 175)"/>`)
+    + `<path transform="translate(111.4 154.6) scale(.68)" d="${R}" fill="${W}"/></svg>`;
 }
-stage.style.setProperty('--back', `url("data:image/svg+xml,${encodeURIComponent(backSvg())}")`);
+const DECKS = { red: '#b3141b', black: '#1d1f26' };
+for (const k in DECKS) document.documentElement.style.setProperty('--back-' + k, `url("data:image/svg+xml,${encodeURIComponent(backSvg(DECKS[k]))}")`);
+const applyDeck = () => stage.style.setProperty('--back', `var(--back-${DECKS[setup.deck] ? setup.deck : 'red'})`);
 function makeCard(c) {
   const el = document.createElement('div');
   el.className = 'card'; el.dataset.c = c;
@@ -795,10 +809,10 @@ function confetti() {
 function closeAll() { for (const id of ['setupOv', 'rulesOv', 'handOv', 'winOv']) $(id).hidden = true; }
 function renderSetup() {
   const t = T();
-  $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub; $('lvlLbl').textContent = t.lvlLbl; $('tgtLbl').textContent = t.tgtLbl;
-  const lab = { easy: t.easy, mid: t.mid, hard: t.hard, 0: t.one, 101: '101', 151: '151' };
-  const cur = { lvlSeg: setup.level, tgtSeg: String(setup.target) };
-  for (const id in cur) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.textContent = lab[b.dataset.v]; b.setAttribute('aria-pressed', b.dataset.v === cur[id]); });
+  $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub; $('lvlLbl').textContent = t.lvlLbl; $('tgtLbl').textContent = t.tgtLbl; $('deckLbl').textContent = t.deckLbl;
+  const lab = { easy: t.easy, mid: t.mid, hard: t.hard, 0: t.one, 101: '101', 151: '151', red: `<i class="mini" style="--b:var(--back-red)"></i>${t.red}`, black: `<i class="mini" style="--b:var(--back-black)"></i>${t.black}` };
+  const cur = { lvlSeg: setup.level, tgtSeg: String(setup.target), deckSeg: setup.deck };
+  for (const id in cur) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.innerHTML = lab[b.dataset.v]; b.setAttribute('aria-pressed', b.dataset.v === cur[id]); });
   $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume; $('resumeBtn').hidden = !loadSaved();
 }
 function openSetup() {
@@ -829,7 +843,7 @@ addEventListener('keydown', (e) => {
 });
 document.querySelectorAll('.seg').forEach((s) => s.addEventListener('click', (e) => {
   const b = e.target.closest('button[data-v]'); if (!b) return;
-  if (s.id === 'lvlSeg') setup.level = b.dataset.v; else setup.target = b.dataset.v;
+  if (s.id === 'lvlSeg') setup.level = b.dataset.v; else if (s.id === 'deckSeg') { setup.deck = b.dataset.v; applyDeck(); try { localStorage.setItem('rids_pisti_setup', JSON.stringify(setup)); } catch (e) {} } else setup.target = b.dataset.v;
   renderSetup();
 }));
 $('startBtn').addEventListener('click', () => { Sfx.unlock(); try { localStorage.setItem('rids_pisti_setup', JSON.stringify(setup)); } catch (e) {} newGame(setup.level, +setup.target); });
@@ -866,7 +880,7 @@ window.__pisti = {
   setHand: (o) => { Object.assign(G.h, o); render(0); updateDock(); }
 };
 
-applySound(); layout(); applyLang(); openSetup();
+applySound(); applyDeck(); layout(); applyLang(); openSetup();
 </script>
 </body>
 </html>
