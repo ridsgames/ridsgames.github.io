@@ -492,7 +492,7 @@ function modeLabel(slug, m) {
   if (slug === 'mangala') return p[0] === '2' ? '2 oyuncu' : 'bilgisayara karşı, ' + (p[1] || '');
   if (slug === 'yilan-merdiven') return `${p[0]} kişi · ${p[1] === 'insan' ? 'aynı telefonda' : 'bilgisayarlı'}`;
   if (slug === 'saniye') return `${p[0] === 'grup' ? 'Arkadaşlarla' : 'Tek kişi'} · ${p[1] || ''} sn · ${{ bas: 'baştan gizli', 3: '3. sn\'de gizlenir', yari: 'yarıda gizlenir', hic: 'gizlenmez' }[p[2]] || ''}`;
-  if (slug === 'bomba') return `${p[3] || ''} kişi · ${p[0] || ''} heceler · ${p[1] || ''} sn · hece ${p[2] === 'degisir' ? 'her pasta değişir' : 'tur boyunca sabit'}`;
+  if (slug === 'bomba') return `${p[3] || ''} kişi · ${p[0] || ''} heceler · ${p[1] || ''} sn · hece ${p[2] === 'degisir' ? 'her pasta değişir' : 'tur boyunca sabit'}${p[4] ? ` · ${p[4] === 'karisik' ? 'yer karışık' : 'her yerde'}` : ''}`;
   if (slug === 'mayin-tarlasi') return { kolay: 'Kolay 9×9', orta: 'Orta 16×16', zor: 'Zor 22×16' }[p[0]] || `Özel · ${p[1] || ''}×${p[2] || ''} · ${p[3] || ''} mayın`;
   return m;
 }
