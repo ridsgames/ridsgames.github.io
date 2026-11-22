@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Amiral Battı | Ridsgames</title>
+<meta name="description" content="Amiral Battı: gemilerini yerleştir, rakip sulara ateş et ve bilgisayarın filosunu ondan önce batır. Üç zorluk seviyesi.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --glow: rgba(251, 191, 36, 0.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--glow) 28%, transparent) 0%, transparent 62%), radial-gradient(ellipse at 50% 100%, #111a2c 0%, var(--bg) 70%), var(--bg);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.tall button { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.seg.tall small { font-size: 11px; font-weight: 600; opacity: .75; white-space: nowrap; }
+.seg.tall .em { font-size: 19px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.custom { display: grid; gap: 6px; margin-top: 10px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.mrow button { height: 44px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 24px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.mrow button:disabled { opacity: .35; cursor: default; }
+.mrow output { text-align: center; font-size: 24px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score.lost { color: #fca5a5; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; pencereler menü panelini örtmez; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .gname { display: inline; font-size: 11px; white-space: nowrap; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  main { grid-column: 2; grid-row: 1; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) 6px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
+  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
+  footer { display: none; }
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 4px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #winOv .card { max-width: 560px; padding: 14px 18px 16px; }
+  #winOv .trophy { font-size: 38px; } #winOv .score { font-size: 34px; margin-bottom: 8px; } #winOv .sub { margin-bottom: 8px; }
+  #winOv .rank { grid-template-columns: 1fr 1fr; }
+  #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
+}
+
+/* ---------- Oyuna özel ---------- */
+:root { --glow: rgba(14, 165, 233, .3); }
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.hud { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 12px; width: 100%; max-width: 720px; justify-self: center; min-height: 44px; text-align: center; }
+.hud .msg { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+.hud .msg.hit { color: #fb923c; } .hud .msg.sunk { color: #f87171; } .hud .msg.miss { color: #7dd3fc; }
+#area { min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+#area.land { flex-direction: row; gap: 18px; }
+.side { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.side[hidden] { display: none; }
+.cap { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; height: 16px; display: flex; gap: 6px; align-items: center; }
+.cap .tn { color: #f59e0b; }
+.bd { position: relative; width: calc(var(--cs, 30px) * 10); height: calc(var(--cs, 30px) * 10); border-radius: 10px; overflow: hidden; touch-action: none;
+  background: radial-gradient(ellipse at 30% 20%, rgba(56, 189, 248, .18), transparent 60%), linear-gradient(160deg, #0c4a6e, #082f49);
+  box-shadow: inset 0 0 0 2px rgba(56, 189, 248, .35), 0 14px 32px rgba(0, 0, 0, .45); }
+.bd .grid { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); }
+.bd .cell { position: relative; border: 0; padding: 0; margin: 0; background: transparent; box-shadow: inset -1px -1px 0 rgba(125, 211, 252, .13); display: grid; place-items: center; }
+#bdE .cell.open { cursor: crosshair; }
+#bdE.live .cell.open:hover { background: rgba(250, 204, 21, .14); }
+#bdE.live { box-shadow: inset 0 0 0 2px #f59e0b, 0 0 0 3px rgba(245, 158, 11, .25), 0 14px 32px rgba(0, 0, 0, .45); }
+.cell.miss::after { content: ''; width: 26%; height: 26%; border-radius: 50%; background: rgba(226, 232, 240, .75); }
+.cell.auto::after { content: ''; width: 18%; height: 18%; border-radius: 50%; background: rgba(148, 163, 184, .35); }
+.cell.hit::after { content: ''; position: relative; z-index: 3; width: 56%; height: 56%; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fde68a, #f97316 45%, #dc2626 75%); box-shadow: 0 0 10px rgba(249, 115, 22, .8); }
+.cell.sunk::after { background: radial-gradient(circle at 40% 35%, #fca5a5, #b91c1c 60%, #7f1d1d); box-shadow: none; width: 44%; height: 44%; }
+.cell.new::after { animation: boom .35s ease-out; }
+.cell.miss.new::after { animation: splash .4s ease-out; }
+.cell.aim { background: rgba(250, 204, 21, .25); }
+@keyframes boom { from { transform: scale(2.2); opacity: .2; } }
+@keyframes splash { from { transform: scale(3); opacity: 0; } }
+.ships { position: absolute; inset: 0; pointer-events: none; }
+.ship { position: absolute; border-radius: calc(var(--cs) * .45); margin: calc(var(--cs) * .1); z-index: 1;
+  background: linear-gradient(var(--dir, 180deg), #cbd5e1, #64748b 55%, #475569); box-shadow: inset 0 0 0 1.5px rgba(15, 23, 42, .5), 0 2px 6px rgba(0, 0, 0, .4); transition: left .12s, top .12s; }
+.ship.v { --dir: 90deg; }
+.ship.dead { background: linear-gradient(var(--dir, 180deg), #7f1d1d, #450a0a); opacity: .95; }
+.ship.ghost { opacity: .45; }
+.ship.drag { z-index: 4; box-shadow: 0 0 0 2px #22c55e, 0 10px 20px rgba(0, 0, 0, .5); }
+.ship.bad { box-shadow: 0 0 0 2px #ef4444, 0 10px 20px rgba(0, 0, 0, .5); background: linear-gradient(var(--dir, 180deg), #fca5a5, #b91c1c); }
+.ship.reveal { opacity: .55; }
+#bdM.placing .ship { pointer-events: none; }
+#bdM.placing { cursor: grab; }
+.fleet { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 12px; max-width: 100%; }
+.fleet .fs { display: flex; gap: 2px; }
+.fleet .fs i { width: 9px; height: 9px; border-radius: 2px; background: #64748b; }
+.fleet .fs.dead i { background: #dc2626; opacity: .55; }
+#sideM.mini .fleet .fs i { width: 7px; height: 7px; }
+.row2 { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.row2 button { height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, .35); background: rgba(15, 23, 42, .8); color: #e2e8f0; font-size: 14px; font-weight: 700; }
+.row2 button.go { background: linear-gradient(180deg, #f59e0b, #d97706); color: #1c1917; border-color: transparent; }
+.row2[hidden] { display: none; }
+.tip { font-size: 12px; color: #94a3b8; text-align: center; }
+
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="amiral-batti" data-name="Amiral Battı"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Amiral Battı</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="hud panel" id="hud"><span class="msg" id="msg" aria-live="polite"></span></div>
+<div id="area">
+  <div class="side" id="sideE"><div class="cap" id="capE"></div><div class="bd" id="bdE"><div class="grid" id="gridE"></div><div class="ships" id="shipsE"></div></div><div class="fleet" id="flE"></div></div>
+  <div class="side" id="sideM"><div class="cap" id="capM"></div><div class="bd" id="bdM"><div class="grid" id="gridM"></div><div class="ships" id="shipsM"></div></div><div class="fleet" id="flM"></div></div>
+</div>
+<div class="row2" id="placeRow"><button type="button" id="shufBtn"></button><button type="button" class="go" id="goBtn"></button></div>
+
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Yeni oyun -->
+<div class="ov" id="setupOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Amiral Battı</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="lvLbl"></div>
+      <div class="seg" id="lvSeg"><button type="button" data-l="kolay"></button><button type="button" data-l="orta"></button><button type="button" data-l="zor"></button></div>
+      <div class="note" id="lvNote"></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="exLbl"></div>
+      <div class="seg two" id="exSeg"><button type="button" data-x="1"></button><button type="button" data-x="0"></button></div>
+      <div class="note" id="exNote"></div>
+    </div>
+
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore"></div>
+    <ol class="rank" id="statList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="viewBtn" type="button">Tahtaya bak</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Ortak: dil, ses, pencereler, sayaç ----------
+const COMMON = {
+  tr: { homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
+    lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
+  en: { homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
+    lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_amiral_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (n) => Math.floor(Math.random() * n);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(KEY + k); } catch (e) {} }
+};
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'amiral-batti/' + olay, title: 'Amiral Battı: ' + ad, event: true }); } catch (e) {} };
+let soundOn = store.get('sound', 1) !== 0, bitenVar = false;
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock: ctx, tone,
+    click() { tone(900, 700, 0.05, 0.05, 'triangle'); },
+    tap() { tone(540, 880, 0.07, 0.07); },
+    good() { tone(660, 990, 0.12, 0.08, 'triangle'); },
+    bad() { tone(220, 110, 0.22, 0.09, 'sawtooth'); },
+    win() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, f, 0.4, 0.1, 'triangle', i * 0.065)); },
+    lose() { [392, 329.6, 261.6].forEach((f, i) => tone(f, f * 0.98, 0.3, 0.09, 'triangle', i * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+const OVS = ['setupOv', 'rulesOv', 'winOv'];
+function closeAll() { for (const id of OVS) $(id).hidden = true; }
+const anyOpen = () => OVS.some((id) => !$(id).hidden);
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
+  closeAll();
+  $('winIco').textContent = o.ico; $('winTitle').textContent = o.title; $('winSub').textContent = o.sub || '';
+  $('winScore').textContent = o.score || ''; $('winScore').hidden = !o.score; $('winScore').classList.toggle('lost', !!o.lost);
+  $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
+}
+
+// ---------- Oyun ----------
+const STR = {
+  tr: { ...COMMON.tr, title: 'Amiral Battı | Ridsgames', game: 'Amiral Battı',
+    setupSub: 'Gemilerini yerleştir, rakibin sularına ateş et, filosunu ilk sen batır.',
+    lvLbl: 'Bilgisayar', lvNote: { kolay: 'Çoğunlukla rastgele ateş eder.', orta: 'Vurduğu geminin çevresini arar.', zor: 'Olasılık hesabıyla en muhtemel kareye ateş eder.' },
+    exLbl: 'İsabet edince', ex: { 1: 'Tekrar atar', 0: 'Sıra geçer' }, exNote: { 1: 'Bir gemiyi vuran oyuncu bir kez daha ateş eder.', 0: 'Her atıştan sonra sıra rakibe geçer.' },
+    ships: ['Uçak gemisi', 'Zırhlı', 'Kruvazör', 'Denizaltı', 'Muhrip'],
+    capE: 'Rakip sular', capM: 'Senin filon', yourTurn: 'Sıra sende',
+    placeT: 'Filonu yerleştir', place: 'Gemileri sürükleyerek taşı, döndürmek için dokun', shuffle: '🔀 Karıştır', go: 'Savaşa başla ⚓', newGame: 'Yeni oyun',
+    fire: 'Sıra sende: rakip sularda bir kareye ateş et', cpuFire: 'Bilgisayar ateş ediyor…',
+    miss: 'Iska', hit: 'İsabet!', sunk: (n) => `${n} battı!`, cpuMiss: 'Bilgisayar ıskaladı', cpuHit: 'Bilgisayar vurdu!', cpuSunk: (n) => `Bilgisayar ${n} batırdı!`,
+    again1: ' Bir kez daha at.', badPlace: 'Buraya sığmıyor: gemiler birbirine değemez', badRot: 'Bu gemi burada döndürülemez',
+    winT: 'Kazandın!', winS: 'Rakip filonun tamamını batırdın.', loseT: 'Filon battı', loseS: 'Bilgisayar tüm gemilerini buldu.',
+    stShots: 'Atış', stAcc: 'İsabet oranı', stLeft: 'Ayakta kalan gemin', stCpu: 'Bilgisayarın atışı',
+    rulesSub: 'İki filo, iki deniz. Rakibin gemilerini o seninkileri bulmadan batır.',
+    ruleList: [
+      ['🚢', 'Her iki tarafın da beş gemisi var: <b>uçak gemisi (5)</b>, <b>zırhlı (4)</b>, <b>kruvazör (3)</b>, <b>denizaltı (3)</b> ve <b>muhrip (2)</b>.'],
+      ['🧭', 'Başlamadan önce gemilerini <b>sürükleyerek</b> yerleştir, döndürmek için üzerine <b>dokun</b>. Gemiler yan yana ya da köşe köşe değemez.'],
+      ['🎯', 'Sıran gelince rakip sularda bir kareye ateş et. <b>Beyaz nokta</b> ıska, <b>ateş</b> isabet demektir.'],
+      ['💥', 'Bir geminin bütün kareleri vurulunca gemi <b>batar</b> ve çevresindeki kareler boş olarak işaretlenir.'],
+      ['🔁', 'Ayarlarda açıksa isabet ettiren oyuncu <b>bir kez daha</b> ateş eder.'],
+      ['🏆', 'Rakibin bütün gemilerini ilk batıran kazanır.']
+    ] },
+  en: { ...COMMON.en, title: 'Battleship | Ridsgames', game: 'Battleship',
+    setupSub: 'Place your fleet, fire into enemy waters and sink their ships first.',
+    lvLbl: 'Computer', lvNote: { kolay: 'Mostly fires at random.', orta: 'Searches around the ships it hits.', zor: 'Uses probabilities to fire at the most likely square.' },
+    exLbl: 'After a hit', ex: { 1: 'Fire again', 0: 'Turn passes' }, exNote: { 1: 'A player who hits a ship fires once more.', 0: 'The turn passes after every shot.' },
+    ships: ['Carrier', 'Battleship', 'Cruiser', 'Submarine', 'Destroyer'],
+    capE: 'Enemy waters', capM: 'Your fleet', yourTurn: 'Your turn',
+    placeT: 'Place your fleet', place: 'Drag ships to move them, tap to rotate', shuffle: '🔀 Shuffle', go: 'Start battle ⚓', newGame: 'New game',
+    fire: 'Your turn: fire at a square in enemy waters', cpuFire: 'The computer is firing…',
+    miss: 'Miss', hit: 'Hit!', sunk: (n) => `${n} sunk!`, cpuMiss: 'The computer missed', cpuHit: 'The computer hit!', cpuSunk: (n) => `The computer sank your ${n.toLowerCase()}!`,
+    again1: ' Fire again.', badPlace: "It doesn't fit: ships may not touch", badRot: "This ship can't rotate here",
+    winT: 'You win!', winS: 'You sank the whole enemy fleet.', loseT: 'Your fleet is sunk', loseS: 'The computer found all your ships.',
+    stShots: 'Shots', stAcc: 'Accuracy', stLeft: 'Ships still afloat', stCpu: "Computer's shots",
+    rulesSub: 'Two fleets, two seas. Sink the enemy ships before they find yours.',
+    ruleList: [
+      ['🚢', 'Each side has five ships: <b>carrier (5)</b>, <b>battleship (4)</b>, <b>cruiser (3)</b>, <b>submarine (3)</b> and <b>destroyer (2)</b>.'],
+      ['🧭', 'Before the battle, <b>drag</b> your ships into place and <b>tap</b> one to rotate it. Ships may not touch, not even at the corners.'],
+      ['🎯', 'On your turn fire at a square in enemy waters. A <b>white dot</b> is a miss, <b>fire</b> is a hit.'],
+      ['💥', 'When every square of a ship is hit it <b>sinks</b>, and the squares around it are marked empty.'],
+      ['🔁', 'If enabled in setup, a player who scores a hit <b>fires again</b>.'],
+      ['🏆', 'The first to sink every enemy ship wins.']
+    ] }
+};
+const T = () => STR[lang];
+const N = 10, LENS = [5, 4, 3, 3, 2];
+let setup = Object.assign({ level: 'orta', extra: 1 }, store.get('setup', {}));
+if (!COMMON.tr.lv[setup.level]) setup.level = 'orta';
+setup.extra = setup.extra ? 1 : 0;
+let G = null, busy = false, epoch = 0, drag = null, newCells = { E: -1, M: -1 };
+
+// ---------- Filo ----------
+const cellsOf = (s) => Array.from({ length: s.n }, (_, k) => (s.r + (s.v ? k : 0)) * N + s.c + (s.v ? 0 : k));
+function fits(ships, s, skip) {
+  if (s.r < 0 || s.c < 0 || (s.v ? s.r + s.n : s.c + s.n) > N || (s.v ? s.c : s.r) >= N) return false;
+  const mine = cellsOf(s);
+  for (let j = 0; j < ships.length; j++) {
+    if (j === skip) continue;
+    for (const a of cellsOf(ships[j])) {
+      const ar = Math.floor(a / N), ac = a % N;
+      for (const b of mine) if (Math.abs(Math.floor(b / N) - ar) <= 1 && Math.abs(b % N - ac) <= 1) return false;
+    }
+  }
+  return true;
+}
+function randomFleet() {
+  for (;;) {
+    const ships = []; let ok = true;
+    for (const n of LENS) {
+      let placed = false;
+      for (let t = 0; t < 300 && !placed; t++) {
+        const s = { n, v: Math.random() < 0.5, r: rnd(N), c: rnd(N), hits: 0 };
+        if (fits(ships, s, -1)) { ships.push(s); placed = true; }
+      }
+      if (!placed) { ok = false; break; }
+    }
+    if (ok) return ships;
+  }
+}
+const shipAt = (ships, i) => ships.findIndex((s) => cellsOf(s).includes(i));
+const sunk = (s) => s.hits >= s.n;
+
+// ---------- Atış ----------
+function shoot(side, i) {
+  // side 'E': ben rakibe; 'M': bilgisayar bana
+  const shots = side === 'E' ? G.shotsE : G.shotsM, ships = side === 'E' ? G.cpu : G.me;
+  if (shots[i]) return null;
+  const k = shipAt(ships, i);
+  if (k < 0) { shots[i] = 1; return { res: 'miss' }; }
+  shots[i] = 2; ships[k].hits++;
+  if (sunk(ships[k])) {
+    for (const a of cellsOf(ships[k])) {
+      const ar = Math.floor(a / N), ac = a % N;
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        const r = ar + dr, c = ac + dc; if (r < 0 || c < 0 || r >= N || c >= N) continue;
+        if (!shots[r * N + c]) shots[r * N + c] = 3;
+      }
+    }
+    return { res: 'sunk', k };
+  }
+  return { res: 'hit', k };
+}
+const allSunk = (ships) => ships.every(sunk);
+
+// ---------- Yapay zekâ ----------
+function openHits() {
+  const out = [];
+  for (let i = 0; i < N * N; i++) if (G.shotsM[i] === 2) { const k = shipAt(G.me, i); if (!sunk(G.me[k])) out.push(i); }
+  return out;
+}
+const unknown = () => { const u = []; for (let i = 0; i < N * N; i++) if (!G.shotsM[i]) u.push(i); return u; };
+const nb4 = (i) => { const r = Math.floor(i / N), c = i % N, o = []; if (r > 0) o.push(i - N); if (r < N - 1) o.push(i + N); if (c > 0) o.push(i - 1); if (c < N - 1) o.push(i + 1); return o; };
+function targetCells(hits) {
+  const sh = G.shotsM;
+  if (hits.length >= 2) {
+    const rows = new Set(hits.map((i) => Math.floor(i / N))), cols = new Set(hits.map((i) => i % N));
+    const line = [];
+    if (rows.size === 1) { const r = [...rows][0], cs = hits.map((i) => i % N); const lo = Math.min(...cs) - 1, hi = Math.max(...cs) + 1; if (lo >= 0) line.push(r * N + lo); if (hi < N) line.push(r * N + hi); }
+    else if (cols.size === 1) { const c = [...cols][0], rs = hits.map((i) => Math.floor(i / N)); const lo = Math.min(...rs) - 1, hi = Math.max(...rs) + 1; if (lo >= 0) line.push(lo * N + c); if (hi < N) line.push(hi * N + c); }
+    const l2 = line.filter((i) => !sh[i]); if (l2.length) return l2;
+  }
+  const s = new Set(); hits.forEach((h) => nb4(h).forEach((j) => { if (!sh[j]) s.add(j); }));
+  return [...s];
+}
+function density(hits) {
+  const sh = G.shotsM, d = new Float64Array(N * N), left = G.me.filter((s) => !sunk(s)).map((s) => s.n), hs = new Set(hits);
+  for (const n of left) for (let v = 0; v < 2; v++) for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (v ? r + n > N : c + n > N) continue;
+    let ok = true, cover = 0;
+    for (let k = 0; k < n; k++) { const i = (r + (v ? k : 0)) * N + c + (v ? 0 : k); const x = sh[i]; if (x === 1 || x === 3 || (x === 2 && !hs.has(i))) { ok = false; break; } if (x === 2) cover++; }
+    if (!ok) continue;
+    if (hits.length && !cover) continue;
+    const w = hits.length ? Math.pow(20, cover) : 1;
+    for (let k = 0; k < n; k++) { const i = (r + (v ? k : 0)) * N + c + (v ? 0 : k); if (!sh[i]) d[i] += w; }
+  }
+  return d;
+}
+function cpuPick() {
+  const lv = G.level, hits = openHits(), un = unknown();
+  if (lv === 'kolay') {
+    if (hits.length && Math.random() < 0.55) { const t = targetCells(hits); if (t.length) return t[rnd(t.length)]; }
+    return un[rnd(un.length)];
+  }
+  if (lv === 'orta') {
+    if (hits.length) { const t = targetCells(hits); if (t.length) return t[rnd(t.length)]; }
+    const par = un.filter((i) => (Math.floor(i / N) + i % N) % 2 === G.parity);
+    const pool = par.length ? par : un; return pool[rnd(pool.length)];
+  }
+  const d = density(hits); let best = -1, pick = [];
+  for (const i of un) { if (d[i] > best + 1e-9) { best = d[i]; pick = [i]; } else if (Math.abs(d[i] - best) < 1e-9) pick.push(i); }
+  return pick.length ? pick[rnd(pick.length)] : un[rnd(un.length)];
+}
+
+// ---------- Akış ----------
+function save() { if (G) store.set('game', G); }
+function newGame() {
+  closeAll();
+  G = { level: setup.level, extra: setup.extra, phase: 'place', me: randomFleet(), cpu: randomFleet(), shotsE: Array(N * N).fill(0), shotsM: Array(N * N).fill(0), turn: 1, parity: rnd(2), st: { s: 0, h: 0, cs: 0, ch: 0 }, msg: null };
+  epoch++; busy = false; drag = null; save(); layout(); render();
+}
+function startFromSetup() { store.set('setup', setup); newGame(); }
+function again() { newGame(); }
+function startBattle() {
+  if (!G || G.phase !== 'place') return;
+  G.phase = 'battle'; G.turn = 1; G.msg = null;
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${G.level}-${G.extra ? 'tekrar' : 'sira'}`, `mod: ${G.level}, isabette ${G.extra ? 'tekrar atar' : 'sıra geçer'}`);
+  Sfx.good(); save(); layout(); render();
+}
+function myShot(i) {
+  if (!G || G.phase !== 'battle' || G.turn !== 1 || busy) return;
+  Sfx.unlock();
+  const r = shoot('E', i); if (!r) return;
+  G.st.s++; if (r.res !== 'miss') G.st.h++;
+  newCells.E = i; fx(r.res); const t = T();
+  G.msg = { k: r.res, t: r.res === 'miss' ? t.miss : r.res === 'hit' ? t.hit : t.sunk(t.ships[r.k]), x: r.res !== 'miss' && G.extra };
+  if (allSunk(G.cpu)) return finish(true);
+  if (r.res === 'miss' || !G.extra) G.turn = 2;
+  save(); render();
+  if (G.turn === 2) cpuTurn();
+}
+function cpuTurn() {
+  busy = true; render();
+  const ep = epoch;
+  setTimeout(() => {
+    if (ep !== epoch || !G || G.phase !== 'battle') return;
+    const i = cpuPick(), r = shoot('M', i);
+    G.st.cs++; if (r.res !== 'miss') G.st.ch++;
+    newCells.M = i; fx(r.res, true); const t = T();
+    G.msg = { k: r.res, cpu: 1, t: r.res === 'miss' ? t.cpuMiss : r.res === 'hit' ? t.cpuHit : t.cpuSunk(t.ships[r.k]) };
+    if (allSunk(G.me)) { busy = false; return finish(false); }
+    if (r.res === 'miss' || !G.extra) { G.turn = 1; busy = false; save(); render(); }
+    else { save(); render(); cpuTurn(); }
+  }, REDUCED ? 250 : (G.msg && G.msg.cpu ? 700 : 650));
+}
+function fx(res, cpu) {
+  if (res === 'miss') Sfx.tone(cpu ? 220 : 260, 140, 0.1, 0.05, 'sine', 0.18);
+  else if (res === 'hit') { Sfx.tone(cpu ? 140 : 180, 90, 0.16, 0.12, 'sawtooth', 0.22); buzz(cpu ? 40 : 20); }
+  else { Sfx.tone(110, 60, 0.2, 0.15, 'sawtooth', 0.5); buzz([30, 40, 60]); }
+}
+function finish(won) {
+  G.phase = 'over'; G.won = won; save(); render();
+  bitenVar = true; sayac('bitti', 'oyun bitti');
+  sayac(`sonuc/${won ? 'insan' : 'bilgisayar'}-${G.level}`, `sonuç (${G.level})`);
+  const t = T(), ep = epoch;
+  setTimeout(() => {
+    if (ep !== epoch) return;
+    won ? Sfx.win() : Sfx.lose();
+    showEnd({ ico: won ? '🏆' : '🌊', title: won ? t.winT : t.loseT, sub: won ? t.winS : t.loseS, lost: !won,
+      stats: [[t.stShots, G.st.s], [t.stAcc, (G.st.s ? Math.round(G.st.h * 100 / G.st.s) : 0) + '%'], [t.stLeft, `${G.me.filter((s) => !sunk(s)).length}/5`], [t.stCpu, G.st.cs]] });
+  }, REDUCED ? 300 : 1100);
+}
+
+// ---------- Çizim ----------
+function buildGrids() {
+  $('gridE').innerHTML = Array.from({ length: N * N }, (_, i) => `<button type="button" class="cell" data-i="${i}"></button>`).join('');
+  $('gridM').innerHTML = Array.from({ length: N * N }, (_, i) => `<div class="cell" data-i="${i}"></div>`).join('');
+}
+const shipHtml = (s, cls) => `<div class="ship${s.v ? ' v' : ''}${cls}" style="left:calc(var(--cs)*${s.c});top:calc(var(--cs)*${s.r});width:calc(var(--cs)*${s.v ? 1 : s.n} - var(--cs)*.2);height:calc(var(--cs)*${s.v ? s.n : 1} - var(--cs)*.2)"></div>`;
+function paintCells(grid, shots, ships, isE) {
+  const cells = grid.children, live = isE && G.phase === 'battle' && G.turn === 1 && !busy;
+  const L = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+  for (let i = 0; i < N * N; i++) {
+    const x = shots[i], el = cells[i];
+    let cls = 'cell';
+    if (x === 1) cls += ' miss'; else if (x === 3) cls += ' auto';
+    else if (x === 2) { cls += ' hit'; const k = shipAt(ships, i); if (k >= 0 && sunk(ships[k])) cls += ' sunk'; }
+    else if (isE && G.phase === 'battle') cls += ' open';
+    if (newCells[isE ? 'E' : 'M'] === i && !REDUCED) cls += ' new';
+    if (el.className !== cls) el.className = cls;
+    if (isE) { el.disabled = !live || !!x; el.setAttribute('aria-label', `${L[Math.floor(i / N)]}${i % N + 1}`); }
+  }
+}
+function render() {
+  if (!G) return;
+  const t = T(), place = G.phase === 'place';
+  $('sideE').hidden = place;
+  $('bdM').classList.toggle('placing', place);
+  $('capE').innerHTML = esc(t.capE); $('capM').innerHTML = esc(t.capM);
+  $('bdE').classList.toggle('live', G.phase === 'battle' && G.turn === 1 && !busy);
+  paintCells($('gridE'), G.shotsE, G.cpu, true);
+  paintCells($('gridM'), G.shotsM, G.me, false);
+  newCells = { E: -1, M: -1 };
+  $('shipsE').innerHTML = G.cpu.map((s) => sunk(s) ? shipHtml(s, ' dead') : G.phase === 'over' ? shipHtml(s, ' reveal') : '').join('');
+  $('shipsM').innerHTML = G.me.map((s, k) => {
+    if (drag && drag.k === k) return shipHtml(s, ' ghost') + shipHtml(drag.s, drag.ok ? ' drag' : ' bad');
+    return shipHtml(s, sunk(s) ? ' dead' : '');
+  }).join('');
+  const fl = (ships) => ships.map((s, k) => `<span class="fs${sunk(s) ? ' dead' : ''}" title="${esc(t.ships[k])}">${'<i></i>'.repeat(s.n)}</span>`).join('');
+  $('flE').innerHTML = place ? '' : fl(G.cpu); $('flM').innerHTML = place ? `<span class="tip">${esc(t.place)}</span>` : fl(G.me);
+  let m, cls = '';
+  if (place) m = t.placeT;
+  else if (G.phase === 'over') m = G.won ? t.winT : t.loseT;
+  else if (busy) { m = G.msg ? G.msg.t + ' · ' + t.cpuFire : t.cpuFire; cls = G.msg ? G.msg.k : ''; }
+  else if (G.msg && !G.msg.cpu) { m = G.msg.t + (G.msg.x ? t.again1 : ''); cls = G.msg.k; }
+  else if (G.msg && G.msg.cpu) { m = G.msg.t + ' · ' + t.yourTurn; cls = G.msg.k; }
+  else m = t.fire;
+  $('msg').textContent = m; $('msg').className = 'msg ' + cls;
+  $('placeRow').hidden = G.phase === 'battle';
+  $('shufBtn').hidden = !place; $('shufBtn').textContent = t.shuffle;
+  $('goBtn').textContent = place ? t.go : t.newGame;
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function layout() {
+  const A = $('area'), W = A.clientWidth, H = A.clientHeight; if (!W || !H || !G) return;
+  const ex = 52, place = G.phase === 'place';
+  let sE = 0, sM;
+  const land = !place && W > H * 1.2;
+  A.classList.toggle('land', land);
+  if (place) sM = Math.min(W, H - ex, 520);
+  else if (land) { sE = sM = Math.min((W - 18) / 2, H - ex, 560); }
+  else { const av = H - 2 * ex - 10; sE = Math.min(W, 560, av * 0.62); sM = Math.min(W, av - sE, sE * 0.8); }
+  $('bdE').style.setProperty('--cs', Math.floor(sE / 10) + 'px');
+  $('bdM').style.setProperty('--cs', Math.floor(sM / 10) + 'px');
+  $('sideM').classList.toggle('mini', !place && !land);
+}
+function renderSetup() {
+  const t = T();
+  segPress('lvSeg', 'l', setup.level); segPress('exSeg', 'x', String(setup.extra));
+  $('lvNote').textContent = t.lvNote[setup.level]; $('exNote').textContent = t.exNote[setup.extra];
+}
+function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G; $('startBtn').focus({ preventScroll: true }); }
+function gameLang() {
+  const t = T();
+  $('lvLbl').textContent = t.lvLbl; $('exLbl').textContent = t.exLbl;
+  document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
+  document.querySelectorAll('#exSeg button').forEach((b) => { b.textContent = t.ex[b.dataset.x]; });
+  renderSetup(); render();
+}
+$('lvSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-l]'); if (b) { setup.level = b.dataset.l; renderSetup(); } });
+$('exSeg').addEventListener('click', (e) => { const b = e.target.closest('button[data-x]'); if (b) { setup.extra = +b.dataset.x; renderSetup(); } });
+$('gridE').addEventListener('click', (e) => { const b = e.target.closest('.cell'); if (b) myShot(+b.dataset.i); });
+$('shufBtn').addEventListener('click', () => { if (G && G.phase === 'place') { G.me = randomFleet(); Sfx.click(); save(); render(); } });
+$('goBtn').addEventListener('click', () => { Sfx.unlock(); if (G.phase === 'place') startBattle(); else if (G.phase === 'over') newGame(); });
+
+// Yerleştirme: sürükle / dokun
+const bdM = $('bdM');
+function cellFromPt(e) { const r = bdM.getBoundingClientRect(), cs = r.width / N; return [Math.floor((e.clientY - r.top) / cs), Math.floor((e.clientX - r.left) / cs)]; }
+bdM.addEventListener('pointerdown', (e) => {
+  if (!G || G.phase !== 'place') return;
+  const [r, c] = cellFromPt(e); if (r < 0 || c < 0 || r >= N || c >= N) return;
+  const k = shipAt(G.me, r * N + c); if (k < 0) return;
+  const s = G.me[k], off = s.v ? r - s.r : c - s.c;
+  drag = { k, off, x: e.clientX, y: e.clientY, moved: false, s: { ...s }, ok: true };
+  bdM.setPointerCapture(e.pointerId); e.preventDefault();
+});
+bdM.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return;
+  drag.moved = true;
+  const [r, c] = cellFromPt(e), s = G.me[drag.k];
+  const ns = { ...s, r: s.v ? r - drag.off : r, c: s.v ? c : c - drag.off };
+  if (ns.r !== drag.s.r || ns.c !== drag.s.c) { drag.s = ns; drag.ok = fits(G.me, ns, drag.k); render(); }
+});
+function endDrag(e, cancel) {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (cancel) { render(); return; }
+  const t = T();
+  if (!d.moved) {
+    const s = G.me[d.k], ns = { ...s, v: !s.v };
+    // dokunulan kare etrafında döndür; sığmazsa başlangıç karesinden dene
+    const cand = [{ ...ns, r: s.v ? s.r + d.off : s.r - d.off, c: s.v ? s.c - d.off : s.c + d.off }, ns];
+    if (s.v) cand[0] = { ...ns, r: s.r + d.off, c: s.c - d.off }; else cand[0] = { ...ns, r: s.r - d.off, c: s.c + d.off };
+    const ok = cand.find((x) => fits(G.me, x, d.k));
+    if (ok) { G.me[d.k] = ok; Sfx.tap(); } else { toast(t.badRot, '#f87171'); Sfx.bad(); }
+  } else if (d.ok) { G.me[d.k] = d.s; Sfx.tap(); }
+  else { toast(t.badPlace, '#f87171'); Sfx.bad(); }
+  save(); render();
+}
+bdM.addEventListener('pointerup', (e) => endDrag(e, false));
+bdM.addEventListener('pointercancel', (e) => endDrag(e, true));
+addEventListener('resize', layout);
+if (window.ResizeObserver) new ResizeObserver(layout).observe($('area'));
+buildGrids();
+
+function boot() {
+  const s = store.get('game', null);
+  if (s && Array.isArray(s.me) && Array.isArray(s.cpu) && Array.isArray(s.shotsE) && s.shotsE.length === N * N) {
+    G = s; layout(); render();
+    if (G.phase === 'battle' && G.turn === 2) cpuTurn();
+  } else openSetup();
+}
+window.__amiral = { state: () => ({ G, busy }), shot: myShot, randomFleet, fits, cellsOf };
+
+
+// ---------- Ortak bağlantılar ----------
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  gameLang();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('winOv').hidden) closeAll();
+});
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
+$('backBtn').addEventListener('click', closeAll);
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
+$('viewBtn').addEventListener('click', closeAll);
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+applySound(); applyLang(); boot();
+</script>
+</body>
+</html>
