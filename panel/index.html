@@ -284,9 +284,10 @@ const GAMES = [
   { slug: 'mayin-tarlasi', name: 'Mayın Tarlası', img: '../assets/mayin-tarlasi.jpg?v=2', rules: true, clear: true },
   { slug: 'dama', name: 'Türk Daması', img: '../assets/dama.jpg', rules: true, cpu: true },
   { slug: 'pisti', name: 'Pişti', img: '../assets/pisti.jpg?v=5', rules: true, cpu: true },
-  { slug: 'pis-yedili', name: 'Pis Yedili', img: '../assets/pis-yedili.jpg?v=1', rules: true, cpu: true }
+  { slug: 'pis-yedili', name: 'Pis Yedili', img: '../assets/pis-yedili.jpg?v=1', rules: true, cpu: true },
+  { slug: 'batak', name: 'Batak', img: '../assets/batak.jpg?v=1', rules: true, cpu: true }
 ];
-const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Cuk', bomba: 'Dilimin Ucunda', 'mayin-tarlasi': 'Mayın Tarlası', dama: 'Türk Daması', pisti: 'Pişti', 'pis-yedili': 'Pis Yedili' };
+const PAGES = { 'ana-sayfa': 'Ana sayfa', 'kizma-birader': 'Kızma Birader', 'civi-futbolu': 'Çivi Futbolu', 'solo-test': 'Solo Test', 'sulu-halka': 'Sulu Halka', mangala: 'Mangala', 'yilan-merdiven': 'Yılan Merdiven', saniye: 'Cuk', bomba: 'Dilimin Ucunda', 'mayin-tarlasi': 'Mayın Tarlası', dama: 'Türk Daması', pisti: 'Pişti', 'pis-yedili': 'Pis Yedili', batak: 'Batak' };
 const SIZES = { phone: 'Telefon', tablet: 'Tablet', desktop: 'Bilgisayar', desktophd: 'Büyük ekran', unknown: 'Bilinmiyor' };
 // Süre dilimleri (olcum.js ile aynı): yol dilimin üst sınırını taşır, toplamda dilimin ortası kullanılır
 const MID = { 1: 0.5, 2: 1.5, 3: 2.5, 5: 4, 7: 6, 10: 8.5, 15: 12.5, 20: 17.5, 30: 25, 45: 37.5, 60: 52.5, 90: 75, 120: 105 };
@@ -498,6 +499,7 @@ function modeLabel(slug, m) {
   if (slug === 'bomba') return `${p[3] || ''} kişi · ${p[0] || ''} heceler · ${p[1] || ''} sn · hece ${p[2] === 'degisir' ? 'her pasta değişir' : 'tur boyunca sabit'}${p[4] ? ` · ${p[4] === 'karisik' ? 'yer karışık' : 'her yerde'}` : ''}`;
   if (slug === 'mayin-tarlasi') return { kolay: 'Kolay 9×9', orta: 'Orta 16×16', zor: 'Zor 22×16' }[p[0]] || `Özel · ${p[1] || ''}×${p[2] || ''} · ${p[3] || ''} mayın`;
   if (slug === 'dama') return p[0] === '2' ? '2 oyuncu' : 'bilgisayara karşı, ' + (p[1] || '');
+  if (slug === 'batak') return `${{ tekli: 'İhaleli', esli: 'Eşli', gommeli: 'Gömmeli', ihalesiz: 'İhalesiz' }[p[0]] || p[0]} · bilgisayara karşı, ${p[1] || ''} · ${p[2] || ''} el`;
   if (slug === 'pis-yedili') return `bilgisayara karşı, ${p[0]} · ${p[1] || ''} rakip · ${p[2] === 'tek' ? 'tek el' : (p[2] || '') + ' ceza'}`;
   if (slug === 'pisti') return 'bilgisayara karşı, ' + p[0] + ' · ' + (p[1] === 'tek' ? 'tek el' : (p[1] || '') + ' sayı');
   return m;
