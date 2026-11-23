@@ -129,6 +129,23 @@ main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; di
   #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
 }
 
+/* Telefon ve dokunmatik: oyun alanı ekranın tamamını kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) {
+  footer { display: none; }
+  main { padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 6px; }
+}
+@media (max-width: 520px) { .top .in { height: 44px; padding: 0 8px; } .pill { height: 32px; min-width: 32px; } }
+
+
+/* Ortak iskambil: SVG yüz ve sırt */
+.pc { background: #fff; overflow: hidden; }
+.pc > img.pci { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+.pcb { background: var(--pcback) center / 100% 100% no-repeat, #fffdf8 !important; }
+.pcHand { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.pcHand .row { display: flex; }
+.pcHand .row + .row { margin-top: calc(var(--cw) * var(--rov, -.6)); }
+.pcHand .row .pc + .pc { margin-left: calc(var(--cw) * var(--ov, -.44)); }
+
 /* ---------- Oyuna özel ---------- */
 main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 10px; align-items: stretch; max-width: 1100px; }
 .bar { display: flex; align-items: center; gap: 14px; font-variant-numeric: tabular-nums; min-width: 0; }
@@ -168,6 +185,15 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
   .board { grid-column: 1; grid-row: 1; }
 }
 @media (max-width: 380px) { .bar button small { display: none; } .bar button { padding: 0 11px; } }
+
+/* Ortak iskambil çizimi: köşe dizini sütunlarda okunsun diye büyütülür */
+.cd.pc { border: 0; border-radius: calc(var(--cw) * .07); box-shadow: 0 1px 3px rgba(0, 0, 0, .5), 0 0 0 .5px rgba(0, 0, 0, .45); }
+.cd.pc .r { left: 0; top: 0; padding: calc(var(--cw) * .05) calc(var(--cw) * .05) calc(var(--cw) * .03) calc(var(--cw) * .06); background: #fff; border-radius: calc(var(--cw) * .07) 0 calc(var(--cw) * .1) 0; font-size: calc(var(--cw) * .32); font-family: Georgia, "Times New Roman", serif; font-weight: 700; letter-spacing: -.04em; }
+.cd.pc .r i { font-size: calc(var(--cw) * .28); }
+.cd.down { background: var(--pcback) center / 100% 100% no-repeat, #fffdf8; border: 0; }
+.cd.hint { box-shadow: 0 0 0 3px #fbbf24, 0 0 16px rgba(251, 191, 36, .75); }
+.cd.drag { box-shadow: 0 12px 26px rgba(0, 0, 0, .55); }
+.cd.down > * { display: none !important; }
 
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
@@ -317,6 +343,54 @@ function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]
   $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
   $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
 }
+
+// ---------- Ortak iskambil çizimi (Pişti ile aynı) ----------
+// Kart yüzleri: Adrian Kennard'ın geleneksel İngiliz desenli iskambil çizimleri (CC0, assets/kart/); sırtlar Ridsgames tasarımı
+const PCS = 'SHDC', PCR = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+const pcImg = (s, r) => `<img class="pci" src="../assets/kart/${PCS[s]}${PCR[r]}.svg" alt="" draggable="false" decoding="async">`;
+const pcJoker = (red) => `<img class="pci" src="../assets/kart/J${red ? 'R' : 'B'}.svg" alt="" draggable="false" decoding="async">`;
+function backSvg(ink) { // klasik iskambil sırtı: tek renk kafes, ortada Ridsgames R'si ile rozet
+  const R = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z', W = '#fffdf8';
+  const rot = (n, f) => Array.from({ length: n }, (_, i) => f(i * 360 / n)).join('');
+  const rosette = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${W}"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rot(8, (a) => `<ellipse cx="${x}" cy="${y - r * .5}" rx="${r * .2}" ry="${r * .42}" fill="${ink}" transform="rotate(${a} ${x} ${y})"/>`) + `<circle cx="${x}" cy="${y}" r="${r * .2}" fill="${W}" stroke="${ink}" stroke-width="1.4"/>`;
+  const diamond = (y) => `<path d="M125 ${y - 22}l15 22-15 22-15-22z" fill="${W}" stroke="${ink}" stroke-width="2.2"/><path d="M125 ${y - 12}l8 12-8 12-8-12z" fill="${ink}"/><circle cx="125" cy="${y}" r="2" fill="${W}"/>`;
+  const C = [125, 175];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" preserveAspectRatio="none"><defs>`
+    + `<pattern id="k" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 175)"><rect width="13" height="13" fill="${W}"/><path d="M0 0H13M0 0V13" stroke="${ink}" stroke-width="2.4"/><circle cx="6.5" cy="6.5" r="1.5" fill="${ink}"/></pattern></defs>`
+    + `<rect width="250" height="350" fill="${W}"/>`
+    + `<rect x="13" y="13" width="224" height="324" rx="9" fill="${ink}"/>`
+    + `<rect x="22" y="22" width="206" height="306" rx="5" fill="none" stroke="${W}" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0 6.2"/>`
+    + `<rect x="30" y="30" width="190" height="290" fill="url(#k)" stroke="${W}" stroke-width="1.5"/>`
+    + `<rect x="34" y="34" width="182" height="282" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rosette(50, 50, 13) + rosette(200, 50, 13) + rosette(50, 300, 13) + rosette(200, 300, 13)
+    + diamond(72) + diamond(278)
+    // orta rozet: taç yaprakları, iki halka, içinde logodaki köşeli R
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="82" fill="${W}"/><circle cx="${C[0]}" cy="${C[1]}" r="79" fill="none" stroke="${ink}" stroke-width="2.6"/>`
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="74" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0 5.8"/>`
+    + rot(16, (a) => `<path d="M125 105c11 7 11 19 0 24-11-5-11-17 0-24z" fill="${ink}" transform="rotate(${a} 125 175)"/><path d="M125 111c5 4 5 10 0 13-5-3-5-9 0-13z" fill="${W}" transform="rotate(${a} 125 175)"/>`)
+    + rot(16, (a) => `<circle cx="125" cy="109" r="2.6" fill="${ink}" transform="rotate(${a + 11.25} 125 175)"/>`)
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="45" fill="${ink}"/><circle cx="${C[0]}" cy="${C[1]}" r="40" fill="none" stroke="${W}" stroke-width="1.4"/>`
+    + rot(24, (a) => `<path d="M125 136.5v3" stroke="${W}" stroke-width="1.6" transform="rotate(${a} 125 175)"/>`)
+    + `<path transform="translate(111.4 154.6) scale(.68)" d="${R}" fill="${W}"/></svg>`;
+}
+document.documentElement.style.setProperty('--pcback', `url("data:image/svg+xml,${encodeURIComponent(backSvg('#b3141b'))}")`);
+// El yerleşimi: verilen genişlik ve yükseklikte en büyük kartı veren sıra sayısını seçer.
+// vis: yan yana kartta görünen pay, rov: alt sıranın üst sırayı örttüğü pay (kart boyuna göre)
+function pcFit(n, W, H, maxCw, maxRows = 3, vis = 0.56, rov = 0.42) {
+  let best = { rows: 1, per: n, cw: 0, vis, rov };
+  for (let rows = 1; rows <= maxRows; rows++) {
+    const per = Math.ceil(n / rows);
+    const byW = W / (1 + (per - 1) * vis), byH = H / (1.42 * (1 + (rows - 1) * (1 - rov)));
+    const cw = Math.floor(Math.min(maxCw, byW, byH));
+    if (cw > best.cw * 1.1) best = { rows, per, cw, vis, rov };
+    if (rows * per >= n && per === 1) break;
+  }
+  return best;
+}
+// Eli satırlara böler: üst sıralar daha kalabalık olmasın diye dengeli dağıtır
+function pcRows(ids, L) { const out = []; let k = 0; for (let r = 0; r < L.rows; r++) { const m = Math.ceil((ids.length - k) / (L.rows - r)); out.push(ids.slice(k, k + m)); k += m; } return out.filter((x) => x.length); }
+function pcApply(el, L) { el.style.setProperty('--cw', L.cw + 'px'); el.style.setProperty('--ov', String(-(1 - L.vis))); el.style.setProperty('--rov', String(-L.rov * 1.42)); }
 
 // ---------- Oyun ----------
 const STR = {
@@ -506,7 +580,7 @@ function finish() {
 // ---------- Yerleşim ----------
 function computeL() {
   const b = $('board'), W = b.clientWidth, H = b.clientHeight, R = 1.42;
-  const g = clamp(Math.round(Math.min(W, H) * 0.014), 4, 12);
+  const g = clamp(Math.round(Math.min(W, H) * 0.012), 3, 12);
   const cwTop = Math.min((W - 6 * g) / 7, (H - g) / (R * 4.4), 112);
   const cwSide = Math.min((W - 9 * g) / 9, (H - 3 * g) / (4 * R), 112);
   const side = cwSide > cwTop * 1.04, cw = Math.max(20, Math.floor(side ? cwSide : cwTop)), ch = Math.round(cw * R);
@@ -541,7 +615,7 @@ function render() {
   G.found.forEach((p, s) => p.forEach((id) => setCard(id, ...L.f(s), z++, true, k++)));
   G.tab.forEach((col, c) => {
     const nd = col.filter((id) => !G.up[id]).length, nu = col.length - nd;
-    let dO = L.cw * 0.2, uO = L.cw * (L.side ? 0.4 : 0.46);
+    let dO = L.cw * 0.22, uO = L.cw * (L.side ? 0.42 : 0.52);
     const avail = L.H - L.tabTop - L.ch - 2;
     if (nd * dO + Math.max(0, nu - 1) * uO > avail) {
       uO = Math.max(L.cw * 0.22, (avail - nd * dO) / Math.max(1, nu - 1));
@@ -564,7 +638,7 @@ function buildBoard() {
   for (let c = 0; c < 7; c++) slots['t' + c] = mk('slot');
   for (let id = 0; id < 52; id++) {
     const e = mk(`cd s${suit(id)}`); e.dataset.id = id;
-    const r = rank(id); e.innerHTML = `<span class="r">${RANK[r]}<i>${SUIT[suit(id)]}</i></span>${r > 10 ? `<b class="fc">${RANK[r]}</b>` : `<b>${SUIT[suit(id)]}</b>`}`;
+    const r = rank(id); e.classList.add('pc'); e.innerHTML = `${pcImg(suit(id), r)}<span class="r">${RANK[r]}<i>${SUIT[suit(id)]}</i></span>`;
     els.push(e);
   }
 }

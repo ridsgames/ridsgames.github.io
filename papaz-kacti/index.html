@@ -129,6 +129,23 @@ main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; di
   #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
 }
 
+/* Telefon ve dokunmatik: oyun alanı ekranın tamamını kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) {
+  footer { display: none; }
+  main { padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 6px; }
+}
+@media (max-width: 520px) { .top .in { height: 44px; padding: 0 8px; } .pill { height: 32px; min-width: 32px; } }
+
+
+/* Ortak iskambil: SVG yüz ve sırt */
+.pc { background: #fff; overflow: hidden; }
+.pc > img.pci { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+.pcb { background: var(--pcback) center / 100% 100% no-repeat, #fffdf8 !important; }
+.pcHand { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.pcHand .row { display: flex; }
+.pcHand .row + .row { margin-top: calc(var(--cw) * var(--rov, -.6)); }
+.pcHand .row .pc + .pc { margin-left: calc(var(--cw) * var(--ov, -.44)); }
+
 /* ---------- Oyuna özel ---------- */
 main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto; gap: 8px; align-items: stretch; max-width: 900px; --cw: 44px; }
 .opps { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 6px; }
@@ -188,6 +205,21 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 
 @media (min-height: 900px) and (min-width: 700px) { .mid { min-height: 96px; } .disc { width: 62px; height: 88px; } .disc .cd { --cw: 62px; } .flash { --cw: 70px; } .tgt .lb { font-size: 15px; } }
 
+/* Ortak iskambil çizimi ve büyük masa kartları */
+.cd.pc { padding: 0; border: 0; border-radius: calc(var(--cw) * .06); box-shadow: 0 1px 3px rgba(0, 0, 0, .5), 0 0 0 .5px rgba(0, 0, 0, .4); }
+.cd.pc.k { box-shadow: 0 0 0 2px #f59e0b, 0 1px 3px rgba(0, 0, 0, .5); }
+.table { --tc: clamp(46px, min(15vw, 9.5vh), 92px); }
+.disc { width: var(--tc); height: calc(var(--tc) * 1.42); } .disc .cd { --cw: var(--tc); }
+.flash { --cw: calc(var(--tc) * 1.1); }
+.tgt .lb { margin-bottom: 4px; }
+.seat .mini i { background: var(--pcback) center / 100% 100% no-repeat, #fff; border: 0; border-radius: 2px; box-shadow: 0 0 0 .5px rgba(0, 0, 0, .6); }
+.hand { padding-top: 14px; }
+.hand .cd.nw { transform: translateY(-10%); }
+.hand .cd.chosen { transform: translateY(-16%); box-shadow: 0 0 0 3px #fbbf24, 0 2px 4px rgba(0, 0, 0, .35); }
+.tgt .cd.back.chosen { transform: translateY(-16%); }
+@media (orientation: landscape) and (max-height: 500px) { .table { --tc: clamp(34px, 13vh, 56px); } .hand { padding-top: 10px; } }
+@media (min-height: 900px) and (min-width: 700px) { .table { --tc: clamp(60px, 8vh, 100px); } }
+
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -215,11 +247,11 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 <main id="main">
 <div class="opps" id="opps"></div>
 <div class="table panel" id="table">
-  <div class="tgt" id="tgt"></div>
+  <div class="tgt pcHand" id="tgt"></div>
   <div class="mid"><div class="disc" id="disc"></div><div class="flash" id="flash"></div></div>
 </div>
 <div class="status" id="status" aria-live="polite"></div>
-<div class="hand" id="hand"></div>
+<div class="hand pcHand" id="hand"></div>
 <div class="acts"><button type="button" id="shufBtn"></button></div>
 
 </main>
@@ -339,6 +371,54 @@ function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]
   $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
 }
 
+// ---------- Ortak iskambil çizimi (Pişti ile aynı) ----------
+// Kart yüzleri: Adrian Kennard'ın geleneksel İngiliz desenli iskambil çizimleri (CC0, assets/kart/); sırtlar Ridsgames tasarımı
+const PCS = 'SHDC', PCR = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+const pcImg = (s, r) => `<img class="pci" src="../assets/kart/${PCS[s]}${PCR[r]}.svg" alt="" draggable="false" decoding="async">`;
+const pcJoker = (red) => `<img class="pci" src="../assets/kart/J${red ? 'R' : 'B'}.svg" alt="" draggable="false" decoding="async">`;
+function backSvg(ink) { // klasik iskambil sırtı: tek renk kafes, ortada Ridsgames R'si ile rozet
+  const R = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z', W = '#fffdf8';
+  const rot = (n, f) => Array.from({ length: n }, (_, i) => f(i * 360 / n)).join('');
+  const rosette = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${W}"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rot(8, (a) => `<ellipse cx="${x}" cy="${y - r * .5}" rx="${r * .2}" ry="${r * .42}" fill="${ink}" transform="rotate(${a} ${x} ${y})"/>`) + `<circle cx="${x}" cy="${y}" r="${r * .2}" fill="${W}" stroke="${ink}" stroke-width="1.4"/>`;
+  const diamond = (y) => `<path d="M125 ${y - 22}l15 22-15 22-15-22z" fill="${W}" stroke="${ink}" stroke-width="2.2"/><path d="M125 ${y - 12}l8 12-8 12-8-12z" fill="${ink}"/><circle cx="125" cy="${y}" r="2" fill="${W}"/>`;
+  const C = [125, 175];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" preserveAspectRatio="none"><defs>`
+    + `<pattern id="k" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 175)"><rect width="13" height="13" fill="${W}"/><path d="M0 0H13M0 0V13" stroke="${ink}" stroke-width="2.4"/><circle cx="6.5" cy="6.5" r="1.5" fill="${ink}"/></pattern></defs>`
+    + `<rect width="250" height="350" fill="${W}"/>`
+    + `<rect x="13" y="13" width="224" height="324" rx="9" fill="${ink}"/>`
+    + `<rect x="22" y="22" width="206" height="306" rx="5" fill="none" stroke="${W}" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0 6.2"/>`
+    + `<rect x="30" y="30" width="190" height="290" fill="url(#k)" stroke="${W}" stroke-width="1.5"/>`
+    + `<rect x="34" y="34" width="182" height="282" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rosette(50, 50, 13) + rosette(200, 50, 13) + rosette(50, 300, 13) + rosette(200, 300, 13)
+    + diamond(72) + diamond(278)
+    // orta rozet: taç yaprakları, iki halka, içinde logodaki köşeli R
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="82" fill="${W}"/><circle cx="${C[0]}" cy="${C[1]}" r="79" fill="none" stroke="${ink}" stroke-width="2.6"/>`
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="74" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0 5.8"/>`
+    + rot(16, (a) => `<path d="M125 105c11 7 11 19 0 24-11-5-11-17 0-24z" fill="${ink}" transform="rotate(${a} 125 175)"/><path d="M125 111c5 4 5 10 0 13-5-3-5-9 0-13z" fill="${W}" transform="rotate(${a} 125 175)"/>`)
+    + rot(16, (a) => `<circle cx="125" cy="109" r="2.6" fill="${ink}" transform="rotate(${a + 11.25} 125 175)"/>`)
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="45" fill="${ink}"/><circle cx="${C[0]}" cy="${C[1]}" r="40" fill="none" stroke="${W}" stroke-width="1.4"/>`
+    + rot(24, (a) => `<path d="M125 136.5v3" stroke="${W}" stroke-width="1.6" transform="rotate(${a} 125 175)"/>`)
+    + `<path transform="translate(111.4 154.6) scale(.68)" d="${R}" fill="${W}"/></svg>`;
+}
+document.documentElement.style.setProperty('--pcback', `url("data:image/svg+xml,${encodeURIComponent(backSvg('#b3141b'))}")`);
+// El yerleşimi: verilen genişlik ve yükseklikte en büyük kartı veren sıra sayısını seçer.
+// vis: yan yana kartta görünen pay, rov: alt sıranın üst sırayı örttüğü pay (kart boyuna göre)
+function pcFit(n, W, H, maxCw, maxRows = 3, vis = 0.56, rov = 0.42) {
+  let best = { rows: 1, per: n, cw: 0, vis, rov };
+  for (let rows = 1; rows <= maxRows; rows++) {
+    const per = Math.ceil(n / rows);
+    const byW = W / (1 + (per - 1) * vis), byH = H / (1.42 * (1 + (rows - 1) * (1 - rov)));
+    const cw = Math.floor(Math.min(maxCw, byW, byH));
+    if (cw > best.cw * 1.1) best = { rows, per, cw, vis, rov };
+    if (rows * per >= n && per === 1) break;
+  }
+  return best;
+}
+// Eli satırlara böler: üst sıralar daha kalabalık olmasın diye dengeli dağıtır
+function pcRows(ids, L) { const out = []; let k = 0; for (let r = 0; r < L.rows; r++) { const m = Math.ceil((ids.length - k) / (L.rows - r)); out.push(ids.slice(k, k + m)); k += m; } return out.filter((x) => x.length); }
+function pcApply(el, L) { el.style.setProperty('--cw', L.cw + 'px'); el.style.setProperty('--ov', String(-(1 - L.vis))); el.style.setProperty('--rov', String(-L.rov * 1.42)); }
+
 // ---------- Oyun ----------
 const STR = {
   tr: { ...COMMON.tr, title: 'Papaz Kaçtı | Ridsgames', game: 'Papaz Kaçtı',
@@ -394,7 +474,7 @@ const pname = (i) => i === 0 ? T().you : T().cpuNames[i - 1];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const save = () => { if (G) store.set('game', G); };
 const SPD = () => ({ yavas: 1.5, normal: 1, hizli: 0.5 }[G.speed] || 1) * (REDUCED ? 0.3 : 1);
-const cardHtml = (id, cls = '') => id < 0 ? `<div class="cd back ${cls}"></div>` : `<div class="cd s${st(id)}${rk(id) === 13 ? ' k' : ''} ${cls}" data-id="${id}">${RANK[rk(id)]}<i>${SUIT[st(id)]}</i><b>${rk(id) === 13 ? '🤴' : SUIT[st(id)]}</b></div>`;
+const cardHtml = (id, cls = '') => id < 0 ? `<div class="cd pc pcb back ${cls}"></div>` : `<div class="cd pc${rk(id) === 13 ? ' k' : ''} ${cls}" data-id="${id}">${pcImg(st(id), rk(id))}</div>`;
 
 function dropPairs(h) {
   const by = new Map(), out = [];
@@ -507,9 +587,9 @@ function render() {
   if (!G.over && tg > 0) {
     const holder = tg;
     {
-      const L = rowsFor(G.hands[holder].length, tw, small ? 40 : innerHeight >= 900 ? 84 : innerHeight >= 760 ? 66 : 58, small ? 2 : 3, 30);
+      const L = pcFit(G.hands[holder].length, tw, ($('table').clientHeight - 90) * 0.62, small ? 60 : 100, small ? 2 : 3);
       th = `<span class="lb">${esc(humanTurn ? t.pickFrom(pname(holder)) : t.pickFromS(pname(G.turn), pname(holder)))}</span>` + rowsHtml(G.hands[holder].map(() => -1), L, (_, k) => cardHtml(-1, k === G.tgSel ? 'chosen' : '').replace('class="cd', `data-k="${k}" class="cd`));
-      $('tgt').style.setProperty('--cw', L.cw + 'px');
+      pcApply($('tgt'), L);
     }
   }
   $('tgt').innerHTML = th; $('tgt').classList.toggle('pick', humanTurn);
@@ -520,8 +600,8 @@ function render() {
   $('status').textContent = G.over ? '' : G.msg;
   // el
   const hw = $('hand').clientWidth || $('main').clientWidth - 24;
-  const mine = G.hands[0], L = rowsFor(Math.max(1, mine.length), hw, small ? 46 : innerHeight >= 760 ? 80 : 64, small ? 2 : 3, small ? 32 : 40);
-  $('hand').style.setProperty('--cw', L.cw + 'px');
+  const mine = G.hands[0], L = pcFit(Math.max(1, mine.length), hw - 4, $('main').clientHeight * (land ? 0.34 : 0.36), small ? 72 : 120, small ? 2 : 3);
+  pcApply($('hand'), L);
   $('hand').innerHTML = mine.length ? rowsHtml(mine, L, (id, k) => cardHtml(id, (id === G.nw ? 'nw' : '') + (gone.has(id) ? ' gone' : '') + (G.turn !== 0 && tg === 0 && k === G.tgSel ? ' chosen' : ''))) : `<div class="status" style="color:#34d399">✓ ${esc(t.outL)}</div>`;
   $('shufBtn').textContent = G.sorted === false ? t.sortB : t.shufB; $('shufBtn').hidden = mine.length < 2 || G.over;
 }

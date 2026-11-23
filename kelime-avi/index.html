@@ -129,6 +129,14 @@ main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; di
   #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
 }
 
+/* Telefon ve dokunmatik: oyun alanı ekranın tamamını kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) {
+  footer { display: none; }
+  main { padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 6px; }
+}
+@media (max-width: 520px) { .top .in { height: 44px; padding: 0 8px; } .pill { height: 32px; min-width: 32px; } }
+
+
 /* ---------- Oyuna özel ---------- */
 main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; align-content: center; gap: 10px; align-items: stretch; max-width: 760px; }
 .info { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; color: #cbd5e1; font-variant-numeric: tabular-nums; min-width: 0; }
@@ -310,6 +318,7 @@ function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]
   $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
   $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
 }
+
 
 // ---------- Oyun ----------
 const WL = {
