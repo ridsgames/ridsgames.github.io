@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Blöf | Ridsgames</title>
+<meta name="description" content="Blöf: kartlarını kapalı at, istediğini söyle. Yalanını yakalatmadan elini ilk bitiren kazanır. 1–3 bilgisayar rakibe karşı, üç zorluk.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --glow: rgba(251, 191, 36, 0.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--glow) 28%, transparent) 0%, transparent 62%), radial-gradient(ellipse at 50% 100%, #111a2c 0%, var(--bg) 70%), var(--bg);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.tall button { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.seg.tall small { font-size: 11px; font-weight: 600; opacity: .75; white-space: nowrap; }
+.seg.tall .em { font-size: 19px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.custom { display: grid; gap: 6px; margin-top: 10px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.mrow button { height: 44px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 24px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.mrow button:disabled { opacity: .35; cursor: default; }
+.mrow output { text-align: center; font-size: 24px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score.lost { color: #fca5a5; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
+/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; pencereler menü panelini örtmez; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
+  .logo { flex-direction: column; gap: 6px; }
+  .gname { display: inline; font-size: 11px; white-space: nowrap; }
+  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .pill { white-space: nowrap; }
+  main { grid-column: 2; grid-row: 1; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) 6px; }
+  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
+  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
+  footer { display: none; }
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 4px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #winOv .card { max-width: 560px; padding: 14px 18px 16px; }
+  #winOv .trophy { font-size: 38px; } #winOv .score { font-size: 34px; margin-bottom: 8px; } #winOv .sub { margin-bottom: 8px; }
+  #winOv .rank { grid-template-columns: 1fr 1fr; }
+  #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
+}
+
+/* ---------- Oyuna özel ---------- */
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto; gap: 8px; align-items: stretch; max-width: 900px; --cw: 44px; }
+.opps { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 6px; }
+.seat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 4px 8px; border-radius: 12px; background: rgba(2, 6, 23, .55); border: 1.5px solid rgba(148, 163, 184, .16); min-width: 0; transition: border-color .2s; }
+.seat.on { border-color: #34d399; background: rgba(16, 185, 129, .12); }
+.seat.tg { border-color: #fbbf24; }
+.seat.out { opacity: .55; }
+.seat.lost { border-color: #f87171; background: rgba(248, 113, 113, .12); opacity: 1; }
+.seat .nm { font-weight: 800; font-size: 13.5px; color: #fff; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seat .in { font-size: 12px; color: #94a3b8; }
+.seat .mini { display: flex; height: 26px; align-items: flex-end; }
+.seat .mini i { width: 14px; height: 21px; border-radius: 3px; margin-left: -8px; background: repeating-linear-gradient(45deg, #7f1d1d 0 3px, #b91c1c 3px 6px); border: 1px solid #fecaca; }
+.seat .mini i:first-child { margin-left: 0; }
+.table { position: relative; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 10px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #166534, #0b3b22 75%); border: 1px solid rgba(52, 211, 153, .25); }
+.tgt { display: flex; flex-direction: column; align-items: center; gap: 6px; --cw: 46px; }
+.tgt .row { display: flex; }
+.tgt .lb { font-size: 13px; font-weight: 700; color: #a7f3d0; }
+.mid { display: flex; align-items: center; gap: 16px; min-height: 64px; }
+.disc { position: relative; width: 44px; height: 62px; }
+.disc .cd { position: absolute; --cw: 44px; }
+.disc span { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #a7f3d0; white-space: nowrap; }
+.flash { display: flex; gap: 6px; --cw: 52px; }
+.flash .cd { animation: fin .3s ease-out; }
+@keyframes fin { from { transform: translateY(14px) scale(.8); opacity: 0; } }
+.cd { position: relative; flex: none; width: var(--cw); height: calc(var(--cw) * 1.42); border-radius: calc(var(--cw) * .12); background: #fff; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0, 0, 0, .35);
+  display: flex; flex-direction: column; align-items: flex-start; padding: calc(var(--cw) * .08) calc(var(--cw) * .1); font-weight: 900; font-size: calc(var(--cw) * .36); line-height: 1; letter-spacing: -.03em; }
+.cd i { font-style: normal; font-size: calc(var(--cw) * .34); }
+.cd b { position: absolute; right: calc(var(--cw) * .1); bottom: calc(var(--cw) * .08); font-size: calc(var(--cw) * .6); font-weight: 400; line-height: 1; }
+.cd.s0, .cd.s3 { color: #111827; } .cd.s1, .cd.s2 { color: #dc2626; }
+.cd.k { background: linear-gradient(160deg, #fff7d6, #fde68a); border-color: #f59e0b; }
+.cd.back { background: repeating-linear-gradient(45deg, #7f1d1d 0 5px, #b91c1c 5px 10px); border: 2px solid #fee2e2; }
+.tgt .cd.back { cursor: pointer; transition: transform .12s; }
+.tgt.pick .cd.back:hover { transform: translateY(-8px); }
+.tgt .cd.back.chosen { transform: translateY(-14px); box-shadow: 0 0 0 3px #fbbf24; }
+.row .cd + .cd { margin-left: calc(var(--cw) * var(--ov, -.3)); }
+.status { text-align: center; font-size: 15px; font-weight: 700; color: #e2e8f0; min-height: 1.4em; }
+.hand { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.hand .row { display: flex; }
+.hand .cd.nw { box-shadow: 0 0 0 3px #34d399, 0 2px 4px rgba(0, 0, 0, .35); transform: translateY(-6px); }
+.hand .cd.gone { animation: gone .5s ease-in forwards; }
+@keyframes gone { to { transform: translateY(-40px) scale(.6); opacity: 0; } }
+.acts { display: flex; justify-content: center; }
+.acts button { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, .3); background: rgba(15, 23, 42, .8); color: #e2e8f0; font-weight: 700; font-size: 13.5px; }
+@media (orientation: landscape) {
+  main { grid-template-columns: minmax(0, 1fr) clamp(170px, 22vw, 240px); grid-template-rows: auto minmax(0, 1fr) auto auto; }
+  .table { grid-column: 1; grid-row: 1 / 3; }
+  .opps { grid-column: 2; grid-row: 1 / 3; grid-template-columns: 1fr; align-content: start; }
+  .status { grid-column: 1; } .acts { grid-column: 2; grid-row: 3 / 5; align-items: center; }
+  .hand { grid-column: 1; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  main { gap: 5px; } .seat { flex-direction: row; justify-content: space-between; padding: 4px 8px; } .seat .mini { display: none; }
+  .table { padding: 6px; gap: 6px; } .mid { min-height: 50px; } .disc { width: 34px; height: 48px; } .disc .cd { --cw: 34px; } .flash { --cw: 38px; }
+  .status { font-size: 13px; min-height: 1.2em; }
+}
+
+@media (min-height: 900px) and (min-width: 700px) { .mid { min-height: 96px; } .disc { width: 62px; height: 88px; } .disc .cd { --cw: 62px; } .flash { --cw: 70px; } .tgt .lb { font-size: 15px; } }
+.req { display: flex; flex-direction: column; align-items: center; line-height: 1; gap: 2px; }
+.req small { font-size: 12px; color: #a7f3d0; font-weight: 700; }
+.req b { font-size: 34px; font-weight: 900; color: #fde68a; text-shadow: 0 2px 8px rgba(0, 0, 0, .4); }
+.pile { position: relative; width: 52px; height: 74px; }
+.pile .cd { position: absolute; --cw: 52px; }
+.pile span { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #a7f3d0; white-space: nowrap; }
+.claim { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 120px; }
+.claim .who { font-size: 14px; font-weight: 800; color: #fff; text-align: center; }
+.claim .cds { display: flex; gap: 4px; --cw: 44px; }
+.claim .cds .cd { animation: fin .3s ease-out; }
+.claim .cds .cd.bad { box-shadow: 0 0 0 3px #f87171; } .claim .cds .cd.ok { box-shadow: 0 0 0 3px #34d399; }
+.claim .verdict { font-size: 13px; font-weight: 800; padding: 3px 10px; border-radius: 999px; }
+.claim .verdict.lie { background: rgba(248, 113, 113, .2); color: #fecaca; } .claim .verdict.true { background: rgba(52, 211, 153, .2); color: #bbf7d0; }
+.ask { display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(100%, 320px); }
+.ask .bar { width: 100%; height: 5px; border-radius: 3px; background: rgba(0, 0, 0, .35); overflow: hidden; }
+.ask .bar i { display: block; height: 100%; width: 100%; background: #fbbf24; transform-origin: left; }
+.ask .bar i.run { animation: cd var(--t, 3s) linear forwards; }
+@keyframes cd { to { transform: scaleX(0); } }
+.ask .btns { display: flex; gap: 8px; width: 100%; }
+.ask button { flex: 1; height: 42px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, .3); background: rgba(15, 23, 42, .85); color: #e2e8f0; font-weight: 800; font-size: 14.5px; }
+.ask button.call { background: linear-gradient(135deg, #dc2626, #f87171); border-color: transparent; color: #fff; }
+.hand .cd { cursor: pointer; transition: transform .12s; }
+.hand .cd.sel { transform: translateY(-12px); box-shadow: 0 0 0 3px #22d3ee, 0 2px 4px rgba(0, 0, 0, .35); }
+.hand.off .cd { cursor: default; }
+.acts button.play { min-width: 170px; background: linear-gradient(135deg, #0891b2, #06b6d4); border-color: transparent; color: #fff; height: 42px; font-size: 14.5px; }
+.acts button.play:disabled { opacity: .45; }
+@media (orientation: landscape) and (max-height: 500px) {
+  .req b { font-size: 26px; } .pile { width: 40px; height: 57px; } .pile .cd { --cw: 40px; } .claim .cds { --cw: 34px; } .claim .who { font-size: 12.5px; }
+  .ask button { height: 34px; font-size: 13px; } .acts button.play { height: 36px; min-width: 0; padding: 0 12px; }
+}
+@media (min-height: 900px) and (min-width: 700px) { .req b { font-size: 44px; } .claim .cds { --cw: 56px; } }
+
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="blof" data-name="Blöf"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Blöf</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="opps" id="opps"></div>
+<div class="table panel" id="table">
+  <div class="req"><small id="reqLbl"></small><b id="reqRank"></b></div>
+  <div class="mid">
+    <div class="pile" id="pile"></div>
+    <div class="claim" id="claim"></div>
+  </div>
+  <div class="ask" id="ask" hidden>
+    <div class="bar"><i id="askBar"></i></div>
+    <div class="btns"><button type="button" class="call" id="callBtn"></button><button type="button" id="passBtn"></button></div>
+  </div>
+</div>
+<div class="status" id="status"></div>
+<div class="hand" id="hand"></div>
+<div class="acts"><button type="button" class="play" id="playBtn"></button></div>
+
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Yeni oyun -->
+<div class="ov" id="setupOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Blöf</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="oppLbl"></div>
+      <div class="seg" id="oppSeg"><button type="button" data-o="1"></button><button type="button" data-o="2"></button><button type="button" data-o="3"></button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="lvLbl"></div>
+      <div class="seg" id="lvSeg"><button type="button" data-l="kolay"></button><button type="button" data-l="orta"></button><button type="button" data-l="zor"></button></div>
+      <div class="note" id="setNote"></div>
+    </div>
+
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore"></div>
+    <ol class="rank" id="statList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="viewBtn" type="button">Tahtaya bak</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Ortak: dil, ses, pencereler, sayaç ----------
+const COMMON = {
+  tr: { homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
+    lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
+  en: { homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
+    lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_blof_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (n) => Math.floor(Math.random() * n);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(KEY + k); } catch (e) {} }
+};
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'blof/' + olay, title: 'Blöf: ' + ad, event: true }); } catch (e) {} };
+let soundOn = store.get('sound', 1) !== 0, bitenVar = false;
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock: ctx, tone,
+    click() { tone(900, 700, 0.05, 0.05, 'triangle'); },
+    tap() { tone(540, 880, 0.07, 0.07); },
+    good() { tone(660, 990, 0.12, 0.08, 'triangle'); },
+    bad() { tone(220, 110, 0.22, 0.09, 'sawtooth'); },
+    win() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, f, 0.4, 0.1, 'triangle', i * 0.065)); },
+    lose() { [392, 329.6, 261.6].forEach((f, i) => tone(f, f * 0.98, 0.3, 0.09, 'triangle', i * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+const OVS = ['setupOv', 'rulesOv', 'winOv'];
+function closeAll() { for (const id of OVS) $(id).hidden = true; }
+const anyOpen = () => OVS.some((id) => !$(id).hidden);
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
+  closeAll();
+  $('winIco').textContent = o.ico; $('winTitle').textContent = o.title; $('winSub').textContent = o.sub || '';
+  $('winScore').textContent = o.score || ''; $('winScore').hidden = !o.score; $('winScore').classList.toggle('lost', !!o.lost);
+  $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
+}
+
+// ---------- Oyun ----------
+const STR = {
+  tr: { ...COMMON.tr, title: 'Blöf | Ridsgames', game: 'Blöf',
+    setupSub: 'Kartlarını kapalı at, istediğini söyle. Yalanını yakalatmadan elini ilk bitiren kazanır.',
+    oppLbl: 'Rakip sayısı', oppN: (n) => `${n} rakip`, lvLbl: 'Zorluk',
+    setNote: 'Rakipler blöfünü sezmeye çalışır. Zorda daha cesur yalan söyler, daha isabetli yakalarlar.',
+    you: 'Sen', cpuNames: ['Ahmet', 'Elif', 'Can'], cards: (n) => `${n} kart`, pileN: (n) => `${n} kart`,
+    reqLbl: 'Söylenecek', claim: (n, c, r) => `${n}: ${c} × ${r}`, callB: 'Blöf!', passB: 'İnan',
+    playB: (c, r) => `Oyna: ${c} × ${r}`, pickCards: (r) => `1–4 kart seç ve “${r}” diye at`, yourTurn: (r) => `Sıra sende: ${r} at (yalan da olabilir)`,
+    thinking: (n) => `${n} kartlarını seçiyor…`, deciding: 'Rakipler düşünüyor…', ask: (n) => `${n} doğru mu söylüyor?`,
+    calls: (a, b) => `${a}, ${b} için “Blöf!” dedi`, lied: (n) => `Yalan! ${n} yığını aldı`, truth: (a) => `Doğruymuş! ${a} yığını aldı`,
+    nobody: 'Kimse itiraz etmedi', quad: (n, r) => `${n} dörtlü ${r} topladı, oyundan çıktı`, lieV: 'YALAN', trueV: 'DOĞRU', outT: (n) => `${n} elini bitirdi`,
+    winT: 'Kazandın!', winSub: 'Elindeki bütün kartlardan kurtuldun.', loseT: (n) => `${n} kazandı`, loseSub: 'Elini ilk o bitirdi.',
+    tRounds: 'Tur', tBluff: 'Yakalanmayan blöfün', tCaught: 'Yakalandığın', tCalls: 'Doğru “Blöf!”', tLeft: 'Elinde kalan',
+    rulesSub: '52 kartla 2–4 kişi oynanır.',
+    ruleList: [
+      ['🃏', 'Kartlar dağıtılır. Sırayla <b>as, 2, 3 … papaz</b> ve yeniden as söylenir; ortadaki gösterge söylenecek değeri yazar.'],
+      ['🙈', 'Sırası gelen 1–4 kartı kapalı atar ve hepsinin söylenen değerde olduğunu iddia eder. Elinde yoksa <b>blöf yapmak zorundadır</b>.'],
+      ['🗣️', 'Atılan kartlara herkes “Blöf!” diyebilir. Sana süre çubuğu dolana kadar karar hakkı verilir.'],
+      ['⚖️', 'Kartlar açılır. Aralarında tek bir yanlış kart varsa atan kişi, hepsi doğruysa itiraz eden <b>ortadaki yığının tamamını</b> alır.'],
+      ['4️⃣', 'Elinde aynı değerden dört kart toplanırsa bu dörtlü oyundan çıkar.'],
+      ['🏆', 'Elini ilk bitiren kazanır. Son kartlarını atarken de yakalanabilirsin!']
+    ] },
+  en: { ...COMMON.en, title: 'Bluff | Ridsgames', game: 'Bluff',
+    setupSub: 'Play cards face down and claim what you like. Empty your hand first without getting caught.',
+    oppLbl: 'Opponents', oppN: (n) => n === 1 ? '1 rival' : `${n} rivals`, lvLbl: 'Difficulty',
+    setNote: 'Rivals try to spot your bluffs. On hard they lie more boldly and call more accurately.',
+    you: 'You', cpuNames: ['Alex', 'Maya', 'Leo'], cards: (n) => `${n} cards`, pileN: (n) => `${n} cards`,
+    reqLbl: 'Claim', claim: (n, c, r) => `${n}: ${c} × ${r}`, callB: 'Bluff!', passB: 'Believe',
+    playB: (c, r) => `Play: ${c} × ${r}`, pickCards: (r) => `Pick 1–4 cards and play them as “${r}”`, yourTurn: (r) => `Your turn: play ${r} (or lie)`,
+    thinking: (n) => `${n} is choosing…`, deciding: 'Rivals are thinking…', ask: (n) => `Is ${n} telling the truth?`,
+    calls: (a, b) => `${a} calls bluff on ${b}`, lied: (n) => `A lie! ${n} takes the pile`, truth: (a) => `It was true! ${a} takes the pile`,
+    nobody: 'Nobody called', quad: (n, r) => `${n} collected four ${r}s, removed from play`, lieV: 'LIE', trueV: 'TRUE', outT: (n) => `${n} is out of cards`,
+    winT: 'You win!', winSub: 'You got rid of every card.', loseT: (n) => `${n} wins`, loseSub: 'They emptied their hand first.',
+    tRounds: 'Turns', tBluff: 'Bluffs not caught', tCaught: 'Times caught', tCalls: 'Correct calls', tLeft: 'Cards left',
+    rulesSub: '2–4 players with a 52-card deck.',
+    ruleList: [
+      ['🃏', 'All cards are dealt. Players claim <b>ace, 2, 3 … king</b> in turn, then ace again; the table shows the rank to claim.'],
+      ['🙈', 'On your turn play 1–4 cards face down, claiming they are that rank. If you have none, you <b>must bluff</b>.'],
+      ['🗣️', 'Anyone can call “Bluff!”. You get until the timer bar runs out to decide.'],
+      ['⚖️', 'The cards are shown. If any card is wrong, the player takes <b>the whole pile</b>; if all are true, the caller does.'],
+      ['4️⃣', 'Whenever you hold all four cards of a rank, they are removed from play.'],
+      ['🏆', 'First to empty their hand wins. Your last cards can still be called!']
+    ] }
+};
+const T = () => STR[lang];
+let setup = Object.assign({ opps: 2, level: 'orta' }, store.get('setup', {}));
+if (![1, 2, 3].includes(setup.opps)) setup.opps = 2; if (!['kolay', 'orta', 'zor'].includes(setup.level)) setup.level = 'orta';
+let G = null, selc = new Set(), epoch = 0, askT = 0;
+const SUIT = ['♠', '♥', '♦', '♣'], RANK = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const rk = (id) => id % 13 + 1, st = (id) => Math.floor(id / 13);
+const pname = (i) => i === 0 ? T().you : T().cpuNames[i - 1];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const save = () => { if (G) store.set('game', G); };
+const sortH = (h) => h.sort((a, b) => rk(a) - rk(b) || st(a) - st(b));
+const cardHtml = (id, cls = '') => id < 0 ? `<div class="cd back ${cls}"></div>` : `<div class="cd s${st(id)} ${cls}" data-id="${id}">${RANK[rk(id)]}<i>${SUIT[st(id)]}</i><b>${SUIT[st(id)]}</b></div>`;
+const W = (ms) => ms * (REDUCED ? 0.35 : 1);
+const nextP = (p) => (p + 1) % G.n;
+function quads(p) {
+  const by = {}; G.hands[p].forEach((x) => { (by[rk(x)] = by[rk(x)] || []).push(x); });
+  const gone = Object.keys(by).filter((r) => by[r].length === 4).map(Number);
+  if (!gone.length) return [];
+  G.hands[p] = G.hands[p].filter((x) => !gone.includes(rk(x))); G.dead.push(...gone);
+  return gone;
+}
+
+// ---------- Akış ----------
+function newGame() {
+  closeAll();
+  const n = setup.opps + 1, deck = shuffle([...Array(52).keys()]);
+  const hands = Array.from({ length: n }, () => []); deck.forEach((id, k) => hands[k % n].push(id));
+  sortH(hands[0]);
+  G = { n, level: setup.level, hands, pile: [], req: 1, turn: rnd(n), phase: 'play', last: null, reveal: null, msg: '', turns: 0, over: false, winner: -1,
+    st: { bluff: 0, caught: 0, calls: 0 }, mem: Array.from({ length: n }, () => []), dead: [] };
+  for (let p = 0; p < n; p++) quads(p);
+  selc = new Set(); epoch++;
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${n}k-${G.level}`, `mod: ${n} kişi, ${G.level}`);
+  save(); render(); setTimeout(() => step(epoch), W(700));
+}
+function startFromSetup() { store.set('setup', setup); newGame(); }
+function again() { newGame(); }
+function step(ep) {
+  if (ep !== epoch || !G || G.over) return;
+  G.phase = 'play'; G.reveal = null;
+  if (G.turn === 0) { G.msg = T().yourTurn(RANK[G.req]); save(); render(); return; }
+  G.msg = T().thinking(pname(G.turn)); render();
+  setTimeout(() => { if (ep === epoch) doPlay(G.turn, cpuPlay(G.turn)); }, W(900));
+}
+function doPlay(p, ids) {
+  G.hands[p] = G.hands[p].filter((x) => !ids.includes(x));
+  G.pile.push(...ids); G.last = { p, ids, req: G.req }; G.turns++;
+  if (p !== 0) G.mem[p].push(...ids.filter((x) => rk(x) === G.req));
+  selc = new Set(); Sfx.tone(380, 300, 0.06, 0.06, 'triangle');
+  G.phase = 'window'; save();
+  const ep = epoch;
+  if (p !== 0) {
+    G.msg = T().ask(pname(p)); render(); startAsk();
+  } else {
+    G.msg = T().deciding; render();
+    setTimeout(() => { if (ep === epoch) cpuCalls(); }, W(1000));
+  }
+}
+function startAsk() {
+  const t = G.n > 3 ? 3200 : 3600, bar = $('askBar');
+  bar.classList.remove('run'); void bar.offsetWidth; bar.style.setProperty('--t', t + 'ms'); bar.classList.add('run');
+  clearTimeout(askT); const ep = epoch;
+  askT = setTimeout(() => { if (ep === epoch && G.phase === 'window') humanDecide(false); }, t);
+}
+function humanDecide(call) {
+  if (!G || G.phase !== 'window' || !G.last || G.last.p === 0) return;
+  clearTimeout(askT); Sfx.unlock();
+  if (call) { resolve(0); return; }
+  Sfx.click(); G.phase = 'cpuwait'; G.msg = T().deciding; render();
+  const ep = epoch; setTimeout(() => { if (ep === epoch) cpuCalls(); }, W(500));
+}
+function cpuCalls() {
+  if (!G || G.over || !G.last) return;
+  const p = G.last.p;
+  for (let k = 1; k < G.n; k++) {
+    const q = (p + k) % G.n; if (q === 0) continue;
+    if (cpuWantsCall(q)) { resolve(q); return; }
+  }
+  G.msg = T().nobody; G.phase = 'done'; save(); render();
+  const ep = epoch; setTimeout(() => { if (ep === epoch) afterTurn(); }, W(700));
+}
+function resolve(caller) {
+  if (!G.last) return;
+  const L = G.last, lie = L.ids.some((x) => rk(x) !== L.req);
+  const loser = lie ? L.p : caller;
+  G.phase = 'reveal'; G.reveal = { caller, lie, loser, taken: false };
+  if (caller === 0) { if (lie) G.st.calls++; }
+  if (L.p === 0 && lie) G.st.caught++;
+  G.msg = T().calls(pname(caller), pname(L.p));
+  lie ? Sfx.bad() : Sfx.good(); buzz(20);
+  save(); render();
+  const ep = epoch;
+  setTimeout(() => {
+    if (ep !== epoch) return;
+    G.msg = lie ? T().lied(pname(loser)) : T().truth(pname(loser));
+    takePile(); save(); render();
+    setTimeout(() => { if (ep === epoch) afterTurn(); }, W(1500));
+  }, W(1400));
+}
+function takePile() {
+  const R = G.reveal; if (!R || R.taken) return;
+  R.taken = true; const loser = R.loser;
+  G.hands[loser].push(...G.pile); if (loser === 0) sortH(G.hands[0]);
+  const q4 = quads(loser); if (q4.length) toast(T().quad(pname(loser), q4.map((r) => RANK[r]).join(', ')));
+  G.mem.forEach((m) => { m.length = 0; });
+  G.pile = [];
+}
+function afterTurn() {
+  const L = G.last;
+  if (L && L.p === 0 && G.phase !== 'reveal' && L.ids.some((x) => rk(x) !== L.req)) G.st.bluff++;
+  if (L && G.phase === 'reveal' && L.p === 0 && G.reveal && !G.reveal.lie) { /* doğru oynadın */ }
+  const w = G.hands.findIndex((h) => !h.length);
+  if (w >= 0) { G.over = true; G.winner = w; G.phase = 'over'; save(); render(); const ep = epoch; setTimeout(() => { if (ep === epoch) finish(); }, W(600)); return; }
+  G.req = G.req % 13 + 1; G.turn = nextP(G.turn); G.last = null; G.reveal = null;
+  save(); render(); step(epoch);
+}
+function finish() {
+  const t = T(), won = G.winner === 0;
+  bitenVar = true; sayac('bitti', 'oyun bitti'); sayac(`sonuc/${won ? 'insan' : 'bilgisayar'}-${G.n}k`, `sonuç (${G.n} kişi)`);
+  won ? Sfx.win() : Sfx.lose();
+  showEnd({ ico: won ? '🏆' : '🙈', title: won ? t.winT : t.loseT(pname(G.winner)), sub: won ? t.winSub : t.loseSub, lost: !won,
+    stats: [[t.tRounds, G.turns], [t.tBluff, G.st.bluff], [t.tCaught, G.st.caught], [t.tCalls, G.st.calls], [t.tLeft, G.hands[0].length]] });
+}
+
+// ---------- Bilgisayar ----------
+const LVP = { kolay: { extra: 0.04, two: 0.15, acc: 0.55 }, orta: { extra: 0.14, two: 0.28, acc: 1 }, zor: { extra: 0.22, two: 0.35, acc: 1.2 } };
+function cpuPlay(p) {
+  const h = G.hands[p], R = G.req, cfg = LVP[G.level];
+  const have = h.filter((x) => rk(x) === R).slice(0, 4);
+  const dist = (x) => (rk(x) - R + 13) % 13; // gelecekte ne kadar uzak
+  const junk = h.filter((x) => rk(x) !== R).sort((a, b) => dist(b) - dist(a));
+  if (have.length) {
+    const ids = have.slice();
+    if (junk.length && ids.length < 4 && h.length - ids.length > 1 && Math.random() < cfg.extra) ids.push(junk[0]);
+    return ids;
+  }
+  const k = h.length >= 3 && Math.random() < cfg.two + (h.length > 14 ? 0.25 : 0) ? (h.length > 18 && Math.random() < 0.3 ? 3 : 2) : 1;
+  return junk.slice(0, k);
+}
+function cpuWantsCall(q) {
+  const L = G.last, cfg = LVP[G.level], n = L.ids.length;
+  const own = G.hands[q].filter((x) => rk(x) === L.req).length;
+  const known = G.level === 'zor' ? G.mem[q].length : 0;
+  if (own + n > 4) return Math.random() < (G.level === 'kolay' ? 0.7 : 1);
+  if (own + known + n > 4) return true;
+  if (G.dead.includes(L.req) && G.level !== 'kolay') return true;
+  let pr = [0, 0.04, 0.09, 0.2, 0.4][n] + own * 0.1 * cfg.acc;
+  const left = G.hands[L.p].length;
+  if (left === 0) pr = G.level === 'kolay' ? 0.5 : G.level === 'orta' ? 0.75 : 0.9;
+  else if (left <= 2) pr += 0.15 * cfg.acc;
+  if (G.pile.length > 12) pr *= 0.75; // büyük yığın risklidir
+  return Math.random() < pr * (G.level === 'kolay' ? 0.7 : 1);
+}
+
+// ---------- Çizim ----------
+function rowsFor(n, Wd, maxCw, maxRows, minCw = 34) {
+  let rows = 1, per = n, cw = 0;
+  while (true) { per = Math.ceil(n / rows); cw = Math.min(maxCw, Math.floor(Wd / (1 + (per - 1) * 0.7))); if (cw >= minCw || rows >= maxRows) break; rows++; }
+  return { rows, per, cw };
+}
+function render() {
+  if (!G) return;
+  const t = T(), land = matchMedia('(orientation: landscape)').matches, small = land && innerHeight < 520;
+  const seats = [...Array(G.n - 1).keys()].map((k) => k + 1);
+  const L = G.last;
+  $('opps').style.setProperty('--n', seats.length);
+  $('opps').innerHTML = seats.map((p) => {
+    const h = G.hands[p].length, cls = G.over && G.winner === p ? ' on' : G.turn === p && !G.over ? ' on' : G.reveal && G.reveal.caller === p ? ' tg' : '';
+    return `<div class="seat${cls}"><span class="nm">${esc(pname(p))}</span><span class="in">${esc(t.cards(h))}</span><span class="mini">${'<i></i>'.repeat(Math.min(h, 12))}</span></div>`;
+  }).join('');
+  $('reqLbl').textContent = t.reqLbl; $('reqRank').textContent = RANK[(L ? L.req : G.req)];
+  const pn = G.pile.length;
+  $('pile').innerHTML = (pn ? Array.from({ length: Math.min(4, pn) }, (_, k) => cardHtml(-1).replace('class="cd', `style="left:${k * 3}px;top:${-k * 2}px" class="cd`)).join('') : '') + `<span>${esc(t.pileN(pn))}</span>`;
+  let cl = '';
+  if (L) {
+    cl = `<div class="who">${esc(t.claim(pname(L.p), L.ids.length, RANK[L.req]))}</div>`;
+    if (G.reveal) {
+      cl += `<div class="cds">${L.ids.map((x) => cardHtml(x, rk(x) === L.req ? 'ok' : 'bad')).join('')}</div><span class="verdict ${G.reveal.lie ? 'lie' : 'true'}">${G.reveal.lie ? t.lieV : t.trueV}</span>`;
+    } else cl += `<div class="cds">${L.ids.map(() => cardHtml(-1)).join('')}</div>`;
+  }
+  $('claim').innerHTML = cl;
+  const asking = G.phase === 'window' && L && L.p !== 0;
+  $('ask').hidden = !asking; $('callBtn').textContent = t.callB; $('passBtn').textContent = t.passB;
+  $('status').textContent = G.over ? '' : G.msg;
+  const myTurn = !G.over && G.turn === 0 && G.phase === 'play';
+  const hw = $('hand').clientWidth || $('main').clientWidth - 24, mine = G.hands[0];
+  const Lh = rowsFor(Math.max(1, mine.length), hw, small ? 46 : innerHeight >= 760 ? 74 : 62, small ? 2 : 3, small ? 30 : !land && innerHeight >= 700 ? 52 : 36);
+  $('hand').style.setProperty('--cw', Lh.cw + 'px');
+  let hh = '';
+  for (let r = 0; r < Lh.rows; r++) { const part = mine.slice(r * Lh.per, (r + 1) * Lh.per); if (part.length) hh += `<div class="row">${part.map((id) => cardHtml(id, selc.has(id) ? 'sel' : '')).join('')}</div>`; }
+  $('hand').innerHTML = hh; $('hand').classList.toggle('off', !myTurn);
+  $('playBtn').hidden = !myTurn;
+  $('playBtn').disabled = selc.size < 1 || selc.size > 4;
+  $('playBtn').textContent = selc.size ? t.playB(selc.size, RANK[G.req]) : t.pickCards(RANK[G.req]);
+}
+function renderSetup() { segPress('oppSeg', 'o', String(setup.opps)); segPress('lvSeg', 'l', setup.level); $('setNote').textContent = T().setNote; }
+function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.over; $('startBtn').focus({ preventScroll: true }); }
+function gameLang() {
+  const t = T();
+  $('oppLbl').textContent = t.oppLbl; $('lvLbl').textContent = t.lvLbl;
+  document.querySelectorAll('#oppSeg button').forEach((b) => { b.textContent = t.oppN(+b.dataset.o); });
+  document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
+  renderSetup(); render();
+}
+const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b = e.target.closest(`button[data-${attr}]`); if (b) { fn(b.dataset[attr]); renderSetup(); } });
+segH('oppSeg', 'o', (v) => { setup.opps = +v; });
+segH('lvSeg', 'l', (v) => { setup.level = v; });
+$('hand').addEventListener('click', (e) => {
+  const c = e.target.closest('.cd[data-id]'); if (!c || !G || G.over || G.turn !== 0 || G.phase !== 'play') return;
+  Sfx.unlock(); const id = +c.dataset.id;
+  if (selc.has(id)) selc.delete(id); else if (selc.size < 4) selc.add(id); else { buzz(10); return; }
+  Sfx.tap(); render();
+});
+$('playBtn').addEventListener('click', () => {
+  if (!G || G.turn !== 0 || G.phase !== 'play' || selc.size < 1 || selc.size > 4) return;
+  doPlay(0, [...selc]);
+});
+$('callBtn').addEventListener('click', () => humanDecide(true));
+$('passBtn').addEventListener('click', () => humanDecide(false));
+addEventListener('resize', () => G && render());
+
+function boot() {
+  const s = store.get('game', null);
+  if (s && s.hands && !s.over) {
+    G = s; selc = new Set();
+    // yarıda kalan karar aşamaları güvenli biçimde sürdürülür
+    if (G.phase === 'play') { render(); step(epoch); }
+    else if (G.phase === 'window' && G.last && G.last.p !== 0) { render(); startAsk(); }
+    else if ((G.phase === 'window' || G.phase === 'cpuwait') && G.last) { G.phase = 'cpuwait'; render(); const ep = epoch; setTimeout(() => { if (ep === epoch) cpuCalls(); }, W(600)); }
+    else { if (G.phase === 'reveal') takePile(); render(); afterTurnSafe(); }
+  } else openSetup();
+}
+function afterTurnSafe() { if (G.last) afterTurn(); else step(epoch); }
+window.__blof = { state: () => G, humanDecide, doPlay, cpuPlay, cpuWantsCall, quads, setG: (g) => { G = g; } };
+
+
+// ---------- Ortak bağlantılar ----------
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  gameLang();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('winOv').hidden) closeAll();
+});
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
+$('backBtn').addEventListener('click', closeAll);
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
+$('viewBtn').addEventListener('click', closeAll);
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+applySound(); applyLang(); boot();
+</script>
+</body>
+</html>
