@@ -145,16 +145,21 @@ main > :is(.hud, .opps, .bar, .info, .pls):first-child, .scr > .head:first-child
 .pcHand .row .pc + .pc { margin-left: calc(var(--cw) * var(--ov, -.44)); }
 
 /* ---------- Oyuna özel ---------- */
-main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto auto; gap: 7px; align-items: stretch; --tw: 26px; }
-.opps { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 6px; }
-.seat { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; border-radius: 12px; background: rgba(2, 6, 23, .55); border: 1.5px solid rgba(148, 163, 184, .16); min-width: 0; }
-.seat.on { border-color: #34d399; background: rgba(16, 185, 129, .13); }
-.seat .nm { font-weight: 800; font-size: 13.5px; color: #fff; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.seat .in { display: flex; gap: 6px; align-items: center; font-size: 12px; color: #94a3b8; font-variant-numeric: tabular-nums; }
-.seat .in b { color: #fde68a; font-size: 13px; }
-.seat .op { font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 6px; background: #22c55e; color: #052e16; }
-.table { position: relative; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding: 8px; overflow: hidden;
-  background: radial-gradient(ellipse at 50% 40%, #166534, #0b3b22 75%); border: 1px solid rgba(52, 211, 153, .25); }
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: 6px; align-items: stretch; --tw: 26px; max-width: none; padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); }
+.bot { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.seat { position: absolute; z-index: 2; display: flex; align-items: center; gap: 6px; padding: 4px 14px; font-weight: 800; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap;
+  background: linear-gradient(180deg, #9a3412, #7c2d12); border: 2px solid #d97706; box-shadow: 0 3px 8px rgba(0, 0, 0, .4); pointer-events: none; }
+.seat.on { border-color: #fde047; box-shadow: 0 0 0 3px rgba(253, 224, 71, .35), 0 3px 8px rgba(0, 0, 0, .4); }
+.seat .op { font-size: 9.5px; font-weight: 800; padding: 1px 5px; border-radius: 6px; background: #22c55e; color: #052e16; letter-spacing: 0; }
+.seat.st { top: 0; left: 50%; transform: translateX(-50%); border-top: 0; border-radius: 0 0 14px 14px; }
+.seat.sl, .seat.sr { top: 50%; writing-mode: vertical-rl; padding: 14px 4px; }
+.seat.sl { left: 0; transform: translateY(-50%) rotate(180deg); border-left: 0; border-radius: 0 14px 14px 0; }
+.seat.sr { right: 0; transform: translateY(-50%); border-right: 0; border-radius: 14px 0 0 14px; }
+.seat.sl .op, .seat.sr .op { writing-mode: horizontal-tb; }
+.table { position: relative; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding: 30px 34px 6px; overflow: hidden; border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 40%, #15803d, #0b3b22 80%); border: 1px solid rgba(52, 211, 153, .25); box-shadow: inset 0 0 40px rgba(0, 0, 0, .35); }
+.seat .cn { font-size: 11px; font-weight: 800; min-width: 18px; padding: 1px 4px; border-radius: 4px; background: #fffdf8; color: #111827; text-align: center; letter-spacing: 0; writing-mode: horizontal-tb; }
+.seat.sl .cn, .seat.sl .op { transform: rotate(180deg); }
 .melds { flex: 1; min-height: 0; overflow: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; }
 .melds:empty { display: none; }
 .meld { display: flex; gap: 0;  padding: 3px; border-radius: 7px; background: rgba(0, 0, 0, .22); border: 1.5px solid transparent; --tw: 19px; cursor: pointer; }
@@ -181,7 +186,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .stage .sm { display: flex; gap: 6px; flex: 1; min-width: 0; }
 .stage .meld { --tw: 19px; background: rgba(0, 0, 0, .25); }
 .stage .tot { flex: none; font-size: 13px; font-weight: 800; color: #fde68a; white-space: nowrap; }
-.status { text-align: center; font-size: 14.5px; font-weight: 700; color: #e2e8f0; min-height: 1.4em; }
+.status { text-align: center; font-size: 14px; font-weight: 700; color: #ecfdf5; min-height: 1.3em; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); flex: none; }
 .rackw { display: flex; justify-content: center; }
 .rack { display: grid; grid-template-columns: repeat(13, var(--tw)); grid-auto-rows: calc(var(--tw) * 1.38); gap: 4px 2px; padding: 7px 6px 9px; border-radius: 12px;
   background: linear-gradient(180deg, #92400e, #78350f); box-shadow: inset 0 -5px 0 #451a03, 0 6px 14px rgba(0, 0, 0, .45); }
@@ -192,8 +197,9 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .rack .tl.nw { box-shadow: 0 0 0 2.5px #34d399, 0 2px 3px rgba(0, 0, 0, .35); }
 .rack .tl.dragging { opacity: .25; }
 .ghost { position: fixed; z-index: 30; pointer-events: none; transform: translate(-50%, -60%) scale(1.12); }
-.acts { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-.acts button { height: 40px; padding: 0 14px; border-radius: 999px; border: 0; font-weight: 800; font-size: 14px; color: #052e16; background: linear-gradient(180deg, #34d399, #10b981); }
+.acts { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; padding: 0 44px 0 0; min-height: 38px; }
+@media (orientation: portrait) and (max-width: 500px) { .acts button { padding: 0 11px; font-size: 13.5px; } }
+.acts button { height: 38px; padding: 0 14px; border-radius: 999px; border: 0; font-weight: 800; font-size: 14px; color: #052e16; background: linear-gradient(180deg, #34d399, #10b981); }
 .acts button.alt { color: #e2e8f0; background: rgba(15, 23, 42, .8); border: 1px solid rgba(148, 163, 184, .3); }
 .acts button.warn { color: #422006; background: linear-gradient(180deg, #fcd34d, #f59e0b); }
 .acts button:disabled { opacity: .45; }
@@ -205,27 +211,22 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .res .d.up { color: #4ade80; } .res .d.dn { color: #f87171; }
 .res button { height: 42px; border-radius: 999px; border: 0; font-weight: 800; font-size: 15px; color: #052e16; background: linear-gradient(180deg, #34d399, #10b981); margin-top: 4px; }
 @media (orientation: landscape) {
-  main { grid-template-columns: minmax(0, 1fr) clamp(190px, 24vw, 280px); grid-template-rows: auto minmax(0, 1fr) auto auto auto; max-width: 1240px; }
-  .table { grid-column: 1; grid-row: 1 / 3; }
-  .opps { grid-column: 2; grid-row: 1; grid-template-columns: minmax(0, 1fr); }
-  .seat { flex-direction: row; justify-content: space-between; padding: 6px 10px; }
-  .acts { grid-column: 2; grid-row: 2 / 4; min-height: 0; overflow: auto; display: grid; grid-template-columns: 1fr 1fr; align-content: start; }
-  .acts button { width: 100%; }
-  .stage { grid-column: 1; grid-row: 3; } .status { grid-column: 1 / -1; } .rackw { grid-column: 1 / -1; }
+  .bot { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 8px; }
+  .rackw { grid-column: 2; grid-row: 1; }
+  .acts { grid-column: 1; grid-row: 1; padding: 0; flex-direction: column; flex-wrap: nowrap; align-items: stretch; justify-content: flex-end; max-width: 150px; justify-self: end; width: 100%; }
+  .acts button { padding: 0 8px; }
 }
 @media (orientation: landscape) and (max-height: 500px) {
-  main { gap: 5px; }
-  .seat { padding: 3px 8px; } .seat .nm { font-size: 12.5px; }
-  .acts { gap: 4px; } .acts button { height: 30px; font-size: 12.5px; padding: 0 6px; }
+  main { gap: 4px; }
+  .table { padding: 26px 32px 4px; }
+  .acts { gap: 4px; } .acts button { height: 30px; font-size: 12.5px; }
   .status { font-size: 13px; min-height: 1.2em; }
-  .rack { padding: 4px 5px 6px; gap: 3px 2px; }
-  .table { padding: 5px; flex-direction: row; } .pile { --tw: 30px; } .deck { --tw: 30px; }
-  .table .center { flex-direction: column; gap: 10px; margin: auto 0; padding: 0 4px 14px; }
+  .seat { font-size: 11.5px; }
 }
 @media (min-width: 700px) and (min-height: 700px) {
   .pile, .deck { --tw: 52px; } .deck { font-size: 17px; }
   .meld, .stage .meld { --tw: 26px; } .res .hand { --tw: 22px; }
-  .seat .nm { font-size: 15px; } .seat .in { font-size: 13px; }
+  .seat { font-size: 14.5px; }
 }
 
 /* Ortak iskambil çizimi; büyük köşe dizini; ıstakada kartlar yarı yarıya biner */
@@ -249,6 +250,11 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 @media (min-width: 700px) and (min-height: 700px) { .pile, .deck { --tw: calc(var(--mw, 32px) * 1.45); } .meld, .stage .meld { --tw: var(--mw, 32px); } }
 @media (orientation: landscape) and (max-height: 500px) { .pile, .deck { --tw: calc(var(--mw, 30px) * 1.3); } }
 
+.tl.bk { background: var(--pcback) center / 100% 100% no-repeat, #fffdf8; }
+.pile.take, .deck.take { touch-action: none; }
+#rack.hov { box-shadow: 0 0 0 3px #fbbf24, inset 0 -5px 0 #451a03; }
+.toast { top: 36%; }
+
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -263,19 +269,21 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
   <button id="fsBtn" class="fab fs" type="button" aria-label="Tam ekran"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path class="fsIn" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
 </header>
 <main id="main">
-<div class="opps" id="opps"></div>
-<div class="table panel" id="table">
+<div class="table" id="table">
+  <div id="seats"></div>
+  <div class="status" id="status" aria-live="polite"></div>
   <div class="melds" id="melds"></div>
   <div class="center">
     <div class="deck" id="deck"></div>
     <div class="pile" id="pile"></div>
   </div>
 </div>
-<div class="res" id="res" hidden><div class="box panel" id="resBox"></div></div>
 <div class="stage" id="stage" hidden></div>
-<div class="status" id="status" aria-live="polite"></div>
-<div class="rackw"><div class="rack" id="rack"></div></div>
-<div class="acts" id="acts"></div>
+<div class="bot">
+  <div class="rackw"><div class="rack" id="rack"></div></div>
+  <div class="acts" id="acts"></div>
+</div>
+<div class="res" id="res" hidden><div class="box panel" id="resBox"></div></div>
 
 </main>
 
@@ -478,7 +486,7 @@ const STR = {
     setupSub: 'İki deste ve iki jokerle 51. Elini 51 puanla aç, kartlarını işle, ilk sen bitir.',
     oppLbl: 'Rakip sayısı', oppN: (n) => `${n} rakip`, lvLbl: 'Zorluk', handsLbl: 'El sayısı', handsN: (n) => `${n} el`,
     setNote: 'Biten −51 yazar. Açamayan 100, açan elinde kalan kartların toplamını ceza yazar. Konken yapılırsa hepsi iki katı. En az ceza kazanır.',
-    you: 'Sen', cpuNames: ['Ahmet', 'Elif', 'Can'], cards: (n) => `${n} kart`, opened: 'açtı',
+    you: 'Sen', cpuNames: ['Ahmet', 'Elif', 'Can'], cards: (n) => `${n} kart`, cardsH: 'Kart', opened: 'açtı',
     takeL: 'Al', dropL: 'At', pileL: 'Yer',
     drawMe: 'Desteden çek ya da yerdeki kartı al', play: 'Per indir, işle ya da bir kart at', playFirst: 'İlk el sende: bir kart at', open: 'Elini açmak için per seç',
     thinking: (n) => `${n} oynuyor…`, mustOpen: 'Yerden aldığın kartla bu tur elini açmalısın',
@@ -503,7 +511,7 @@ const STR = {
     setupSub: 'Turkish 51 rummy with two decks and two jokers. Open with 51 points, lay off and go out first.',
     oppLbl: 'Opponents', oppN: (n) => n === 1 ? '1 rival' : `${n} rivals`, lvLbl: 'Level', handsLbl: 'Hands', handsN: (n) => n === 1 ? '1 hand' : `${n} hands`,
     setNote: 'Going out scores −51. Unopened players score 100, opened ones the sum of their cards. Konken doubles everything. Lowest total wins.',
-    you: 'You', cpuNames: ['Alex', 'Maya', 'Leo'], cards: (n) => `${n} cards`, opened: 'open',
+    you: 'You', cpuNames: ['Alex', 'Maya', 'Leo'], cards: (n) => `${n} cards`, cardsH: 'Cards', opened: 'open',
     takeL: 'Take', dropL: 'Discard', pileL: 'Pile',
     drawMe: 'Draw from the deck or take the top discard', play: 'Lay melds, lay off or discard', playFirst: 'You start: discard a card', open: 'Pick melds to open',
     thinking: (n) => `${n} is playing…`, mustOpen: 'You took the discard: you must open with it this turn',
@@ -888,25 +896,30 @@ function moveSlot(from, to) {
 // ---------- Çizim ----------
 // Istaka: 2 sıra x 13 yuva. Kartlar yuvadan geniş olabilir; sağdaki kart soldakinin yarısını örter.
 function sizeTiles() {
-  const main = $('main'), w = Math.min(main.clientWidth, 1100) - 14, mh = main.clientHeight;
+  const main = $('main'), mh = main.clientHeight;
   const land = matchMedia('(orientation: landscape)').matches, small = land && innerHeight < 560;
+  const w = Math.min(main.clientWidth - (land ? 2 * 128 : 0), 1100) - 14;
   const RV = 0.64, maxH = mh * (small ? 0.42 : land ? 0.3 : 0.3);
   let cw = Math.min(maxH / (1.42 * (1 + RV)), small ? 64 : 96);
   let sw = Math.floor((w - 14 - cw) / 12);
   if (sw > cw) sw = Math.floor(cw + 2); // geniş ekranda kartlar yan yana
-  else if (sw < cw * 0.4) { cw = Math.min(cw, (w - 14) / (1 + 12 * 0.4)); sw = Math.floor(cw * 0.4); }
+  else if (sw < cw * 0.37) { cw = Math.min(cw, (w - 14) / (1 + 12 * 0.37)); sw = Math.floor(cw * 0.37); }
   cw = Math.floor(Math.max(24, cw)); sw = Math.max(14, sw);
   main.style.setProperty('--tw', cw + 'px'); main.style.setProperty('--sw', sw + 'px'); main.style.setProperty('--rv', RV);
   const T = $('table'), tA = T.clientWidth * T.clientHeight;
   main.style.setProperty('--mw', clamp(Math.round(Math.sqrt(tA) / 9), small ? 26 : 30, 54) + 'px');
+}
+function scoreHtml() {
+  const t = T(); if (!G) return '';
+  return `<p class="sn">${esc(t.handN(G.handNo, G.hands))}</p><table><tr><th></th><th>${esc(t.cardsH)}</th><th>${esc(t.scoreL)}</th></tr>${[...Array(N()).keys()].map((q) => `<tr${q === 0 ? ' class="me"' : ''}><td>${esc(pname(q))}${G.opened[q] ? ` <span style="font-size:11px;color:#4ade80">${esc(t.opened)}</span>` : ''}</td><td>${G.hand[q].length}</td><td>${G.scores[q]}</td></tr>`).join('')}</table>`;
 }
 function render() {
   if (!G) return;
   const t = T(), my = myTurn(), live = G.phase === 'draw' || G.phase === 'play';
   sizeTiles();
   const seats = [...Array(N() - 1).keys()].map((k) => N() - 1 - k);
-  $('opps').style.setProperty('--n', seats.length);
-  $('opps').innerHTML = seats.map((p) => `<div class="seat${G.turn === p && live ? ' on' : ''}"><span class="nm">${esc(pname(p))}</span><span class="in">${esc(t.cards(G.hand[p].length))}${G.opened[p] ? ` <span class="op">${esc(t.opened)}</span>` : ''} <b>${G.scores[p]}</b></span></div>`).join('');
+  const pos = seats.length === 1 ? ['st'] : seats.length === 2 ? ['sl', 'sr'] : ['sl', 'st', 'sr'];
+  $('seats').innerHTML = seats.map((p, k) => `<div class="seat ${pos[k]}${G.turn === p && live ? ' on' : ''}"><span>${esc(pname(p))}</span><span class="cn" title="${esc(t.cards(G.hand[p].length))}">${G.hand[p].length}</span>${G.opened[p] ? `<span class="op">${esc(t.opened)}</span>` : ''}</div>`).join('');
   $('melds').innerHTML = G.melds.map((m, i) => `<div class="meld${m.o === 0 ? ' p0' : ''}" data-mi="${i}" title="${esc(pname(m.o))}">${m.ids.map((id) => cardHtml(id)).join('')}</div>`).join('');
   const top = G.pile[G.pile.length - 1], canTake = my && G.phase === 'draw' && top != null, canDrop = my && G.phase === 'play';
   $('pile').className = 'pile' + (canTake ? ' take' : canDrop ? ' drop' : '');
@@ -962,8 +975,10 @@ const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b 
 segH('oppSeg', 'o', (v) => { setup.opps = +v; });
 segH('lvSeg', 'l', (v) => { setup.level = v; });
 segH('handsSeg', 'h', (v) => { setup.hands = +v; });
-$('deck').addEventListener('click', humanDraw);
-$('pile').addEventListener('click', () => { if (!G) return; if (G.phase === 'draw') humanTake(); else humanDiscard(); });
+let dragEnd = 0;
+const justDragged = () => Date.now() - dragEnd < 400;
+$('deck').addEventListener('click', () => { if (!justDragged()) humanDraw(); });
+$('pile').addEventListener('click', () => { if (!G || justDragged()) return; if (G.phase === 'draw') humanTake(); else humanDiscard(); });
 $('melds').addEventListener('click', (e) => { const m = e.target.closest('.meld'); if (m) humanAdd(+m.dataset.mi); });
 $('stage').addEventListener('click', (e) => { const m = e.target.closest('.meld'); if (m) unstage(+m.dataset.si); });
 $('acts').addEventListener('click', (e) => {
@@ -976,14 +991,24 @@ $('rack').addEventListener('pointerdown', (e) => {
   drag = { id: +tl.dataset.id, slot: +tl.parentElement.dataset.s, x: e.clientX, y: e.clientY, on: false, el: tl };
   try { tl.setPointerCapture(e.pointerId); } catch (er) {}
 });
+// desteden ya da yerdeki kartı ıstakaya sürükleyerek çek
+function srcDown(e, src) {
+  if (!G || !myTurn() || G.phase !== 'draw' || busy) return;
+  if (src === 'pile' && !G.pile.length) return;
+  const el = src === 'deck' ? Object.assign(document.createElement('div'), { className: 'tl pc bk' }) : $('pile').querySelector('.tl');
+  if (!el) return; drag = { src, x: e.clientX, y: e.clientY, on: false, el };
+}
+$('deck').addEventListener('pointerdown', (e) => srcDown(e, 'deck'));
+$('pile').addEventListener('pointerdown', (e) => srcDown(e, 'pile'));
 function dropTarget(x, y) {
+  if (drag && drag.src) { const el = document.elementFromPoint(x, y); return el && (el.closest('.slot') || (el.closest('#rack') ? $('rack') : null)); }
   const el = document.elementFromPoint(x, y); if (!el) return null;
   return el.closest('.slot') || el.closest('#pile') || el.closest('.meld[data-mi]');
 }
 addEventListener('pointermove', (e) => {
   if (!drag) return;
   if (!drag.on && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 7) {
-    drag.on = true; drag.g = drag.el.cloneNode(true); drag.g.classList.add('ghost'); drag.g.classList.remove('sel'); document.body.appendChild(drag.g); drag.el.classList.add('dragging');
+    drag.on = true; drag.g = drag.el.cloneNode(true); drag.g.classList.add('ghost'); drag.g.classList.remove('sel'); document.body.appendChild(drag.g); if (!drag.src) drag.el.classList.add('dragging');
     drag.g.style.setProperty('--tw', getComputedStyle($('main')).getPropertyValue('--tw'));
   }
   if (!drag.on) return;
@@ -994,6 +1019,17 @@ addEventListener('pointermove', (e) => {
 function endDrag(e) {
   if (!drag) return; const d = drag; drag = null;
   document.querySelectorAll('.hov').forEach((x) => x.classList.remove('hov'));
+  if (d.src) {
+    if (!d.on) return; // dokunma: tıklama işler
+    const tg = e && (drag = d, dropTarget(e.clientX, e.clientY)); drag = null;
+    d.g.remove(); dragEnd = Date.now();
+    if (!tg || !myTurn() || G.phase !== 'draw') { render(); return; }
+    Sfx.unlock();
+    if (!(d.src === 'deck' ? drawDeck(0) : takePile(0))) { render(); return; }
+    const id = newId, from = G.rack.indexOf(id);
+    if (tg.classList.contains('slot') && from >= 0) moveSlot(from, +tg.dataset.s);
+    newId = id; save(); render(); return;
+  }
   if (!d.on) { tapTile(d.id); return; }
   d.g.remove(); d.el.classList.remove('dragging');
   const tg = e && dropTarget(e.clientX, e.clientY);

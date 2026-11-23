@@ -260,6 +260,27 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 }
 .deck.hov, .ind.hov { outline: 3px solid #34d399; outline-offset: 3px; border-radius: 6px; }
 #rack.hov { box-shadow: 0 0 0 3px #fbbf24, inset 0 -5px 0 #451a03; }
+/* Sahip renkleri: perler kimin önündeyse o rengin çerçevesiyle; koltukta aynı renkte nokta */
+.meld { --oc: transparent; border-color: var(--oc); } .melds .meld { --tw: var(--kw, var(--mw, 19px)); }
+.meld.o0 { --oc: rgba(52, 211, 153, .7); } .meld.o1 { --oc: rgba(56, 189, 248, .7); } .meld.o2 { --oc: rgba(232, 121, 249, .7); } .meld.o3 { --oc: rgba(251, 146, 60, .75); }
+.seat .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; border: 1.5px solid rgba(255, 255, 255, .8); }
+.seat.s1 .dot { background: #38bdf8; } .seat.s2 .dot { background: #e879f9; } .seat.s3 .dot { background: #fb923c; }
+.seat .cn { font-size: 11px; font-weight: 800; min-width: 18px; padding: 1px 4px; border-radius: 4px; background: #fffdf8; color: #111827; text-align: center; letter-spacing: 0; writing-mode: horizontal-tb; }
+.seat.s3 .cn, .seat.s3 .op { transform: rotate(180deg); }
+.table.hov { box-shadow: inset 0 0 0 3px #fbbf24, inset 0 0 40px rgba(0, 0, 0, .35); }
+.table { padding-left: 46px; padding-right: 46px; }
+.toast { top: 36%; }
+@media (orientation: landscape) { .table { padding-left: calc(var(--mw, 22px) * 1.3 + 56px); padding-right: calc(var(--mw, 22px) * 1.3 + 56px); } }
+/* Masadaki perler: solda seri ve gruplar, sağda çiftler */
+.melds { flex-wrap: nowrap; gap: 8px; align-items: flex-start; align-content: stretch; overflow-x: hidden; overflow-y: auto; }
+.mleft { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px; }
+.mpairs { flex: none; display: grid; grid-auto-flow: column; gap: 5px; justify-content: end; align-content: start; padding-left: 8px; border-left: 1px dashed rgba(255, 255, 255, .2); margin-left: auto; }
+.meld .ph { flex: none; display: block; width: var(--tw); height: calc(var(--tw) * 1.38); border: 1.5px dashed rgba(255, 255, 255, .22); border-radius: calc(var(--tw) * .16); box-sizing: border-box; }
+.meld .ph.e { width: calc(var(--tw) * .45); }
+/* Koltuk sayaç rozeti sahibin per rengiyle */
+.seat.s1 .cn { background: #bae6fd; } .seat.s2 .cn { background: #f5d0fe; } .seat.s3 .cn { background: #fed7aa; }
+.seat.s3, .seat.s1 { padding: 10px 3px; gap: 4px; font-size: 12px; }
+.seat .op { font-size: 9px; padding: 1px 4px; }
 
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
@@ -459,6 +480,8 @@ const STR = {
     needUse: 'Yerden aldığın taşı bu tur kullanmalısın', keepOne: 'Bitirmek için elinde atacak bir taş kalmalı', total: (n) => `Toplam ${n} / 101`, pairsN: (n) => `${n} çift / 5`, lowOpen: (n) => `Açmak için 101 gerekli, şu an ${n}`,
     mixPairs: 'Çiftler ve perler birlikte açılamaz', cantAdd: 'Bu taş o pere işlenmez', shown: (n) => `${n} göstergeyi gösterdi: diğerleri 1 puan kaybetti`, showedMe: 'Göstergeyi gösterdin: rakipler 1 puan kaybetti',
     noFind: 'Uygun per bulunamadı', joker: 'Okey taşı (joker)',
+    islekWarn: 'Bu taş yerdeki bir pere işlenir: atarsan 101 ceza yazılır. Yine de atmak için tekrar at', okeyWarn: 'Okeyi atarsan 101 ceza yazılır. Yine de atmak için tekrar at',
+    penIslek: (n) => `${n} işlek taş attı: +101 ceza`, penOkey: (n) => `${n} okey attı: +101 ceza`, penIslekMe: 'İşlek taş attın: +101 ceza', penOkeyMe: 'Okey attın: +101 ceza', penL2: 'ceza', swapped: 'Okeyi yerden aldın', swappedCpu: (n) => `${n} okeyi yerden aldı`, finishedElden: (n) => `${n} elden bitti!`, x2: 'ceza 2 katı',
     finished: (n) => `${n} bitirdi!`, finishedOk: (n) => `${n} okey atarak bitirdi!`, finishedPairs: (n) => `${n} çiftle bitirdi!`, deckOut: 'Deste bitti, el berabere', deckOut101: 'Deste bitti: herkes elindeki cezayı yazar',
     notOpenedR: 'açamadı', nextHand: 'Sonraki el', seeEnd: 'Sonuçlar', handN: (a, b) => `${a}. el / ${b}`, scoreL: 'Puan', penL: 'Ceza',
     winT: 'Kazandın!', loseT: (n) => `${n} kazandı`, subOk: 'En yüksek puan kazanır.', sub101: 'En düşük ceza kazanır.',
@@ -468,8 +491,9 @@ const STR = {
       ['🔗', '<b>Per</b>: aynı renkte sıralı en az üç taş (Okey’de 12-13-1 de olur) ya da aynı sayıda farklı renklerden 3–4 taş.'],
       ['🔄', 'Sıra sağa döner. Sıran gelince desteden çek ya da solundakinin attığı taşı al, sonra sağına bir taş at.'],
       ['🀄', '<b>Okey:</b> Elindeki 14 taşı perlere ya da 7 çifte ayırıp 15. taşı atan biter. Herkes 20 puanla başlar; biten dışındakiler 2 puan, okey atarak ya da çiftle bitince 4 puan kaybeder. İlk turda göstergeyi gösteren, diğerlerine 1 puan kaybettirir.'],
-      ['💯', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Yerden aldığın taşı aynı tur kullanmalısın.'],
-      ['🧮', '<b>101 puanı:</b> Biten −101 yazar. Açamayan 202, açan ise elinde kalan taşların sayı toplamını ceza yazar. Okey atarak bitilirse hepsi iki katıdır. Ceza toplamı en düşük olan kazanır.'],
+      ['💯', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Perdeki okeyin yerine geçen gerçek taşı koyarsan okeyi alırsın. Yerden aldığın taşı aynı tur kullanmalısın.'],
+      ['⚠️', '<b>101 cezaları:</b> Yerdeki bir pere işlenebilecek taşı ya da okeyi atan 101 ceza yazar.'],
+      ['🧮', '<b>101 puanı:</b> Biten −101 yazar. Açamayan 202, açan ise elinde kalan taşların sayı toplamını ceza yazar; çiftle açanın cezası iki katıdır. Okey atarak, çiftle ya da elden (tek turda açıp) bitilirse biten −202 yazar, diğerlerinin cezası iki katına çıkar. Ceza toplamı en düşük olan kazanır.'],
       ['👆', 'Taşları sürükleyerek istakanı düzenle. Dokunarak seç, sağdaki “At” alanına sürükle ya da dokun.']
     ] },
   en: { ...COMMON.en, title: 'Okey | Ridsgames', game: 'Okey',
@@ -487,6 +511,8 @@ const STR = {
     needUse: 'You must use the tile you took this turn', keepOne: 'Keep one tile to discard', total: (n) => `Total ${n} / 101`, pairsN: (n) => `${n} pairs / 5`, lowOpen: (n) => `You need 101 to open, you have ${n}`,
     mixPairs: 'Pairs and melds cannot be opened together', cantAdd: 'That tile does not fit this meld', shown: (n) => `${n} showed the indicator: others lose 1 point`, showedMe: 'You showed the indicator: rivals lose 1 point',
     noFind: 'No meld found', joker: 'Okey tile (joker)',
+    islekWarn: 'This tile fits a meld on the table: discarding it costs 101. Discard again to confirm', okeyWarn: 'Discarding the okey costs 101. Discard again to confirm',
+    penIslek: (n) => `${n} discarded a playable tile: +101`, penOkey: (n) => `${n} discarded the okey: +101`, penIslekMe: 'You discarded a playable tile: +101', penOkeyMe: 'You discarded the okey: +101', penL2: 'penalty', swapped: 'You took the okey from the table', swappedCpu: (n) => `${n} took the okey from the table`, finishedElden: (n) => `${n} went out in one go!`, x2: 'double penalty',
     finished: (n) => `${n} went out!`, finishedOk: (n) => `${n} went out with the okey!`, finishedPairs: (n) => `${n} went out with pairs!`, deckOut: 'The deck ran out, no winner', deckOut101: 'The deck ran out: everyone scores their hand',
     notOpenedR: 'not open', nextHand: 'Next hand', seeEnd: 'Results', handN: (a, b) => `Hand ${a} / ${b}`, scoreL: 'Points', penL: 'Penalty',
     winT: 'You win!', loseT: (n) => `${n} wins`, subOk: 'Highest score wins.', sub101: 'Lowest penalty wins.',
@@ -496,8 +522,9 @@ const STR = {
       ['🔗', 'A <b>meld</b> is a run of three or more in one colour (12-13-1 counts in Okey) or 3–4 tiles of one number in different colours.'],
       ['🔄', 'Play moves to the right. Draw from the deck or take your left neighbour’s discard, then discard to your right.'],
       ['🀄', '<b>Okey:</b> Split 14 tiles into melds or 7 pairs and discard the 15th to win. Everyone starts with 20; the others lose 2, or 4 if you go out with the okey or with pairs. Showing the indicator on your first turn costs the others 1.'],
-      ['💯', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs. Then lay new melds and add tiles to melds on the table. A tile taken from the discard must be used that turn.'],
-      ['🧮', '<b>101 scoring:</b> The player who goes out scores −101. Unopened players score 202, opened ones the sum of their tiles. Going out with the okey doubles everything. Lowest total wins.'],
+      ['💯', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs. Then lay new melds and add tiles to melds on the table. Put the real tile in place of an okey in a meld to take the okey. A tile taken from the discard must be used that turn.'],
+      ['⚠️', '<b>101 penalties:</b> Discarding a tile that fits a meld on the table, or discarding the okey, costs 101.'],
+      ['🧮', '<b>101 scoring:</b> The player who goes out scores −101. Unopened players score 202, opened ones the sum of their tiles; a pairs opener pays double. Going out with the okey, with pairs or in one go (opening and finishing in the same turn) scores −202 and doubles the others. Lowest total wins.'],
       ['👆', 'Drag tiles to arrange your rack. Tap to select; drag or tap onto “Discard”.']
     ] }
 };
@@ -639,6 +666,20 @@ function addTo(m, id) {
   if (t.j) { if (m.hi < 13) { m.hi++; m.ids.push(id); } else { m.lo--; m.ids.unshift(id); } return; }
   if (t.n === m.hi + 1) { m.hi++; m.ids.push(id); } else { m.lo--; m.ids.unshift(id); }
 }
+// Perdeki okeyin yerine geçen gerçek taş: okeyin konumu, yoksa -1
+function swapIdx(m, id) {
+  const t = info(id); if (t.j || m.t === 'pair') return -1;
+  if (m.t === 'run') { if (t.c !== m.c || t.n < m.lo || t.n > m.hi) return -1; const k = t.n - m.lo; return isJ(m.ids[k]) ? k : -1; }
+  if (t.n !== m.n) return -1;
+  const real = m.ids.filter((x) => !isJ(x)).map((x) => info(x).c); if (real.includes(t.c)) return -1;
+  return m.ids.findIndex(isJ);
+}
+function swapJoker(m, k, id) {
+  const j = m.ids[k]; m.ids[k] = id;
+  if (m.t === 'set') { const real = m.ids.filter((x) => !isJ(x)).map((x) => info(x).c); m.cols = m.ids.map((x) => isJ(x) ? -1 : info(x).c); m.cols = m.cols.map((c) => c >= 0 ? c : [0, 1, 2, 3].find((q) => !real.includes(q) && !m.cols.includes(q))); }
+  return j;
+}
+const islek = (id) => !isJ(id) && G.melds.some((m) => canAdd(m, id));
 
 // ---------- Akış ----------
 function newMatch() {
@@ -659,7 +700,7 @@ function deal() {
   const base = is101() ? 21 : 14, st = (G.handNo - 1) % 4;
   G.hand = [0, 1, 2, 3].map((p) => deck.splice(0, base + (p === st ? 1 : 0)));
   G.deck = deck; G.piles = [[], [], [], []]; G.turn = st; G.phase = 'play'; G.firstDone = [false, false, false, false]; G.shown = [false, false, false, false];
-  G.opened = [false, false, false, false]; G.melds = []; G.took = -1; G.stage = []; G.res = null; G.note = null;
+  G.opened = [false, false, false, false]; G.pen = [0, 0, 0, 0]; G.tc = 0; G.openedAt = [-1, -1, -1, -1]; G.warn = -1; G.melds = []; G.took = -1; G.stage = []; G.res = null; G.note = null;
   G.rack = Array(SLOTS).fill(-1); arrange('run');
   selSet = new Set(); epoch++; busy = false;
   save(); render(); kick();
@@ -713,11 +754,14 @@ function takePile(p) {
   Sfx.tone(520, 640, 0.05, 0.05, 'triangle', 0.06); G.phase = 'play'; return true;
 }
 function discard(p, id) {
-  const h = G.hand[p]; h.splice(h.indexOf(id), 1); G.piles[p].push(id); G.firstDone[p] = true; G.took = -1;
+  const h = G.hand[p];
+  const pen = is101() && h.length > 1 ? (isJ(id) ? 'okey' : islek(id) ? 'islek' : '') : '';
+  h.splice(h.indexOf(id), 1); G.piles[p].push(id); G.firstDone[p] = true; G.took = -1; G.warn = -1;
   if (p === 0) { syncRack(); selSet.delete(id); }
   Sfx.tone(420, 300, 0.06, 0.06, 'triangle', 0.08); buzz(8);
-  if (is101() && !h.length) return endHand(p, { ok: isJ(id) });
-  G.turn = (p + 1) % 4; G.phase = 'draw'; G.note = null;
+  if (pen) { G.pen[p] = (G.pen[p] || 0) + 101; toast(p === 0 ? (pen === 'okey' ? T().penOkeyMe : T().penIslekMe) : pen === 'okey' ? T().penOkey(pname(p)) : T().penIslek(pname(p)), '#f87171'); if (p === 0) Sfx.bad(); }
+  if (is101() && !h.length) return endHand(p, { ok: isJ(id), elden: G.openedAt[p] === G.tc, pairs: G.opened[p] === 'cift' });
+  G.turn = (p + 1) % 4; G.phase = 'draw'; G.note = null; G.tc++;
   if (!G.deck.length) return endHand(-1, {});
   save(); render(); kick();
 }
@@ -738,15 +782,16 @@ function endHand(w, o) {
   if (!is101()) {
     if (w >= 0) { const d = o.ok && o.pairs ? 8 : (o.ok || o.pairs) ? 4 : 2; for (let q = 0; q < 4; q++) if (q !== w) deltas[q] = -d; }
   } else {
-    const mult = o.ok ? 2 : 1;
+    const mult = o.ok || o.elden || o.pairs ? 2 : 1;
     for (let q = 0; q < 4; q++) {
       if (q === w) deltas[q] = -101 * mult;
       else if (!G.opened[q]) deltas[q] = 202 * mult;
-      else deltas[q] = G.hand[q].reduce((s, id) => s + (isJ(id) ? G.okN : tval(id)), 0) * mult;
+      else deltas[q] = G.hand[q].reduce((s, id) => s + (isJ(id) ? G.okN : tval(id)), 0) * mult * (G.opened[q] === 'cift' ? 2 : 1);
+      deltas[q] += (G.pen && G.pen[q]) || 0;
     }
   }
   deltas.forEach((d, q) => { G.scores[q] += d; });
-  G.res = { w, deltas, ok: !!o.ok, pairs: !!o.pairs, wm: w >= 0 && !is101() ? assign(G.hand[w], solve(G.hand[w], 'count', true).m) : null, last: o.last };
+  G.res = { w, deltas, ok: !!o.ok, pairs: !!o.pairs, elden: !!o.elden, pen: (G.pen || [0, 0, 0, 0]).slice(), wm: w >= 0 && !is101() ? assign(G.hand[w], solve(G.hand[w], 'count', true).m) : null, last: o.last };
   if (w >= 0 && !is101() && G.res.wm.flat().length < 14) G.res.wm = null;
   const over = G.handNo >= G.hands || (!is101() && G.scores.some((s) => s <= 0));
   G.phase = over ? 'end' : 'res'; G.stage.forEach((m) => G.hand[0].push(...m.ids)); G.stage = []; epoch++; busy = false;
@@ -807,7 +852,7 @@ function cpuDiscard(p) {
     const t = info(id), k = t.c * 14 + t.n;
     let v = seen.has(k) ? seen.get(k) : potential(h.filter((x) => x !== id)); seen.set(k, v);
     if (is101()) v += G.opened[p] ? t.n * 0.12 : -t.n * 0.02;
-    if (is101() && G.opened[nx] && G.melds.some((m) => canAdd(m, id))) v -= 3;
+    if (is101() && islek(id)) v -= 100;
     if (lv === 'zor' && !is101()) { const pk = G.pickedBy && G.pickedBy[nx]; if (pk && pk.some((q) => { const u = info(q); return (u.c === t.c && Math.abs(u.n - t.n) <= 2) || u.n === t.n; })) v -= 1.2; }
     v += Math.random() * (lv === 'zor' ? 0.05 : 0.6);
     if (v > bv) { bv = v; best = id; }
@@ -831,13 +876,14 @@ function cpu101Lay(p) {
     let ms = r.s >= 101 ? assign(h(), r.m, G.took) : null;
     if (ms && ms.flat().length >= h().length) { ms.sort((a, b) => a.length - b.length); while (ms.length && ms.flat().length >= h().length) ms.shift(); if (ms.reduce((s, m) => s + parseMeld(m).val, 0) < 101) ms = null; }
     if (ms && G.took >= 0 && !ms.some((m) => m.includes(G.took))) ms = null;
-    if (ms && (G.level !== 'kolay' || Math.random() < 0.7)) { for (const m of ms) layMeld(p, m, false); G.opened[p] = 'per'; }
+    if (ms && (G.level !== 'kolay' || Math.random() < 0.7)) { for (const m of ms) layMeld(p, m, false); G.opened[p] = 'per'; G.openedAt[p] = G.tc; }
     else if (G.level !== 'kolay' && pairCount(h()) >= 5 && G.took < 0 && r.s < 85) {
-      const prs = findPairs(h()); if (prs.length >= 5 && prs.flat().length < h().length) { for (const m of prs) layMeld(p, m, true); G.opened[p] = 'cift'; }
+      const prs = findPairs(h()); if (prs.length >= 5 && prs.flat().length < h().length) { for (const m of prs) layMeld(p, m, true); G.opened[p] = 'cift'; G.openedAt[p] = G.tc; }
     }
     if (!G.opened[p]) return;
   }
-  // açıldıktan sonra
+  // açıldıktan sonra: önce yerdeki okeyleri gerçek taşla değiştir
+  if (G.level !== 'kolay') for (const id of h().slice()) { for (const m of G.melds) { const k = swapIdx(m, id); if (k >= 0) { const j = swapJoker(m, k, id); h().splice(h().indexOf(id), 1, j); toast(T().swappedCpu(pname(p)), '#fbbf24'); break; } } }
   if (G.opened[p] === 'cift') { for (const m of findPairs(h())) if (m.length < h().length) layMeld(p, m, true); }
   else { const r = solve(h(), 'count', false); for (const m of assign(h(), r.m)) if (m.length < h().length) layMeld(p, m, false); }
   let again = true;
@@ -867,8 +913,9 @@ function humanTake() { if (!myTurn() || G.phase !== 'draw') return; Sfx.unlock()
 function humanDiscard(id) {
   if (!myTurn() || G.phase !== 'play') return;
   if (id == null) { if (selSet.size !== 1) { toast(T().pickOne, '#fbbf24'); return; } id = [...selSet][0]; }
-  if (is101() && G.took >= 0 && G.hand[0].includes(G.took)) { toast(T().needUse, '#f87171'); Sfx.bad(); return; }
+  if (is101() && G.took >= 0 && (G.hand[0].includes(G.took) || G.stage.some((m) => m.ids.includes(G.took)))) { toast(T().needUse, '#f87171'); Sfx.bad(); return; }
   if (G.stage.length) cancelStage();
+  if (is101() && G.hand[0].length > 1 && G.warn !== id && (isJ(id) || islek(id))) { G.warn = id; toast(isJ(id) ? T().okeyWarn : T().islekWarn, '#fbbf24'); Sfx.bad(); return; }
   selSet.clear(); discard(0, id);
 }
 function humanFinish(id) {
@@ -900,13 +947,14 @@ function humanOpen() {
   if (!G.hand[0].length) { toast(T().keepOne, '#f87171'); return; }
   if (G.took >= 0 && G.hand[0].includes(G.took)) { toast(T().needUse, '#f87171'); return; }
   for (const m of G.stage) { m.o = 0; G.melds.push(m); }
-  G.stage = []; G.opened[0] = pairs ? 'cift' : 'per'; G.took = -1; Sfx.good(); save(); render();
+  G.stage = []; G.opened[0] = pairs ? 'cift' : 'per'; G.openedAt[0] = G.tc; G.took = -1; Sfx.good(); save(); render();
 }
 function humanAdd(mi) {
   if (!myTurn() || G.phase !== 'play' || !is101()) return;
   if (!G.opened[0]) { toast(T().notOpened, '#fbbf24'); return; }
   if (selSet.size !== 1) { toast(T().pickOne, '#fbbf24'); return; }
-  const id = [...selSet][0], m = G.melds[mi];
+  const id = [...selSet][0], m = G.melds[mi], k = swapIdx(m, id);
+  if (k >= 0) { const j = swapJoker(m, k, id); G.hand[0].splice(G.hand[0].indexOf(id), 1, j); if (id === G.took) G.took = -1; const ri = G.rack.indexOf(id); if (ri >= 0) G.rack[ri] = j; selSet.clear(); syncRack(); newId = j; toast(T().swapped, '#a7f3d0'); Sfx.good(); save(); render(); return; }
   if (!canAdd(m, id)) { toast(T().cantAdd, '#f87171'); Sfx.bad(); return; }
   if (G.hand[0].length <= 1) { toast(T().keepOne, '#f87171'); return; }
   addTo(m, id); G.hand[0].splice(G.hand[0].indexOf(id), 1); if (id === G.took) G.took = -1; selSet.clear(); syncRack(); Sfx.tap(); save(); render();
@@ -959,9 +1007,24 @@ function sizeTiles() {
   const T = $('table'), tA = T.clientWidth * T.clientHeight;
   main.style.setProperty('--mw', clamp(Math.round(Math.sqrt(tA) / 13), land ? 19 : 22, land ? 36 : 48) + 'px');
 }
+// Masadaki perler sığmazsa taşları küçült
+function fitMelds() {
+  const M = $('melds'); if (!M.children.length) return;
+  const P = M.querySelector('.mpairs'), L = M.querySelector('.mleft');
+  const main = $('main'), base = Math.round((parseFloat(getComputedStyle(main).getPropertyValue('--mw')) || 22) * 1.15);
+  const fits = () => M.scrollHeight <= M.clientHeight + 1 && (!L || L.scrollWidth <= L.clientWidth + 1) && M.scrollWidth <= M.clientWidth + 1;
+  const tryW = () => { let w = base; for (; w > 12; w--) {
+    M.style.setProperty('--kw', w + 'px');
+    if (P) { const rows = Math.max(1, Math.floor((M.clientHeight + 5) / (w * 1.38 + 11))); P.style.gridTemplateRows = `repeat(${rows}, max-content)`; }
+    if (fits()) break; } return w; };
+  let w = tryW();
+  // masa kalabalıksa dikey telefonda uzun ıstaka taşlarını kısaltıp masaya yer aç
+  let tr = parseFloat(main.style.getPropertyValue('--tr')) || 1.38;
+  while (w < base * 0.8 && $('rack').classList.contains('tall') && tr > 1.4) { tr = Math.max(1.38, tr - 0.12); main.style.setProperty('--tr', tr.toFixed(3)); w = tryW(); }
+}
 function scoreHtml() {
   const t = T(); if (!G) return `<p class="sn">${esc(t.scoreL)}</p>`;
-  return `<p class="sn">${esc(t.handN(G.handNo, G.hands))}</p><table><tr><th></th><th>${esc(t.tilesH)}</th><th>${esc(t.scoreL)}</th></tr>${[0, 1, 2, 3].map((q) => `<tr${q === 0 ? ' class="me"' : ''}><td>${esc(pname(q))}${G.opened[q] ? ` <span style="font-size:11px;color:#4ade80">${esc(t.opened)}</span>` : ''}</td><td>${G.hand[q].length}</td><td>${G.scores[q]}</td></tr>`).join('')}</table>`;
+  return `<p class="sn">${esc(t.handN(G.handNo, G.hands))}</p><table><tr><th></th><th>${esc(t.tilesH)}</th><th>${esc(t.scoreL)}</th></tr>${[0, 1, 2, 3].map((q) => `<tr${q === 0 ? ' class="me"' : ''}><td>${esc(pname(q))}${G.opened[q] ? ` <span style="font-size:11px;color:#4ade80">${esc(t.opened)}</span>` : ''}</td><td>${G.hand[q].length}</td><td>${G.scores[q] + (G.phase === 'draw' || G.phase === 'play' ? (G.pen && G.pen[q]) || 0 : 0)}</td></tr>`).join('')}</table>`;
 }
 function render() {
   if (!G) return;
@@ -969,9 +1032,17 @@ function render() {
   sizeTiles();
   // koltuklar: sol(3), üst(2), sağ(1)
   for (const p of [1, 2, 3]) { const e = $('seat' + p); e.className = `seat s${p}${G.turn === p && (G.phase === 'draw' || G.phase === 'play') ? ' on' : ''}`;
-    e.innerHTML = `<span>${esc(pname(p))}</span>${G.opened[p] ? `<span class="op">${esc(t.opened)}</span>` : ''}`; }
+    e.innerHTML = `<span>${esc(pname(p))}</span><span class="cn" title="${esc(t.tiles(G.hand[p].length))}">${G.hand[p].length}</span>${G.opened[p] ? `<span class="op">${esc(t.opened)}</span>` : ''}`; }
   // perler
-  $('melds').innerHTML = is101() ? G.melds.map((m, i) => `<div class="meld${m.o === 0 ? ' p0' : ''}" data-mi="${i}" title="${esc(pname(m.o))}">${m.ids.map((id) => tileHtml(id)).join('')}</div>`).join('') : '';
+  // Perler solda, işlenebilecek uçlarda boş yer bırakılarak; çiftler sağda ayrı sütunda
+  const ordM = (a, b) => ((G.melds[a].o + 3) % 4) - ((G.melds[b].o + 3) % 4) || (G.melds[a].t === 'set') - (G.melds[b].t === 'set') || a - b;
+  const mi = G.melds.map((m, i) => i), per = mi.filter((i) => G.melds[i].t !== 'pair').sort(ordM), prs = mi.filter((i) => G.melds[i].t === 'pair').sort(ordM);
+  const ph = (c) => `<i class="ph${c}"></i>`;
+  const mh = (i) => { const m = G.melds[i]; let h = m.ids.map((id) => tileHtml(id)).join('');
+    if (m.t === 'run') h = (m.lo > 1 ? ph(' e') : '') + h + (m.hi < 13 ? ph(' e') : ''); else if (m.t === 'set' && m.ids.length < 4) h += ph('');
+    return `<div class="meld o${m.o}" data-mi="${i}" title="${esc(pname(m.o))}">${h}</div>`; };
+  $('melds').innerHTML = is101() && G.melds.length ? `<div class="mleft">${per.map(mh).join('')}</div>${prs.length ? `<div class="mpairs">${prs.map(mh).join('')}</div>` : ''}` : '';
+  fitMelds();
   // yığınlar
   const lp = G.piles[3], lt = lp[lp.length - 1], canTake = my && G.phase === 'draw' && lp.length;
   $('leftPile').className = 'pile c3' + (canTake ? ' take' : '') + (lp.length > 1 ? ' stk' : '');
@@ -1008,7 +1079,8 @@ function render() {
     if (my && G.phase === 'play') {
       if (!is101()) { a += `<button type="button" id="bFin"${G.hand[0].length === 15 ? '' : ' disabled'}>${esc(t.finishB)}</button>`; if (canShow(0)) a += `<button type="button" class="warn" id="bShow">${esc(t.showB)}</button>`; }
       else {
-        a += `<button type="button" id="bMeld"${selSet.size >= 2 ? '' : ' disabled'}>${esc(t.perB)}</button><button type="button" class="alt" id="bFind">${esc(t.findB)}</button>`;
+        const sm = selSet.size >= 2 ? parseMeld([...selSet], G.opened[0] === 'cift' || (!G.opened[0] && selSet.size === 2)) : null;
+        a += `<button type="button" id="bMeld"${selSet.size >= 2 ? '' : ' disabled'}>${esc(t.perB)}${sm && !G.opened[0] ? ` · ${sm.val}` : ''}</button><button type="button" class="alt" id="bFind">${esc(t.findB)}</button>`;
         if (!G.opened[0] && G.stage.length) a += `<button type="button" class="warn" id="bOpen">${esc(t.openB)}</button><button type="button" class="alt" id="bCancel">${esc(t.cancelB)}</button>`;
         if (G.took >= 0 && G.hand[0].includes(G.took)) a += `<button type="button" class="alt" id="bBack">${esc(t.backB)}</button>`;
       }
@@ -1018,8 +1090,8 @@ function render() {
   // sonuç
   const show = G.phase === 'res' || G.phase === 'end'; $('res').hidden = !show;
   if (show) {
-    const R = G.res; const head = R.w < 0 ? (is101() ? t.deckOut101 : t.deckOut) : R.ok ? t.finishedOk(pname(R.w)) : R.pairs ? t.finishedPairs(pname(R.w)) : t.finished(pname(R.w));
-    $('resBox').innerHTML = `<h3>${esc(head)}</h3>${R.wm ? `<div class="hand">${R.wm.map((m) => m.map((id) => tileHtml(id)).join('')).join('<span style="width:6px"></span>')}</div>` : ''}<div class="rl" style="color:#94a3b8;font-size:12px"><span>${esc(t.handN(G.handNo, G.hands))}</span><span>${esc(is101() ? t.penL : '')}</span><span>${esc(t.scoreL)}</span></div>${[0, 1, 2, 3].map((q) => `<div class="rl"><span>${esc(pname(q))}${is101() && !G.opened[q] && q !== R.w ? ` · ${esc(t.notOpenedR)}` : ''}</span><span class="d ${R.deltas[q] === 0 ? '' : (R.deltas[q] > 0) !== is101() ? 'up' : 'dn'}">${R.deltas[q] > 0 ? '+' : ''}${R.deltas[q] || '·'}</span><b>${G.scores[q]}</b></div>`).join('')}<button type="button" id="resB">${esc(G.phase === 'end' ? t.seeEnd : t.nextHand)}</button>`;
+    const R = G.res; const head = R.w < 0 ? (is101() ? t.deckOut101 : t.deckOut) : R.ok ? t.finishedOk(pname(R.w)) : R.pairs ? t.finishedPairs(pname(R.w)) : R.elden ? t.finishedElden(pname(R.w)) : t.finished(pname(R.w));
+    $('resBox').innerHTML = `<h3>${esc(head)}</h3>${R.wm ? `<div class="hand">${R.wm.map((m) => m.map((id) => tileHtml(id)).join('')).join('<span style="width:6px"></span>')}</div>` : ''}<div class="rl" style="color:#94a3b8;font-size:12px"><span>${esc(t.handN(G.handNo, G.hands))}</span><span>${esc(is101() ? t.penL : '')}</span><span>${esc(t.scoreL)}</span></div>${[0, 1, 2, 3].map((q) => `<div class="rl"><span>${esc(pname(q))}${is101() && !G.opened[q] && q !== R.w ? ` · ${esc(t.notOpenedR)}` : ''}${R.pen && R.pen[q] ? ` · <span style="color:#f87171">+${R.pen[q]} ${esc(t.penL2)}</span>` : ''}</span><span class="d ${R.deltas[q] === 0 ? '' : (R.deltas[q] > 0) !== is101() ? 'up' : 'dn'}">${R.deltas[q] > 0 ? '+' : ''}${R.deltas[q] || '·'}</span><b>${G.scores[q]}</b></div>`).join('')}<button type="button" id="resB">${esc(G.phase === 'end' ? t.seeEnd : t.nextHand)}</button>`;
   }
   newId = -1;
 }
@@ -1069,10 +1141,13 @@ function srcDown(e, src) {
 }
 $('deck').addEventListener('pointerdown', (e) => srcDown(e, 'deck'));
 $('leftPile').addEventListener('pointerdown', (e) => srcDown(e, 'pile'));
-function dropTarget(x, y) {
+function dropTarget(x, y, dd = drag) {
   if (drag && drag.src) { const el = document.elementFromPoint(x, y); return el && (el.closest('.slot') || (el.closest('#rack') ? $('rack') : null)); }
   const el = document.elementFromPoint(x, y); if (!el) return null;
-  return el.closest('.slot') || el.closest('#myPile') || el.closest('#deck') || el.closest('#ind') || el.closest('.meld[data-mi]');
+  const hit = el.closest('.slot') || el.closest('#myPile') || el.closest('#deck') || el.closest('#ind') || el.closest('.meld[data-mi]');
+  if (hit) return hit;
+  if (G && is101() && dd && selSet.has(dd.id) && selSet.size >= 2 && el.closest('#table')) return $('table');
+  return null;
 }
 addEventListener('pointermove', (e) => {
   if (!drag) return;
@@ -1101,11 +1176,12 @@ function endDrag(e) {
   }
   if (!d.on) { tapTile(d.id); return; }
   d.g.remove(); d.el.classList.remove('dragging');
-  const tg = e && dropTarget(e.clientX, e.clientY);
+  const tg = e && dropTarget(e.clientX, e.clientY, d);
   if (tg && tg.classList.contains('slot')) { moveSlot(d.slot, +tg.dataset.s); save(); render(); }
   else if (tg && tg.id === 'myPile') humanDiscard(d.id);
   else if (tg && (tg.id === 'deck' || tg.id === 'ind')) humanFinish(d.id);
   else if (tg && tg.dataset.mi != null) { selSet = new Set([d.id]); humanAdd(+tg.dataset.mi); }
+  else if (tg && tg.id === 'table') humanMeld();
   else render();
 }
 addEventListener('pointerup', endDrag); addEventListener('pointercancel', () => endDrag(null));
