@@ -32,30 +32,37 @@ button { font: inherit; color: inherit; cursor: pointer; }
 :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 [hidden] { display: none !important; }
 
-/* Üst çubuk: diğer oyunlarla aynı */
-.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
-.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
-.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
-.tools { display: flex; align-items: center; gap: 6px; }
-.pill {
-  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
-}
-.pill:hover { border-color: var(--cyan); color: #fff; }
-.pill:active { transform: translateY(1px); }
-.pill .ico { font-size: 16px; line-height: 1; }
-.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
-@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
-:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
-:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
-
-footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+/* Üst çubuk yok: sağ üstte ayarlar (ve varsa skor), sağ altta tam ekran. Oyun alanı ekranın tamamı. */
+.top { display: contents; }
+.fab { position: fixed; z-index: 26; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; padding: 0;
+  background: rgba(2, 6, 23, .62); border: 1px solid rgba(148, 163, 184, .32); color: #e2e8f0; box-shadow: 0 3px 10px rgba(0, 0, 0, .4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: background .15s, transform .1s; }
+.fab:hover { background: rgba(15, 23, 42, .9); color: #fff; } .fab:active { transform: scale(.94); }
+.fab.set { top: max(6px, env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); }
+.fab.score { top: max(6px, env(safe-area-inset-top)); right: calc(max(6px, env(safe-area-inset-right)) + 46px); }
+.fab.fs { bottom: max(6px, env(safe-area-inset-bottom)); right: max(6px, env(safe-area-inset-right)); width: 36px; height: 36px; opacity: .8; }
+.fab.fs .fsOut, .isFs .fab.fs .fsIn { display: none; } .isFs .fab.fs .fsOut { display: inline; }
+.sheet { max-width: 340px; display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+.sheet .logo { display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
+.sheet .logo img { display: block; height: 40px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12.5px; color: rgba(34, 211, 238, .9); padding: 2px 10px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.mlist { display: grid; gap: 8px; }
+.mi { height: 48px; border-radius: 13px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 700; color: #e2e8f0; text-align: left;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .3); }
+.mi:hover { border-color: var(--cyan); color: #fff; }
+.mi .ico { width: 22px; text-align: center; font-size: 18px; }
+.mi.lang { justify-content: center; font-size: 15px; font-weight: 800; color: #67e8f9; letter-spacing: .04em; }
+.sheet .btns { margin-top: 0; }
+.scoreBody { display: grid; gap: 8px; margin: 6px 0 2px; }
+.scoreBody table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 15px; }
+.scoreBody th { font-size: 12px; font-weight: 700; color: var(--dim); text-align: right; padding: 0 10px; }
+.scoreBody th:first-child, .scoreBody td:first-child { text-align: left; }
+.scoreBody td { padding: 10px; background: rgba(2, 6, 23, .55); text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: #e2e8f0; }
+.scoreBody td:first-child { border-radius: 10px 0 0 10px; color: #fff; } .scoreBody td:last-child { border-radius: 0 10px 10px 0; color: #fde68a; font-weight: 800; }
+.scoreBody tr.me td { background: rgba(8, 145, 178, .22); }
+.scoreBody .sn { font-size: 13px; color: var(--dim); text-align: center; margin: 0; }
 
 /* Pencereler */
-.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.ov { position: fixed; inset: 0; z-index: 27; display: flex; align-items: center; justify-content: center; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
 .card {
   width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
   background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
@@ -97,26 +104,16 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 .rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
 .rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
 .toast {
-  position: fixed; left: 50%; top: 64px; z-index: 15; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  position: fixed; left: 50%; top: max(10px, env(safe-area-inset-top)); z-index: 28; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
   padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
   background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
 }
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
 main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
 .panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
-/* Yatay telefon: üst çubuk soldaki dikey menü paneli olur; pencereler menü panelini örtmez; alt bilgi gizli */
+/* Yatay telefon: pencereler iki sütun */
 @media (orientation: landscape) and (max-height: 500px) {
-  body { display: grid; grid-template-columns: clamp(120px, 17vw, 160px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
-  .top { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
-  .top .in { height: auto; min-height: 100%; max-width: none; flex-direction: column; justify-content: center; padding: 14px 8px; gap: 16px; }
-  .logo { flex-direction: column; gap: 6px; }
-  .gname { display: inline; font-size: 11px; white-space: nowrap; }
-  .tools { flex-wrap: wrap; justify-content: center; gap: 8px; }
-  .pill { white-space: nowrap; }
-  main { grid-column: 2; grid-row: 1; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) 6px; }
-  body > .ov { padding: 8px 8px 8px calc(clamp(120px, 17vw, 160px) + 8px); }
-  .toast { top: 12px; left: calc(50% + clamp(120px, 17vw, 160px) / 2); }
-  footer { display: none; }
+  main { padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); }
   #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
   #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
   #setupOv h2 { font-size: 22px; }
@@ -129,12 +126,13 @@ main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; di
   #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
 }
 
-/* Telefon ve dokunmatik: oyun alanı ekranın tamamını kullanır */
+/* Telefon ve dokunmatik: kenar boşlukları dar */
 @media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) {
-  footer { display: none; }
   main { padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 6px; }
 }
-@media (max-width: 520px) { .top .in { height: 44px; padding: 0 8px; } .pill { height: 32px; min-width: 32px; } }
+
+/* Sağ üstteki ayarlar düğmesinin altına denk gelen üst satırlar yer açar */
+main > :is(.hud, .opps, .bar, .info, .pls):first-child, .scr > .head:first-child, main > .side:first-child > .ballbar:first-child { margin-right: 46px; }
 
 
 /* ---------- Oyuna özel ---------- */
@@ -198,21 +196,10 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 </head>
 <body>
 <header class="top">
-  <div class="in">
-    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
-      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
-      <span class="gname" id="gameName">Domino</span>
-    </a>
-    <div class="tools">
-      <button id="menuBtn" class="pill" type="button" aria-label="Yeni oyun"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
-      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
-      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
-      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
-      <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
-    </div>
-  </div>
+  <button id="setBtn" class="fab set" type="button" aria-label="Ayarlar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.3 7.3 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.3 7.3 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.7 1.7 1l.4 2.5h4l.4-2.5c.6-.3 1.2-.6 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
+  <button id="scoreBtn" class="fab score" type="button" aria-label="Skor tablosu" hidden><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path fill="currentColor" d="M4 20h4V10H4zm6 0h4V4h-4zm6 0h4v-7h-4z"/></svg></button>
+  <button id="fsBtn" class="fab fs" type="button" aria-label="Tam ekran"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path class="fsIn" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
 </header>
-
 <main id="main">
 <div class="hud panel" id="hud"></div>
 <div id="table"><div id="chain"></div><div class="empty" id="empty"></div><div class="res" id="res" hidden><div class="box panel" id="resBox"></div></div></div>
@@ -221,8 +208,34 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 
 </main>
 
-<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
 <div class="toast" id="toast" role="status"></div>
+
+<!-- Ayarlar -->
+<div class="ov" id="setOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-label="Ayarlar">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <img src="../assets/logo.webp" alt="Ridsgames" width="112" height="52">
+      <span class="gname" id="gameName">Domino</span>
+    </a>
+    <div class="mlist">
+      <button id="menuBtn" class="mi" type="button"><span class="ico">☰</span><span id="menuLbl">Yeni oyun</span></button>
+      <button id="scoreMi" class="mi" type="button" hidden><span class="ico">📊</span><span id="scoreLbl">Skor tablosu</span></button>
+      <button id="rulesBtn" class="mi" type="button"><span class="ico">?</span><span id="rulesLbl">Kurallar</span></button>
+      <button id="soundBtn" class="mi" type="button"><span class="ico" id="soundIco">🔊</span><span id="soundLbl">Ses</span></button>
+      <button id="langBtn" class="mi lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+    <div class="btns"><button class="big alt" id="setClose" type="button">Oyuna dön</button></div>
+  </div>
+</div>
+
+<!-- Skor tablosu -->
+<div class="ov" id="scoreOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="scoreTitle">
+    <h2 id="scoreTitle">Skor tablosu</h2>
+    <div id="scoreBody" class="scoreBody"></div>
+    <div class="btns"><button class="big" id="scoreOk" type="button">Tamam</button></div>
+  </div>
+</div>
 
 <!-- Yeni oyun -->
 <div class="ov" id="setupOv" hidden>
@@ -285,10 +298,10 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 <script>
 // ---------- Ortak: dil, ses, pencereler, sayaç ----------
 const COMMON = {
-  tr: { homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+  tr: { homeLabel: 'Ridsgames ana sayfa', settings: 'Ayarlar', scoreT: 'Skor tablosu', soundOn: 'Ses açık', soundOff: 'Ses kapalı', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
     start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
     lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
-  en: { homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+  en: { homeLabel: 'Ridsgames home', settings: 'Settings', scoreT: 'Scoreboard', soundOn: 'Sound on', soundOff: 'Sound off', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
     start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
     lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
 };
@@ -334,7 +347,7 @@ function toast(s, color) {
   const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
   clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
 }
-const OVS = ['setupOv', 'rulesOv', 'winOv'];
+const OVS = ['setOv', 'scoreOv', 'setupOv', 'rulesOv', 'winOv'];
 function closeAll() { for (const id of OVS) $(id).hidden = true; }
 const anyOpen = () => OVS.some((id) => !$(id).hidden);
 const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
@@ -701,7 +714,9 @@ function applyLang() {
   $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
   $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
   $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
-  $('rights').textContent = t.rights; $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  const c = COMMON[lang];
+  $('setBtn').setAttribute('aria-label', c.settings); $('scoreBtn').setAttribute('aria-label', c.scoreT); $('scoreLbl').textContent = c.scoreT; $('scoreTitle').textContent = c.scoreT; $('scoreOk').textContent = t.ok; $('setClose').textContent = t.back;
+  $('setOv').querySelector('.sheet').setAttribute('aria-label', c.settings); applySound(); $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
   $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
   $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
   $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
@@ -709,17 +724,30 @@ function applyLang() {
   $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
   gameLang();
 }
-function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); $('soundLbl').textContent = COMMON[lang][soundOn ? 'soundOn' : 'soundOff']; }
+const hasScore = typeof scoreHtml === 'function';
+function openScore() { closeAll(); $('scoreBody').innerHTML = hasScore ? scoreHtml() : ''; $('scoreOv').hidden = false; $('scoreOk').focus({ preventScroll: true }); }
+function syncFs() { const on = !!(document.fullscreenElement || document.webkitFullscreenElement); document.documentElement.classList.toggle('isFs', on); $('fsBtn').setAttribute('aria-pressed', on); }
 addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  if (!$('setOv').hidden || !$('scoreOv').hidden) { $('setOv').hidden = $('scoreOv').hidden = true; }
+  else if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
   else if (!$('setupOv').hidden && G) closeAll();
   else if (!$('winOv').hidden) closeAll();
 });
 $('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
 $('backBtn').addEventListener('click', closeAll);
-$('menuBtn').addEventListener('click', openSetup);
-$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('menuBtn').addEventListener('click', () => { $('setOv').hidden = true; openSetup(); });
+$('setBtn').addEventListener('click', () => { Sfx.unlock(); const was = !$('setOv').hidden; closeAll(); $('setOv').hidden = was; });
+$('setClose').addEventListener('click', () => { $('setOv').hidden = true; });
+$('setOv').addEventListener('click', (e) => { if (e.target.id === 'setOv') $('setOv').hidden = true; });
+$('scoreBtn').hidden = $('scoreMi').hidden = !hasScore;
+$('scoreBtn').addEventListener('click', () => { if (!$('scoreOv').hidden) { $('scoreOv').hidden = true; return; } openScore(); });
+$('scoreMi').addEventListener('click', openScore);
+$('scoreOk').addEventListener('click', () => { $('scoreOv').hidden = true; });
+$('scoreOv').addEventListener('click', (e) => { if (e.target.id === 'scoreOv') $('scoreOv').hidden = true; });
+document.addEventListener('fullscreenchange', syncFs); document.addEventListener('webkitfullscreenchange', syncFs);
+$('rulesBtn').addEventListener('click', () => { $('setOv').hidden = true; $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
 $('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
 $('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
 $('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
