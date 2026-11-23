@@ -251,6 +251,8 @@ table.sum tr.win td { color: #ffe066; font-weight: 800; }
 table.sum td.neg { color: #f87171; font-weight: 800; }
 @keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
 .card.no .in { animation: shake .25s 2; }
+/* Telefonda oyun alanı tüm ekranı kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) { footer { display: none; } }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -675,7 +677,7 @@ for (let c = 0; c < 52; c++) els[c] = makeCard(c);
 let L = null;
 function layout() {
   const W = stage.clientWidth, H = stage.clientHeight;
-  const cw = Math.floor(Math.max(34, Math.min(W / 4.9, H / 3.6 / 1.4, 112))), ch = Math.round(cw * 1.4);
+  const cw = Math.floor(Math.max(34, Math.min(W / (W < H ? 4.2 : 4.9), H / 3.6 / 1.4, 112))), ch = Math.round(cw * 1.4);
   const os = 0.6, och = ch * os, ocw = cw * os;
   const topVis = och * 0.5, topSeatY = topVis + 24;
   const handY = H - ch / 2 - Math.max(4, ch * 0.05), handTop = handY - ch / 2;
@@ -707,7 +709,7 @@ function render(dur = 360) {
   h.deck.forEach((c, i) => { put(c, L.cx - Math.min(i, 24) * 0.18, L.midY - Math.min(i, 24) * 0.18, 0, 1, false, i + 1, dur); if (i < h.deck.length - 2) flat.add(c); });
   h.kitty.forEach((c, i) => put(c, L.cx + (i - 1.5) * L.cw * 0.34, L.midY, (i - 1.5) * 5, 0.85, false, 60 + i, dur));
   // senin elin: sığmazsa iki sıra
-  const k = mine.length, maxW = L.W - 10 - L.cw, two = k > 1 && maxW / (k - 1) < L.cw * 0.3, backN = two ? Math.ceil(k / 2) : 0;
+  const k = mine.length, maxW = L.W - 10 - L.cw, two = k > 1 && maxW / (k - 1) < L.cw * 0.42, backN = two ? Math.ceil(k / 2) : 0;
   L.myTop = L.handY - L.ch / 2 - (two ? L.ch * 0.42 : 0);
   mine.forEach((c, i) => {
     const row = i < backN ? 0 : 1, m = two ? (row ? k - backN : backN) : k, ii = two && row ? i - backN : i;

@@ -229,6 +229,8 @@ table.sum tr.win td { color: #ffe066; font-weight: 800; }
 .card.drag { cursor: grabbing; }
 .card.drag .in { translate: none !important; }
 .card.drag .face { box-shadow: 0 14px 28px rgba(0, 0, 0, .55), 0 0 0 .5px rgba(0, 0, 0, .35); }
+/* Telefonda oyun alanı tüm ekranı kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) { footer { display: none; } }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -576,7 +578,7 @@ function render(dur = 360) {
     if (k > 2) flat.add(c);
   });
   // senin elin: sığmazsa iki sıra
-  const k = mine.length, maxW = L.W - 10 - L.cw, two = k > 1 && maxW / (k - 1) < L.cw * 0.3, backN = two ? Math.ceil(k / 2) : 0;
+  const k = mine.length, maxW = L.W - 10 - L.cw, two = k > 1 && maxW / (k - 1) < L.cw * 0.42, backN = two ? Math.ceil(k / 2) : 0;
   mine.forEach((c, i) => {
     const row = i < backN ? 0 : 1, m = two ? (row ? k - backN : backN) : k, ii = two && row ? i - backN : i;
     const sp = Math.min(L.cw * 0.68, maxW / Math.max(1, m - 1)), off = ii - (m - 1) / 2;

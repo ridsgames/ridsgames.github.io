@@ -201,6 +201,8 @@ table.sum td.z { color: #475569; }
 .card.drag { cursor: grabbing; }
 .card.drag .in { translate: none !important; }
 .card.drag .face { box-shadow: 0 14px 28px rgba(0, 0, 0, .55), 0 0 0 .5px rgba(0, 0, 0, .35); }
+/* Telefonda oyun alanı tüm ekranı kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) { footer { display: none; } }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>

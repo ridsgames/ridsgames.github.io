@@ -181,6 +181,8 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
   #modeSeg { grid-column: 1 / -1; }
   #groupBox { display: contents; }
 }
+/* Telefonda oyun alanı tüm ekranı kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) { footer { display: none; } }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>

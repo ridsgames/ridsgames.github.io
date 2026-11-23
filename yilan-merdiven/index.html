@@ -186,6 +186,8 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
   .f2 { transform: rotateX(90deg) translateZ(28px); } .f5 { transform: rotateX(-90deg) translateZ(28px); }
 }
 @media (prefers-reduced-motion: reduce) { .dice.ready .halo { animation: none; } .cube { transition-duration: .05s; } .dice.shake .cube, .dice.shake .shadow, .chip.pop { animation: none; } }
+/* Telefonda oyun alanı tüm ekranı kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) { footer { display: none; } }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
