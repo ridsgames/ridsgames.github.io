@@ -144,6 +144,7 @@ main > :is(.hud, .opps, .bar, .info, .pls):first-child, .scr > .head:first-child
 .pcHand .row + .row { margin-top: calc(var(--cw) * var(--rov, -.6)); }
 .pcHand .row .pc + .pc { margin-left: calc(var(--cw) * var(--ov, -.44)); }
 
+
 /* ---------- Oyuna özel ---------- */
 main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto; gap: 8px; align-items: stretch; max-width: 900px; --cw: 44px; }
 .opps { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 6px; }
@@ -432,6 +433,7 @@ function pcFit(n, W, H, maxCw, maxRows = 3, vis = 0.56, rov = 0.42) {
 function pcRows(ids, L) { const out = []; let k = 0; for (let r = 0; r < L.rows; r++) { const m = Math.ceil((ids.length - k) / (L.rows - r)); out.push(ids.slice(k, k + m)); k += m; } return out.filter((x) => x.length); }
 function pcApply(el, L) { el.style.setProperty('--cw', L.cw + 'px'); el.style.setProperty('--ov', String(-(1 - L.vis))); el.style.setProperty('--rov', String(-L.rov * 1.42)); }
 
+
 // ---------- Oyun ----------
 const STR = {
   tr: { ...COMMON.tr, title: 'Papaz Kaçtı | Ridsgames', game: 'Papaz Kaçtı',
@@ -694,10 +696,12 @@ $('viewBtn').addEventListener('click', closeAll);
 $('toMenuBtn').addEventListener('click', openSetup);
 $('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
 if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+const LAND = true;
 $('fsBtn').addEventListener('click', () => {
   const d = document, el = d.documentElement;
   const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
-  if (r && r.catch) r.catch(() => {});
+  const lockLand = () => { try { const o = screen.orientation; if (LAND && o && o.lock && (d.fullscreenElement || d.webkitFullscreenElement)) o.lock('landscape').catch(() => {}); } catch (e) {} }; // tam ekranda yatay oynanan oyunlar yana döner (Android); çıkınca kilit kendiliğinden kalkar
+  if (r && r.then) r.then(lockLand, () => {}); else lockLand();
 });
 $('langBtn').addEventListener('click', () => {
   lang = lang === 'tr' ? 'en' : 'tr';

@@ -284,6 +284,11 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .seat.s3, .seat.s1 { padding: 10px 3px; gap: 4px; font-size: 12px; }
 .seat .op { font-size: 9px; padding: 1px 4px; }
 .status { width: min(520px, calc(100% - 200px)); }
+/* Yardımlı 101: yerdeki bir pere işlenebilen taşın altında yeşil çizgi. Yardımsız: okey yıldızı yok */
+.rack .tl.isl { box-shadow: inset 0 -4px 0 #10b981, 0 2px 3px rgba(0, 0, 0, .35); }
+.rack .tl.isl.sel { box-shadow: inset 0 -4px 0 #10b981, 0 0 0 2.5px #fbbf24, 0 6px 10px rgba(0, 0, 0, .45); }
+.tl.jk.nh::before { content: none; }
+#opt101 { display: contents; }
 
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
@@ -366,6 +371,21 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
     <div class="sec">
       <div class="lbl" id="handsLbl"></div>
       <div class="seg" id="handsSeg"><button type="button" data-h="1"></button><button type="button" data-h="3"></button><button type="button" data-h="5"></button></div>
+    </div>
+    <div id="opt101">
+    <div class="sec">
+      <div class="lbl" id="ciftLbl"></div>
+      <div class="seg two" id="ciftSeg"><button type="button" data-c="var"></button><button type="button" data-c="yok"></button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="katLbl"></div>
+      <div class="seg two" id="katSeg"><button type="button" data-k="yok"></button><button type="button" data-k="var"></button></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="helpLbl"></div>
+      <div class="seg two" id="helpSeg"><button type="button" data-y="var"></button><button type="button" data-y="yok"></button></div>
+      <div class="note" id="optNote"></div>
+    </div>
     </div>
 
     <div class="btns">
@@ -473,7 +493,10 @@ const STR = {
     setupSub: 'Klasik Okey ya da 101. Üç bilgisayar rakiple dört kişilik masa.',
     modeLbl: 'Oyun', modes: { okey: ['🀄', 'Okey'], 101: ['💯', '101'] },
     modeNote: { okey: '14 taşla per ya da 7 çift diz, 15. taşı atarak bitir. Herkes 20 puanla başlar.', 101: 'En az 101 puanlık perle ya da 5 çiftle elini aç, taşlarını işle, elini ilk sen bitir. Ceza puanı en düşük olan kazanır.' },
-    lvLbl: 'Zorluk', handsLbl: 'El sayısı', handsN: (n) => `${n} el`,
+    lvLbl: 'Zorluk', handsLbl: 'El sayısı',
+    ciftLbl: 'Çift açma', ciftO: { var: 'Var', yok: 'Yok' }, katLbl: 'Katlama', katO: { yok: 'Katlamasız', var: 'Katlamalı' }, helpLbl: 'Yardım', helpO: { var: 'Yardımlı', yok: 'Yardımsız' },
+    optNote: (o) => [o.cift ? '' : 'Çiftle açılmaz.', o.kat ? 'Katlamalı: her açan, kendinden önce açanın toplamından en az 1 fazla (çiftte 1 çift fazla) açar.' : '', o.help ? 'Yardımlı: işlenebilen taşlar işaretli, okey yıldızlı, Per bul açık, işlek taş ve okey atarken uyarılırsın.' : 'Yardımsız: işaret, uyarı ve Per bul yok; okeyi göstergeden sen bulursun.'].filter(Boolean).join(' '),
+    noPairs: 'Bu masada çiftle açılmıyor', needT: (k, q) => `Açılış barajı: ${k}${q ? ` ya da ${q} çift` : ''}`, handsN: (n) => `${n} el`,
     you: 'Sen', cpuNames: ['Ahmet', 'Elif', 'Can'], tiles: (n) => `${n} taş`, tilesH: 'Taş', opened: 'açtı',
     deckL: 'Deste', indL: 'Gösterge', okeyL: 'Okey', takeL: 'Al', myL: 'At',
     colors: ['Sarı', 'Mavi', 'Kırmızı', 'Siyah'],
@@ -481,7 +504,7 @@ const STR = {
     play101: 'Per indir, işle ya da bir taş at', open101: 'Elini açmak için per seç', thinking: (n) => `${n} oynuyor…`,
     sortRun: 'Seri diz', sortPair: 'Çift diz', finishB: 'Bitir', showB: 'Göstergeyi göster', perB: 'Per yap', openB: 'Aç', cancelB: 'Vazgeç', findB: 'Per bul', backB: 'Geri koy (+101)', penBack: 'Yerden aldığın taşı geri koydun: +101 ceza', addMax: 'Çift açan bir turda en çok 2 taş işleyebilir', noPairAdd: 'Çift ancak çift açan birine işlenebilir', voidHand: 'Herkes çift açtı: el sayılmıyor, yeniden dağıtılıyor', okeyHand: 'okey',
     rotHint: 'Daha büyük taşlar için yan çevir', pickOne: 'Önce bir taş seç', notFinish: 'Bu taşı atınca el bitmiyor', badMeld: 'Seçtiğin taşlar per değil', notOpened: 'Önce elini açmalısın',
-    needUse: 'Yerden aldığın taşı bu tur kullanmalısın', keepOne: 'Bitirmek için elinde atacak bir taş kalmalı', total: (n) => `Toplam ${n} / 101`, pairsN: (n) => `${n} çift / 5`, lowOpen: (n) => `Açmak için 101 gerekli, şu an ${n}. Tek seferde bütün taşlarını açıp bitirirsen 101 gerekmez`,
+    needUse: 'Yerden aldığın taşı bu tur kullanmalısın', keepOne: 'Bitirmek için elinde atacak bir taş kalmalı', total: (n, k) => `Toplam ${n} / ${k}`, pairsN: (n, k) => `${n} çift / ${k}`, lowOpen: (n, k) => `Açmak için ${k} gerekli, şu an ${n}. Tek seferde bütün taşlarını açıp bitirirsen baraj gerekmez`,
     mixPairs: 'Çiftler ve perler birlikte açılamaz', cantAdd: 'Bu taş o pere işlenmez', shown: (n) => `${n} göstergeyi gösterdi: diğerleri 1 puan kaybetti`, showedMe: 'Göstergeyi gösterdin: rakipler 1 puan kaybetti',
     noFind: 'Uygun per bulunamadı', joker: 'Okey taşı (joker)',
     islekWarn: 'Bu taş yerdeki bir pere işlenir: atarsan 101 ceza yazılır. Yine de atmak için tekrar at', okeyWarn: 'Okeyi atarsan 101 ceza yazılır. Yine de atmak için tekrar at',
@@ -498,6 +521,7 @@ const STR = {
       ['💯', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir; ikisi birlikte açılmaz, 12-13-1 per sayılmaz, göstergenin görevi yoktur. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Çift açan seri indiremez, başkasının serisine bir turda en çok 2 taş işler; çift açan biri varsa diğerleri ona çift işleyebilir.'],
       ['🔁', '<b>Yerden taş:</b> Soldakinin attığı taşı alırsan o tur kullanmalısın; elini açmadıysan onunla açmalısın. Alıp geri koymak 101 ceza. Açtıktan sonra yerdeki okeyin yerine geçen gerçek taşı koyarak okeyi alabilirsin.'],
       ['🏁', '<b>Bitiş:</b> Son taşını yana atarak ya da göstergenin üstüne bırakarak bitirirsin; bitirmek için elinde atacak bir taş kalmalı. Kimse açmadan tek seferde bütün taşlarını açıp bitirirsen elden bitmiş olursun, bunun için 101 gerekmez.'],
+      ['⚙️', '<b>Masa seçenekleri (101):</b> <b>Çift açma yok</b> seçilirse yalnız perle açılır. <b>Katlamalı</b> masada her açan, kendinden önce açanın toplamından en az 1 fazla açmak zorundadır (101 ile açıldıysa sonraki 102); çiftte bir çift fazla gerekir (5, 6, 7…). <b>Yardımlı</b> masada işlenebilen taşlar işaretlenir, okey yıldızla gösterilir, Per bul düğmesi ve işlek taş uyarısı vardır; <b>yardımsız</b> masada bunların hiçbiri yoktur.'],
       ['⚠️', '<b>Cezalar:</b> Yerdeki bir pere işlenebilecek taşı atan ve okeyi atan 101 ceza yazar. Elinde okey kalan 101 ceza daha yazar.'],
       ['🧮', '<b>101 puanı:</b> Biten −101 yazar. Açamayan 202, açan elindeki taşların toplamını yazar; çift açanın cezası iki katıdır. Okeyle, çiftten ya da elden bitişte cezalar ve bitenin puanı iki katına çıkar; bunlar birleşirse katlanır (çiftten okey, elden okey dört kat). Deste biterse herkes elindekini yazar. Herkes çift açarsa el sayılmaz. Ceza toplamı en düşük olan kazanır.'],
       ['👆', 'Taşları sürükleyerek istakanı düzenle. Dokunarak seç, sağdaki “At” alanına sürükle ya da dokun.']
@@ -506,7 +530,10 @@ const STR = {
     setupSub: 'Classic Okey or Okey 101 at a four-player table with three computer rivals.',
     modeLbl: 'Game', modes: { okey: ['🀄', 'Okey'], 101: ['💯', '101'] },
     modeNote: { okey: 'Arrange 14 tiles into sets and runs or 7 pairs, then discard the 15th to win. Everyone starts with 20 points.', 101: 'Open with melds worth 101 or 5 pairs, lay off tiles and go out first. Lowest penalty wins.' },
-    lvLbl: 'Level', handsLbl: 'Hands', handsN: (n) => n === 1 ? '1 hand' : `${n} hands`,
+    lvLbl: 'Level', handsLbl: 'Hands',
+    ciftLbl: 'Open with pairs', ciftO: { var: 'Yes', yok: 'No' }, katLbl: 'Raising', katO: { yok: 'Fixed', var: 'Raising' }, helpLbl: 'Help', helpO: { var: 'On', yok: 'Off' },
+    optNote: (o) => [o.cift ? '' : 'Opening with pairs is not allowed.', o.kat ? 'Raising: each opener must beat the previous opening by at least 1 (pairs: one more pair).' : '', o.help ? 'Help on: tiles you can lay off are marked, the okey has a star, Find melds is on and you are warned before costly discards.' : 'Help off: no marks, warnings or Find melds; spot the okey from the indicator yourself.'].filter(Boolean).join(' '),
+    noPairs: 'Opening with pairs is off at this table', needT: (k, q) => `To open: ${k}${q ? ` or ${q} pairs` : ''}`, handsN: (n) => n === 1 ? '1 hand' : `${n} hands`,
     you: 'You', cpuNames: ['Alex', 'Maya', 'Leo'], tiles: (n) => `${n} tiles`, tilesH: 'Tiles', opened: 'open',
     deckL: 'Deck', indL: 'Indicator', okeyL: 'Okey', takeL: 'Take', myL: 'Discard',
     colors: ['Yellow', 'Blue', 'Red', 'Black'],
@@ -514,7 +541,7 @@ const STR = {
     play101: 'Lay melds, lay off tiles or discard', open101: 'Pick melds to open your hand', thinking: (n) => `${n} is playing…`,
     sortRun: 'Sort runs', sortPair: 'Sort pairs', finishB: 'Go out', showB: 'Show indicator', perB: 'Make meld', openB: 'Open', cancelB: 'Cancel', findB: 'Find melds', backB: 'Put back (+101)', penBack: 'You put back the tile you took: +101', addMax: 'A pairs opener may lay off at most 2 tiles a turn', noPairAdd: 'Pairs can only go to a player who opened with pairs', voidHand: 'Everyone opened with pairs: the hand is void and redealt', okeyHand: 'okey',
     rotHint: 'Turn sideways for bigger tiles', pickOne: 'Select a tile first', notFinish: 'Discarding this tile does not finish your hand', badMeld: 'Those tiles are not a meld', notOpened: 'Open your hand first',
-    needUse: 'You must use the tile you took this turn', keepOne: 'Keep one tile to discard', total: (n) => `Total ${n} / 101`, pairsN: (n) => `${n} pairs / 5`, lowOpen: (n) => `You need 101 to open, you have ${n}. Laying everything down and going out at once needs no 101`,
+    needUse: 'You must use the tile you took this turn', keepOne: 'Keep one tile to discard', total: (n, k) => `Total ${n} / ${k}`, pairsN: (n, k) => `${n} pairs / ${k}`, lowOpen: (n, k) => `You need ${k} to open, you have ${n}. Laying everything down and going out at once needs no minimum`,
     mixPairs: 'Pairs and melds cannot be opened together', cantAdd: 'That tile does not fit this meld', shown: (n) => `${n} showed the indicator: others lose 1 point`, showedMe: 'You showed the indicator: rivals lose 1 point',
     noFind: 'No meld found', joker: 'Okey tile (joker)',
     islekWarn: 'This tile fits a meld on the table: discarding it costs 101. Discard again to confirm', okeyWarn: 'Discarding the okey costs 101. Discard again to confirm',
@@ -531,6 +558,7 @@ const STR = {
       ['💯', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs, never both; 12-13-1 is not a run and the indicator has no role. Then lay new melds and add tiles to melds on the table. A pairs opener cannot lay runs and may add at most 2 tiles a turn to others’ melds; others may lay pairs onto a pairs opener.'],
       ['🔁', '<b>Discards:</b> If you take your left neighbour’s discard you must open with it that turn (or use it if already open). Taking it and putting it back costs 101. Once open, put the real tile in place of an okey on the table to take the okey.'],
       ['🏁', '<b>Going out:</b> Discard your last tile or drop it on the indicator; you need one tile left to go out. Laying everything down and going out before anyone else opens counts as going out in one go and needs no 101.'],
+      ['⚙️', '<b>Table options (101):</b> With <b>no pair opening</b> you can open only with melds. At a <b>raising</b> table each opener must beat the previous opening by at least 1 (after 101 the next needs 102); with pairs one more pair is needed (5, 6, 7…). <b>Help on</b> marks tiles you can lay off, shows the okey with a star and gives Find melds and discard warnings; <b>help off</b> gives none of these.'],
       ['⚠️', '<b>Penalties:</b> Discarding a tile that fits a meld on the table, or the okey, costs 101. An okey left in hand costs another 101.'],
       ['🧮', '<b>101 scoring:</b> The player who goes out scores −101. Unopened players score 202, opened ones the sum of their tiles; a pairs opener pays double. Going out with the okey, with pairs or in one go doubles the winner’s score and everyone’s penalty, and these stack (pairs + okey or one go + okey is ×4). If the deck runs out everyone scores their hand. If all four open with pairs the hand is void. Lowest total wins.'],
       ['👆', 'Drag tiles to arrange your rack. Tap to select; drag or tap onto “Discard”.']
@@ -554,13 +582,25 @@ function setCols(n) { // yuva sayısı değişince taşların yerini koru, fazla
   }
   const out = rows.flat(); for (const id of spill) out[out.indexOf(-1)] = id; G.rack = out;
 }
-let setup = Object.assign({ mode: 'okey', level: 'orta', hands: 3 }, store.get('setup', {}));
+let setup = Object.assign({ mode: 'okey', level: 'orta', hands: 3, cift: 'var', kat: 'yok', help: 'var' }, store.get('setup', {}));
 if (!STR.tr.modes[setup.mode]) setup.mode = 'okey'; if (!COMMON.tr.lv[setup.level]) setup.level = 'orta';
 let G = null, busy = false, epoch = 0, selSet = new Set(), newId = -1, drag = null;
 const pname = (i) => i === 0 ? T().you : T().cpuNames[i - 1];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const save = () => { if (G) store.set('game', G); };
 const is101 = () => G.mode === '101';
+// 101 seçenekleri: çiftle açma, katlamalı baraj, yardım (işaret, uyarı, Per bul)
+const OPT = () => Object.assign({ cift: true, kat: false, help: true }, G && G.opt);
+const helpOn = () => !is101() || OPT().help;
+const needPer = () => OPT().kat && G.maxOpen && G.maxOpen[0] ? G.maxOpen[0] + 1 : 101;
+const needPair = () => OPT().kat && G.maxOpen && G.maxOpen[1] ? G.maxOpen[1] + 1 : 5;
+const openLog = [];
+function markOpen(p, kind) { // açılışı kaydet; katlamalıda sonraki baraj buna göre
+  G.opened[p] = kind; G.openedAt[p] = G.tc; if (!G.maxOpen) G.maxOpen = [0, 0];
+  const mine = G.melds.filter((m) => m.o === p);
+  const tot = mine.reduce((s, m) => s + m.val, 0); openLog.push([G.handNo, p, kind, kind === 'cift' ? mine.length : tot, kind === 'cift' ? needPair() : needPer(), G.hand[p].length]);
+  if (kind === 'cift') G.maxOpen[1] = Math.max(G.maxOpen[1], mine.length); else G.maxOpen[0] = Math.max(G.maxOpen[0], mine.reduce((s, m) => s + m.val, 0));
+}
 
 // ---------- Taşlar ----------
 function info(id) {
@@ -723,10 +763,11 @@ const islek = (id) => !isJ(id) && G.melds.some((m) => canAdd(m, id));
 // ---------- Akış ----------
 function newMatch() {
   closeAll();
-  G = { mode: setup.mode, level: setup.level, hands: setup.hands, handNo: 0, scores: setup.mode === '101' ? [0, 0, 0, 0] : [20, 20, 20, 20] };
+  G = { mode: setup.mode, level: setup.level, hands: setup.hands, opt: { cift: setup.cift !== 'yok', kat: setup.kat === 'var', help: setup.help !== 'yok' }, handNo: 0, scores: setup.mode === '101' ? [0, 0, 0, 0] : [20, 20, 20, 20] };
   sayac('basladi', 'oyun başladı');
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
   sayac(`mod/${G.mode}-${G.level}-${G.hands}el`, `mod: ${G.mode}, ${G.level}, ${G.hands} el`);
+  if (G.mode === '101') sayac(`secenek/cift-${setup.cift}-kat-${setup.kat}-yardim-${setup.help}`, `101 seçenekleri: çift ${setup.cift}, katlama ${setup.kat}, yardım ${setup.help}`);
   deal();
 }
 function startFromSetup() { store.set('setup', setup); newMatch(); }
@@ -739,7 +780,7 @@ function deal() {
   const base = is101() ? 21 : 14, st = (G.handNo - 1) % 4;
   G.hand = [0, 1, 2, 3].map((p) => deck.splice(0, base + (p === st ? 1 : 0)));
   G.deck = deck; G.piles = [[], [], [], []]; G.turn = st; G.phase = 'play'; G.firstDone = [false, false, false, false]; G.shown = [false, false, false, false];
-  G.opened = [false, false, false, false]; G.pen = [0, 0, 0, 0]; G.tc = 0; G.openedAt = [-1, -1, -1, -1]; G.warn = -1; G.addN = 0; G.melds = []; G.took = -1; G.stage = []; G.res = null; G.note = null;
+  G.opened = [false, false, false, false]; G.pen = [0, 0, 0, 0]; G.tc = 0; G.openedAt = [-1, -1, -1, -1]; G.warn = -1; G.addN = 0; G.maxOpen = [0, 0]; G.melds = []; G.took = -1; G.stage = []; G.res = null; G.note = null;
   COLS = colsNow(); G.rack = Array(2 * COLS).fill(-1); arrange('run');
   selSet = new Set(); epoch++; busy = false;
   save(); render(); kick();
@@ -907,7 +948,7 @@ function cpuWants101(p, top) {
     const before = solve(G.hand[p], 'count', false).s, after = solve(h, 'count', false).s;
     return after >= before + 2 && after < h.length;
   }
-  const r = solve(h, 'sum', false); if (r.s < 101) return false;
+  const r = solve(h, 'sum', false); if (r.s < needPer()) return false;
   const ms = assign(h, r.m, top); return ms.some((m) => m.includes(top)) && ms.flat().length < h.length;
 }
 function cpu101Lay(p) {
@@ -915,15 +956,15 @@ function cpu101Lay(p) {
   if (!G.opened[p]) {
     if (G.level !== 'kolay') { // elden: bir taş dışında hepsini aç
       const ms = eldenPlan(h(), G.took);
-      if (ms) { for (const m of ms) layMeld(p, m, false); G.opened[p] = 'per'; G.openedAt[p] = G.tc; G.took = -1; save(); render(); return; }
+      if (ms) { for (const m of ms) layMeld(p, m, false); markOpen(p, 'per'); G.took = -1; save(); render(); return; }
     }
     const r = solve(h(), 'sum', false);
-    let ms = r.s >= 101 ? assign(h(), r.m, G.took) : null;
-    if (ms && ms.flat().length >= h().length) { ms.sort((a, b) => a.length - b.length); while (ms.length && ms.flat().length >= h().length) ms.shift(); if (ms.reduce((s, m) => s + parseMeld(m).val, 0) < 101) ms = null; }
+    const need = needPer(); let ms = r.s >= need ? assign(h(), r.m, G.took) : null;
+    if (ms && ms.flat().length >= h().length) { ms.sort((a, b) => a.length - b.length); while (ms.length && ms.flat().length >= h().length) ms.shift(); if (ms.reduce((s, m) => s + parseMeld(m).val, 0) < need) ms = null; }
     if (ms && G.took >= 0 && !ms.some((m) => m.includes(G.took))) ms = null;
-    if (ms && (G.level !== 'kolay' || Math.random() < 0.7)) { for (const m of ms) layMeld(p, m, false); G.opened[p] = 'per'; G.openedAt[p] = G.tc; }
-    else if (G.level !== 'kolay' && pairCount(h()) >= 5 && G.took < 0 && r.s < 85) {
-      const prs = findPairs(h()); if (prs.length >= 5 && prs.flat().length < h().length) { for (const m of prs) layMeld(p, m, true); G.opened[p] = 'cift'; G.openedAt[p] = G.tc; }
+    if (ms && (G.level !== 'kolay' || Math.random() < 0.7)) { for (const m of ms) layMeld(p, m, false); markOpen(p, 'per'); }
+    else if (OPT().cift && G.level !== 'kolay' && pairCount(h()) >= needPair() && G.took < 0 && r.s < need - 16) {
+      const prs = findPairs(h()); if (prs.length >= needPair() && prs.flat().length < h().length) { for (const m of prs) layMeld(p, m, true); markOpen(p, 'cift'); }
     }
     if (!G.opened[p]) return;
   }
@@ -963,7 +1004,7 @@ function humanDiscard(id) {
   if (id == null) { if (selSet.size !== 1) { toast(T().pickOne, '#fbbf24'); return; } id = [...selSet][0]; }
   if (is101() && G.took >= 0 && (G.hand[0].includes(G.took) || G.stage.some((m) => m.ids.includes(G.took)))) { toast(T().needUse, '#f87171'); Sfx.bad(); return; }
   if (G.stage.length) cancelStage();
-  if (is101() && G.hand[0].length > 1 && G.warn !== id && (isJ(id) || islek(id))) { G.warn = id; toast(isJ(id) ? T().okeyWarn : T().islekWarn, '#fbbf24'); Sfx.bad(); return; }
+  if (is101() && helpOn() && G.hand[0].length > 1 && G.warn !== id && (isJ(id) || islek(id))) { G.warn = id; toast(isJ(id) ? T().okeyWarn : T().islekWarn, '#fbbf24'); Sfx.bad(); return; }
   selSet.clear(); discard(0, id);
 }
 function humanFinish(id) {
@@ -977,7 +1018,7 @@ function humanShow() { if (!myTurn() || !canShow(0)) return; showInd(0); save();
 function humanPutBack() { if (!myTurn() || G.took < 0 || !G.hand[0].includes(G.took)) return; const id = G.took; G.hand[0].splice(G.hand[0].indexOf(id), 1); G.piles[leftOf(0)].push(id); G.took = -1; G.phase = 'draw'; G.pen[0] = (G.pen[0] || 0) + 101; toast(T().penBack, '#f87171'); Sfx.bad(); selSet.delete(id); syncRack(); save(); render(); }
 function humanMeld() {
   if (!myTurn() || G.phase !== 'play' || !is101()) return;
-  const ids = [...selSet], cq = cifter(0); const pairMode = G.opened[0] === 'cift' || (ids.length === 2 && (!G.opened[0] || cq != null));
+  const ids = [...selSet], cq = cifter(0); const pairMode = G.opened[0] === 'cift' || (ids.length === 2 && ((!G.opened[0] && OPT().cift) || cq != null));
   const m = parseMeld(ids, pairMode);
   if (!m || (m.t !== 'pair' && G.opened[0] === 'cift')) { toast(T().badMeld, '#f87171'); Sfx.bad(); return; }
   if (m.t === 'pair' && G.opened[0] === 'per' && cq == null) { toast(T().noPairAdd, '#f87171'); Sfx.bad(); return; }
@@ -993,11 +1034,11 @@ function unstage(i) { const m = G.stage.splice(i, 1)[0]; if (m) { G.hand[0].push
 function humanOpen() {
   if (!myTurn() || G.opened[0] || !G.stage.length) return;
   const pairs = G.stage[0].t === 'pair', tot = G.stage.reduce((s, m) => s + m.val, 0);
-  if (pairs ? G.stage.length < 5 : tot < 101 && G.hand[0].length !== 1) { toast(pairs ? T().pairsN(G.stage.length) : T().lowOpen(tot), '#f87171'); Sfx.bad(); return; }
+  if (pairs ? G.stage.length < needPair() : tot < needPer() && G.hand[0].length !== 1) { toast(pairs ? T().pairsN(G.stage.length, needPair()) : T().lowOpen(tot, needPer()), '#f87171'); Sfx.bad(); return; }
   if (!G.hand[0].length) { toast(T().keepOne, '#f87171'); return; }
   if (G.took >= 0 && G.hand[0].includes(G.took)) { toast(T().needUse, '#f87171'); return; }
   for (const m of G.stage) { m.o = 0; G.melds.push(m); }
-  G.stage = []; G.opened[0] = pairs ? 'cift' : 'per'; G.openedAt[0] = G.tc; G.took = -1; Sfx.good(); save(); render();
+  G.stage = []; markOpen(0, pairs ? 'cift' : 'per'); G.took = -1; Sfx.good(); save(); render();
   if (voidCheck()) voidHand();
 }
 function humanAdd(mi) {
@@ -1012,14 +1053,14 @@ function humanAdd(mi) {
   addTo(m, id); G.addN = (G.addN || 0) + 1; G.hand[0].splice(G.hand[0].indexOf(id), 1); if (id === G.took) G.took = -1; selSet.clear(); syncRack(); Sfx.tap(); save(); render();
 }
 function humanFind() {
-  if (!myTurn() || G.phase !== 'play' || !is101()) return;
+  if (!myTurn() || G.phase !== 'play' || !is101() || !helpOn()) return;
   const h = G.hand[0];
   if (!G.opened[0]) {
     cancelStage();
     const r = solve(h, 'sum', false);
     let ms = eldenPlan(h, G.took) || assign(h, r.m, G.took);
     if (r.s >= 101 || !ms.length) {} 
-    if (!ms.length) { const prs = findPairs(h); if (prs.length) ms = prs; }
+    if (!ms.length && OPT().cift) { const prs = findPairs(h); if (prs.length) ms = prs; }
     if (!ms.length) { toast(T().noFind, '#fbbf24'); return; }
     while (ms.flat().length >= h.length) ms.pop();
     for (const ids of ms) { const m = parseMeld(ids, ids.length === 2); if (m) { G.stage.push(m); ids.forEach((id) => h.splice(h.indexOf(id), 1)); } }
@@ -1113,15 +1154,16 @@ function render() {
   const st = $('stage');
   st.hidden = !(is101() && G.stage.length);
   if (!st.hidden) { const pairs = G.stage[0].t === 'pair', tot = G.stage.reduce((s, m) => s + m.val, 0);
-    st.innerHTML = `<div class="sm">${G.stage.map((m, i) => `<div class="meld" data-si="${i}">${m.ids.map((id) => tileHtml(id)).join('')}</div>`).join('')}</div><span class="tot">${esc(pairs ? t.pairsN(G.stage.length) : t.total(tot))}</span>`; }
+    st.innerHTML = `<div class="sm">${G.stage.map((m, i) => `<div class="meld" data-si="${i}">${m.ids.map((id) => tileHtml(id)).join('')}</div>`).join('')}</div><span class="tot">${esc(pairs ? t.pairsN(G.stage.length, needPair()) : t.total(tot, needPer()))}</span>`; }
   // raf
-  $('rack').innerHTML = G.rack.map((id, i) => `<div class="slot" data-s="${i}">${id >= 0 ? tileHtml(id, (selSet.has(id) ? 'sel' : '') + (id === newId ? ' nw' : '')) : ''}</div>`).join('');
+  const mark = is101() && helpOn() && G.opened[0] && G.turn === 0 && G.phase === 'play' && !(G.opened[0] === 'cift' && (G.addN || 0) >= 2) ? islek : () => false;
+  $('rack').innerHTML = G.rack.map((id, i) => `<div class="slot" data-s="${i}">${id >= 0 ? tileHtml(id, (selSet.has(id) ? 'sel' : '') + (id === newId ? ' nw' : '') + (mark(id) ? ' isl' : '') + (helpOn() ? '' : ' nh')) : ''}</div>`).join('');
   // durum ve düğmeler
   let s = '';
   if (G.phase === 'draw' || G.phase === 'play') {
     if (G.turn !== 0) s = t.thinking(pname(G.turn));
     else if (G.phase === 'draw') s = t.drawMe;
-    else if (is101()) s = G.opened[0] ? t.play101 : (G.stage.length ? t.open101 : t.play101);
+    else if (is101()) s = (G.opened[0] ? t.play101 : (G.stage.length ? t.open101 : t.play101)) + (!G.opened[0] && OPT().kat && G.maxOpen && (G.maxOpen[0] || G.maxOpen[1]) ? ' · ' + t.needT(needPer(), OPT().cift ? needPair() : 0) : '');
     else s = G.firstDone[0] || G.hand[0].length < 15 ? t.playMe : t.playFirst;
   }
   if (G.note) s = G.note + (s ? ' · ' + s : '');
@@ -1132,8 +1174,8 @@ function render() {
     if (my && G.phase === 'play') {
       if (!is101()) { a += `<button type="button" id="bFin"${G.hand[0].length === 15 ? '' : ' disabled'}>${esc(t.finishB)}</button>`; if (canShow(0)) a += `<button type="button" class="warn" id="bShow">${esc(t.showB)}</button>`; }
       else {
-        const sm = selSet.size >= 2 ? parseMeld([...selSet], G.opened[0] === 'cift' || (!G.opened[0] && selSet.size === 2)) : null;
-        a += `<button type="button" id="bMeld"${selSet.size >= 2 ? '' : ' disabled'}>${esc(t.perB)}${sm && !G.opened[0] ? ` · ${sm.val}` : ''}</button><button type="button" class="alt" id="bFind">${esc(t.findB)}</button>`;
+        const sm = selSet.size >= 2 && helpOn() ? parseMeld([...selSet], G.opened[0] === 'cift' || (!G.opened[0] && selSet.size === 2 && OPT().cift)) : null;
+        a += `<button type="button" id="bMeld"${selSet.size >= 2 ? '' : ' disabled'}>${esc(t.perB)}${sm && !G.opened[0] ? ` · ${sm.val}` : ''}</button>${helpOn() ? `<button type="button" class="alt" id="bFind">${esc(t.findB)}</button>` : ''}`;
         if (!G.opened[0] && G.stage.length) a += `<button type="button" class="warn" id="bOpen">${esc(t.openB)}</button><button type="button" class="alt" id="bCancel">${esc(t.cancelB)}</button>`;
         if (G.took >= 0 && G.hand[0].includes(G.took)) a += `<button type="button" class="alt" id="bBack">${esc(t.backB)}</button>`;
       }
@@ -1151,12 +1193,17 @@ function render() {
 function renderSetup() {
   const t = T();
   segPress('modeSeg', 'm', setup.mode); segPress('lvSeg', 'l', setup.level); segPress('handsSeg', 'h', String(setup.hands));
+  segPress('ciftSeg', 'c', setup.cift); segPress('katSeg', 'k', setup.kat); segPress('helpSeg', 'y', setup.help);
   $('modeNote').textContent = t.modeNote[setup.mode];
+  $('opt101').hidden = setup.mode !== '101'; $('optNote').textContent = t.optNote({ cift: setup.cift !== 'yok', kat: setup.kat === 'var', help: setup.help !== 'yok' });
 }
 function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.phase === 'over'; $('startBtn').focus({ preventScroll: true }); }
 function gameLang() {
   const t = T();
-  ['modeLbl', 'lvLbl', 'handsLbl'].forEach((k) => { $(k).textContent = t[k]; });
+  ['modeLbl', 'lvLbl', 'handsLbl', 'ciftLbl', 'katLbl', 'helpLbl'].forEach((k) => { $(k).textContent = t[k]; });
+  document.querySelectorAll('#ciftSeg button').forEach((b) => { b.textContent = t.ciftO[b.dataset.c]; });
+  document.querySelectorAll('#katSeg button').forEach((b) => { b.textContent = t.katO[b.dataset.k]; });
+  document.querySelectorAll('#helpSeg button').forEach((b) => { b.textContent = t.helpO[b.dataset.y]; });
   document.querySelectorAll('#modeSeg button').forEach((b) => { const [e, n] = t.modes[b.dataset.m]; b.innerHTML = `<span class="em">${e}</span><small>${n}</small>`; });
   document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
   document.querySelectorAll('#handsSeg button').forEach((b) => { b.textContent = t.handsN(+b.dataset.h); });
@@ -1166,6 +1213,9 @@ const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b 
 segH('modeSeg', 'm', (v) => { setup.mode = v; });
 segH('lvSeg', 'l', (v) => { setup.level = v; });
 segH('handsSeg', 'h', (v) => { setup.hands = +v; });
+segH('ciftSeg', 'c', (v) => { setup.cift = v; });
+segH('katSeg', 'k', (v) => { setup.kat = v; });
+segH('helpSeg', 'y', (v) => { setup.help = v; });
 let dragEnd = 0;
 const justDragged = () => Date.now() - dragEnd < 400;
 $('deck').addEventListener('click', () => { if (!G || justDragged()) return; if (G.phase === 'draw') humanDraw(); else if (G.phase === 'play' && selSet.size === 1 && (!is101() || G.hand[0].length === 1)) humanFinish(); });
@@ -1246,7 +1296,7 @@ function boot() {
   if (s && s.hand && s.rack && s.phase && s.phase !== 'over') { G = s; busy = false; render(); kick(); }
   else openSetup();
 }
-window.__okey = { state: () => G, busy: () => busy, sel: () => [...selSet], solve, complete, parseMeld, canAdd, humanDraw, humanTake, humanDiscard, humanFinish, humanMeld, humanOpen, humanFind, humanAdd, tapTile, humanShow, humanPutBack, info };
+window.__okey = { openLog, state: () => G, busy: () => busy, sel: () => [...selSet], solve, complete, parseMeld, canAdd, humanDraw, humanTake, humanDiscard, humanFinish, humanMeld, humanOpen, humanFind, humanAdd, tapTile, humanShow, humanPutBack, info };
 
 
 // ---------- Ortak bağlantılar ----------
@@ -1297,10 +1347,12 @@ $('viewBtn').addEventListener('click', closeAll);
 $('toMenuBtn').addEventListener('click', openSetup);
 $('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
 if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+const LAND = true;
 $('fsBtn').addEventListener('click', () => {
   const d = document, el = d.documentElement;
   const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
-  if (r && r.catch) r.catch(() => {});
+  const lockLand = () => { try { const o = screen.orientation; if (LAND && o && o.lock && (d.fullscreenElement || d.webkitFullscreenElement)) o.lock('landscape').catch(() => {}); } catch (e) {} }; // tam ekranda yatay oynanan oyunlar yana döner (Android); çıkınca kilit kendiliğinden kalkar
+  if (r && r.then) r.then(lockLand, () => {}); else lockLand();
 });
 $('langBtn').addEventListener('click', () => {
   lang = lang === 'tr' ? 'en' : 'tr';
