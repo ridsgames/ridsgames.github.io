@@ -202,6 +202,7 @@ html.rgSet .top { display: flex; }
 footer { display: none; }
 /* ayarlar ve tam ekran düğmelerine yer */
 main > .hud { margin-right: 46px; }
+@media (orientation: landscape) { main > .hud, main > .ctrl { width: calc(100% - 46px) !important; margin-right: 46px !important; } } @media (orientation: portrait) { main > .ctrl { width: calc(100% - 42px) !important; margin-right: 42px !important; } }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>

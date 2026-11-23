@@ -213,6 +213,7 @@ html.rgSet .top { display: flex; }
 footer { display: none; }
 /* ayarlar ve tam ekran düğmelerine yer */
 @media (orientation: portrait) { main > .go { margin-bottom: 44px; } } @media (orientation: landscape) { main > .go { margin-right: 44px; } }
+@media (orientation: landscape) { main > .go, main > .plist { width: calc(100% - 46px) !important; margin-right: 46px !important; } }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>

@@ -246,6 +246,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 @media (orientation: landscape) and (max-height: 500px) { .table { --tc: clamp(38px, 16vh, 64px); } .hand { padding-top: 10px; } }
 /* Sağ alttaki tam ekran düğmesine yer */
 .acts { padding-right: 44px; } @media (orientation: landscape) { .acts { padding-right: 0; margin-bottom: 40px; } }
+@media (orientation: portrait) { .hand { margin-right: 40px; } }
 
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
