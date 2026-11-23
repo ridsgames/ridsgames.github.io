@@ -135,6 +135,7 @@ main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; di
 main > :is(.hud, .opps, .bar, .info, .pls):first-child, .scr > .head:first-child, main > .side:first-child > .ballbar:first-child { margin-right: 46px; }
 
 
+
 /* ---------- Oyuna özel ---------- */
 main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: 6px; align-items: stretch; --tw: 26px; max-width: none; padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); }
 .bot { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
@@ -180,7 +181,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .stage .tot { flex: none; font-size: 13px; font-weight: 800; color: #fde68a; white-space: nowrap; }
 .status { text-align: center; font-size: 14px; font-weight: 700; color: #ecfdf5; min-height: 1.3em; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); flex: none; }
 .rackw { display: flex; justify-content: center; }
-.rack { display: grid; grid-template-columns: repeat(13, var(--tw)); grid-auto-rows: calc(var(--tw) * 1.38); gap: 4px 2px; padding: 7px 6px 9px; border-radius: 12px;
+.rack { display: grid; grid-template-columns: repeat(var(--cols, 13), var(--tw)); grid-auto-rows: calc(var(--tw) * 1.38); gap: 4px 2px; padding: 7px 6px 9px; border-radius: 12px;
   background: linear-gradient(180deg, #92400e, #78350f); box-shadow: inset 0 -5px 0 #451a03, 0 6px 14px rgba(0, 0, 0, .45); }
 .slot { position: relative; border-radius: 4px; background: rgba(0, 0, 0, .12); }
 .slot.hov { background: rgba(251, 191, 36, .4); }
@@ -204,9 +205,10 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .res button { height: 42px; border-radius: 999px; border: 0; font-weight: 800; font-size: 15px; color: #052e16; background: linear-gradient(180deg, #34d399, #10b981); margin-top: 4px; }
 .res .hand { display: flex; flex-wrap: wrap; gap: 1px; --tw: 16px; justify-content: center; }
 @media (orientation: landscape) {
-  .bot { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 8px; }
+  /* Düğmeler solda, ıstaka kalan genişliğin tamamında; sağda tam ekran düğmesine yer */
+  .bot { display: grid; grid-template-columns: min(150px, 16vw) minmax(0, 1fr); align-items: end; gap: 8px; padding-right: 44px; }
   .rackw { grid-column: 2; grid-row: 1; }
-  .acts { grid-column: 1; grid-row: 1; padding: 0; flex-direction: column; flex-wrap: nowrap; align-items: stretch; justify-content: flex-end; max-width: 150px; justify-self: end; width: 100%; }
+  .acts { grid-column: 1; grid-row: 1; padding: 0; flex-direction: column; flex-wrap: nowrap; align-items: stretch; justify-content: flex-end; width: 100%; }
   .acts button { padding: 0 8px; }
 }
 @media (orientation: landscape) and (max-height: 500px) {
@@ -464,6 +466,7 @@ function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]
 }
 
 
+
 // ---------- Oyun ----------
 const STR = {
   tr: { ...COMMON.tr, title: 'Okey | Ridsgames', game: 'Okey',
@@ -534,7 +537,23 @@ const STR = {
     ] }
 };
 const T = () => STR[lang];
-const SLOTS = 26;
+// Istaka iki kat. Dikey telefonda kat başına 13 yuva, diğer ekranlarda 15 (taşları gruplara ayırmak için boşluk kalır).
+let COLS = 13;
+const colsNow = () => (!matchMedia('(orientation: landscape)').matches && $('main').clientWidth < 620) ? 13 : 15;
+function setCols(n) { // yuva sayısı değişince taşların yerini koru, fazla boşlukları sil
+  COLS = n; if (!G || !G.rack || G.rack.length === 2 * n) return;
+  const oc = G.rack.length / 2, rows = [G.rack.slice(0, oc), G.rack.slice(oc)], spill = [];
+  for (const row of rows) {
+    while (row.length > n) {
+      let k = row[row.length - 1] < 0 ? row.length - 1 : -1;
+      if (k < 0) for (let q = 1; q < row.length; q++) if (row[q] < 0 && row[q - 1] < 0) { k = q; break; }
+      if (k < 0) k = row.indexOf(-1);
+      if (k < 0) spill.push(row.pop()); else row.splice(k, 1);
+    }
+    while (row.length < n) row.push(-1);
+  }
+  const out = rows.flat(); for (const id of spill) out[out.indexOf(-1)] = id; G.rack = out;
+}
 let setup = Object.assign({ mode: 'okey', level: 'orta', hands: 3 }, store.get('setup', {}));
 if (!STR.tr.modes[setup.mode]) setup.mode = 'okey'; if (!COMMON.tr.lv[setup.level]) setup.level = 'orta';
 let G = null, busy = false, epoch = 0, selSet = new Set(), newId = -1, drag = null;
@@ -721,7 +740,7 @@ function deal() {
   G.hand = [0, 1, 2, 3].map((p) => deck.splice(0, base + (p === st ? 1 : 0)));
   G.deck = deck; G.piles = [[], [], [], []]; G.turn = st; G.phase = 'play'; G.firstDone = [false, false, false, false]; G.shown = [false, false, false, false];
   G.opened = [false, false, false, false]; G.pen = [0, 0, 0, 0]; G.tc = 0; G.openedAt = [-1, -1, -1, -1]; G.warn = -1; G.addN = 0; G.melds = []; G.took = -1; G.stage = []; G.res = null; G.note = null;
-  G.rack = Array(SLOTS).fill(-1); arrange('run');
+  COLS = colsNow(); G.rack = Array(2 * COLS).fill(-1); arrange('run');
   selSet = new Set(); epoch++; busy = false;
   save(); render(); kick();
   if ($('rack').classList.contains('tall') && !rotHinted) { rotHinted = true; setTimeout(() => toast(T().rotHint, '#a7f3d0'), 700); }
@@ -729,7 +748,7 @@ function deal() {
 let rotHinted = false;
 // Grupları ıstaka katının sonundan taşırmadan diz
 function packGroups(out, groups) {
-  const B = [13, 26];
+  const B = [COLS, 2 * COLS];
   for (const g of groups) {
     const bi = B.findIndex((x) => x > out.length); if (bi < 0) { out.push(...g); continue; }
     const E = B[bi], cap = B[bi + 1] != null ? B[bi + 1] - E : 0;
@@ -750,8 +769,8 @@ function arrange(kind) {
     const pairs = [...m.values()].filter((v) => v.length > 1).sort((a, b) => info(a[0]).n - info(b[0]).n), singles = [...m.values()].filter((v) => v.length === 1).flat().sort((a, b) => info(a).n - info(b).n || info(a).c - info(b).c);
     packGroups(out, pairs); out.push(...js, ...singles);
   }
-  const R = Array(SLOTS).fill(-1); let i = 0;
-  for (const id of out) { if (i >= SLOTS) break; R[i++] = id; }
+  const R = Array(2 * COLS).fill(-1); let i = 0;
+  for (const id of out) { if (i >= R.length) break; R[i++] = id; }
   const placed = new Set(R.filter((x) => x >= 0)); for (const id of ids) if (!placed.has(id)) { const e = R.indexOf(-1); R[e] = id; }
   G.rack = R;
 }
@@ -1016,8 +1035,8 @@ function tapTile(id) { if (!G || G.phase === 'res' || G.phase === 'end' || G.pha
 function moveSlot(from, to) {
   if (from === to) return; const R = G.rack, id = R[from]; R[from] = -1;
   if (R[to] < 0) { R[to] = id; return; }
-  const row = Math.floor(to / 13) * 13;
-  let e = -1; for (let q = to + 1; q < row + 13; q++) if (R[q] < 0) { e = q; break; }
+  const row = Math.floor(to / COLS) * COLS;
+  let e = -1; for (let q = to + 1; q < row + COLS; q++) if (R[q] < 0) { e = q; break; }
   if (e >= 0) { for (let q = e; q > to; q--) R[q] = R[q - 1]; R[to] = id; return; }
   for (let q = to - 1; q >= row; q--) if (R[q] < 0) { e = q; break; }
   if (e >= 0) { for (let q = e; q < to; q++) R[q] = R[q + 1]; R[to] = id; return; }
@@ -1025,18 +1044,18 @@ function moveSlot(from, to) {
 }
 
 // ---------- Çizim ----------
-// Istaka her zaman iki kat x 13. Dikey telefonda yuvalar arası boşluk kalkar, taşlar ekran genişliğini doldurur ve uzar.
+// Dikey telefonda yuvalar arası boşluk kalkar, taşlar ekran genişliğini doldurur ve uzar.
 function sizeTiles() {
   const main = $('main'), mh = main.clientHeight, W = main.clientWidth;
   const landO = matchMedia('(orientation: landscape)').matches, land = landO && innerHeight < 560;
-  const tall = !landO && W < 620;
+  const tall = !landO && W < 620; setCols(tall ? 13 : 15);
   let tw;
   if (tall) tw = Math.floor((W - 8 - 8) / 13);
-  else if (landO) tw = Math.min(Math.floor((Math.min(W, 1100) - 2 * 120 - 24) / 13), Math.floor((mh * (land ? 0.42 : 0.36) - 22) / 2.76));
-  else tw = Math.floor((Math.min(W, 900) - 16 - 24) / 13);
+  else if (landO) tw = Math.min(Math.floor((Math.min(W, 1300) - Math.min(150, W * 0.16) - 8 - 44 - 12 - 2 * (COLS - 1)) / COLS), Math.floor((mh * (land ? 0.42 : 0.36) - 22) / 2.76));
+  else tw = Math.floor((Math.min(W, 960) - 16 - 24) / COLS);
   tw = clamp(tw, 20, land ? 54 : 60);
   const tr = tall ? clamp((mh * 0.34 - 30) / (2 * tw), 1.38, 2.1) : 1.38;
-  main.style.setProperty('--tw', tw + 'px'); main.style.setProperty('--tr', tr.toFixed(3));
+  main.style.setProperty('--tw', tw + 'px'); main.style.setProperty('--cols', COLS); main.style.setProperty('--tr', tr.toFixed(3));
   $('rack').classList.toggle('tall', tall);
   const T = $('table'), tA = T.clientWidth * T.clientHeight;
   main.style.setProperty('--mw', clamp(Math.round(Math.sqrt(tA) / 13), land ? 19 : 22, land ? 36 : 48) + 'px');
