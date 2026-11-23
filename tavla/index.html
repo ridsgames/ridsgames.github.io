@@ -135,6 +135,33 @@ main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; di
 main > :is(.hud, .opps, .bar, .info, .pls):first-child, .scr > .head:first-child, main > .side:first-child > .ballbar:first-child { margin-right: 46px; }
 
 
+/* ---------- Ortak 3B zar ---------- */
+.rdice { display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--ds, 46px) * .28); position: relative; padding: 0; border: 0; background: none; perspective: 420px; }
+.rdice .die { position: relative; width: var(--ds, 46px); height: var(--ds, 46px); flex: none; transition: opacity .25s, filter .25s; }
+.rdice .die.used { opacity: .32; filter: grayscale(1); }
+.rdice .cube { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.2, .75, .25, 1); }
+.rdice .face { position: absolute; inset: 0; border-radius: 20%; background: linear-gradient(145deg, #fffdf6, #ebe3cf); box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, .08), inset -3px -4px 8px rgba(0, 0, 0, .12);
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 15%; backface-visibility: hidden; }
+.rdice .face i { width: 72%; aspect-ratio: 1; border-radius: 50%; place-self: center; background: radial-gradient(circle at 35% 35%, #4b5563, #0f172a 70%); }
+.rdice .f1 { transform: rotateY(0deg) translateZ(calc(var(--ds, 46px) / 2)); }
+.rdice .f6 { transform: rotateY(180deg) translateZ(calc(var(--ds, 46px) / 2)); }
+.rdice .f3 { transform: rotateY(90deg) translateZ(calc(var(--ds, 46px) / 2)); }
+.rdice .f4 { transform: rotateY(-90deg) translateZ(calc(var(--ds, 46px) / 2)); }
+.rdice .f2 { transform: rotateX(90deg) translateZ(calc(var(--ds, 46px) / 2)); }
+.rdice .f5 { transform: rotateX(-90deg) translateZ(calc(var(--ds, 46px) / 2)); }
+.rdice .f1 i { background: radial-gradient(circle at 35% 35%, #ff6b6b, #c92a2a 70%); width: 90%; }
+.rdice .shd { position: absolute; left: 12%; right: 12%; bottom: -14%; height: 18%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent); }
+.rdice .die.hop .cube { animation: rdHop .8s ease-out; }
+.rdice .die.hop .shd { animation: rdShrink .8s ease-out; }
+@keyframes rdHop { 0% { translate: 0 0; scale: 1; } 30% { translate: 0 -38%; } 58% { translate: 0 0; scale: 1; } 66% { translate: 0 4%; scale: 1.1 .86; } 78% { translate: 0 -10%; scale: .96 1.05; } 90% { translate: 0 0; scale: 1.03 .97; } 100% { translate: 0 0; scale: 1; } }
+@keyframes rdShrink { 0%, 100% { scale: 1; opacity: 1; } 30% { scale: .55; opacity: .45; } 58% { scale: 1.1; opacity: 1; } }
+.rdice .halo { position: absolute; inset: -6px -8px; border-radius: 16px; border: 2px solid #34d399; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.rdice.ready { cursor: pointer; }
+.rdice.ready .halo { opacity: 1; animation: rdPulse 1.1s ease-in-out infinite; }
+@keyframes rdPulse { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.05); opacity: .35; } }
+.rdice .cnt { position: absolute; right: -6px; top: -8px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: #fbbf24; color: #1c1917; font: 800 12.5px/22px Inter, system-ui, sans-serif; text-align: center; box-shadow: 0 2px 6px rgba(0, 0, 0, .4); }
+@media (prefers-reduced-motion: reduce) { .rdice .cube { transition-duration: .05s; } .rdice .die.hop .cube, .rdice .die.hop .shd, .rdice.ready .halo { animation: none; } }
+
 /* ---------- Oyuna özel ---------- */
 main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; align-content: center; gap: 10px; align-items: stretch; }
 .hud { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; }
@@ -150,7 +177,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .mid { text-align: center; font-size: 11.5px; color: #94a3b8; line-height: 1.25; flex: none; }
 .mid b { display: block; color: #e2e8f0; font-size: 13px; }
 .bwrap { position: relative; min-height: 0; display: flex; align-items: center; justify-content: center; }
-#board { width: 100%; height: auto; display: block; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+#board { width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
 #board [data-h] { cursor: pointer; }
 .bar2 { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
 .status { text-align: center; font-size: 15px; font-weight: 700; color: #e2e8f0; min-height: 1.4em; }
@@ -182,6 +209,9 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
   .hud { padding: 6px 8px; gap: 4px; } .pl .sc { font-size: 17px; } .pl .nm { font-size: 13px; }
   .status { font-size: 13.5px; } .acts button { height: 40px; font-size: 14.5px; } .acts { min-height: 40px; gap: 6px; }
 }
+#dice { position: absolute; z-index: 2; transform: translate(-50%, -50%); }
+#dice.miss::after { content: '✕'; position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px); font: 900 14px/1 Inter, system-ui, sans-serif; color: #b91c1c; }
+#ghost .ck, #ghost { pointer-events: none; }
 
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
@@ -198,7 +228,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 </header>
 <main id="main">
 <div class="hud panel" id="hud"></div>
-<div class="bwrap" id="bwrap"><svg id="board" viewBox="0 0 14.8 11.8" role="img" aria-label="Tavla"></svg><div class="res" id="res" hidden><div class="box panel" id="resBox"></div></div></div>
+<div class="bwrap" id="bwrap"><svg id="board" viewBox="0 0 14.8 11.8" role="img" aria-label="Tavla"></svg><div id="dice" role="button" aria-label="Zar"></div><div class="res" id="res" hidden><div class="box panel" id="resBox"></div></div></div>
 <div class="bar2">
   <div class="status" id="status" aria-live="polite"></div>
   <div class="acts" id="acts"></div>
@@ -356,6 +386,45 @@ function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]
 }
 
 
+// ---------- Ortak 3B zar ----------
+// makeDice(el, n): el içine n zar çizer. set(vals, roll) değerleri gösterir, roll ise yuvarlar ve ses çıkarır.
+const DICE_ROT = { 1: [0, 0], 6: [0, 180], 3: [0, -90], 4: [0, 90], 2: [-90, 0], 5: [90, 0] };
+const DICE_PIPS = { 1: ['2/2'], 2: ['1/3', '3/1'], 3: ['1/3', '2/2', '3/1'], 4: ['1/1', '1/3', '3/1', '3/3'], 5: ['1/1', '1/3', '2/2', '3/1', '3/3'], 6: ['1/1', '2/1', '3/1', '1/3', '2/3', '3/3'] };
+function diceKnock() { // keçe üstünde yuvarlanan zar sesi
+  const c = soundOn && Sfx.unlock(); if (!c) return;
+  [0, 0.08, 0.17, 0.27, 0.4, 0.55, 0.66].forEach((dl, k) => {
+    const t = c.currentTime + dl, len = 0.05, buf = c.createBuffer(1, Math.floor(c.sampleRate * len), c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = 'bandpass'; f.frequency.value = 900 + Math.random() * 700; f.Q.value = 1.6; g.gain.value = 0.34 - k * 0.04;
+    s.buffer = buf; s.connect(f).connect(g).connect(c.destination); s.start(t);
+  });
+  buzz(12);
+}
+function makeDice(el, n = 2) {
+  el.classList.add('rdice');
+  const face = (v) => `<span class="face f${v}">${DICE_PIPS[v].map((a) => `<i style="grid-area:${a}"></i>`).join('')}</span>`;
+  el.innerHTML = '<span class="halo"></span>' + Array.from({ length: n }, () => `<span class="die"><span class="shd"></span><span class="cube">${[1, 2, 3, 4, 5, 6].map(face).join('')}</span></span>`).join('') + '<span class="cnt" hidden></span>';
+  const dies = [...el.querySelectorAll('.die')], rot = dies.map(() => [0, 0]), cur = dies.map(() => 0);
+  const turn = (i, v, spin) => {
+    const [tx, ty] = DICE_ROT[v], r = rot[i];
+    if (spin) { r[0] = r[0] - (r[0] % 360) + 720 + (i ? -360 : 0) + tx; r[1] = r[1] - (r[1] % 360) + 720 + (i ? 360 : 0) + ty; }
+    else { r[0] = r[0] - (r[0] % 360) + tx; r[1] = r[1] - (r[1] % 360) + ty; }
+    const cb = dies[i].querySelector('.cube');
+    if (!spin) { cb.style.transition = 'none'; cb.style.transform = `rotateX(${r[0]}deg) rotateY(${r[1]}deg)`; void cb.offsetWidth; cb.style.transition = ''; }
+    else cb.style.transform = `rotateX(${r[0]}deg) rotateY(${r[1]}deg)`;
+    if (spin) { dies[i].classList.remove('hop'); void dies[i].offsetWidth; dies[i].classList.add('hop'); }
+    cur[i] = v;
+  };
+  return {
+    el,
+    set(vals, roll) { vals.forEach((v, i) => { if (dies[i] && (roll || cur[i] !== v)) turn(i, v, !!roll); }); if (roll) diceKnock(); },
+    used(flags) { dies.forEach((d, i) => d.classList.toggle('used', !!flags[i])); },
+    ready(on) { el.classList.toggle('ready', !!on); },
+    count(n) { const c = el.querySelector('.cnt'); c.hidden = !n; c.textContent = n ? '×' + n : ''; }
+  };
+}
+
 // ---------- Oyun ----------
 const STR = {
   tr: { ...COMMON.tr, title: 'Tavla | Ridsgames', game: 'Tavla',
@@ -367,7 +436,7 @@ const STR = {
     openRoll: 'Başlamak için zar at: büyük atan başlar', openRes: (a, b, n) => `${a} – ${b}: ${n} başlıyor`, openTie: (a) => `İkisi de ${a}, yeniden at`,
     rollT: (n) => `${n}: zar at`, rollMe: 'Sıra sende: zar at', rollBtn: 'Zar at', undoBtn: 'Geri al', openBtn: 'Başlangıç zarı',
     pick: 'Oynatacağın pulu seç', pickDst: 'Parlayan yere dokun', enterFirst: 'Önce kırık pulunu oyuna sok',
-    noMove: (n) => `${n} oynayamıyor, sıra geçti`, thinking: (n) => `${n} oynuyor…`, cascade: (d) => `Kademeli çift: ${d}-${d}`, forfeit: 'Çift tam oynanamadı, kalan zarlar yandı',
+    noMove: (n) => `${n} oynayamıyor, sıra geçti`, forced: 'Tek hamle vardı, otomatik oynandı', thinking: (n) => `${n} oynuyor…`, cascade: (d) => `Kademeli çift: ${d}-${d}`, forfeit: 'Çift tam oynanamadı, kalan zarlar yandı',
     winG: (n) => `${n} oyunu aldı`, motherT: 'Ana pul hapsedildi!', mars: 'Mars! 2 puan', one: '1 puan', nextG: 'Sonraki oyun', seeEnd: 'Sonuç',
     winT: 'Maçı kazandın!', loseT: 'Bilgisayar kazandı', winN: (n) => `${n} kazandı!`, sub: (a, b) => `Maç skoru ${a} – ${b}`, games: 'Oynanan oyun', mars2: 'Mars',
     rulesSub: 'Üç oyun bir arada. Zarları at, pullarını yönünde ilerlet, hepsini evine topla ve dışarı çıkar.',
@@ -377,7 +446,7 @@ const STR = {
       ['💥', '<b>Tavla:</b> Rakibin iki ya da daha fazla pulu olan noktaya konamazsın. Tek pulun üstüne konarsan pul kırılır; kırık pul oyuna dönmeden başka pul oynanmaz.'],
       ['🔒', '<b>Mahbusa:</b> Pullar tek noktadan başlar, kırma yoktur. Rakibin tek pulunun üstüne konarsan onu <b>hapsedersin</b>: sen ayrılana kadar kıpırdayamaz. Başlangıç noktasındaki son pulu (<b>ana pul</b>) hapsedilen oyunu mars ile kaybeder.'],
       ['🌹', '<b>Gülbahar:</b> Pullar karşı köşelerden aynı yöne gider, kırma yoktur ve tek pul bile noktayı tutar. İlk üç zardan sonra çift gelirse o çiftten 6-6’ya kadar bütün çiftler sırayla oynanır; biri tam oynanamazsa kalanı yanar.'],
-      ['👆', 'Pula dokun, sonra parlayan noktaya dokun. Seçili pula yeniden dokunursan büyük zarla oynanır. Tur bitmeden <b>Geri al</b> ile hamleni değiştirebilirsin.']
+      ['👆', 'Oynayabileceğin pullar halkayla gösterilir. Pulu parlayan noktaya sürükle ya da pula dokunup noktaya dokun. Seçili pula yeniden dokunursan büyük zarla oynanır. Tek hamle varsa kendiliğinden oynanır. Tur bitmeden <b>Geri al</b> ile hamleni değiştirebilirsin.']
     ] },
   en: { ...COMMON.en, title: 'Backgammon | Ridsgames', game: 'Backgammon',
     setupSub: 'Classic backgammon plus the Turkish variants Mahbusa and Gülbahar. Play the computer or a friend.',
@@ -388,7 +457,7 @@ const STR = {
     openRoll: 'Roll to start: the higher die goes first', openRes: (a, b, n) => `${a} – ${b}: ${n} starts`, openTie: (a) => `Both rolled ${a}, roll again`,
     rollT: (n) => `${n}: roll`, rollMe: 'Your turn: roll the dice', rollBtn: 'Roll', undoBtn: 'Undo', openBtn: 'Opening roll',
     pick: 'Pick a checker to move', pickDst: 'Tap a glowing spot', enterFirst: 'Bring your checker in from the bar first',
-    noMove: (n) => `${n} cannot move, turn passes`, thinking: (n) => `${n} is moving…`, cascade: (d) => `Cascading double: ${d}-${d}`, forfeit: 'The double could not be finished, the rest is lost',
+    noMove: (n) => `${n} cannot move, turn passes`, forced: 'Only one play was possible, it was made for you', thinking: (n) => `${n} is moving…`, cascade: (d) => `Cascading double: ${d}-${d}`, forfeit: 'The double could not be finished, the rest is lost',
     winG: (n) => `${n} won the game`, motherT: 'The mother checker is trapped!', mars: 'Gammon! 2 points', one: '1 point', nextG: 'Next game', seeEnd: 'Results',
     winT: 'You won the match!', loseT: 'The computer won', winN: (n) => `${n} wins!`, sub: (a, b) => `Match score ${a} – ${b}`, games: 'Games played', mars2: 'Gammons',
     rulesSub: 'Three games in one. Roll, move your checkers along their path, gather them home and bear them off.',
@@ -398,13 +467,13 @@ const STR = {
       ['💥', '<b>Classic:</b> You cannot land on a point with two or more enemy checkers. Landing on a lone one hits it; a hit checker must re-enter before anything else moves.'],
       ['🔒', '<b>Mahbusa:</b> All checkers start on one point and there is no hitting. Landing on a lone enemy checker <b>traps</b> it until you leave. If the last checker on a player’s starting point (the <b>mother</b>) is trapped, that player loses a gammon.'],
       ['🌹', '<b>Gülbahar:</b> Checkers start in opposite corners and travel the same way; no hitting, and a single checker holds a point. After the first three rolls, doubles cascade: play that double and every higher one up to 6-6. If one cannot be finished, the rest is lost.'],
-      ['👆', 'Tap a checker, then a glowing spot. Tap the selected checker again to play the larger die. Use <b>Undo</b> before your turn ends.']
+      ['👆', 'Checkers you can move are ringed. Drag a checker to a glowing spot, or tap it and then the spot. Tap the selected checker again to play the larger die. A forced play is made for you. Use <b>Undo</b> before your turn ends.']
     ] }
 };
 const T = () => STR[lang];
 let setup = Object.assign({ variant: 'tavla', mode: 'cpu', level: 'orta', target: 3 }, store.get('setup', {}));
 if (!STR.tr.vars[setup.variant]) setup.variant = 'tavla'; if (!COMMON.tr.lv[setup.level]) setup.level = 'orta';
-let G = null, busy = false, epoch = 0, sel = null, dsts = [], newPts = [];
+let G = null, busy = false, epoch = 0, sel = null, dsts = [], newPts = [], XY = {}, anims = [], dragFrom = null, diceAnim = false, dragK = null;
 
 // ---------- Motor ----------
 // Noktalar 0..23 (1..24 numaralı). Her oyuncunun yolu PATH[p][konum] ile verilir; konum 18..23 ev, 24 dışarı, -1 kırık.
@@ -576,7 +645,7 @@ function kick() {
 }
 function doOpen() {
   if (!G || G.phase !== 'open' || busy) return;
-  Sfx.unlock(); const a = roll(), b = roll(); G.open = [a, b]; diceSnd();
+  Sfx.unlock(); const a = roll(), b = roll(); G.open = [a, b]; diceSnd(); diceAnim = true;
   if (a === b) { G.note = { k: 'tie', a }; save(); render(); return; }
   G.turn = a > b ? 0 : 1; G.note = { k: 'open', a, b, p: G.turn }; G.phase = 'roll';
   save(); render(); kick();
@@ -586,7 +655,7 @@ function doRoll() {
   if (!G || G.phase !== 'roll') return;
   Sfx.unlock();
   const a = roll(), b = roll(); diceSnd();
-  G.dice = [a, b]; G.rolls++; G.open = null;
+  G.dice = [a, b]; G.rolls++; G.open = null; diceAnim = true;
   if (a === b) {
     const casc = G.variant === 'gulbahar' && G.rolls > 3;
     G.stages = []; for (let d = a; d <= (casc ? 6 : a); d++) G.stages.push([d, d, d, d]);
@@ -604,8 +673,23 @@ function settle() {
     if (!G.cur.length) G.note = { k: 'nomove', p };
     return endTurn();
   }
+  if (human(p) && !G.cur.length && G.si === 0 && G.stages.length === 1) {
+    const L = leaves(G.S, p, G.R);
+    if (L.length === 1) { G.note = { k: 'forced' }; return autoPlay(L[0].ms.slice(), p); }
+  }
   save(); render();
   if (!human(p)) cpuMove();
+}
+function autoPlay(ms, p) { // zorunlu hamleyi canlandırarak oyna
+  busy = true; sel = null; dsts = []; save(); render();
+  const ep = epoch;
+  const step = () => {
+    if (ep !== epoch || G.phase !== 'move' || G.turn !== p) { busy = false; return; }
+    if (!ms.length) { busy = false; settle(); return; }
+    doMove(ms.shift(), true); if (G.phase !== 'move') { busy = false; return; }
+    save(); render(); setTimeout(step, REDUCED ? 120 : 420);
+  };
+  setTimeout(step, REDUCED ? 100 : 350);
 }
 function endTurn() {
   G.idle = G.cur.length ? 0 : (G.idle || 0) + 1;
@@ -613,14 +697,19 @@ function endTurn() {
   G.last = G.cur.slice(); G.turn = 1 - G.turn; G.phase = 'roll'; G.R = []; G.hist = []; sel = null; dsts = [];
   save(); render();
   const ep = epoch;
-  if (G.note && G.note.k === 'nomove') setTimeout(() => { if (ep === epoch) kick(); }, REDUCED ? 300 : 1100);
+  if (G.note && G.note.k === 'nomove') setTimeout(() => { if (ep === epoch) kick(); }, REDUCED ? 300 : 1900);
   else kick();
 }
 function doMove(m, noSnap) {
   const p = G.turn;
   if (!noSnap) G.hist.push(JSON.stringify({ S: G.S, R: G.R, si: G.si, stages: G.stages, cur: G.cur }));
   const from = m.f < 0 ? 'bar' : PATH[p][m.f], to = m.t >= 24 ? 'off' : PATH[p][m.t];
+  const fk = m.f < 0 ? 'bar' + p : String(from), tk = m.t >= 24 ? 'off' + p : String(to);
+  let fxy = dragFrom || XY[fk]; dragFrom = null;
+  const prev = anims.findIndex((x) => x.to === fk); if (prev >= 0) { fxy = anims[prev].from; anims.splice(prev, 1); }
+  if (fxy) anims.push({ from: fxy, to: tk });
   G.S = apply(G.S, p, m); const hit = G.S.hit; delete G.S.hit;
+  if (hit && XY[tk]) anims.push({ from: XY[tk], to: 'bar' + (1 - p) });
   G.R = minus(G.R, m.d); G.cur.push([p, from, to]); newPts = [to];
   if (hit) { Sfx.tone(180, 90, 0.18, 0.12, 'sawtooth', 0.08); buzz(30); } else Sfx.tone(m.t >= 24 ? 820 : 520, m.t >= 24 ? 990 : 440, 0.06, 0.06, 'triangle', 0.08);
   if (G.S.mother != null) { toast(T().motherT, '#fbbf24'); return endGame(p, true); }
@@ -665,7 +754,7 @@ function cpuMove() {
       save(); render(); setTimeout(step, REDUCED ? 120 : 480);
     };
     step();
-  }, REDUCED ? 150 : 500);
+  }, REDUCED ? 150 : 900);
 }
 
 // ---------- İnsan ----------
@@ -721,7 +810,7 @@ function ptGeo(a) { // a: 0..23 (nokta a+1)
   return { x: colX(n - 13), bottom: false };
 }
 const TRX = M + 12 + BW + 0.3, TRW = 1.1;
-function checker(x, y, p, extra = '') { return `<circle cx="${x}" cy="${y}" r="${R0}" fill="url(#g${p})" stroke="${p ? '#d97706' : '#a8a29e'}" stroke-width="0.04" ${extra}/>${p ? '' : `<circle cx="${x}" cy="${y}" r="${R0 * 0.62}" fill="none" stroke="rgba(120,113,108,.35)" stroke-width="0.035"/>`}`; }
+function checker(x, y, p, extra = '') { return `<g ${extra}><circle cx="${x}" cy="${y}" r="${R0}" fill="url(#g${p})" stroke="${p ? '#d97706' : '#a8a29e'}" stroke-width="0.04" ${extra}/>${p ? '' : `<circle cx="${x}" cy="${y}" r="${R0 * 0.62}" fill="none" stroke="rgba(120,113,108,.35)" stroke-width="0.035"/>`}</g>`; }
 function dieSvg(x, y, v, s, used) {
   const P = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] }[v];
   return `<g opacity="${used ? 0.35 : 1}"><rect x="${x - s / 2}" y="${y - s / 2}" width="${s}" height="${s}" rx="${s * 0.18}" fill="#fffbeb" stroke="#78716c" stroke-width="0.03"/>${P.map(([a, b]) => `<circle cx="${x + a * s * 0.26}" cy="${y + b * s * 0.26}" r="${s * 0.09}" fill="#1c1917"/>`).join('')}</g>`;
@@ -736,6 +825,8 @@ function render() {
   h += `<rect x="${M}" y="${M}" width="6" height="${H - 2 * M}" fill="#e9d5a1"/><rect x="${M + 6 + BW}" y="${M}" width="6" height="${H - 2 * M}" fill="#e9d5a1"/>`;
   h += `<rect x="${TRX}" y="${M}" width="${TRW}" height="${H - 2 * M}" rx="0.15" fill="rgba(0,0,0,.28)"/>`;
   const dstSet = new Map(dsts.map((d) => [d.t, d]));
+  const canMove = G.phase === 'move' && human(p) && !busy && sel === null ? new Set(allowed(S, p, G.R).map((m) => m.f)) : new Set();
+  XY = {};
   const lastSet = new Set(); (G.phase === 'move' && G.cur.length ? G.cur : G.last).forEach(([, f, to]) => { if (typeof f === 'number') lastSet.add('f' + f); if (typeof to === 'number') lastSet.add('t' + to); });
   for (let a = 0; a < 24; a++) {
     const { x, bottom } = ptGeo(a), y0 = bottom ? H - M : M, y1 = bottom ? H - M - PH : M + PH, odd = (a % 2 === 0);
@@ -755,8 +846,9 @@ function render() {
     list.forEach(([pl, pinned], i) => {
       const y = bottom ? H - M - R0 - 0.02 - i * step : M + R0 + 0.02 + i * step;
       const isSel = sel !== null && sel >= 0 && PATH[p][sel] === a && i === tot - 1;
-      const nw = newPts.includes(a) && i === tot - 1 && !REDUCED;
-      h += checker(x, y, pl, nw ? 'class="ck-new"' : '');
+      const top = i === tot - 1; if (top) XY[a] = [x, y];
+      h += checker(x, y, pl, top ? `data-k="${a}"` : '');
+      if (top && pl === p && canMove.has(IDX[p][a])) h += `<circle class="mv" cx="${x}" cy="${y}" r="${R0 + 0.05}" fill="none" stroke="#34d399" stroke-width="0.07" pointer-events="none"/>`;
       if (pinned) h += `<circle cx="${x}" cy="${y}" r="${R0 * 0.9}" fill="none" stroke="#fbbf24" stroke-width="0.07" stroke-dasharray="0.12 0.08"/>`;
       if (isSel) h += `<circle cx="${x}" cy="${y}" r="${R0 + 0.06}" fill="none" stroke="#fbbf24" stroke-width="0.09"/>`;
       if (i === tot - 1 && tot > 5) h += `<text x="${x}" y="${y + 0.15}" text-anchor="middle" font-size="0.42" font-weight="800" fill="${pl ? '#fde68a' : '#44403c'}">${n}</text>`;
@@ -766,34 +858,26 @@ function render() {
   for (const pl of [0, 1]) {
     const n = S.bar[pl]; if (!n) continue;
     const cx = M + 6 + BW / 2;
-    for (let i = 0; i < Math.min(n, 4); i++) { const y = pl === 0 ? H / 2 + 0.7 + i * 0.5 : H / 2 - 0.7 - i * 0.5; h += checker(cx, y, pl); }
+    const k = Math.min(n, 4);
+    for (let i = 0; i < k; i++) { const y = pl === 0 ? H / 2 + 0.7 + i * 0.5 : H / 2 - 0.7 - i * 0.5; if (i === k - 1) XY['bar' + pl] = [cx, y]; h += checker(cx, y, pl, i === k - 1 ? `data-k="bar${pl}"` : ''); }
+    if (pl === p && canMove.has(-1)) h += `<circle class="mv" cx="${cx}" cy="${pl === 0 ? H / 2 + 0.7 : H / 2 - 0.7}" r="${R0 + 0.05}" fill="none" stroke="#34d399" stroke-width="0.07" pointer-events="none"/>`;
     if (n > 1) h += `<text x="${cx}" y="${pl === 0 ? H / 2 + 0.85 : H / 2 - 0.55}" text-anchor="middle" font-size="0.4" font-weight="800" fill="${pl ? '#fde68a' : '#44403c'}">${n}</text>`;
     if (sel === -1 && p === pl) h += `<circle cx="${cx}" cy="${pl === 0 ? H / 2 + 0.7 : H / 2 - 0.7}" r="${R0 + 0.06}" fill="none" stroke="#fbbf24" stroke-width="0.09"/>`;
   }
   // çıkan pullar
   for (const pl of [0, 1]) {
     const n = S.off[pl];
-    for (let i = 0; i < n; i++) { const y = pl === 0 ? H - M - 0.12 - i * 0.3 : M + 0.12 + i * 0.3; h += `<rect x="${TRX + 0.12}" y="${y - 0.12}" width="${TRW - 0.24}" height="0.24" rx="0.06" fill="${pl ? '#7f1d1d' : '#efe6d2'}" stroke="${pl ? '#d97706' : '#a8a29e'}" stroke-width="0.025"/>`; }
+    for (let i = 0; i < n; i++) { const y = pl === 0 ? H - M - 0.12 - i * 0.3 : M + 0.12 + i * 0.3; if (i === n - 1) XY['off' + pl] = [TRX + TRW / 2, y]; h += `<rect${i === n - 1 ? ` data-k="off${pl}"` : ''} x="${TRX + 0.12}" y="${y - 0.12}" width="${TRW - 0.24}" height="0.24" rx="0.06" fill="${pl ? '#7f1d1d' : '#efe6d2'}" stroke="${pl ? '#d97706' : '#a8a29e'}" stroke-width="0.025"/>`; }
   }
   if (sel !== null && dstSet.has(24)) { const by = p === 0 ? H / 2 + 0.3 : M; h += `<rect class="dst" x="${TRX}" y="${by}" width="${TRW}" height="${H / 2 - M - 0.3}" rx="0.15" fill="#34d399" opacity="0.5"/>`; }
-  // zarlar
-  const showDice = G.phase === 'move' || (G.phase === 'roll' && G.dice.length) || G.open;
-  const dx = (p === 0 || G.phase === 'open') ? M + 6 + BW + 3 : M + 3, dy = H / 2;
-  if (G.phase === 'open' && G.open) { h += dieSvg(M + 3, dy, G.open[1], 0.95, false) + dieSvg(M + 6 + BW + 3, dy, G.open[0], 0.95, false); }
-  else if (G.phase === 'move') {
-    const st = G.stages[G.si] || [], used = st.length - G.R.length;
-    if (st.length === 2) { h += dieSvg(dx - 0.6, dy, st[0], 0.95, !G.R.includes(st[0])) + dieSvg(dx + 0.6, dy, st[1], 0.95, !G.R.includes(st[1]) || (st[0] === st[1])); }
-    else st.forEach((d, i) => { h += dieSvg(dx - 1.5 + i, dy, d, 0.82, i < used); });
-    if (G.stages.length > 1) h += `<text x="${dx}" y="${dy + 0.95}" text-anchor="middle" font-size="0.36" font-weight="800" fill="#7c2d12">${G.stages.map((s) => s[0] + '-' + s[0]).join(' → ')}</text>`;
-  } else if (G.phase === 'roll' && human(p) && !busy) {
-    h += `<g data-h="dice" class="dst">${dieSvg(dx - 0.6, dy, 6, 0.95, false)}${dieSvg(dx + 0.6, dy, 3, 0.95, false)}</g>`;
-  }
-  if (G.phase === 'open') h += `<g data-h="dice" class="dst">${G.open ? '' : dieSvg(M + 6 + BW + 3, dy, 5, 0.95, false)}</g>`;
+  if (G.phase === 'move' && G.stages.length > 1) { const dx = p === 0 ? M + 6 + BW + 3 : M + 3; h += `<text x="${dx}" y="${H / 2 + 1.05}" text-anchor="middle" font-size="0.36" font-weight="800" fill="#7c2d12">${G.stages.map((x) => x[0] + '-' + x[0]).join(' → ')}</text>`; }
   // dokunma alanları
   for (let a = 0; a < 24; a++) { const { x, bottom } = ptGeo(a); h += `<rect data-h="${a}" x="${x - 0.5}" y="${bottom ? H / 2 : M}" width="1" height="${H / 2 - M}" fill="transparent"/>`; }
   h += `<rect data-h="bar" x="${M + 6}" y="${M}" width="${BW}" height="${H - 2 * M}" fill="transparent"/><rect data-h="off" x="${TRX}" y="${M}" width="${TRW}" height="${H - 2 * M}" fill="transparent"/>`;
-  if (G.phase === 'roll' && human(p) && !busy) h += `<rect data-h="dice" x="${dx - 1.4}" y="${dy - 0.8}" width="2.8" height="1.6" fill="transparent"/>`;
-  $('board').innerHTML = h; newPts = [];
+  $('board').innerHTML = h; newPts = []; renderDice();
+  if (dragK) { const e = $('board').querySelector(`[data-k="${dragK}"]`); if (e) e.style.opacity = '0'; }
+  if (anims.length && !REDUCED) for (const a of anims) { const e = $('board').querySelector(`[data-k="${a.to}"]`), t2 = XY[a.to]; if (e && t2 && e.animate) e.animate([{ transform: `translate(${a.from[0] - t2[0]}px, ${a.from[1] - t2[1]}px)` }, { transform: 'translate(0px, 0px)' }], { duration: 260, easing: 'cubic-bezier(.2,.7,.3,1)' }); }
+  anims = [];
   // hud
   const pl = (i) => `<div class="pl${G.phase === 'move' || G.phase === 'roll' ? (p === i ? ' on' : '') : ''}"><span class="ck ${i ? 'b' : 'w'}"></span><span class="tx"><span class="nm">${esc(pname(i))}</span><span class="pp">${esc(t.pip(pips(S, i)))}</span></span><span class="sc">${G.score[i]}</span></div>`;
   $('hud').innerHTML = `${pl(0)}<div class="mid"><b>${esc(t.vars[G.variant][1])}</b>${esc(t.match(G.target))}<br>${esc(t.gameN(G.gameNo))}</div>${pl(1)}`;
@@ -806,7 +890,8 @@ function render() {
     if (human(p) && !busy) { s = pre + (G.mode === 'cpu' ? t.rollMe : t.rollT(pname(p))); acts = `<button type="button" id="rollB">${esc(t.rollBtn)}</button>`; }
     else s = pre + t.thinking(pname(p));
   } else if (G.phase === 'move') {
-    if (human(p) && !busy) {
+    if (n && n.k === 'forced') s = t.forced;
+    else if (human(p) && !busy) {
       s = (G.stages.length > 1 ? t.cascade(G.stages[G.si][0]) + ' · ' : '') + (G.mode === 'iki' ? pname(p) + ': ' : '') + (sel !== null ? t.pickDst : G.variant === 'tavla' && G.S.bar[p] ? t.enterFirst : t.pick);
       acts = `<button type="button" class="alt" id="undoB"${G.hist.some((x) => x) ? '' : ' disabled'}>↶ ${esc(t.undoBtn)}</button>`;
     } else s = t.thinking(pname(p));
@@ -817,6 +902,38 @@ function render() {
   $('res').hidden = !show;
   if (show) { const R = G.res; $('resBox').innerHTML = `<h3>${esc(t.winG(pname(R.w)))}</h3><p>${esc(R.mars ? t.mars : t.one)}</p><div class="sc">${G.score[0]} – ${G.score[1]}</div><button type="button" id="resB">${esc(G.phase === 'end' ? t.seeEnd : t.nextG)}</button>`; }
 }
+// ---------- Zar ----------
+const DC = makeDice($('dice'), 2);
+function diceState() { // gösterilecek zarlar: { v, used, side, ready, count, roll }
+  const p = G.turn, n = G.note;
+  if (G.phase === 'open') return G.open ? { v: [G.open[1], G.open[0]], side: -1 } : { v: [5, 2], side: -1, ready: true };
+  if (G.phase === 'move') {
+    const st = G.stages[G.si] || G.dice, dbl = st[0] === st[1];
+    return { v: [st[0], st[1]], side: p, used: dbl ? [!G.R.length, G.R.length < 2] : [!G.R.includes(st[0]), !G.R.includes(st[1])], count: dbl && G.R.length > 2 ? G.R.length : 0 };
+  }
+  if (G.phase === 'roll') {
+    if (n && n.k === 'nomove' && G.dice.length) return { v: G.dice, side: n.p, miss: true };
+    if (human(p) && !busy) return { v: G.dice.length ? G.dice : [6, 3], side: p, ready: true };
+  }
+  return null;
+}
+function renderDice() {
+  const el = $('dice'), d = G && diceState();
+  if (!d) { el.hidden = true; diceAnim = false; return; }
+  el.hidden = false; DC.set(d.v, diceAnim && !REDUCED); diceAnim = false;
+  DC.used(d.used || [false, false]); DC.ready(!!d.ready); DC.count(d.count || 0);
+  el.classList.toggle('miss', !!d.miss); el.style.pointerEvents = d.ready ? 'auto' : 'none';
+  el.dataset.side = d.side; placeDice();
+}
+function placeDice() {
+  const el = $('dice'); if (el.hidden) return;
+  const br = $('board').getBoundingClientRect(), wr = $('bwrap').getBoundingClientRect(); if (!br.width) return;
+  const sc = br.width / W, side = +el.dataset.side, dx = side < 0 ? M + 6 + BW / 2 : side === 0 ? M + 6 + BW + 3 : M + 3;
+  el.style.left = (br.left - wr.left + dx * sc) + 'px'; el.style.top = (br.top - wr.top + (H / 2) * sc) + 'px';
+  el.style.setProperty('--ds', Math.max(30, Math.round(0.92 * sc)) + 'px');
+}
+addEventListener('resize', placeDice);
+$('dice').addEventListener('click', () => { if (!G) return; if (G.phase === 'open') doOpen(); else if (G.phase === 'roll' && human(G.turn) && !busy) doRoll(); });
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function renderSetup() {
   const t = T();
@@ -839,7 +956,41 @@ segH('varSeg', 'v', (v) => { setup.variant = v; });
 segH('modeSeg', 'm', (v) => { setup.mode = v; });
 segH('lvSeg', 'l', (v) => { setup.level = v; });
 segH('tgtSeg', 't', (v) => { setup.target = +v; });
-$('board').addEventListener('click', (e) => { const g = e.target.closest('[data-h]'); if (g) tapHit(g.dataset.h); });
+$('board').addEventListener('click', (e) => { if (Date.now() - dragEnd < 350) return; const g = e.target.closest('[data-h]'); if (g) tapHit(g.dataset.h); });
+// Sürükle bırak
+let dr = null, dragEnd = 0;
+const svgPt = (e) => { const r = $('board').getBoundingClientRect(); return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H]; };
+$('board').addEventListener('pointerdown', (e) => {
+  if (!G || G.phase !== 'move' || !human(G.turn) || busy) return;
+  const g = e.target.closest('[data-h]'); if (!g) return;
+  const h = g.dataset.h, p = G.turn; let f = null;
+  if (h === 'bar') { if (G.S.bar[p]) f = -1; } else if (h !== 'off') { const a = +h; if (movable(G.S, p, a)) f = IDX[p][a]; }
+  if (f === null || (G.variant === 'tavla' && G.S.bar[p] && f !== -1)) return;
+  dr = { f, x: e.clientX, y: e.clientY, on: false };
+});
+addEventListener('pointermove', (e) => {
+  if (!dr) return;
+  const p = G.turn;
+  if (!dr.on) {
+    if (Math.hypot(e.clientX - dr.x, e.clientY - dr.y) < 8) return;
+    const ds = destsFor(dr.f); if (!ds.length) { dr = null; return; }
+    dr.on = true; sel = dr.f; dsts = ds; dragK = dr.f < 0 ? 'bar' + p : String(PATH[p][dr.f]); Sfx.tap(); render();
+    $('board').insertAdjacentHTML('beforeend', `<g id="ghost" pointer-events="none" style="filter:drop-shadow(0 .12px .2px rgba(0,0,0,.6))">${checker(0, 0, p)}</g>`);
+  }
+  const [x, y] = svgPt(e), gh = $('ghost'); if (gh) gh.setAttribute('transform', `translate(${x} ${y - 0.25}) scale(1.12)`);
+});
+function dragUp(e) {
+  if (!dr) return; const d = dr; dr = null; if (!d.on) return;
+  dragEnd = Date.now(); dragK = null; const gh = $('ghost'); if (gh) gh.remove();
+  const p = G.turn, el = e && document.elementFromPoint(e.clientX, e.clientY), g = el && el.closest && el.closest('#board [data-h]');
+  const h = g && g.dataset.h, pos = h === 'off' ? 24 : h && h !== 'bar' ? IDX[p][+h] : null;
+  const dd = pos != null && dsts.find((x) => x.t === pos);
+  if (!dd || G.phase !== 'move') { sel = null; dsts = []; render(); return; }
+  const [x, y] = svgPt(e); dragFrom = [x, y - 0.25];
+  for (const m of dd.path) { doMove(m, m !== dd.path[0]); if (G.phase !== 'move') return; }
+  sel = null; dsts = []; settle();
+}
+addEventListener('pointerup', dragUp); addEventListener('pointercancel', () => dragUp(null));
 $('acts').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (b.id === 'rollB') { if (human(G.turn) && !busy) doRoll(); } else if (b.id === 'openB') doOpen(); else if (b.id === 'undoB') undo(); });
 $('res').addEventListener('click', (e) => { if (e.target.id === 'resB') { Sfx.click(); G.phase === 'end' ? finish() : nextGame(); } });
 addEventListener('keydown', (e) => {
