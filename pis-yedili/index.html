@@ -1035,9 +1035,17 @@ const LAND = true;
 $('fsBtn').addEventListener('click', () => {
   const d = document, el = d.documentElement;
   const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
-  const lockLand = () => { try { const o = screen.orientation; if (LAND && o && o.lock && (d.fullscreenElement || d.webkitFullscreenElement)) o.lock('landscape').catch(() => {}); } catch (e) {} }; // tam ekranda yatay oynanan oyunlar yana döner (Android); çıkınca kilit kendiliğinden kalkar
-  if (r && r.then) r.then(lockLand, () => {}); else lockLand();
+  if (r && r.catch) r.catch(() => {});
 });
+// Tam ekrana geçilince oyun yana döner; kilit desteklenmiyorsa (iPhone, bazı tarayıcılar) telefonu çevirme ipucu çıkar.
+function lockLand() {
+  const d = document; if (!LAND || !(d.fullscreenElement || d.webkitFullscreenElement)) return;
+  const hint = () => { if (!matchMedia('(orientation: portrait)').matches) return; const t = d.createElement('div'); t.textContent = lang === 'tr' ? 'Yatay oynamak için telefonu yan çevir' : 'Turn your phone sideways to play';
+    t.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99;background:rgba(15,23,42,.92);color:#fff;font:700 15px/1.3 system-ui,sans-serif;padding:12px 18px;border-radius:14px;border:1.5px solid #22d3ee;pointer-events:none;text-align:center;max-width:80vw';
+    (d.fullscreenElement || d.body).appendChild(t); setTimeout(() => t.remove(), 2200); };
+  try { const o = screen.orientation; if (o && o.lock) o.lock('landscape').catch(hint); else hint(); } catch (e) { hint(); }
+}
+document.addEventListener('fullscreenchange', lockLand); document.addEventListener('webkitfullscreenchange', lockLand);
 $('langBtn').addEventListener('click', () => {
   lang = lang === 'tr' ? 'en' : 'tr';
   try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
