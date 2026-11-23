@@ -476,9 +476,9 @@ const STR = {
     colors: ['Sarı', 'Mavi', 'Kırmızı', 'Siyah'],
     drawMe: 'Desteden çek ya da soldakinin attığı taşı al', playMe: 'Bir taş at', playFirst: 'İlk el sende: bir taş at',
     play101: 'Per indir, işle ya da bir taş at', open101: 'Elini açmak için per seç', thinking: (n) => `${n} oynuyor…`,
-    sortRun: 'Seri diz', sortPair: 'Çift diz', finishB: 'Bitir', showB: 'Göstergeyi göster', perB: 'Per yap', openB: 'Aç', cancelB: 'Vazgeç', findB: 'Per bul', backB: 'Geri koy',
+    sortRun: 'Seri diz', sortPair: 'Çift diz', finishB: 'Bitir', showB: 'Göstergeyi göster', perB: 'Per yap', openB: 'Aç', cancelB: 'Vazgeç', findB: 'Per bul', backB: 'Geri koy (+101)', penBack: 'Yerden aldığın taşı geri koydun: +101 ceza', addMax: 'Çift açan bir turda en çok 2 taş işleyebilir', noPairAdd: 'Çift ancak çift açan birine işlenebilir', voidHand: 'Herkes çift açtı: el sayılmıyor, yeniden dağıtılıyor', okeyHand: 'okey',
     rotHint: 'Daha büyük taşlar için yan çevir', pickOne: 'Önce bir taş seç', notFinish: 'Bu taşı atınca el bitmiyor', badMeld: 'Seçtiğin taşlar per değil', notOpened: 'Önce elini açmalısın',
-    needUse: 'Yerden aldığın taşı bu tur kullanmalısın', keepOne: 'Bitirmek için elinde atacak bir taş kalmalı', total: (n) => `Toplam ${n} / 101`, pairsN: (n) => `${n} çift / 5`, lowOpen: (n) => `Açmak için 101 gerekli, şu an ${n}`,
+    needUse: 'Yerden aldığın taşı bu tur kullanmalısın', keepOne: 'Bitirmek için elinde atacak bir taş kalmalı', total: (n) => `Toplam ${n} / 101`, pairsN: (n) => `${n} çift / 5`, lowOpen: (n) => `Açmak için 101 gerekli, şu an ${n}. Tek seferde bütün taşlarını açıp bitirirsen 101 gerekmez`,
     mixPairs: 'Çiftler ve perler birlikte açılamaz', cantAdd: 'Bu taş o pere işlenmez', shown: (n) => `${n} göstergeyi gösterdi: diğerleri 1 puan kaybetti`, showedMe: 'Göstergeyi gösterdin: rakipler 1 puan kaybetti',
     noFind: 'Uygun per bulunamadı', joker: 'Okey taşı (joker)',
     islekWarn: 'Bu taş yerdeki bir pere işlenir: atarsan 101 ceza yazılır. Yine de atmak için tekrar at', okeyWarn: 'Okeyi atarsan 101 ceza yazılır. Yine de atmak için tekrar at',
@@ -492,9 +492,11 @@ const STR = {
       ['🔗', '<b>Per</b>: aynı renkte sıralı en az üç taş (Okey’de 12-13-1 de olur) ya da aynı sayıda farklı renklerden 3–4 taş.'],
       ['🔄', 'Sıra sağa döner. Sıran gelince desteden çek ya da solundakinin attığı taşı al, sonra sağına bir taş at.'],
       ['🀄', '<b>Okey:</b> Elindeki 14 taşı perlere ya da 7 çifte ayırıp 15. taşı atan biter. Herkes 20 puanla başlar; biten dışındakiler 2 puan, okey atarak ya da çiftle bitince 4 puan kaybeder. İlk turda göstergeyi gösteren, diğerlerine 1 puan kaybettirir.'],
-      ['💯', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Perdeki okeyin yerine geçen gerçek taşı koyarsan okeyi alırsın. Yerden aldığın taşı aynı tur kullanmalısın.'],
-      ['⚠️', '<b>101 cezaları:</b> Yerdeki bir pere işlenebilecek taşı ya da okeyi atan 101 ceza yazar.'],
-      ['🧮', '<b>101 puanı:</b> Biten −101 yazar. Açamayan 202, açan ise elinde kalan taşların sayı toplamını ceza yazar; çiftle açanın cezası iki katıdır. Okey atarak, çiftle ya da elden (tek turda açıp) bitilirse biten −202 yazar, diğerlerinin cezası iki katına çıkar. Ceza toplamı en düşük olan kazanır.'],
+      ['💯', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir; ikisi birlikte açılmaz, 12-13-1 per sayılmaz, göstergenin görevi yoktur. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Çift açan seri indiremez, başkasının serisine bir turda en çok 2 taş işler; çift açan biri varsa diğerleri ona çift işleyebilir.'],
+      ['🔁', '<b>Yerden taş:</b> Soldakinin attığı taşı alırsan o tur kullanmalısın; elini açmadıysan onunla açmalısın. Alıp geri koymak 101 ceza. Açtıktan sonra yerdeki okeyin yerine geçen gerçek taşı koyarak okeyi alabilirsin.'],
+      ['🏁', '<b>Bitiş:</b> Son taşını yana atarak ya da göstergenin üstüne bırakarak bitirirsin; bitirmek için elinde atacak bir taş kalmalı. Kimse açmadan tek seferde bütün taşlarını açıp bitirirsen elden bitmiş olursun, bunun için 101 gerekmez.'],
+      ['⚠️', '<b>Cezalar:</b> Yerdeki bir pere işlenebilecek taşı atan ve okeyi atan 101 ceza yazar. Elinde okey kalan 101 ceza daha yazar.'],
+      ['🧮', '<b>101 puanı:</b> Biten −101 yazar. Açamayan 202, açan elindeki taşların toplamını yazar; çift açanın cezası iki katıdır. Okeyle, çiftten ya da elden bitişte cezalar ve bitenin puanı iki katına çıkar; bunlar birleşirse katlanır (çiftten okey, elden okey dört kat). Deste biterse herkes elindekini yazar. Herkes çift açarsa el sayılmaz. Ceza toplamı en düşük olan kazanır.'],
       ['👆', 'Taşları sürükleyerek istakanı düzenle. Dokunarak seç, sağdaki “At” alanına sürükle ya da dokun.']
     ] },
   en: { ...COMMON.en, title: 'Okey | Ridsgames', game: 'Okey',
@@ -507,9 +509,9 @@ const STR = {
     colors: ['Yellow', 'Blue', 'Red', 'Black'],
     drawMe: 'Draw from the deck or take the tile your left neighbour discarded', playMe: 'Discard a tile', playFirst: 'You start: discard a tile',
     play101: 'Lay melds, lay off tiles or discard', open101: 'Pick melds to open your hand', thinking: (n) => `${n} is playing…`,
-    sortRun: 'Sort runs', sortPair: 'Sort pairs', finishB: 'Go out', showB: 'Show indicator', perB: 'Make meld', openB: 'Open', cancelB: 'Cancel', findB: 'Find melds', backB: 'Put back',
+    sortRun: 'Sort runs', sortPair: 'Sort pairs', finishB: 'Go out', showB: 'Show indicator', perB: 'Make meld', openB: 'Open', cancelB: 'Cancel', findB: 'Find melds', backB: 'Put back (+101)', penBack: 'You put back the tile you took: +101', addMax: 'A pairs opener may lay off at most 2 tiles a turn', noPairAdd: 'Pairs can only go to a player who opened with pairs', voidHand: 'Everyone opened with pairs: the hand is void and redealt', okeyHand: 'okey',
     rotHint: 'Turn sideways for bigger tiles', pickOne: 'Select a tile first', notFinish: 'Discarding this tile does not finish your hand', badMeld: 'Those tiles are not a meld', notOpened: 'Open your hand first',
-    needUse: 'You must use the tile you took this turn', keepOne: 'Keep one tile to discard', total: (n) => `Total ${n} / 101`, pairsN: (n) => `${n} pairs / 5`, lowOpen: (n) => `You need 101 to open, you have ${n}`,
+    needUse: 'You must use the tile you took this turn', keepOne: 'Keep one tile to discard', total: (n) => `Total ${n} / 101`, pairsN: (n) => `${n} pairs / 5`, lowOpen: (n) => `You need 101 to open, you have ${n}. Laying everything down and going out at once needs no 101`,
     mixPairs: 'Pairs and melds cannot be opened together', cantAdd: 'That tile does not fit this meld', shown: (n) => `${n} showed the indicator: others lose 1 point`, showedMe: 'You showed the indicator: rivals lose 1 point',
     noFind: 'No meld found', joker: 'Okey tile (joker)',
     islekWarn: 'This tile fits a meld on the table: discarding it costs 101. Discard again to confirm', okeyWarn: 'Discarding the okey costs 101. Discard again to confirm',
@@ -523,9 +525,11 @@ const STR = {
       ['🔗', 'A <b>meld</b> is a run of three or more in one colour (12-13-1 counts in Okey) or 3–4 tiles of one number in different colours.'],
       ['🔄', 'Play moves to the right. Draw from the deck or take your left neighbour’s discard, then discard to your right.'],
       ['🀄', '<b>Okey:</b> Split 14 tiles into melds or 7 pairs and discard the 15th to win. Everyone starts with 20; the others lose 2, or 4 if you go out with the okey or with pairs. Showing the indicator on your first turn costs the others 1.'],
-      ['💯', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs. Then lay new melds and add tiles to melds on the table. Put the real tile in place of an okey in a meld to take the okey. A tile taken from the discard must be used that turn.'],
-      ['⚠️', '<b>101 penalties:</b> Discarding a tile that fits a meld on the table, or discarding the okey, costs 101.'],
-      ['🧮', '<b>101 scoring:</b> The player who goes out scores −101. Unopened players score 202, opened ones the sum of their tiles; a pairs opener pays double. Going out with the okey, with pairs or in one go (opening and finishing in the same turn) scores −202 and doubles the others. Lowest total wins.'],
+      ['💯', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs, never both; 12-13-1 is not a run and the indicator has no role. Then lay new melds and add tiles to melds on the table. A pairs opener cannot lay runs and may add at most 2 tiles a turn to others’ melds; others may lay pairs onto a pairs opener.'],
+      ['🔁', '<b>Discards:</b> If you take your left neighbour’s discard you must open with it that turn (or use it if already open). Taking it and putting it back costs 101. Once open, put the real tile in place of an okey on the table to take the okey.'],
+      ['🏁', '<b>Going out:</b> Discard your last tile or drop it on the indicator; you need one tile left to go out. Laying everything down and going out before anyone else opens counts as going out in one go and needs no 101.'],
+      ['⚠️', '<b>Penalties:</b> Discarding a tile that fits a meld on the table, or the okey, costs 101. An okey left in hand costs another 101.'],
+      ['🧮', '<b>101 scoring:</b> The player who goes out scores −101. Unopened players score 202, opened ones the sum of their tiles; a pairs opener pays double. Going out with the okey, with pairs or in one go doubles the winner’s score and everyone’s penalty, and these stack (pairs + okey or one go + okey is ×4). If the deck runs out everyone scores their hand. If all four open with pairs the hand is void. Lowest total wins.'],
       ['👆', 'Drag tiles to arrange your rack. Tap to select; drag or tap onto “Discard”.']
     ] }
 };
@@ -669,7 +673,8 @@ function addTo(m, id) {
 }
 // Perdeki okeyin yerine geçen gerçek taş: okeyin konumu, yoksa -1
 function swapIdx(m, id) {
-  const t = info(id); if (t.j || m.t === 'pair') return -1;
+  const t = info(id); if (t.j) return -1;
+  if (m.t === 'pair') { const k = m.ids.findIndex(isJ), r = m.ids.find((x) => !isJ(x)); if (k < 0 || r == null) return -1; const u = info(r); return u.c === t.c && u.n === t.n ? k : -1; }
   if (m.t === 'run') { if (t.c !== m.c || t.n < m.lo || t.n > m.hi) return -1; const k = t.n - m.lo; return isJ(m.ids[k]) ? k : -1; }
   if (t.n !== m.n) return -1;
   const real = m.ids.filter((x) => !isJ(x)).map((x) => info(x).c); if (real.includes(t.c)) return -1;
@@ -679,6 +684,20 @@ function swapJoker(m, k, id) {
   const j = m.ids[k]; m.ids[k] = id;
   if (m.t === 'set') { const real = m.ids.filter((x) => !isJ(x)).map((x) => info(x).c); m.cols = m.ids.map((x) => isJ(x) ? -1 : info(x).c); m.cols = m.cols.map((c) => c >= 0 ? c : [0, 1, 2, 3].find((q) => !real.includes(q) && !m.cols.includes(q))); }
   return j;
+}
+const cifter = (p) => [0, 1, 2, 3].find((q) => q !== p && G.opened[q] === 'cift');
+const voidCheck = () => is101() && G.opened.every((x) => x === 'cift');
+function voidHand() { toast(T().voidHand, '#fbbf24'); G.handNo--; epoch++; busy = false; deal(); }
+// Elden: bir taş dışında bütün eli perlere ayır (mümkünse okeyi atılacak taş olarak bırak)
+function eldenPlan(h, took) {
+  const rc = solve(h, 'count', false); if (rc.s < h.length - 1) return null;
+  const ms = assign(h, rc.m, took);
+  if (ms.flat().length >= h.length) {
+    const drop = (m, k) => { if (m.length < 4 || m[k] === took || !parseMeld(m.filter((_, i) => i !== k))) return false; m.splice(k, 1); return true; };
+    if (!ms.some((m) => { const k = m.findIndex(isJ); return k >= 0 && drop(m, k); }) && !ms.some((m) => drop(m, m.length - 1) || drop(m, 0))) return null;
+  }
+  if (ms.flat().length !== h.length - 1 || (took >= 0 && !ms.some((m) => m.includes(took)))) return null;
+  return ms;
 }
 const islek = (id) => !isJ(id) && G.melds.some((m) => canAdd(m, id));
 
@@ -701,7 +720,7 @@ function deal() {
   const base = is101() ? 21 : 14, st = (G.handNo - 1) % 4;
   G.hand = [0, 1, 2, 3].map((p) => deck.splice(0, base + (p === st ? 1 : 0)));
   G.deck = deck; G.piles = [[], [], [], []]; G.turn = st; G.phase = 'play'; G.firstDone = [false, false, false, false]; G.shown = [false, false, false, false];
-  G.opened = [false, false, false, false]; G.pen = [0, 0, 0, 0]; G.tc = 0; G.openedAt = [-1, -1, -1, -1]; G.warn = -1; G.melds = []; G.took = -1; G.stage = []; G.res = null; G.note = null;
+  G.opened = [false, false, false, false]; G.pen = [0, 0, 0, 0]; G.tc = 0; G.openedAt = [-1, -1, -1, -1]; G.warn = -1; G.addN = 0; G.melds = []; G.took = -1; G.stage = []; G.res = null; G.note = null;
   G.rack = Array(SLOTS).fill(-1); arrange('run');
   selSet = new Set(); epoch++; busy = false;
   save(); render(); kick();
@@ -762,7 +781,7 @@ function discard(p, id) {
   Sfx.tone(420, 300, 0.06, 0.06, 'triangle', 0.08); buzz(8);
   if (pen) { G.pen[p] = (G.pen[p] || 0) + 101; toast(p === 0 ? (pen === 'okey' ? T().penOkeyMe : T().penIslekMe) : pen === 'okey' ? T().penOkey(pname(p)) : T().penIslek(pname(p)), '#f87171'); if (p === 0) Sfx.bad(); }
   if (is101() && !h.length) return endHand(p, { ok: isJ(id), elden: G.openedAt[p] === G.tc, pairs: G.opened[p] === 'cift' });
-  G.turn = (p + 1) % 4; G.phase = 'draw'; G.note = null; G.tc++;
+  G.turn = (p + 1) % 4; G.phase = 'draw'; G.note = null; G.tc++; G.addN = 0;
   if (!G.deck.length) return endHand(-1, {});
   save(); render(); kick();
 }
@@ -783,12 +802,14 @@ function endHand(w, o) {
   if (!is101()) {
     if (w >= 0) { const d = o.ok && o.pairs ? 8 : (o.ok || o.pairs) ? 4 : 2; for (let q = 0; q < 4; q++) if (q !== w) deltas[q] = -d; }
   } else {
-    const mult = o.ok || o.elden || o.pairs ? 2 : 1;
+    const mult = (o.ok ? 2 : 1) * (o.elden ? 2 : 1) * (o.pairs ? 2 : 1);
     for (let q = 0; q < 4; q++) {
+      const ok = q === w ? 0 : G.hand[q].filter(isJ).length;
       if (q === w) deltas[q] = -101 * mult;
       else if (!G.opened[q]) deltas[q] = 202 * mult;
-      else deltas[q] = G.hand[q].reduce((s, id) => s + (isJ(id) ? G.okN : tval(id)), 0) * mult * (G.opened[q] === 'cift' ? 2 : 1);
-      deltas[q] += (G.pen && G.pen[q]) || 0;
+      else deltas[q] = G.hand[q].reduce((s, id) => s + (isJ(id) ? 0 : tval(id)), 0) * mult * (G.opened[q] === 'cift' ? 2 : 1);
+      deltas[q] += ok * 101 + ((G.pen && G.pen[q]) || 0);
+      if (ok) G.pen[q] = (G.pen[q] || 0) + ok * 101;
     }
   }
   deltas.forEach((d, q) => { G.scores[q] += d; });
@@ -831,7 +852,7 @@ function cpuTurn() {
         const h = G.hand[p];
         const fin = h.filter((id) => complete(h.filter((x) => x !== id)));
         if (fin.length) { busy = false; finishOkey(p, fin.find(isJ) ?? fin[0]); return; }
-      } else cpu101Lay(p);
+      } else { cpu101Lay(p); if (voidCheck()) { voidHand(); return; } }
       if (G.phase !== 'play') { busy = false; return; }
       const id = cpuDiscard(p); busy = false; discard(p, id);
     });
@@ -873,6 +894,10 @@ function cpuWants101(p, top) {
 function cpu101Lay(p) {
   const h = () => G.hand[p];
   if (!G.opened[p]) {
+    if (G.level !== 'kolay') { // elden: bir taş dışında hepsini aç
+      const ms = eldenPlan(h(), G.took);
+      if (ms) { for (const m of ms) layMeld(p, m, false); G.opened[p] = 'per'; G.openedAt[p] = G.tc; G.took = -1; save(); render(); return; }
+    }
     const r = solve(h(), 'sum', false);
     let ms = r.s >= 101 ? assign(h(), r.m, G.took) : null;
     if (ms && ms.flat().length >= h().length) { ms.sort((a, b) => a.length - b.length); while (ms.length && ms.flat().length >= h().length) ms.shift(); if (ms.reduce((s, m) => s + parseMeld(m).val, 0) < 101) ms = null; }
@@ -886,9 +911,12 @@ function cpu101Lay(p) {
   // açıldıktan sonra: önce yerdeki okeyleri gerçek taşla değiştir
   if (G.level !== 'kolay') for (const id of h().slice()) { for (const m of G.melds) { const k = swapIdx(m, id); if (k >= 0) { const j = swapJoker(m, k, id); h().splice(h().indexOf(id), 1, j); toast(T().swappedCpu(pname(p)), '#fbbf24'); break; } } }
   if (G.opened[p] === 'cift') { for (const m of findPairs(h())) if (m.length < h().length) layMeld(p, m, true); }
-  else { const r = solve(h(), 'count', false); for (const m of assign(h(), r.m)) if (m.length < h().length) layMeld(p, m, false); }
-  let again = true;
-  while (again) { again = false; for (const id of h().slice()) { if (h().length <= 1) break; const m = G.melds.find((x) => canAdd(x, id)); if (m && !(isJ(id) && G.level === 'zor' && h().length > 3)) { addTo(m, id); h().splice(h().indexOf(id), 1); again = true; } } }
+  else {
+    const r = solve(h(), 'count', false); for (const m of assign(h(), r.m)) if (m.length < h().length) layMeld(p, m, false);
+    const cq = cifter(p); if (cq != null) for (const m of findPairs(h())) if (!m.some(isJ) && m.length < h().length) { layMeld(p, m, true); G.melds[G.melds.length - 1].o = cq; }
+  }
+  let again = true, nAdd = 0;
+  while (again) { again = false; for (const id of h().slice()) { if (h().length <= 1 || (G.opened[p] === 'cift' && nAdd >= 2)) break; const m = G.melds.find((x) => canAdd(x, id)); if (m && !(isJ(id) && G.level === 'zor' && h().length > 3)) { addTo(m, id); h().splice(h().indexOf(id), 1); nAdd++; again = true; } } }
   save(); render();
 }
 function findPairs(ids) {
@@ -920,35 +948,38 @@ function humanDiscard(id) {
   selSet.clear(); discard(0, id);
 }
 function humanFinish(id) {
-  if (!myTurn() || G.phase !== 'play' || is101()) return;
+  if (!myTurn() || G.phase !== 'play') return;
   if (id == null) { if (selSet.size !== 1) { toast(T().pickOne, '#fbbf24'); return; } id = [...selSet][0]; }
+  if (is101()) { if (G.hand[0].length === 1) humanDiscard(id); else { toast(T().notFinish, '#f87171'); Sfx.bad(); } return; }
   if (!complete(G.hand[0].filter((x) => x !== id))) { toast(T().notFinish, '#f87171'); Sfx.bad(); return; }
   selSet.clear(); finishOkey(0, id);
 }
 function humanShow() { if (!myTurn() || !canShow(0)) return; showInd(0); save(); render(); }
-function humanPutBack() { if (!myTurn() || G.took < 0 || !G.hand[0].includes(G.took)) return; const id = G.took; G.hand[0].splice(G.hand[0].indexOf(id), 1); G.piles[leftOf(0)].push(id); G.took = -1; G.phase = 'draw'; selSet.delete(id); syncRack(); save(); render(); }
+function humanPutBack() { if (!myTurn() || G.took < 0 || !G.hand[0].includes(G.took)) return; const id = G.took; G.hand[0].splice(G.hand[0].indexOf(id), 1); G.piles[leftOf(0)].push(id); G.took = -1; G.phase = 'draw'; G.pen[0] = (G.pen[0] || 0) + 101; toast(T().penBack, '#f87171'); Sfx.bad(); selSet.delete(id); syncRack(); save(); render(); }
 function humanMeld() {
   if (!myTurn() || G.phase !== 'play' || !is101()) return;
-  const ids = [...selSet]; const pairMode = G.opened[0] === 'cift' || (!G.opened[0] && ids.length === 2);
+  const ids = [...selSet], cq = cifter(0); const pairMode = G.opened[0] === 'cift' || (ids.length === 2 && (!G.opened[0] || cq != null));
   const m = parseMeld(ids, pairMode);
-  if (!m || (m.t === 'pair' && G.opened[0] === 'per')) { toast(T().badMeld, '#f87171'); Sfx.bad(); return; }
+  if (!m || (m.t !== 'pair' && G.opened[0] === 'cift')) { toast(T().badMeld, '#f87171'); Sfx.bad(); return; }
+  if (m.t === 'pair' && G.opened[0] === 'per' && cq == null) { toast(T().noPairAdd, '#f87171'); Sfx.bad(); return; }
   if (!G.opened[0]) {
     if (G.stage.length && (G.stage[0].t === 'pair') !== (m.t === 'pair')) { toast(T().mixPairs, '#f87171'); return; }
     G.stage.push(m); ids.forEach((id) => { G.hand[0].splice(G.hand[0].indexOf(id), 1); }); selSet.clear(); syncRack(); Sfx.tap(); save(); render(); return;
   }
   if (ids.length >= G.hand[0].length) { toast(T().keepOne, '#f87171'); return; }
-  layMeld(0, ids, m.t === 'pair'); selSet.clear(); syncRack(); save(); render();
+  layMeld(0, ids, m.t === 'pair'); if (m.t === 'pair' && G.opened[0] === 'per') G.melds[G.melds.length - 1].o = cq; selSet.clear(); syncRack(); save(); render();
 }
 function cancelStage() { for (const m of G.stage) G.hand[0].push(...m.ids); G.stage = []; syncRack(); save(); render(); }
 function unstage(i) { const m = G.stage.splice(i, 1)[0]; if (m) { G.hand[0].push(...m.ids); syncRack(); save(); render(); } }
 function humanOpen() {
   if (!myTurn() || G.opened[0] || !G.stage.length) return;
   const pairs = G.stage[0].t === 'pair', tot = G.stage.reduce((s, m) => s + m.val, 0);
-  if (pairs ? G.stage.length < 5 : tot < 101) { toast(pairs ? T().pairsN(G.stage.length) : T().lowOpen(tot), '#f87171'); Sfx.bad(); return; }
+  if (pairs ? G.stage.length < 5 : tot < 101 && G.hand[0].length !== 1) { toast(pairs ? T().pairsN(G.stage.length) : T().lowOpen(tot), '#f87171'); Sfx.bad(); return; }
   if (!G.hand[0].length) { toast(T().keepOne, '#f87171'); return; }
   if (G.took >= 0 && G.hand[0].includes(G.took)) { toast(T().needUse, '#f87171'); return; }
   for (const m of G.stage) { m.o = 0; G.melds.push(m); }
   G.stage = []; G.opened[0] = pairs ? 'cift' : 'per'; G.openedAt[0] = G.tc; G.took = -1; Sfx.good(); save(); render();
+  if (voidCheck()) voidHand();
 }
 function humanAdd(mi) {
   if (!myTurn() || G.phase !== 'play' || !is101()) return;
@@ -958,14 +989,16 @@ function humanAdd(mi) {
   if (k >= 0) { const j = swapJoker(m, k, id); G.hand[0].splice(G.hand[0].indexOf(id), 1, j); if (id === G.took) G.took = -1; const ri = G.rack.indexOf(id); if (ri >= 0) G.rack[ri] = j; selSet.clear(); syncRack(); newId = j; toast(T().swapped, '#a7f3d0'); Sfx.good(); save(); render(); return; }
   if (!canAdd(m, id)) { toast(T().cantAdd, '#f87171'); Sfx.bad(); return; }
   if (G.hand[0].length <= 1) { toast(T().keepOne, '#f87171'); return; }
-  addTo(m, id); G.hand[0].splice(G.hand[0].indexOf(id), 1); if (id === G.took) G.took = -1; selSet.clear(); syncRack(); Sfx.tap(); save(); render();
+  if (G.opened[0] === 'cift' && (G.addN || 0) >= 2) { toast(T().addMax, '#f87171'); Sfx.bad(); return; }
+  addTo(m, id); G.addN = (G.addN || 0) + 1; G.hand[0].splice(G.hand[0].indexOf(id), 1); if (id === G.took) G.took = -1; selSet.clear(); syncRack(); Sfx.tap(); save(); render();
 }
 function humanFind() {
   if (!myTurn() || G.phase !== 'play' || !is101()) return;
   const h = G.hand[0];
   if (!G.opened[0]) {
     cancelStage();
-    const r = solve(h, 'sum', false); let ms = assign(h, r.m, G.took);
+    const r = solve(h, 'sum', false);
+    let ms = eldenPlan(h, G.took) || assign(h, r.m, G.took);
     if (r.s >= 101 || !ms.length) {} 
     if (!ms.length) { const prs = findPairs(h); if (prs.length) ms = prs; }
     if (!ms.length) { toast(T().noFind, '#fbbf24'); return; }
@@ -1116,9 +1149,9 @@ segH('lvSeg', 'l', (v) => { setup.level = v; });
 segH('handsSeg', 'h', (v) => { setup.hands = +v; });
 let dragEnd = 0;
 const justDragged = () => Date.now() - dragEnd < 400;
-$('deck').addEventListener('click', () => { if (!G || justDragged()) return; if (G.phase === 'draw') humanDraw(); else if (G.phase === 'play' && !is101() && selSet.size === 1) humanFinish(); });
+$('deck').addEventListener('click', () => { if (!G || justDragged()) return; if (G.phase === 'draw') humanDraw(); else if (G.phase === 'play' && selSet.size === 1 && (!is101() || G.hand[0].length === 1)) humanFinish(); });
 $('leftPile').addEventListener('click', () => { if (!justDragged()) humanTake(); });
-$('ind').addEventListener('click', () => { if (G && G.phase === 'play' && !is101() && selSet.size === 1) humanFinish(); });
+$('ind').addEventListener('click', () => { if (G && G.phase === 'play' && selSet.size === 1 && (!is101() || G.hand[0].length === 1)) humanFinish(); });
 $('myPile').addEventListener('click', () => humanDiscard());
 $('melds').addEventListener('click', (e) => { const m = e.target.closest('.meld'); if (m) humanAdd(+m.dataset.mi); });
 $('stage').addEventListener('click', (e) => { const m = e.target.closest('.meld'); if (m) unstage(+m.dataset.si); });
