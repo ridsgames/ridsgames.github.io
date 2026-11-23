@@ -211,6 +211,24 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 @media (orientation: landscape) and (min-height: 640px) {
   #b90side { display: grid; } #drawnBtn { display: none; }
 }
+/* Dikey telefon: kart(lar) boş kalan alanı doldurur */
+@media (orientation: portrait) {
+  .cards { justify-content: flex-start; }
+  .c { aspect-ratio: 1 / 1.3; font-size: clamp(16px, 6vw, 30px); border-radius: 8px; }
+  .kart .g { gap: 4px; }
+  .kart .hd { font-size: 14px; }
+}
+/* Tek kartla oynarken dikey ekranda kalan alana 90'lık tablo */
+@media (orientation: portrait) and (min-height: 700px) {
+  main:not(:has(.kart + .kart)) #b90side { display: grid; padding: 6px; gap: 3px; }
+  main:not(:has(.kart + .kart)) #b90side i { aspect-ratio: 1 / .72; font-size: 12.5px; }
+  .side { order: 0; } .cards { order: 1; }
+}
+@media (orientation: landscape) { .c { aspect-ratio: 1 / 1.12; } }
+@media (orientation: landscape) {
+  main:not(:has(.kart + .kart)) .cards { justify-content: center; }
+  main:not(:has(.kart + .kart)) .c { aspect-ratio: 1 / 1.3; font-size: clamp(15px, 2.6vw, 30px); }
+}
 
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
