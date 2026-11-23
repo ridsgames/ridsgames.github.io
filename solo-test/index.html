@@ -120,7 +120,30 @@
       #bottomControls > button > span:first-child { font-size: 17px; }
       #bottomFooter { display: none; }
     }
-  </style>
+  
+/* Tek düğme düzeni: sağ üstte ayarlar, sağ altta tam ekran; üst çubuk ayarlar penceresine dönüştü */
+#topHeader { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; padding: 16px; margin: 0; overflow: auto; width: auto;
+  background: rgba(2, 6, 23, .72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 0; grid-column: auto; grid-row: auto; }
+html.rgSet #topHeader { display: flex; }
+#topHeader > div { position: relative; width: 100%; max-width: 340px; height: auto; min-height: 0; margin: auto; padding: 18px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 14px;
+  border-radius: 20px; background: #0b1220; border: 1px solid rgba(34, 211, 238, .3); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
+#homeLink { flex-direction: column; justify-content: center; gap: 6px; } #homeLink img { height: 40px; }
+#headerGameName { display: inline-block; }
+#homeLink + div { display: grid; gap: 8px; }
+#modeSelect { width: 100%; max-width: none; height: 46px; font-size: 15px; padding: 0 12px; border-radius: 13px; }
+#homeLink + div > button { width: 100%; height: 48px; border-radius: 13px; justify-content: flex-start; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 700; }
+#homeLink + div > button span { display: inline; }
+#homeLink + div > #langBtn { justify-content: center; font-size: 15px; }
+#topHeader .rgClose { height: 44px; border-radius: 999px; border: 0; font-weight: 800; font-size: 15px; color: #e2e8f0; background: rgba(30, 41, 59, .9); }
+.rgFab { position: fixed; z-index: 30; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: rgba(2, 6, 23, .62); border: 1px solid rgba(148, 163, 184, .32); color: #e2e8f0; box-shadow: 0 3px 10px rgba(0, 0, 0, .4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.rgFab:hover { background: rgba(15, 23, 42, .9); color: #fff; }
+.rgFab.set { top: max(6px, env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); }
+.rgFab.fs { bottom: max(6px, env(safe-area-inset-bottom)); right: max(6px, env(safe-area-inset-right)); width: 36px; height: 36px; opacity: .8; }
+.rgFab.fs .fsOut, html.isFs .rgFab.fs .fsIn { display: none; } html.isFs .rgFab.fs .fsOut { display: inline; }
+#bottomFooter { display: none; }
+@media (orientation: landscape) and (max-height: 500px) { #topHud { margin-right: 52px !important; } #bottomControls { margin-right: 48px !important; } }
+</style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
 <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
@@ -166,18 +189,16 @@
           <span id="lbBtnText" class="hidden sm:inline">Sıralama</span>
         </button>
 
-        <!-- Tam ekran -->
-        <button id="fsBtn" type="button" class="btn-rids rounded-lg w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1 shrink-0" title="Tam ekran">
-          <span>⛶</span>
-        </button>
-
         <!-- Dil Değiştirici (TR | EN) -->
         <button id="langBtn" type="button" class="btn-rids rounded-lg px-1.5 py-1 sm:px-2.5 sm:py-1.5 text-[10px] sm:text-xs font-bold tracking-tight sm:tracking-wide text-cyan-300 whitespace-nowrap shrink-0">
           TR | EN
         </button>
       </div>
+      <button type="button" class="rgClose">Kapat</button>
     </div>
   </header>
+  <button id="rgSetBtn" class="rgFab set" type="button" aria-label="Ayarlar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  <button id="fsBtn" class="rgFab fs" type="button" aria-label="Tam ekran"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsIn" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
 
   <!-- Ana İçerik -->
   <main class="flex-1 w-full max-w-6xl mx-auto px-2.5 sm:px-6 py-2 sm:py-4 flex flex-col lg:flex-row items-center lg:items-start justify-center gap-3 lg:gap-6">
@@ -1155,11 +1176,11 @@
       // --- CANVAS BOYUTLANDIRMA VE KOORDİNAT HESAPLAMA ---
       const yatayMq = matchMedia('(orientation: landscape) and (max-height: 500px)');
       function resizeCanvas() {
-        const headerH = document.getElementById("topHeader")?.offsetHeight || 44;
+        const headerH = document.getElementById("topHeader")?.offsetHeight ?? 44;
         const hudH = document.getElementById("topHud")?.offsetHeight || 50;
         const statusH = document.getElementById("statusBanner")?.offsetHeight || 28;
         const controlsH = document.getElementById("bottomControls")?.offsetHeight || 42;
-        const footerH = document.getElementById("bottomFooter")?.offsetHeight || 28;
+        const footerH = document.getElementById("bottomFooter")?.offsetHeight ?? 28;
         const verticalPadding = window.innerWidth < 1024 ? 36 : 70;
 
         let availW = Math.min(window.innerWidth - 20, 460);
@@ -1674,5 +1695,23 @@
       window.addEventListener("load", resizeCanvas);
     })();
   </script>
+<script>
+(() => {
+  const H = document.documentElement, top = document.getElementById('topHeader'), $ = (i) => document.getElementById(i);
+  const L = () => (H.lang || 'tr').startsWith('en') ? { s: 'Settings', c: 'Close' } : { s: 'Ayarlar', c: 'Kapat' };
+  const close = top.querySelector('.rgClose');
+  const labels = () => { const l = L(); $('rgSetBtn').setAttribute('aria-label', l.s); close.textContent = l.c;
+    [].forEach((b) => { if (b.classList.contains('lang')) return; let s = b.querySelector('.lbl'); if (!s) { s = document.createElement('span'); s.className = 'lbl rgL'; b.appendChild(s); } if (s.classList.contains('rgL')) s.textContent = b.getAttribute('aria-label') || ''; }); };
+  const open = (on) => { if (on) labels(); H.classList.toggle('rgSet', on); };
+  $('rgSetBtn').addEventListener('click', () => open(!H.classList.contains('rgSet')));
+  close.addEventListener('click', () => open(false));
+  top.addEventListener('click', (e) => { if (e.target === top) open(false); });
+  top.querySelector('#homeLink + div').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && b.id !== 'soundBtn' && b.id !== 'langBtn') open(false); else setTimeout(labels, 0); }, true);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && H.classList.contains('rgSet')) { open(false); e.stopImmediatePropagation(); } }, true);
+  const fs = () => H.classList.toggle('isFs', !!(document.fullscreenElement || document.webkitFullscreenElement));
+  document.addEventListener('fullscreenchange', fs); document.addEventListener('webkitfullscreenchange', fs);
+  new MutationObserver(() => { if (H.classList.contains('rgSet')) labels(); }).observe(H, { attributes: true, attributeFilter: ['lang'] });
+})();
+</script>
 </body>
 </html>

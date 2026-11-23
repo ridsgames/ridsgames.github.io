@@ -188,6 +188,29 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
 @media (prefers-reduced-motion: reduce) { .dice.ready .halo { animation: none; } .cube { transition-duration: .05s; } .dice.shake .cube, .dice.shake .shadow, .chip.pop { animation: none; } }
 /* Telefonda oyun alanı tüm ekranı kullanır */
 @media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) { footer { display: none; } }
+
+/* Tek düğme düzeni: sağ üstte ayarlar, sağ altta tam ekran; üst çubuk ayarlar penceresine dönüştü, oyun alanı ekranın tamamı */
+.top { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; padding: 16px; margin: 0; overflow: auto;
+  background: rgba(2, 6, 23, .72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 0; grid-column: auto; grid-row: auto; }
+html.rgSet .top { display: flex; }
+.top .in { position: relative; width: 100%; max-width: 340px; height: auto; margin: auto; padding: 18px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 14px;
+  border-radius: 20px; background: #0b1220; border: 1px solid rgba(34, 211, 238, .3); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
+.top .logo { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.top .logo img { height: 40px; width: auto; max-width: none; }
+.top .gname { display: inline-block; }
+.top .tools { display: grid; gap: 8px; margin: 0; flex-direction: column; }
+.top .pill { width: 100%; height: 48px; border-radius: 13px; justify-content: flex-start; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 700; }
+.top .pill .ico { width: 22px; text-align: center; font-size: 18px; }
+.top .pill .lbl { display: inline; }
+.top .pill.lang { justify-content: center; font-size: 15px; padding: 0 16px; }
+.top .rgClose { height: 44px; border-radius: 999px; border: 0; font-weight: 800; font-size: 15px; color: #e2e8f0; background: rgba(30, 41, 59, .9); }
+.rgFab { position: fixed; z-index: 30; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: rgba(2, 6, 23, .62); border: 1px solid rgba(148, 163, 184, .32); color: #e2e8f0; box-shadow: 0 3px 10px rgba(0, 0, 0, .4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.rgFab:hover { background: rgba(15, 23, 42, .9); color: #fff; }
+.rgFab.set { top: max(6px, env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); }
+.rgFab.fs { bottom: max(6px, env(safe-area-inset-bottom)); right: max(6px, env(safe-area-inset-right)); width: 36px; height: 36px; opacity: .8; }
+.rgFab.fs .fsOut, html.isFs .rgFab.fs .fsIn { display: none; } html.isFs .rgFab.fs .fsOut { display: inline; }
+footer { display: none; }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -209,11 +232,13 @@ footer { flex: none; text-align: center; font-size: 11px; color: #64748b; paddin
       <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
       <button id="lbBtn" class="pill" type="button" aria-label="Sıralama"><span class="ico">🏆</span><span class="lbl" id="lbLbl">Sıralama</span></button>
       <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
-      <button id="fsBtn" class="pill" type="button" aria-label="Tam ekran"><span class="ico">⛶</span></button>
       <button id="langBtn" class="pill lang" type="button" aria-label="Dil / Language">TR | EN</button>
     </div>
+    <button type="button" class="rgClose">Kapat</button>
   </div>
 </header>
+<button id="rgSetBtn" class="rgFab set" type="button" aria-label="Ayarlar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+<button id="fsBtn" class="rgFab fs" type="button" aria-label="Tam ekran"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsIn" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
 
 <main>
   <div id="boardWrap"><canvas id="board" role="img" aria-label="Yılan Merdiven tahtası"></canvas></div>
@@ -844,6 +869,24 @@ window.__rids = {
 };
 
 layout(); applyLang(); applySound(); openSetup(); render();
+</script>
+<script>
+(() => {
+  const H = document.documentElement, top = document.querySelector('header.top'), $ = (i) => document.getElementById(i);
+  const L = () => (H.lang || 'tr').startsWith('en') ? { s: 'Settings', c: 'Close' } : { s: 'Ayarlar', c: 'Kapat' };
+  const close = top.querySelector('.rgClose');
+  const labels = () => { const l = L(); $('rgSetBtn').setAttribute('aria-label', l.s); close.textContent = l.c;
+    top.querySelectorAll('.tools .pill').forEach((b) => { if (b.classList.contains('lang')) return; let s = b.querySelector('.lbl'); if (!s) { s = document.createElement('span'); s.className = 'lbl rgL'; b.appendChild(s); } if (s.classList.contains('rgL')) s.textContent = b.getAttribute('aria-label') || ''; }); };
+  const open = (on) => { if (on) labels(); H.classList.toggle('rgSet', on); };
+  $('rgSetBtn').addEventListener('click', () => open(!H.classList.contains('rgSet')));
+  close.addEventListener('click', () => open(false));
+  top.addEventListener('click', (e) => { if (e.target === top) open(false); });
+  top.querySelector('.tools').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && b.id !== 'soundBtn' && b.id !== 'langBtn') open(false); else setTimeout(labels, 0); }, true);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && H.classList.contains('rgSet')) { open(false); e.stopImmediatePropagation(); } }, true);
+  const fs = () => H.classList.toggle('isFs', !!(document.fullscreenElement || document.webkitFullscreenElement));
+  document.addEventListener('fullscreenchange', fs); document.addEventListener('webkitfullscreenchange', fs);
+  new MutationObserver(() => { if (H.classList.contains('rgSet')) labels(); }).observe(H, { attributes: true, attributeFilter: ['lang'] });
+})();
 </script>
 </body>
 </html>
