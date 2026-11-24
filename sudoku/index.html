@@ -2,6 +2,9 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<script id="rgErrJs">(() => { const E = window.__rgErr = [], keep = (m, src) => { if (E.length >= 5) E.shift(); E.push({ m: String(m || '').slice(0, 300), src: String(src || '').slice(0, 400), t: new Date().toISOString().slice(11, 19) }); }, st = (x, n) => x && x.stack ? String(x.stack).split('\n').slice(1, n).map((y) => y.trim()).join(' | ') : '';
+addEventListener('error', (e) => { if (e.target && e.target !== window) return; const s = st(e.error, 4); keep(e.message, `${(e.filename || '').split('/').pop()}:${e.lineno}:${e.colno}${s ? ' ' + s : ''}`); }, true);
+addEventListener('unhandledrejection', (e) => { const r = e.reason; keep(r && r.message ? r.message : r, st(r, 3) || 'promise'); }); })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Sudoku | Ridsgames</title>
 <meta name="description" content="Sudoku: kolay, orta ve zor seviyede her seferinde yeni, tek çözümlü bulmacalar. Not alma, ipucu, geri alma ve en iyi süre rekoru.">
@@ -746,6 +749,90 @@ applySound(); applyLang(); boot();
   addEventListener('resize', later); addEventListener('orientationchange', later);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);
   later();
+})();
+</script>
+<!-- Sorun bildir: yalnızca ayarlardan açılır, oyun sırasında hiçbir şey göstermez -->
+<style id="rgRepCss">
+#rgRep { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; padding: 12px; background: rgba(2, 6, 23, .72); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #e2e8f0; }
+#rgRep[hidden] { display: none; }
+#rgRep .rc { width: min(100%, 440px); max-height: calc(100dvh - 24px); overflow: auto; background: #0f172a; border: 1px solid rgba(148, 163, 184, .3); border-radius: 16px; padding: 16px; box-shadow: 0 16px 48px rgba(0, 0, 0, .5); }
+#rgRep h2 { margin: 0 0 4px; font-size: 19px; color: #f8fafc; }
+#rgRep p { margin: 0 0 10px; font-size: 13px; color: #94a3b8; }
+#rgRep textarea { box-sizing: border-box; width: 100%; min-height: 96px; resize: vertical; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .4); background: #1e293b; color: #f1f5f9; padding: 10px; font: inherit; font-size: 16px; }
+#rgRep textarea:focus { outline: 2px solid #22d3ee; outline-offset: 1px; }
+#rgRep details { margin: 8px 0 0; font-size: 12.5px; color: #94a3b8; }
+#rgRep summary { cursor: pointer; }
+#rgRep pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font: 11.5px/1.35 ui-monospace, Menlo, Consolas, monospace; color: #cbd5e1; background: #1e293b; border-radius: 8px; padding: 8px; max-height: 140px; overflow: auto; }
+#rgRep .rb { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+#rgRep button { min-height: 42px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .35); background: #1e293b; color: #e2e8f0; font: inherit; font-weight: 600; cursor: pointer; padding: 0 10px; }
+#rgRep button.go { grid-column: 1 / -1; background: #22d3ee; border-color: #22d3ee; color: #082f49; }
+#rgRep .ok { margin: 8px 0 0; font-size: 12.5px; color: #67e8f9; }
+#rgRep .ok:empty { display: none; }
+@media (max-height: 480px) { #rgRep .rc { padding: 12px 14px; } #rgRep h2 { font-size: 17px; } #rgRep p { margin-bottom: 6px; } #rgRep textarea { min-height: 56px; } #rgRep .rb { grid-template-columns: 2fr 1fr 1fr; margin-top: 8px; } #rgRep button.go { grid-column: auto; } #rgRep button { min-height: 38px; } }
+/* yatay telefonda ayarlar menüsü iki sütun, kaydırmadan sığsın */
+@media (orientation: landscape) and (max-height: 520px) { #setOv .sheet { max-width: 560px; gap: 10px; } #setOv .sheet .logo { flex-direction: row; justify-content: center; } #setOv .mlist { grid-template-columns: 1fr 1fr; } #setOv .mi { height: 42px; } }
+@media (orientation: landscape) and (max-height: 520px) { html.rgSet .top .in { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet .top .logo { flex-direction: row; justify-content: center; } html.rgSet .top .tools { grid-template-columns: 1fr 1fr; } html.rgSet .top .pill { height: 42px; } html.rgSet .top .rgClose { height: 40px; }
+  html.rgSet #topHeader > div { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet #topHeader #homeLink { flex-direction: row; } html.rgSet #topHeader #homeLink + div { grid-template-columns: 1fr 1fr; } html.rgSet #topHeader #modeSelect { grid-column: 1 / -1; height: 40px; } html.rgSet #topHeader #homeLink + div > button { height: 42px; } html.rgSet #topHeader .rgClose { height: 40px; } }
+</style>
+<script id="rgRepJs">
+(() => {
+  const MAIL = 'ridsgames.destek@gmail.com', H = document.documentElement, errs = window.__rgErr || [];
+  const T = {
+    tr: { b: 'Sorun bildir', h: 'Sorun bildir', p: 'Ne oldu? Kısaca yazın. Gönder deyince e-posta uygulamanız hazır bir mesajla açılır, siz göndermeden hiçbir şey bize ulaşmaz.', ph: 'Örnek: Kartı oynadığımda oyun takıldı.', inf: 'Mesaja eklenecek bilgiler', send: 'E-posta ile gönder', copy: 'Kopyala', close: 'Kapat', copied: 'Kopyalandı. ' + MAIL + ' adresine gönderebilirsiniz.', nocopy: 'Kopyalanamadı. Metni seçip kopyalayın ve ' + MAIL + ' adresine gönderin.', subj: 'Sorun bildirimi', game: 'Oyun', page: 'Sayfa', lang: 'Dil', scr: 'Ekran', br: 'Tarayıcı', time: 'Zaman', err: 'Son hatalar', none: 'yok', desc: 'Açıklama' },
+    en: { b: 'Report a problem', h: 'Report a problem', p: 'What happened? Write a few words. Send opens your email app with a ready message; nothing reaches us unless you send it.', ph: 'Example: the game froze when I played a card.', inf: 'Details added to the message', send: 'Send by email', copy: 'Copy', close: 'Close', copied: 'Copied. You can send it to ' + MAIL + '.', nocopy: 'Could not copy. Select the text, copy it and send it to ' + MAIL + '.', subj: 'Problem report', game: 'Game', page: 'Page', lang: 'Language', scr: 'Screen', br: 'Browser', time: 'Time', err: 'Recent errors', none: 'none', desc: 'Description' }
+  };
+  const t = () => T[(H.lang || 'tr').startsWith('en') ? 'en' : 'tr'];
+  const gname = () => { const g = document.getElementById('gameName') || document.querySelector('#homeLink .gname'); return ((g && g.textContent) || document.title || '').replace(/\s*[|·–-]\s*Ridsgames.*$/i, '').trim(); };
+  const info = () => { const l = t(), so = screen.orientation && screen.orientation.type;
+    return [`${l.game}: ${gname()}`, `${l.page}: ${location.pathname}`, `${l.lang}: ${H.lang || '-'}`,
+      `${l.scr}: ${innerWidth}x${innerHeight} @${Math.round((devicePixelRatio || 1) * 100) / 100}x${so ? ' ' + so : ''}${matchMedia('(pointer: coarse)').matches ? ' touch' : ''}`,
+      `${l.br}: ${navigator.userAgent}`, `${l.time}: ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
+      `${l.err}: ${errs.length ? '' : l.none}`, ...errs.slice(-3).reverse().map((e) => `- ${e.t} ${e.m} @ ${e.src}`)].join('\n'); };
+  let ov = null;
+  const body = () => { const l = t(), d = ov.querySelector('textarea').value.trim(); return `${l.desc}:\n${d || '-'}\n\n---\n${info()}`; };
+  const build = () => {
+    ov = document.createElement('div'); ov.id = 'rgRep'; ov.hidden = true;
+    ov.innerHTML = '<div class="rc" role="dialog" aria-modal="true" aria-labelledby="rgRepH"><h2 id="rgRepH"></h2><p class="pp"></p><textarea maxlength="1200"></textarea><details><summary></summary><pre></pre></details><div class="ok" role="status"></div><div class="rb"><button type="button" class="go"></button><button type="button" class="cp"></button><button type="button" class="cl"></button></div></div>';
+    document.body.appendChild(ov);
+    const q = (s) => ov.querySelector(s), close = () => { ov.hidden = true; };
+    q('.cl').onclick = close;
+    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    ['keydown', 'keyup', 'keypress'].forEach((k) => ov.addEventListener(k, (e) => { e.stopPropagation(); if (k === 'keydown' && e.key === 'Escape') close(); }));
+    ['pointerdown', 'mousedown', 'touchstart', 'wheel', 'contextmenu'].forEach((k) => ov.addEventListener(k, (e) => e.stopPropagation(), { passive: true }));
+    q('.go').onclick = () => { const l = t(); let b = body(); if (b.length > 1400) b = b.slice(0, 1400) + '…';
+      location.href = `mailto:${MAIL}?subject=${encodeURIComponent(`${l.subj}: ${gname()}`)}&body=${encodeURIComponent(b)}`; };
+    q('.cp').onclick = () => { const l = t(), b = `${l.subj}: ${gname()}\n\n${body()}`, ok = q('.ok');
+      const fb = () => { const a = document.createElement('textarea'); a.value = b; a.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; ov.appendChild(a); a.select(); let r = false; try { r = document.execCommand('copy'); } catch (_) {} a.remove(); ok.textContent = r ? l.copied : l.nocopy; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(b).then(() => { ok.textContent = l.copied; }, fb); else fb(); };
+  };
+  const open = () => { if (!ov) build(); const l = t(), q = (s) => ov.querySelector(s);
+    q('h2').textContent = l.h; q('.pp').textContent = l.p; q('textarea').placeholder = l.ph; q('summary').textContent = l.inf; q('pre').textContent = info();
+    q('.go').textContent = l.send; q('.cp').textContent = l.copy; q('.cl').textContent = l.close; q('.ok').textContent = '';
+    ov.hidden = false; setTimeout(() => q('textarea').focus({ preventScroll: true }), 30); };
+  // Menüye satır ekle: Kurallar düğmesinin görünüşünü kopyalar
+  const ICO = '✉';
+  let btn = null;
+  const label = () => { if (!btn) return; const l = t(); btn.setAttribute('aria-label', l.b); btn.title = l.b; const s = btn.querySelector('.rgRepL'); if (s) s.textContent = l.b; };
+  const mount = () => {
+    const rules = document.getElementById('rulesBtn'), lang = document.getElementById('langBtn');
+    btn = document.createElement('button'); btn.type = 'button'; btn.id = 'rgRepBtn';
+    if (rules && lang && rules.parentNode === lang.parentNode) {
+      btn.className = rules.className; const sp = [...rules.children].filter((x) => x.tagName === 'SPAN');
+      const a = document.createElement('span'); a.textContent = ICO; if (sp[0]) a.className = sp[0].className; btn.appendChild(a);
+      if (sp[1]) { const b = document.createElement('span'); b.className = (sp[1].className + ' rgRepL').trim(); btn.appendChild(b); }
+      lang.parentNode.insertBefore(btn, lang);
+    } else {
+      const host = document.getElementById('btn-reset-from-settings'), menu = document.getElementById('menu');
+      const s = document.createElement('span'); s.className = 'rgRepL'; btn.append(ICO + ' ', s);
+      if (host) { btn.className = host.className; host.parentNode.insertBefore(btn, host); }
+      else if (menu) { btn.style.cssText = 'background:none;border:0;box-shadow:none;color:inherit;opacity:.75;font-size:13px;text-decoration:underline;margin-top:10px;min-height:0;padding:4px'; menu.appendChild(btn); }
+      else { btn = null; return; }
+    }
+    btn.addEventListener('click', () => setTimeout(open, 0));
+    label(); new MutationObserver(label).observe(H, { attributes: true, attributeFilter: ['lang'] });
+  };
+  window.rgReport = () => open();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
 })();
 </script>
 </body>
