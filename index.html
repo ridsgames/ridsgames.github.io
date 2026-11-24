@@ -212,7 +212,6 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
     <div>
       <p class="eyebrow" data-i18n="featured">Öne çıkan oyun</p>
       <h1 id="h-misket"><img src="assets/misket-klasik.webp" alt="" width="220" height="220"><span data-i18n="misketName">Misket Klasik</span></h1>
-      <p class="lead" data-i18n="misketLead">Çocukluğun sokak oyunu artık cebinizde, üstelik internet olmadan.</p>
       <p class="desc" data-i18n="misketDesc">Geleneksel sokak misket oyunu, cam misketlerle ve internetsiz. Sokağın klasikleri Mors, Tumba ve Kuyu'yu oynayın. Labirent'te telefonu eğip misketleri engellerin arasından geçirerek yuvalarına oturtun; 4 dünya, 105 bölüm. Golf'te betondan çimene, kumdan su arkına uzanan parkurlarda misketi en az atışla kuyuya sokun.</p>
       <div class="actions">
         <a class="btn" href="https://play.google.com/store/apps/details?id=com.ridsgame.misketklasik" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 1h4v8h4l-6 7-6-7h4zM2 17h16v2H2z"/></svg><span data-i18n="getPlay">Google Play'den indir</span></a>
@@ -259,7 +258,6 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
     <div class="head">
       <p class="eyebrow" data-i18n="browserEyebrow">Tarayıcı oyunları</p>
       <h2 id="h-oyunlar" data-i18n="browserGames">Tarayıcıda hemen oynayın</h2>
-      <p data-i18n="browserDesc">İndirme yok, hesap yok, reklam yok.</p>
     </div>
     <div class="cats" role="group" data-i18n-aria="catsAria" aria-label="Kategoriler">
       <button type="button" data-cat="hepsi" aria-pressed="true"><span data-i18n="catAll">Tümü</span> <small>33</small></button>
@@ -566,7 +564,7 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
         <div class="cover"><img src="assets/sulu-halka.jpg" alt="" loading="lazy"></div>
         <div class="info">
           <h3 data-i18n="suluName">Sulu Halka</h3>
-          <p data-i18n="suluDesc">Su jetiyle halkaları yükseltin ve çubuklara geçirin. Yetişkinler için gerçekçi fiziğe sahip zorlu bir mod da sunulmaktadır.</p>
+          <p data-i18n="suluDesc">Su jetiyle halkaları yükseltin ve çubuklara geçirin. Yetişkinler için gerçekçi fizikli zor bir mod da var.</p>
           <div class="tags"><span class="tag" data-i18n="tagModes">Çocuk ve yetişkin modu</span><span class="tag" data-i18n="tagGyro">Jiroskop desteği</span><span class="tag" data-i18n="tagThemes">4 tema</span></div>
           <span class="go" data-i18n="play">Oyna</span>
         </div>
@@ -595,7 +593,6 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
       <!-- Yeni oyun: kartı uygun kategorinin (.gsec) .games kutusuna ekleyin; kategorideki ve "Tümü" düğmesindeki sayıları da güncelleyin. -->
       <div class="soon">
         <h3 data-i18n="soonTitle">Sırada yeni oyunlar var</h3>
-        <p data-i18n="soonDesc">Hazır olduklarında burada yerlerini alacaklar.</p>
       </div>
     </div>
   </section>
@@ -669,16 +666,15 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
 const I18N_EN = {
   title: 'RIDS Games: Games', home: 'RIDS Games home', sections: 'Sections', games: 'Games', support: 'Support',
   featured: 'Featured game', misketName: 'Classic Marbles',
-  misketLead: 'The street game of childhood, now in your pocket. No internet needed.',
   misketDesc: 'The traditional street marbles game, with glass marbles and no internet needed. Play the street classics Triangle, Line and Hole. In Maze, tilt your phone and guide the marbles past obstacles into their holes: 4 worlds, 105 levels. In Golf, sink your marble in the fewest shots on courses of concrete, grass, sand and water channels.',
   getPlay: 'Get it on Google Play', seeShots: 'See screenshots',
   fStreet: 'street games: Triangle, Line, Hole', fMaze: 'maze levels, 4 worlds', fMarbles: 'marbles', fPlaces: 'locations',
   shots: 'Screenshots',
   catsAria: 'Categories', catAll: 'All', catKartS: 'Cards', catMasaS: 'Board & tiles', catZekaS: 'Puzzles', catKelimeS: 'Words', catBeceriS: 'Skill',
   catKart: 'Card games', catMasa: 'Board and tile games', catZeka: 'Puzzles and brain games', catKelime: 'Word games', catBeceri: 'Skill games',
-  browserEyebrow: 'Browser games', browserGames: 'Play right in your browser', browserDesc: 'No download, no account, no ads.',
+  browserEyebrow: 'Browser games', browserGames: 'Play right in your browser',
   play: 'Play', suluName: 'Water Ring Toss',
-  suluDesc: 'Lift the rings with a water jet and land them on the pegs. A challenging mode with realistic physics is also available for adults.',
+  suluDesc: 'Lift the rings with a water jet and land them on the pegs. There is also a harder mode with realistic physics for adults.',
   tagModes: 'Kids and adult modes', tagGyro: 'Gyroscope support', tagThemes: '4 themes',
   civiName: 'Nail Football', civiDesc: 'Flick the coin between the nails on the board and score in the opponent’s goal.',
   tag2p: '2 players, one device', tagCpu: 'Play against the computer',
@@ -719,7 +715,7 @@ const I18N_EN = {
   cindamaName: "Chinese Checkers", cindamaDesc: "Hop all ten pieces across the star with chained jumps. 2, 3, 4 or 6 players, against the computer or on one device.",
   kelimeaviName: "Word Hunt", kelimeaviDesc: "Find the words hidden in the letter grid. Themes like animals, cities and jobs, three difficulties and best times.",
   blofName: "Bluff", blofDesc: "Play cards face down as the called rank, bluffing if you dare. Catch a lie and the whole pile goes to the liar. Against 1–3 computer rivals.",
-  soonTitle: 'More games are on the way', soonDesc: 'They will take their place here when they are ready.',
+  soonTitle: 'More games are on the way',
   ytTitle: 'Visit our channel', ytDesc: 'Videos of our games are on the RIDS Games channel on YouTube.', ytBtn: 'Go to the YouTube channel',
   contact: 'Contact', supportDesc: 'Send us your questions, suggestions and bug reports by email.',
   tagline: 'Mobile and browser games inspired by classic toys.', rights: 'All rights reserved.'
