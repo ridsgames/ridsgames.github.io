@@ -318,6 +318,42 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 @media (orientation: portrait) and (max-width: 620px) { .need { right: calc(var(--mw, 22px) * 1.3 + 16px + 60px); } }
 .seat.s1 { top: max(96px, calc(50% - 52px)); transform: none; }
 
+/* Kurulum penceresi telefonda kaydırmadan sığsın: bölümler ızgarada, açıklamalar tam genişlik */
+#setupOv .t101 { display: inline-grid; place-items: center; height: 24px; padding: 0 5px; border-radius: 4px; background: linear-gradient(180deg, #fffdf5, #f1ead6); color: #dc2626; font: 900 12.5px/1 system-ui, sans-serif; letter-spacing: -.02em; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .15), 0 1px 2px rgba(0, 0, 0, .35); vertical-align: middle; }
+#rulesList .t101 { display: inline-grid; place-items: center; height: 20px; padding: 0 4px; border-radius: 4px; background: linear-gradient(180deg, #fffdf5, #f1ead6); color: #dc2626; font: 900 11px/1 system-ui, sans-serif; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .15); }
+#setupOv .seg.tall .em { display: grid; place-items: center; height: 24px; }
+@media (orientation: portrait) and (max-width: 560px) {
+  #setupOv .card { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; align-content: start; padding: 16px 14px 14px;
+    grid-template-areas: "t t" "s s" "ml ml" "ms ms" "mn mn" "lv hl" "vs hs" "kl yl" "ks ys" "yn yn" "bt bt"; }
+  #setupOv .sec, #setupOv #opt101 { display: contents; }
+  #setupOv #opt101[hidden] { display: none; }
+  #setupOv h2 { grid-area: t; font-size: 22px; } #setupOv .sub { grid-area: s; margin-bottom: 4px; font-size: 13px; }
+  #setupOv .lbl { margin: 12px 0 6px; font-size: 13px; font-weight: 700; color: #cbd5e1; }
+  #modeLbl { grid-area: ml; } #modeSeg { grid-area: ms; } #modeNote { grid-area: mn; }
+  #lvLbl { grid-area: lv; } #lvSeg { grid-area: vs; } #handsLbl { grid-area: hl; } #handsSeg { grid-area: hs; }
+  #katLbl { grid-area: kl; } #katSeg { grid-area: ks; } #helpLbl { grid-area: yl; } #helpSeg { grid-area: ys; } #optNote { grid-area: yn; }
+  #setupOv .seg button { font-size: 12.5px; padding: 0 2px; }
+  #setupOv .note { font-size: 12px; margin-top: 6px; }
+  #setupOv .btns { grid-area: bt; margin-top: 14px; }
+}
+@media (orientation: landscape) and (max-height: 820px) {
+  #setupOv .card { max-width: 880px; display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 14px; align-content: start; padding: 10px 16px 12px;
+    grid-template-areas: "t t t" "ml lv hl" "ms vs hs" "mn mn mn" "kl yl ." "ks ys bt" "yn yn yn"; }
+  #setupOv .sec, #setupOv #opt101 { display: contents; }
+  #setupOv #opt101[hidden] { display: none; }
+  #setupOv h2 { grid-area: t; font-size: 20px; margin: 0; } #setupOv .sub { display: none; }
+  #setupOv .lbl { margin: 8px 0 5px; font-size: 14px; font-weight: 700; color: #cbd5e1; }
+  #modeLbl { grid-area: ml; } #modeSeg { grid-area: ms; } #modeNote { grid-area: mn; }
+  #lvLbl { grid-area: lv; } #lvSeg { grid-area: vs; } #handsLbl { grid-area: hl; } #handsSeg { grid-area: hs; }
+  #katLbl { grid-area: kl; } #katSeg { grid-area: ks; } #helpLbl { grid-area: yl; } #helpSeg { grid-area: ys; } #optNote { grid-area: yn; }
+  #setupOv .seg button { height: 40px; font-size: 14.5px; }
+  #setupOv .seg.tall button { height: 40px; flex-direction: row; gap: 6px; }
+  #setupOv .seg.tall small { font-size: 14.5px; opacity: .9; }
+  #setupOv .note { font-size: 13px; margin-top: 5px; min-height: 0; }
+  #setupOv .btns { grid-area: bt; position: static; margin: 0; padding: 0; background: none; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; align-self: end; }
+  #setupOv .btns .big { height: 42px; padding: 0 6px; font-size: 16px; }
+}
+
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
 <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
@@ -516,7 +552,7 @@ function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]
 const STR = {
   tr: { ...COMMON.tr, title: 'Okey | Ridsgames', game: 'Okey',
     setupSub: 'Klasik Okey ya da 101. Üç bilgisayar rakiple dört kişilik masa.',
-    modeLbl: 'Oyun', modes: { okey: ['🀄', 'Okey'], 101: ['💯', '101'] },
+    modeLbl: 'Oyun', modes: { okey: ['🀄', 'Okey'], 101: ['<i class="t101">101</i>', '101'] },
     modeNote: { okey: '14 taşla per ya da 7 çift diz, 15. taşı atarak bitir. Herkes 20 puanla başlar.', 101: 'En az 101 puanlık perle ya da 5 çiftle elini aç, taşlarını işle, elini ilk sen bitir. Ceza puanı en düşük olan kazanır.' },
     lvLbl: 'Zorluk', handsLbl: 'El sayısı',
     katLbl: 'Katlama', katO: { yok: 'Katlamasız', var: 'Katlamalı' }, helpLbl: 'Yardım', helpO: { var: 'Yardımlı', yok: 'Yardımsız' },
@@ -543,7 +579,7 @@ const STR = {
       ['🔗', '<b>Per</b>: aynı renkte sıralı en az üç taş (Okey’de 12-13-1 de olur) ya da aynı sayıda farklı renklerden 3–4 taş.'],
       ['🔄', 'Sıra sağa döner. Sıran gelince desteden çek ya da solundakinin attığı taşı al, sonra sağına bir taş at.'],
       ['🀄', '<b>Okey:</b> Elindeki 14 taşı perlere ya da 7 çifte ayırıp 15. taşı atan biter. Herkes 20 puanla başlar; biten dışındakiler 2 puan, okey atarak ya da çiftle bitince 4 puan kaybeder. İlk turda göstergeyi gösteren, diğerlerine 1 puan kaybettirir.'],
-      ['💯', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir; ikisi birlikte açılmaz, 12-13-1 per sayılmaz, göstergenin görevi yoktur. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Çift açan seri indiremez, başkasının serisine bir turda en çok 2 taş işler; çift açan biri varsa diğerleri ona çift işleyebilir.'],
+      ['<i class="t101">101</i>', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir; ikisi birlikte açılmaz, 12-13-1 per sayılmaz, göstergenin görevi yoktur. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Çift açan seri indiremez, başkasının serisine bir turda en çok 2 taş işler; çift açan biri varsa diğerleri ona çift işleyebilir.'],
       ['🔁', '<b>Yerden taş:</b> Soldakinin attığı taşı alırsan o tur kullanmalısın; elini açmadıysan onunla açmalısın. Alıp geri koymak 101 ceza. Açtıktan sonra yerdeki okeyin yerine geçen gerçek taşı koyarak okeyi alabilirsin.'],
       ['🏁', '<b>Bitiş:</b> Son taşını yana atarak ya da göstergenin üstüne bırakarak bitirirsin; bitirmek için elinde atacak bir taş kalmalı. Kimse açmadan tek seferde bütün taşlarını açıp bitirirsen elden bitmiş olursun, bunun için 101 gerekmez.'],
       ['⚙️', '<b>Masa seçenekleri (101):</b> <b>Katlamalı</b> masada her açan, kendinden önce açanın toplamından en az 1 fazla açmak zorundadır (101 ile açıldıysa sonraki 102); çiftte bir çift fazla gerekir (5, 6, 7…). <b>Yardımlı</b> masada Seri diz / Çift diz düğmeleri vardır, açtıktan sonra işlenebilen taşlar kendiliğinden işlenir, işlenebilen taşların üstünde yeşil + işareti, okeyde yıldız olur; <b>yardımsız</b> masada bunların hiçbiri yoktur.'],
@@ -553,7 +589,7 @@ const STR = {
     ] },
   en: { ...COMMON.en, title: 'Okey | Ridsgames', game: 'Okey',
     setupSub: 'Classic Okey or Okey 101 at a four-player table with three computer rivals.',
-    modeLbl: 'Game', modes: { okey: ['🀄', 'Okey'], 101: ['💯', '101'] },
+    modeLbl: 'Game', modes: { okey: ['🀄', 'Okey'], 101: ['<i class="t101">101</i>', '101'] },
     modeNote: { okey: 'Arrange 14 tiles into sets and runs or 7 pairs, then discard the 15th to win. Everyone starts with 20 points.', 101: 'Open with melds worth 101 or 5 pairs, lay off tiles and go out first. Lowest penalty wins.' },
     lvLbl: 'Level', handsLbl: 'Hands',
     katLbl: 'Raising', katO: { yok: 'Fixed', var: 'Raising' }, helpLbl: 'Help', helpO: { var: 'On', yok: 'Off' },
@@ -580,7 +616,7 @@ const STR = {
       ['🔗', 'A <b>meld</b> is a run of three or more in one colour (12-13-1 counts in Okey) or 3–4 tiles of one number in different colours.'],
       ['🔄', 'Play moves to the right. Draw from the deck or take your left neighbour’s discard, then discard to your right.'],
       ['🀄', '<b>Okey:</b> Split 14 tiles into melds or 7 pairs and discard the 15th to win. Everyone starts with 20; the others lose 2, or 4 if you go out with the okey or with pairs. Showing the indicator on your first turn costs the others 1.'],
-      ['💯', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs, never both; 12-13-1 is not a run and the indicator has no role. Then lay new melds and add tiles to melds on the table. A pairs opener cannot lay runs and may add at most 2 tiles a turn to others’ melds; others may lay pairs onto a pairs opener.'],
+      ['<i class="t101">101</i>', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs, never both; 12-13-1 is not a run and the indicator has no role. Then lay new melds and add tiles to melds on the table. A pairs opener cannot lay runs and may add at most 2 tiles a turn to others’ melds; others may lay pairs onto a pairs opener.'],
       ['🔁', '<b>Discards:</b> If you take your left neighbour’s discard you must open with it that turn (or use it if already open). Taking it and putting it back costs 101. Once open, put the real tile in place of an okey on the table to take the okey.'],
       ['🏁', '<b>Going out:</b> Discard your last tile or drop it on the indicator; you need one tile left to go out. Laying everything down and going out before anyone else opens counts as going out in one go and needs no 101.'],
       ['⚙️', '<b>Table options (101):</b> At a <b>raising</b> table each opener must beat the previous opening by at least 1 (after 101 the next needs 102); with pairs one more pair is needed (5, 6, 7…). <b>Help on</b> gives Sort runs / Sort pairs, lays off fitting tiles automatically after you open, puts a green + on tiles that fit a meld and shows the okey with a star; <b>help off</b> gives none of these.'],
