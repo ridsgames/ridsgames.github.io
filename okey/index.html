@@ -287,6 +287,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .status { width: min(520px, calc(100% - 200px)); }
 /* Yardımlı 101: yerdeki bir pere işlenebilen taşın altında yeşil çizgi. Yardımsız: okey yıldızı yok */
 .rack .tl.isl { box-shadow: inset 0 -4px 0 #10b981, 0 2px 3px rgba(0, 0, 0, .35); }
+.rack .tl .im { position: absolute; top: calc(var(--tw) * .04); left: calc(var(--tw) * .05); width: max(12px, calc(var(--tw) * .34)); height: max(12px, calc(var(--tw) * .34)); border-radius: 50%; background: #10b981; color: #fff; font-style: normal; font-weight: 900; font-size: max(11px, calc(var(--tw) * .3)); line-height: max(12px, calc(var(--tw) * .34)); transform: translate(-30%, -30%); text-align: center; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); pointer-events: none; }
 .rack .tl.isl.sel { box-shadow: inset 0 -4px 0 #10b981, 0 0 0 2.5px #fbbf24, 0 6px 10px rgba(0, 0, 0, .45); }
 .tl.jk.nh::before { content: none; }
 #opt101 { display: contents; }
@@ -519,7 +520,7 @@ const STR = {
     modeNote: { okey: '14 taşla per ya da 7 çift diz, 15. taşı atarak bitir. Herkes 20 puanla başlar.', 101: 'En az 101 puanlık perle ya da 5 çiftle elini aç, taşlarını işle, elini ilk sen bitir. Ceza puanı en düşük olan kazanır.' },
     lvLbl: 'Zorluk', handsLbl: 'El sayısı',
     katLbl: 'Katlama', katO: { yok: 'Katlamasız', var: 'Katlamalı' }, helpLbl: 'Yardım', helpO: { var: 'Yardımlı', yok: 'Yardımsız' },
-    optNote: (o) => [o.kat ? 'Katlamalı: her açan, kendinden önce açanın toplamından en az 1 fazla (çiftte 1 çift fazla) açar.' : '', o.help ? 'Yardımlı: Seri diz ve Çift diz düğmeleri var, işlenebilen taşlar işaretli, okey yıldızlı, İşle uygun taşları kendisi işler, işlek taş ve okey atarken uyarılırsın.' : 'Yardımsız: dizme düğmeleri, işaret ve uyarı yok; taşlarını sen dizer, okeyi göstergeden sen bulursun.'].filter(Boolean).join(' '),
+    optNote: (o) => [o.kat ? 'Katlamalı: her açan, kendinden önce açanın toplamından en az 1 fazla (çiftte 1 çift fazla) açar.' : '', o.help ? 'Yardımlı: Seri diz ve Çift diz düğmeleri var, açtıktan sonra işlenebilen taşlar kendiliğinden işlenir, işlenebilen taşların üstünde yeşil + işareti, okeyde yıldız olur.' : 'Yardımsız: dizme düğmeleri, otomatik işleme ve işaret yok; taşlarını sen dizer, okeyi göstergeden sen bulursun.'].filter(Boolean).join(' '),
     needT: (k, q) => `Açılış barajı: ${k}${q ? ` ya da ${q} çift` : ''}`, handsN: (n) => `${n} el`,
     you: 'Sen', cpuNames: ['Ahmet', 'Elif', 'Can'], tiles: (n) => `${n} taş`, tilesH: 'Taş', opened: 'açtı',
     deckL: 'Deste', indL: 'Gösterge', okeyL: 'Okey', takeL: 'Al', myL: 'At',
@@ -545,7 +546,7 @@ const STR = {
       ['💯', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir; ikisi birlikte açılmaz, 12-13-1 per sayılmaz, göstergenin görevi yoktur. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Çift açan seri indiremez, başkasının serisine bir turda en çok 2 taş işler; çift açan biri varsa diğerleri ona çift işleyebilir.'],
       ['🔁', '<b>Yerden taş:</b> Soldakinin attığı taşı alırsan o tur kullanmalısın; elini açmadıysan onunla açmalısın. Alıp geri koymak 101 ceza. Açtıktan sonra yerdeki okeyin yerine geçen gerçek taşı koyarak okeyi alabilirsin.'],
       ['🏁', '<b>Bitiş:</b> Son taşını yana atarak ya da göstergenin üstüne bırakarak bitirirsin; bitirmek için elinde atacak bir taş kalmalı. Kimse açmadan tek seferde bütün taşlarını açıp bitirirsen elden bitmiş olursun, bunun için 101 gerekmez.'],
-      ['⚙️', '<b>Masa seçenekleri (101):</b> <b>Katlamalı</b> masada her açan, kendinden önce açanın toplamından en az 1 fazla açmak zorundadır (101 ile açıldıysa sonraki 102); çiftte bir çift fazla gerekir (5, 6, 7…). <b>Yardımlı</b> masada Seri diz / Çift diz düğmeleri vardır, işlenebilen taşlar işaretlenir, okey yıldızla gösterilir, İşle uygun taşları kendisi işler ve işlek taş uyarısı yapılır; <b>yardımsız</b> masada bunların hiçbiri yoktur.'],
+      ['⚙️', '<b>Masa seçenekleri (101):</b> <b>Katlamalı</b> masada her açan, kendinden önce açanın toplamından en az 1 fazla açmak zorundadır (101 ile açıldıysa sonraki 102); çiftte bir çift fazla gerekir (5, 6, 7…). <b>Yardımlı</b> masada Seri diz / Çift diz düğmeleri vardır, açtıktan sonra işlenebilen taşlar kendiliğinden işlenir, işlenebilen taşların üstünde yeşil + işareti, okeyde yıldız olur; <b>yardımsız</b> masada bunların hiçbiri yoktur.'],
       ['⚠️', '<b>Cezalar:</b> Yerdeki bir pere işlenebilecek taşı atan ve okeyi atan 101 ceza yazar. Elinde okey kalan 101 ceza daha yazar.'],
       ['🧮', '<b>101 puanı:</b> Biten −101 yazar. Açamayan 202, açan elindeki taşların toplamını yazar; çift açanın cezası iki katıdır. Okeyle, çiftten ya da elden bitişte cezalar ve bitenin puanı iki katına çıkar; bunlar birleşirse katlanır (çiftten okey, elden okey dört kat). Deste biterse herkes elindekini yazar. Herkes çift açarsa el sayılmaz. Ceza toplamı en düşük olan kazanır.'],
       ['👆', 'Taşları sürükleyerek istakanı düzenle. Dokunarak seç, sağdaki “At” alanına sürükle ya da dokun. 101’de perlerini ve çiftlerini ıstakada aralarında boşluk bırakarak diz: göstergenin üstündeki sayı dizdiğin perlerin toplamı, sağ üstteki kutu açılış barajıdır. <b>Seri aç</b> ya da <b>Çift aç</b> dizdiklerini indirir, <b>İşle</b> seçtiğin taşı yerdeki pere işler, <b>Geri topla</b> taş atmadan önce bu tur indirdiklerini ıstakana geri alır.']
@@ -556,7 +557,7 @@ const STR = {
     modeNote: { okey: 'Arrange 14 tiles into sets and runs or 7 pairs, then discard the 15th to win. Everyone starts with 20 points.', 101: 'Open with melds worth 101 or 5 pairs, lay off tiles and go out first. Lowest penalty wins.' },
     lvLbl: 'Level', handsLbl: 'Hands',
     katLbl: 'Raising', katO: { yok: 'Fixed', var: 'Raising' }, helpLbl: 'Help', helpO: { var: 'On', yok: 'Off' },
-    optNote: (o) => [o.kat ? 'Raising: each opener must beat the previous opening by at least 1 (pairs: one more pair).' : '', o.help ? 'Help on: Sort runs / Sort pairs buttons, tiles you can lay off are marked, the okey has a star, Lay off places fitting tiles for you and you are warned before costly discards.' : 'Help off: no sort buttons, marks or warnings; arrange your rack and spot the okey yourself.'].filter(Boolean).join(' '),
+    optNote: (o) => [o.kat ? 'Raising: each opener must beat the previous opening by at least 1 (pairs: one more pair).' : '', o.help ? 'Help on: Sort runs / Sort pairs buttons, after opening, fitting tiles are laid off automatically, tiles that fit a meld get a green + mark and the okey has a star.' : 'Help off: no sort buttons, automatic lay-offs or marks; arrange your rack and spot the okey yourself.'].filter(Boolean).join(' '),
     needT: (k, q) => `To open: ${k}${q ? ` or ${q} pairs` : ''}`, handsN: (n) => n === 1 ? '1 hand' : `${n} hands`,
     you: 'You', cpuNames: ['Alex', 'Maya', 'Leo'], tiles: (n) => `${n} tiles`, tilesH: 'Tiles', opened: 'open',
     deckL: 'Deck', indL: 'Indicator', okeyL: 'Okey', takeL: 'Take', myL: 'Discard',
@@ -582,7 +583,7 @@ const STR = {
       ['💯', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs, never both; 12-13-1 is not a run and the indicator has no role. Then lay new melds and add tiles to melds on the table. A pairs opener cannot lay runs and may add at most 2 tiles a turn to others’ melds; others may lay pairs onto a pairs opener.'],
       ['🔁', '<b>Discards:</b> If you take your left neighbour’s discard you must open with it that turn (or use it if already open). Taking it and putting it back costs 101. Once open, put the real tile in place of an okey on the table to take the okey.'],
       ['🏁', '<b>Going out:</b> Discard your last tile or drop it on the indicator; you need one tile left to go out. Laying everything down and going out before anyone else opens counts as going out in one go and needs no 101.'],
-      ['⚙️', '<b>Table options (101):</b> At a <b>raising</b> table each opener must beat the previous opening by at least 1 (after 101 the next needs 102); with pairs one more pair is needed (5, 6, 7…). <b>Help on</b> gives Sort runs / Sort pairs, marks tiles you can lay off, shows the okey with a star, lays off fitting tiles for you and warns before costly discards; <b>help off</b> gives none of these.'],
+      ['⚙️', '<b>Table options (101):</b> At a <b>raising</b> table each opener must beat the previous opening by at least 1 (after 101 the next needs 102); with pairs one more pair is needed (5, 6, 7…). <b>Help on</b> gives Sort runs / Sort pairs, lays off fitting tiles automatically after you open, puts a green + on tiles that fit a meld and shows the okey with a star; <b>help off</b> gives none of these.'],
       ['⚠️', '<b>Penalties:</b> Discarding a tile that fits a meld on the table, or the okey, costs 101. An okey left in hand costs another 101.'],
       ['🧮', '<b>101 scoring:</b> The player who goes out scores −101. Unopened players score 202, opened ones the sum of their tiles; a pairs opener pays double. Going out with the okey, with pairs or in one go doubles the winner’s score and everyone’s penalty, and these stack (pairs + okey or one go + okey is ×4). If the deck runs out everyone scores their hand. If all four open with pairs the hand is void. Lowest total wins.'],
       ['👆', 'Drag tiles to arrange your rack. Tap to select; drag or tap onto “Discard”. In 101 arrange melds and pairs on your rack with a gap between them: the number above the indicator is the total of your arranged melds, the box top right is the opening target. <b>Lay melds</b> / <b>Lay pairs</b> put them down, <b>Lay off</b> adds the selected tile to a meld, <b>Take back</b> returns this turn’s melds to your rack before you discard.']
@@ -616,7 +617,7 @@ const pname = (i) => i === 0 ? T().you : T().cpuNames[i - 1];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const save = () => { if (G) store.set('game', G); };
 const is101 = () => G.mode === '101';
-// 101 seçenekleri: çiftle açma, katlamalı baraj, yardım (işaret, uyarı, Per bul)
+// 101 seçenekleri: çiftle açma, katlamalı baraj, yardım (dizme, otomatik işleme, işaret)
 const OPT = () => Object.assign({ cift: true, kat: false, help: true }, G && G.opt);
 const helpOn = () => !is101() || OPT().help;
 const needPer = () => OPT().kat && G.maxOpen && G.maxOpen[0] ? G.maxOpen[0] + 1 : 101;
@@ -1029,7 +1030,6 @@ function humanDiscard(id) {
   if (id == null) { if (selSet.size !== 1) { toast(T().pickOne, '#fbbf24'); return; } id = [...selSet][0]; }
   if (is101() && G.took >= 0 && (G.hand[0].includes(G.took) || G.stage.some((m) => m.ids.includes(G.took)))) { toast(T().needUse, '#f87171'); Sfx.bad(); return; }
   if (G.stage.length) cancelStage();
-  if (is101() && helpOn() && G.hand[0].length > 1 && G.warn !== id && (isJ(id) || islek(id))) { G.warn = id; toast(isJ(id) ? T().okeyWarn : T().islekWarn, '#fbbf24'); Sfx.bad(); return; }
   selSet.clear(); discard(0, id);
 }
 function humanFinish(id) {
@@ -1321,8 +1321,9 @@ function render() {
   if (!st.hidden) { const pairs = G.stage[0].t === 'pair', tot = G.stage.reduce((s, m) => s + m.val, 0);
     st.innerHTML = `<div class="sm">${G.stage.map((m, i) => `<div class="meld" data-si="${i}">${m.ids.map((id) => tileHtml(id)).join('')}</div>`).join('')}</div><span class="tot">${esc(pairs ? t.pairsN(G.stage.length, needPair()) : t.total(tot, needPer()))}</span>`; }
   // raf
-  const mark = is101() && helpOn() && G.opened[0] && G.turn === 0 && G.phase === 'play' && !(G.opened[0] === 'cift' && (G.addN || 0) >= 2) ? islek : () => false;
-  $('rack').innerHTML = G.rack.map((id, i) => `<div class="slot" data-s="${i}">${id >= 0 ? tileHtml(id, (selSet.has(id) ? 'sel' : '') + (id === newId ? ' nw' : '') + (mark(id) ? ' isl' : '') + (helpOn() ? '' : ' nh')) : ''}</div>`).join('');
+  // yardımlı: yerdeki bir pere işlenebilen taşın üstünde yeşil + işareti (atarsa 101 ceza)
+  const mark = is101() && helpOn() && G.melds.length ? islek : () => false;
+  $('rack').innerHTML = G.rack.map((id, i) => `<div class="slot" data-s="${i}">${id >= 0 ? (mark(id) ? tileHtml(id, (selSet.has(id) ? 'sel' : '') + (id === newId ? ' nw' : '') + ' isl').replace(/<\/div>$/, '<i class="im">+</i></div>') : tileHtml(id, (selSet.has(id) ? 'sel' : '') + (id === newId ? ' nw' : '') + (helpOn() ? '' : ' nh'))) : ''}</div>`).join('');
   // durum ve düğmeler
   // Yönlendirme yazısı yok. 101'de açılış barajı sağ üstte, ıstakadaki per toplamı göstergenin üstünde.
   let s = '';
