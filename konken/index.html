@@ -936,11 +936,7 @@ function render() {
   $('rack').innerHTML = G.rack.map((id, i) => `<div class="slot" data-s="${i}">${id >= 0 ? cardHtml(id, (selSet.has(id) ? 'sel' : '') + (id === newId ? ' nw' : '')) : ''}</div>`).join('');
   let s = '';
   if (live) {
-    if (G.turn !== 0) s = t.thinking(pname(G.turn));
-    else if (G.phase === 'draw') s = t.drawMe;
-    else if (mustUse()) s = t.mustOpen;
-    else if (!G.opened[0] && G.stage.length) s = t.open;
-    else s = G.tc === 0 && G.hand[0].length === 15 && !G.opened[0] ? t.playFirst : t.play;
+    if (G.turn === 0 && G.phase !== 'draw' && mustUse()) s = t.mustOpen; // yalnızca kural uyarısı, yönlendirme yazısı yok
   }
   $('status').textContent = s;
   let a = '';

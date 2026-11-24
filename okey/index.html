@@ -783,9 +783,7 @@ function deal() {
   ROWS = 2; COLS = 15; G.rack = Array(ROWS * COLS).fill(-1); arrange('run');
   selSet = new Set(); epoch++; busy = false;
   save(); render(); kick();
-  if ($('rack').classList.contains('tall') && !rotHinted) { rotHinted = true; setTimeout(() => toast(T().rotHint, '#a7f3d0'), 700); }
 }
-let rotHinted = false;
 // Grupları ıstaka katının sonundan taşırmadan diz
 function packGroups(out, groups) {
   const B = Array.from({ length: ROWS }, (_, i) => (i + 1) * COLS);
@@ -1158,14 +1156,9 @@ function render() {
   const mark = is101() && helpOn() && G.opened[0] && G.turn === 0 && G.phase === 'play' && !(G.opened[0] === 'cift' && (G.addN || 0) >= 2) ? islek : () => false;
   $('rack').innerHTML = G.rack.map((id, i) => `<div class="slot" data-s="${i}">${id >= 0 ? tileHtml(id, (selSet.has(id) ? 'sel' : '') + (id === newId ? ' nw' : '') + (mark(id) ? ' isl' : '') + (helpOn() ? '' : ' nh')) : ''}</div>`).join('');
   // durum ve düğmeler
+  // Yönlendirme yazısı yok; yalnızca katlamalı 101'de güncel açma eşiği gösterilir.
   let s = '';
-  if (G.phase === 'draw' || G.phase === 'play') {
-    if (G.turn !== 0) s = t.thinking(pname(G.turn));
-    else if (G.phase === 'draw') s = t.drawMe;
-    else if (is101()) s = (G.opened[0] ? t.play101 : (G.stage.length ? t.open101 : t.play101)) + (!G.opened[0] && OPT().kat && G.maxOpen && (G.maxOpen[0] || G.maxOpen[1]) ? ' · ' + t.needT(needPer(), OPT().cift ? needPair() : 0) : '');
-    else s = G.firstDone[0] || G.hand[0].length < 15 ? t.playMe : t.playFirst;
-  }
-  if (G.note) s = G.note + (s ? ' · ' + s : '');
+  if (G.phase === 'play' && G.turn === 0 && is101() && !G.opened[0] && OPT().kat && G.maxOpen && (G.maxOpen[0] || G.maxOpen[1])) s = t.needT(needPer(), OPT().cift ? needPair() : 0);
   $('status').textContent = s;
   let a = '';
   if (G.phase === 'draw' || G.phase === 'play') {
