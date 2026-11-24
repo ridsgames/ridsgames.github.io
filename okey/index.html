@@ -293,21 +293,29 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 
 /* 101: ıstakadaki per toplamı (gösterge üstü) ve açılış barajı (sağ üst) */
 .ind { position: relative; }
-.ind .rv { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 5px; min-width: 2.2em; padding: 2px 7px; border-radius: 8px; background: rgba(2, 6, 23, .72); color: #fff; font-size: 15px; line-height: 1.15; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; display: flex; flex-direction: column; align-items: center; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .18); }
-.ind .rv small { font-size: 10px; font-weight: 700; color: #cbd5e1; }
-.ind .rv.ok { box-shadow: 0 0 0 2px #34d399; color: #a7f3d0; }
-.need { position: absolute; top: 6px; right: 112px; z-index: 3; display: flex; flex-direction: column; align-items: center; padding: 3px 9px 4px; border-radius: 10px; background: rgba(2, 6, 23, .6); color: #fde68a; line-height: 1.1; box-shadow: 0 0 0 1.5px rgba(253, 230, 138, .35); pointer-events: none; }
-.need b { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.need small { font-size: 9.5px; font-weight: 700; color: #e2e8f0; text-transform: uppercase; letter-spacing: .03em; }
+.nb { display: flex; align-items: center; justify-content: center; min-width: 3.4em; padding: 3px 9px; border-radius: 10px; background: rgba(2, 6, 23, .7); color: #fde68a; font-size: 17px; line-height: 1.15; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; text-transform: uppercase; box-shadow: 0 0 0 1.5px rgba(253, 230, 138, .35); pointer-events: none; }
+.nb.ok { color: #a7f3d0; box-shadow: 0 0 0 2px #34d399; }
+.ind .rv { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 5px; }
+.need { position: absolute; top: 6px; right: 112px; z-index: 3; }
+.rackw { position: relative; }
+.rsum { position: absolute; z-index: 4; top: 0; left: 78%; transform: translate(-50%, -62%); }
+.rsum[hidden] { display: none; }
 .need[hidden] { display: none; }
-@media (orientation: portrait) and (max-width: 620px) { .need { right: 96px; padding: 2px 7px 3px; } .need .nl { display: none; } .need b { font-size: 15px; } }
+@media (orientation: portrait) and (max-width: 620px) { .need { right: 96px; } .nb { font-size: 15px; padding: 2px 7px; } }
 /* Perler masanın üstünde mutlak konumlu katman; konumları fitMelds hesaplar */
 #melds { position: absolute; inset: 0; z-index: 2; display: block; overflow: hidden; pointer-events: none; gap: 0; }
 #melds.scroll { overflow-y: auto; pointer-events: auto; }
 #melds .meld { position: absolute; pointer-events: auto; }
 #melds .meld.pj { border-radius: 4px; padding: 3px 4px; }
-@media (orientation: portrait) and (max-width: 620px) { .table:has(#need:not([hidden])) .seat.s2 { left: 40%; } }
+@media (orientation: portrait) and (max-width: 620px) { .table:has(#need:not([hidden])) .seat.s2 { left: 32%; } }
 @media (orientation: portrait) and (max-width: 380px) { .acts:has(button:nth-child(4)) { gap: 4px; } .acts:has(button:nth-child(4)) button { padding: 0 8px; font-size: 12.5px; } }
+/* Ayar ve skor düğmeleri sağ üstte alt alta; üstteki oyuncuların atış yerleri en üstte, düğmelerin solunda */
+.fab.score { top: calc(max(6px, env(safe-area-inset-top)) + 46px); right: max(6px, env(safe-area-inset-right)); }
+.pile.c2, .pile.c1 { top: 6px; }
+.pile.c1 { right: 54px; }
+.need { right: calc(var(--mw, 22px) * 1.3 + 16px + 62px); }
+@media (orientation: portrait) and (max-width: 620px) { .need { right: calc(var(--mw, 22px) * 1.3 + 16px + 60px); } }
+.seat.s1 { top: max(96px, calc(50% - 52px)); transform: none; }
 
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
@@ -328,7 +336,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
   <div class="seat s3" id="seat3"></div>
   <div class="seat s1" id="seat1"></div>
   <div class="status" id="status" aria-live="polite"></div>
-  <div class="need" id="need" hidden></div>
+  <div class="need nb" id="need" hidden></div>
   <div class="melds" id="melds"></div>
   <div class="center"><div class="deckw"><div class="deck" id="deck"></div><div class="ind" id="ind"></div></div></div>
   <div class="pile c2" id="pile2"></div>
@@ -338,7 +346,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 </div>
 <div class="stage" id="stage" hidden></div>
 <div class="bot">
-  <div class="rackw"><div class="rack" id="rack"></div></div>
+  <div class="rackw"><b class="rsum nb" id="rsum" hidden></b><div class="rack" id="rack"></div></div>
   <div class="acts" id="acts"></div>
 </div>
 <div class="res" id="res" hidden><div class="box panel" id="resBox"></div></div>
@@ -1014,8 +1022,8 @@ function layMeld(p, ids, pair) {
 
 // ---------- İnsan ----------
 const myTurn = () => G && G.turn === 0 && !busy && (G.phase === 'draw' || G.phase === 'play');
-function humanDraw() { if (!myTurn() || G.phase !== 'draw') return; Sfx.unlock(); if (drawDeck(0)) { save(); render(); } }
-function humanTake() { if (!myTurn() || G.phase !== 'draw') return; Sfx.unlock(); if (takePile(0)) { if (G.pickedBy) {} save(); render(); } }
+function humanDraw() { if (!myTurn() || G.phase !== 'draw') return; Sfx.unlock(); if (drawDeck(0)) { autoIsle(); save(); render(); } }
+function humanTake() { if (!myTurn() || G.phase !== 'draw') return; Sfx.unlock(); if (takePile(0)) { autoIsle(); save(); render(); } }
 function humanDiscard(id) {
   if (!myTurn() || G.phase !== 'play') return;
   if (id == null) { if (selSet.size !== 1) { toast(T().pickOne, '#fbbf24'); return; } id = [...selSet][0]; }
@@ -1055,7 +1063,7 @@ function humanOpen() {
   if (!G.hand[0].length) { toast(T().keepOne, '#f87171'); return; }
   if (G.took >= 0 && G.hand[0].includes(G.took)) { toast(T().needUse, '#f87171'); return; }
   snap(); for (const m of G.stage) { m.o = 0; G.melds.push(m); }
-  G.stage = []; markOpen(0, pairs ? 'cift' : 'per'); G.took = -1; Sfx.good(); save(); render();
+  G.stage = []; markOpen(0, pairs ? 'cift' : 'per'); G.took = -1; Sfx.good(); autoIsle(); save(); render();
   if (voidCheck()) voidHand();
 }
 function humanAdd(mi) {
@@ -1067,7 +1075,7 @@ function humanAdd(mi) {
   if (!canAdd(m, id)) { toast(T().cantAdd, '#f87171'); Sfx.bad(); return; }
   if (G.hand[0].length <= 1) { toast(T().keepOne, '#f87171'); return; }
   if (G.opened[0] === 'cift' && (G.addN || 0) >= 2) { toast(T().addMax, '#f87171'); Sfx.bad(); return; }
-  snap(); addTo(m, id); G.addN = (G.addN || 0) + 1; G.hand[0].splice(G.hand[0].indexOf(id), 1); if (id === G.took) G.took = -1; selSet.clear(); syncRack(); Sfx.tap(); save(); render();
+  snap(); addTo(m, id); G.addN = (G.addN || 0) + 1; G.hand[0].splice(G.hand[0].indexOf(id), 1); if (id === G.took) G.took = -1; selSet.clear(); syncRack(); Sfx.tap(); autoIsle(); save(); render();
 }
 // Istakadaki dizilişten perler/çiftler: her katta boşlukla ayrılmış bitişik taşlar; bitişik grup birden çok pere bölünebilir.
 function rackGroups() {
@@ -1119,8 +1127,23 @@ function layRack(kind) {
   if (G.took >= 0 && ids.includes(G.took)) G.took = -1;
   selSet.clear(); syncRack();
   if (!G.opened[0]) { markOpen(0, pair ? 'cift' : 'per'); Sfx.good(); } else Sfx.tone(500, 760, 0.08, 0.06, 'triangle', 0.08);
-  save(); render();
+  autoIsle(); save(); render();
   if (voidCheck()) voidHand();
+}
+// Yardımlıda açmış oyuncunun işlek taşlarını kendiliğinden işle (okey ve son taş hariç)
+function isleAll() {
+  let n = 0;
+  for (let again = true; again;) { again = false;
+    for (const id of G.hand[0].slice()) {
+      if (G.hand[0].length <= 1 || (G.opened[0] === 'cift' && (G.addN || 0) >= 2)) break;
+      if (isJ(id)) continue; const m = G.melds.find((x) => canAdd(x, id)); if (!m) continue;
+      snap(); addTo(m, id); G.addN = (G.addN || 0) + 1; G.hand[0].splice(G.hand[0].indexOf(id), 1); if (id === G.took) G.took = -1; n++; again = true; } }
+  return n;
+}
+function autoIsle() {
+  if (!is101() || !helpOn() || !G.opened[0] || !myTurn() || G.phase !== 'play' || G.stage.length) return 0;
+  const n = isleAll(); if (n) { selSet.clear(); syncRack(); Sfx.tone(520, 820, 0.07, 0.06, 'triangle', 0.07); }
+  return n;
 }
 function humanIsle() {
   if (!myTurn() || G.phase !== 'play' || !is101()) return;
@@ -1129,12 +1152,7 @@ function humanIsle() {
   if (selSet.size === 1) { const id = [...selSet][0], mi = G.melds.findIndex((m) => swapIdx(m, id) >= 0 || canAdd(m, id));
     if (mi < 0) { toast(t.cantAdd, '#f87171'); Sfx.bad(); return; } humanAdd(mi); return; }
   if (!helpOn()) { toast(t.pickOne, '#fbbf24'); return; }
-  let n = 0;
-  for (let again = true; again;) { again = false;
-    for (const id of G.hand[0].slice()) {
-      if (G.hand[0].length <= 1 || (G.opened[0] === 'cift' && (G.addN || 0) >= 2)) break;
-      if (isJ(id)) continue; const m = G.melds.find((x) => canAdd(x, id)); if (!m) continue;
-      snap(); addTo(m, id); G.addN = (G.addN || 0) + 1; G.hand[0].splice(G.hand[0].indexOf(id), 1); if (id === G.took) G.took = -1; n++; again = true; } }
+  const n = isleAll();
   if (!n) { toast(t.nothingAdd, '#fbbf24'); return; }
   selSet.clear(); syncRack(); Sfx.tap(); save(); render();
 }
@@ -1197,7 +1215,7 @@ function fitMelds() {
   const addR = (el, pad = 4) => { if (!el || el.hidden) return; const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
     obs.push([r.left - T0.left - pad, r.top - T0.top - pad, r.right - T0.left + pad, r.bottom - T0.top + pad]); };
   ['seat1', 'seat2', 'seat3', 'pile1', 'pile2', 'leftPile', 'myPile', 'need', 'setBtn', 'scoreBtn', 'fsBtn'].forEach((k) => addR($(k)));
-  addR(tb.querySelector('.center'), 6); addR(tb.querySelector('.ind .rv')); if ($('status').textContent) addR($('status'));
+  addR(tb.querySelector('.center'), 6); addR(tb.querySelector('.ind .rv')); if (!$('rsum').hidden) addR($('rsum')); if ($('status').textContent) addR($('status'));
   const meta = els.map((e) => { const m = G.melds[+e.dataset.mi]; let s = m.ids.length, ph = 0;
     if (m.t === 'run') ph = (m.lo > 1) + (m.hi < 13); else if (m.t === 'set' && m.ids.length < 4) ph = 1;
     return { e, pair: m.t === 'pair', s, ph, n: s + ph }; });
@@ -1210,28 +1228,31 @@ function fitMelds() {
     return s;
   };
   // Çiftler: sağ üstteki baraj kutusunun ("5 çift") hemen altından tek sütunda, bitişik, aşağıya kadar; sığmazsa 2. sütun soluna
-  const pairs = meta.filter((o) => o.pair); let pcol = null;
-  if (pairs.length) {
-    const nb = $('need').hidden ? null : $('need').getBoundingClientRect();
-    const xr = nb ? nb.right - T0.left : X1, yt = nb ? nb.bottom - T0.top + 3 : Y0;
-    const others = obs.filter((o) => !nb || Math.abs(o[0] - (nb.left - T0.left - 4)) > 1 || Math.abs(o[1] - (nb.top - T0.top - 4)) > 1);
-    const colBottom = (x0, x1) => { let b = Y1; for (const [a, bb, c, d] of others) if (c > x0 && a < x1 && d > yt && bb < b) b = Math.max(yt, bb); return b; };
+  const pairs = meta.filter((o) => o.pair);
+  const nb = $('need').hidden ? null : $('need').getBoundingClientRect();
+  const xr = nb ? nb.right - T0.left : X1, yt = nb ? nb.bottom - T0.top + 3 : Y0;
+  const others = obs.filter((o) => !nb || Math.abs(o[0] - (nb.left - T0.left - 4)) > 1 || Math.abs(o[1] - (nb.top - T0.top - 4)) > 1);
+  const colBottom = (x0, x1) => { let b = Y1; for (const [a, bb, c, d] of others) if (c > x0 && a < x1 && d > yt && bb < b) b = Math.max(yt, bb); return b; };
+  const wCap = nb ? Math.max(14, Math.floor((nb.width - 10) / 2)) : Math.min(24, Math.round(mw)); // sütun baraj kutusundan geniş olmasın
+  const placePairs = (cap) => { // cap: perlerle aynı ölçek; en büyük sığan çift boyu
+    if (!pairs.length) return { pcol: null };
     let best = null;
     for (const cols of [1, 2, 3]) {
-      const wMax = nb ? Math.max(14, Math.floor((nb.width - 10) / 2)) : Math.min(24, Math.round(mw)); // sütun baraj kutusu genişliğinde
-      for (let wp = wMax; wp >= (cols < 3 ? 14 : 11); wp--) {
+      for (let wp = Math.min(wCap, cap); wp >= (cols < 3 ? 14 : 11); wp--) {
         const pw = Math.ceil(2 * wp + 1 + 9), rh = Math.ceil(wp * 1.38 + 9), x0 = xr - cols * pw - (cols - 1) * 3, per = Math.floor((colBottom(x0, xr) - yt + 1.5) / (rh - 1.5));
         if (per * cols >= pairs.length) { best = { cols, wp, pw, rh, x0, per }; break; }
       }
       if (best) break;
     }
     if (!best) { const wp = 11, pw = 2 * wp + 10, rh = Math.ceil(wp * 1.38 + 9); best = { cols: Math.ceil(pairs.length / 8), wp, pw, rh, x0: xr - Math.ceil(pairs.length / 8) * (pw + 3), per: 8 }; }
-    const { cols, wp, pw, rh, x0, per } = best;
+    const used = Math.min(best.per, pairs.length);
+    best.pcol = [best.x0 - 6, nb ? nb.top - T0.top : yt, xr + 4, yt + used * (best.rh - 1.5) + 6];
+    return best;
+  };
+  const putPairs = (pp) => { if (!pairs.length) return; const { wp, pw, rh, per } = pp;
     pairs.forEach((o, k) => { const c = Math.floor(k / per), r = k % per; o.e.style.setProperty('--kw', wp + 'px'); o.e.classList.add('pj');
-      o.e.style.left = Math.round(xr - (c + 1) * pw - c * 3) + 'px'; o.e.style.top = Math.round(yt + r * (rh - 1.5)) + 'px'; });
-    const used = Math.min(per, pairs.length);
-    pcol = [x0 - 6, nb ? nb.top - T0.top : yt, xr + 4, yt + used * (rh - 1.5) + 6];
-  }
+      o.e.style.left = Math.round(xr - (c + 1) * pw - c * 3) + 'px'; o.e.style.top = Math.round(yt + r * (rh - 1.5)) + 'px'; }); };
+  let pcol = null;
   const tryW = (w, overflow) => {
     const rh = Math.ceil(w * 1.38 + 9), mwid = (o) => Math.ceil(o.s * w + o.ph * w * 0.45 + (o.n - 1) + 9), pos = [];
     const pers = meta.filter((o) => !o.pair);
@@ -1246,9 +1267,10 @@ function fitMelds() {
     return pos;
   };
   const base = Math.round(mw * 1.15);
-  let w = base, pos = null;
-  for (; w >= 12 && !(pos = tryW(w, false)); w--);
-  const over = !pos; if (over) { w = 12; pos = tryW(w, true) || []; }
+  let w = base, pos = null, pp = null;
+  for (; w >= 12; w--) { pp = placePairs(Math.max(14, w + 2)); pcol = pp.pcol; if ((pos = tryW(w, false))) break; }
+  const over = !pos; if (over) { w = 12; pp = placePairs(14); pcol = pp.pcol; pos = tryW(w, true) || []; }
+  putPairs(pp);
   M.classList.toggle('scroll', over); M.style.setProperty('--kw', w + 'px');
   for (const [o, x, y] of pos) { o.e.style.left = Math.round(x) + 'px'; o.e.style.top = Math.round(y) + 'px'; }
   // masa kalabalıksa dikey telefonda uzun ıstaka taşlarını kısaltıp masaya yer aç
@@ -1288,9 +1310,10 @@ function render() {
     $('pile' + p).innerHTML = (tp != null ? tileHtml(tp) : '') + `<span class="lb">${esc(pname(p))}</span>`; }
   $('deck').className = 'deck' + (my && G.phase === 'draw' ? ' take' : '');
   $('deck').textContent = G.deck.length;
-  let rv = '';
-  if (is101() && (G.phase === 'draw' || G.phase === 'play')) { const ps = rackPers(), pc = rackPairs().length, sum = ps.reduce((s, m) => s + m.val, 0);
-    rv = `<b class="rv${sum >= needPer() || pc >= needPair() ? ' ok' : ''}">${sum}${pc ? `<small>${esc(t.pairsL(pc))}</small>` : ''}</b>`; }
+  const live101 = is101() && (G.phase === 'draw' || G.phase === 'play');
+  const rv = live101 ? `<b class="rv nb">${needPer()}</b>` : '';
+  const rsum = live101 ? rackPers().reduce((s, m) => s + m.val, 0) : 0;
+  $('rsum').hidden = !live101; if (live101) { $('rsum').textContent = rsum; $('rsum').className = 'rsum nb' + (!G.opened[0] && rsum >= needPer() ? ' ok' : ''); }
   $('ind').innerHTML = `${rv}${tileHtml(G.ind)}<span>${esc(t.indL)}</span>`;
   // hazırlık
   const st = $('stage');
@@ -1305,7 +1328,7 @@ function render() {
   let s = '';
   const live = G.phase === 'draw' || G.phase === 'play';
   $('need').hidden = !(is101() && live);
-  if (is101() && live) $('need').innerHTML = `<small class="nl">${esc(t.needL)}</small><b>${needPer()}</b><small>${esc(t.pairsL(needPair()))}</small>`;
+  if (is101() && live) $('need').innerHTML = `<b>${esc(t.pairsL(needPair()))}</b>`;
   $('status').textContent = s;
   let a = '';
   if (G.phase === 'draw' || G.phase === 'play') {
@@ -1316,7 +1339,7 @@ function render() {
         const o = G.opened[0];
         if (o !== 'cift') a += `<button type="button" id="bSeri">${esc(t.seriB)}</button>`;
         if (o !== 'per' || cifter(0) != null) a += `<button type="button" id="bCift">${esc(t.ciftB)}</button>`;
-        if (o) a += `<button type="button" id="bIsle">${esc(t.isleB)}</button>`;
+        if (o && (!helpOn() || selSet.size === 1)) a += `<button type="button" id="bIsle">${esc(t.isleB)}</button>`;
         if (G.undo) a += `<button type="button" class="alt" id="bUndo">${esc(t.undoB)}</button>`;
         if (!o && G.stage.length) a += `<button type="button" class="warn" id="bOpen">${esc(t.openB)}</button><button type="button" class="alt" id="bCancel">${esc(t.cancelB)}</button>`;
         if (G.took >= 0 && G.hand[0].includes(G.took)) a += `<button type="button" class="alt" id="bBack">${esc(t.backB)}</button>`;
@@ -1416,7 +1439,7 @@ function endDrag(e) {
     if (!(d.src === 'deck' ? drawDeck(0) : takePile(0))) { render(); return; }
     const id = newId, from = G.rack.indexOf(id);
     if (tg.classList.contains('slot') && from >= 0) moveSlot(from, +tg.dataset.s);
-    newId = id; save(); render(); return;
+    newId = id; autoIsle(); save(); render(); return;
   }
   if (!d.on) { tapTile(d.id); return; }
   d.g.remove(); d.el.classList.remove('dragging');
