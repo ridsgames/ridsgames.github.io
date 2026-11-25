@@ -378,7 +378,7 @@ footer { display: none; }
 // Kart 0-53: 0-51 normal kartlar, renk = id / 13 (0 maça, 1 kupa, 2 karo, 3 sinek), değer = id % 13 + 1 (1 as, 11 vale, 12 kız, 13 papaz); 52 kırmızı, 53 siyah joker
 const suitOf = (c) => (c >= 52 ? -1 : (c / 13) | 0), rankOf = (c) => (c >= 52 ? 0 : (c % 13) + 1);
 const isJoker = (c) => c >= 52, isJack = (c) => rankOf(c) === 11, isWild = (c) => isJoker(c) || isJack(c);
-const PEN = [50, 11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 10, 10]; // elde kalan kartın ceza puanı (değere göre, 0 joker): as 11, vale 20, kız ve papaz 10
+const PEN = [10, 11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 10, 10]; // elde kalan kartın ceza puanı (değere göre, 0 joker): joker 10, as 11, vale 20, kız ve papaz 10
 const pen = (c) => PEN[rankOf(c)];
 const isSpecial = (c) => isJoker(c) || [1, 7, 8, 10, 11].includes(rankOf(c));
 const SEVEN = 3, JOKER_PEN = 10; // 7'li ve joker kaç kart çektirir
@@ -462,7 +462,7 @@ const STR = {
       ['⏭️', '<b>8</b> sıradakini atlatır. <b>10</b> yönü değiştirir; iki kişide sıra yine sende kalır.'],
       ['☝️', 'İki kartın kalınca, kart atmadan önce <b>"Tek kart!"</b> düğmesine basmalısın; basmadan atamazsın.'],
       ['♻️', 'Deste bitince yerdeki kartlar (en üstteki hariç) karıştırılıp yeni deste olur.'],
-      ['🧮', 'Elini biri bitirince diğerlerinin elinde kalanlar <b>ceza puanı</b> olur: as 11, vale 20, kız ve papaz 10, joker 50, diğerleri üstündeki sayı kadar. Elde kalan her <b>7 için 3</b>, her <b>as için 1</b> kart daha çekilir, onların değeri de eklenir. Son kartı <b>vale</b> ile biten olursa rakiplerin cezası <b>iki kat</b> yazılır.'],
+      ['🧮', 'Elini biri bitirince diğerlerinin elinde kalanlar <b>ceza puanı</b> olur: as 11, vale 20, kız ve papaz 10, joker 10, diğerleri üstündeki sayı kadar. Elde kalan her <b>7 için 3</b>, her <b>as için 1</b>, her <b>joker için 10</b> kart daha çekilir, onların değeri de eklenir. Son kartı <b>vale</b> ile biten olursa rakiplerin cezası <b>iki kat</b> yazılır.'],
       ['🔒', 'Deste biter ve yerdeki kartlar yeni deste için yetmezse (5 karttan az) el kapanır; elinde en az ceza kalan eli kazanmış sayılır.'],
       ['🏆', 'Biri seçilen ceza sınırına ulaşınca oyun biter, <b>en az cezası olan</b> kazanır. <b>Tek el</b> seçersen elini ilk bitiren kazanır.']
     ],
@@ -504,7 +504,7 @@ const STR = {
       ['⏭️', 'An <b>8</b> skips the next player. A <b>10</b> reverses the direction; with two players you go again.'],
       ['☝️', 'With two cards left you must tap <b>"Last card!"</b> before playing; you cannot play without it.'],
       ['♻️', 'When the deck runs out, the played cards (except the top one) are shuffled into a new deck.'],
-      ['🧮', 'When someone goes out, the others score <b>penalty points</b> for the cards they hold: ace 11, jack 20, queen and king 10, joker 50, others their number. For every <b>7 held, 3</b> more cards are drawn and for every <b>ace, 1</b>; their values are added too. If the winner goes out with a <b>jack</b>, the others\' penalties are <b>doubled</b>.'],
+      ['🧮', 'When someone goes out, the others score <b>penalty points</b> for the cards they hold: ace 11, jack 20, queen and king 10, joker 10, others their number. For every <b>7 held, 3</b> more cards are drawn, for every <b>ace, 1</b> and for every <b>joker, 10</b>; their values are added too. If the winner goes out with a <b>jack</b>, the others\' penalties are <b>doubled</b>.'],
       ['🔒', 'If the deck runs out and the pile is too small to make a new one (under 5 cards), the hand is closed and the player holding the fewest points wins it.'],
       ['🏆', 'When someone reaches the chosen limit the game ends and <b>the fewest points</b> wins. With <b>One hand</b> the first to go out wins.']
     ],
@@ -874,7 +874,7 @@ async function endHand(w, blocked) {
   render(520); updateDock('');
   await wait(1500); if (my !== epoch) return;
   const pool = shuffled(Math.random, [...h.deck, ...h.pile.slice(0, -1)]), dbl = !blocked && isJack(h.pile[h.pile.length - 1]);
-  h.extra = h.hands.map((hd, i) => (i === w ? [] : hd.flatMap((c) => (isJoker(c) ? [] : rankOf(c) === 7 ? pool.splice(0, 3) : rankOf(c) === 1 ? pool.splice(0, 1) : []))));
+  h.extra = h.hands.map((hd, i) => (i === w ? [] : hd.flatMap((c) => (isJoker(c) ? pool.splice(0, JOKER_PEN) : rankOf(c) === 7 ? pool.splice(0, 3) : rankOf(c) === 1 ? pool.splice(0, 1) : []))));
   h.dbl = dbl;
   h.res = h.hands.map((hd, i) => (i === w ? 0 : (hd.reduce((s, c) => s + pen(c), 0) + h.extra[i].reduce((s, c) => s + pen(c), 0)) * (dbl ? 2 : 1)));
   h.res.forEach((v, i) => { G.scores[i] += v; });
