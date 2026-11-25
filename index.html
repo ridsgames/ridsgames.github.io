@@ -114,13 +114,12 @@ section.block { padding-top: 52px; padding-bottom: 56px; }
 .go::after { content: " \203A"; }
 .cats { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -18px 18px; padding: 10px 18px; background: var(--bg); }
 .cats::-webkit-scrollbar { display: none; }
-.cats button { flex: none; display: inline-flex; align-items: baseline; gap: 6px; font: 800 16px/1 var(--display); padding: 10px 14px 8px; border-radius: 999px; border: 2px solid var(--line); background: var(--panel); color: var(--dim); cursor: pointer; }
-.cats button small { font: 700 12.5px/1 Inter, system-ui, sans-serif; color: #7C8696; }
-.cats button:hover { color: var(--text); }
-.cats button[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: var(--ink); }
-.cats button[aria-pressed="true"] small { color: #5C430F; }
+.cats a { flex: none; text-decoration: none; display: inline-flex; align-items: baseline; gap: 6px; font: 800 16px/1 var(--display); padding: 10px 14px 8px; border-radius: 999px; border: 2px solid var(--line); background: var(--panel); color: var(--dim); cursor: pointer; }
+.cats a small { font: 700 12.5px/1 Inter, system-ui, sans-serif; color: #7C8696; }
+.cats a:hover { color: var(--text); }
+.cats a[aria-current="true"] { background: var(--amber); border-color: var(--amber); color: var(--ink); }
+.cats a[aria-current="true"] small { color: #5C430F; }
 .gsec { margin-bottom: 34px; scroll-margin-top: 70px; }
-.gsec[hidden] { display: none; }
 .gcat { display: flex; align-items: baseline; gap: 8px; font-size: 26px; margin-bottom: 14px; }
 .gcat small { font: 700 15px/1 Inter, system-ui, sans-serif; color: var(--dim); }
 .soon { border: 2px dashed #3B424E; border-radius: 18px; padding: 22px 20px 20px; color: var(--dim); }
@@ -260,14 +259,270 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
       <h2 id="h-oyunlar" data-i18n="browserGames">Tarayıcıda hemen oynayın</h2>
     </div>
     <div class="cats" role="group" data-i18n-aria="catsAria" aria-label="Kategoriler">
-      <button type="button" data-cat="hepsi" aria-pressed="true"><span data-i18n="catAll">Tümü</span> <small>33</small></button>
-      <button type="button" data-cat="kart" aria-pressed="false"><span data-i18n="catKartS">Kart</span> <small>8</small></button>
-      <button type="button" data-cat="masa" aria-pressed="false"><span data-i18n="catMasaS">Tahta ve taş</span> <small>13</small></button>
-      <button type="button" data-cat="zeka" aria-pressed="false"><span data-i18n="catZekaS">Zeka</span> <small>5</small></button>
-      <button type="button" data-cat="kelime" aria-pressed="false"><span data-i18n="catKelimeS">Kelime</span> <small>4</small></button>
-      <button type="button" data-cat="beceri" aria-pressed="false"><span data-i18n="catBeceriS">Beceri</span> <small>3</small></button>
+      <a href="#kat-beceri" data-cat="beceri" aria-current="true"><span data-i18n="catBeceriS">Beceri</span> <small>3</small></a>
+      <a href="#kat-strateji" data-cat="strateji" aria-current="false"><span data-i18n="catStratejiS">Strateji</span> <small>7</small></a>
+      <a href="#kat-zar" data-cat="zar" aria-current="false"><span data-i18n="catZarS">Zar</span> <small>3</small></a>
+      <a href="#kat-okey" data-cat="okey" aria-current="false"><span data-i18n="catOkeyS">Okey ve taş</span> <small>3</small></a>
+      <a href="#kat-zeka" data-cat="zeka" aria-current="false"><span data-i18n="catZekaS">Zeka</span> <small>5</small></a>
+      <a href="#kat-kelime" data-cat="kelime" aria-current="false"><span data-i18n="catKelimeS">Kelime</span> <small>4</small></a>
+      <a href="#kat-kart" data-cat="kart" aria-current="false"><span data-i18n="catKartS">Kart</span> <small>8</small></a>
     </div>
-    <div class="gsec" data-cat="kart">
+    <div class="gsec" id="kat-beceri" data-cat="beceri">
+      <h3 class="gcat"><span data-i18n="catBeceri">Beceri oyunları</span> <small>3</small></h3>
+      <div class="games">
+      <a class="game" href="sulu-halka/">
+        <div class="cover"><img src="assets/sulu-halka.jpg" alt="" loading="lazy"></div>
+        <div class="info">
+          <h3 data-i18n="suluName">Sulu Halka</h3>
+          <p data-i18n="suluDesc">Su jetiyle halkaları yükseltin ve çubuklara geçirin. Yetişkinler için gerçekçi fizikli zor bir mod da var.</p>
+          <div class="tags"><span class="tag" data-i18n="tagModes">Çocuk ve yetişkin modu</span><span class="tag" data-i18n="tagGyro">Jiroskop desteği</span><span class="tag" data-i18n="tagThemes">4 tema</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="civi-futbolu/">
+        <div class="cover"><img src="assets/civi-futbolu.jpg" alt="" loading="lazy" style="--p: 50% 50%"></div>
+        <div class="info">
+          <h3 data-i18n="civiName">Çivi Futbolu</h3>
+          <p data-i18n="civiDesc">Parayı fırlatın, tahtaya çakılı çivilerin arasından geçirip rakip kaleye gol atın.</p>
+          <div class="tags"><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="saniye/">
+        <div class="cover"><img src="assets/saniye.jpg" alt="" loading="lazy" style="--p: 50% 58%"></div>
+        <div class="info">
+          <h3 data-i18n="saniyeName">Cuk</h3>
+          <p data-i18n="saniyeDesc">Hedef süreyi seçin, kronometre gizlenince içinden sayın ve tam zamanında durdurun. Salisesine kadar ölçülür.</p>
+          <div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      </div>
+    </div>
+    <div class="gsec" id="kat-strateji" data-cat="strateji">
+      <h3 class="gcat"><span data-i18n="catStrateji">Strateji oyunları</span> <small>7</small></h3>
+      <div class="games">
+      <a class="game" href="dama/">
+        <div class="cover"><img src="assets/dama.jpg" alt="" loading="lazy" style="--p: 50% 30%"></div>
+        <div class="info">
+          <h3 data-i18n="damaName">Türk Daması</h3>
+          <p data-i18n="damaDesc">Taşlarınızı ileri ve yana sürün, rakibin taşlarını atlayarak alın, son sıraya varıp dama olun.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="mangala/">
+        <div class="cover"><img src="assets/mangala.jpg" alt="" loading="lazy" style="--p: 50% 18%"></div>
+        <div class="info">
+          <h3 data-i18n="mangalaName">Mangala</h3>
+          <p data-i18n="mangalaDesc">Taşları kuyulara dağıtın, rakibin taşlarını yakalayın, hazinenizde en çok taşı siz toplayın.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="dokuz-tas/">
+        <div class="cover"><img src="assets/dokuz-tas.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="dokuzName">Dokuz Taş</h3>
+          <p data-i18n="dokuzDesc">Taşlarını diz, üçlü kur, rakibinin taşlarını al. Bilgisayara karşı ya da arkadaşınla oyna.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="dort-tas/">
+        <div class="cover"><img src="assets/dort-tas.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="dortName">Dört Taş</h3>
+          <p data-i18n="dortDesc">Taşları sütunlara bırak, aynı renkten dört taşı yan yana, alt alta ya da çapraz ilk dizen kazanır.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="cin-damasi/">
+        <div class="cover"><img src="assets/cin-damasi.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="cindamaName">Çin Daması</h3>
+          <p data-i18n="cindamaDesc">Yıldız tahtada on taşını zincirleme atlayışlarla karşı köşeye ilk taşıyan kazanır. 2, 3, 4 ya da 6 kişi; bilgisayara karşı ya da aynı cihazda.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="tas-cevirme/">
+        <div class="cover"><img src="assets/tas-cevirme.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="tascevirName">Taş Çevirme</h3>
+          <p data-i18n="tascevirDesc">Rakibin taşlarını kendi taşlarınla kuşat, rengini çevir. Sonunda tahtada çok taşı olan kazanır. Bilgisayara karşı ya da iki kişi.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="amiral-batti/">
+        <div class="cover"><img src="assets/amiral-batti.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="amiralName">Amiral Battı</h3>
+          <p data-i18n="amiralDesc">Gemilerini yerleştir, rakip sulara ateş et ve bilgisayarın filosunu ondan önce batır.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      </div>
+    </div>
+    <div class="gsec" id="kat-zar" data-cat="zar">
+      <h3 class="gcat"><span data-i18n="catZar">Zar oyunları</span> <small>3</small></h3>
+      <div class="games">
+      <a class="game" href="kizma-birader/">
+        <div class="cover"><img src="assets/kizma-birader.jpg" alt="" loading="lazy" style="--p: 50% 12%"></div>
+        <div class="info">
+          <h3 data-i18n="kizmaName">Kızma Birader</h3>
+          <p data-i18n="kizmaDesc">Zarı atın, piyonlarınızı evine götürün, yolunuzdaki rakibi başa gönderin. 2-4 kişilik klasik kutu oyunu.</p>
+          <div class="tags"><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="yilan-merdiven/">
+        <div class="cover"><img src="assets/yilan-merdiven.jpg" alt="" loading="lazy" style="--p: 50% 12%"></div>
+        <div class="info">
+          <h3 data-i18n="yilanName">Yılan Merdiven</h3>
+          <p data-i18n="yilanDesc">Zarı atın, merdivenlerle yukarı tırmanın, yılanlara yakalanmadan 100'e ilk siz ulaşın.</p>
+          <div class="tags"><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="tavla/">
+        <div class="cover"><img src="assets/tavla.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="tavlaName">Tavla</h3>
+          <p data-i18n="tavlaDesc">Klasik tavla, Mahbusa ve Gülbahar bir arada. Zarları at, pullarını topla, maçı kazan. Bilgisayara karşı ya da iki kişi.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagModeCount">3 mod</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      </div>
+    </div>
+    <div class="gsec" id="kat-okey" data-cat="okey">
+      <h3 class="gcat"><span data-i18n="catOkey">Okey ve taş oyunları</span> <small>3</small></h3>
+      <div class="games">
+      <a class="game" href="okey/">
+        <div class="cover"><img src="assets/okey.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="okeyName">Okey</h3>
+          <p data-i18n="okeyDesc">Klasik Okey ve 101 Okey bir arada. Taşlarını diz, per aç, elini ilk sen bitir. Üç bilgisayar rakiple dört kişilik masa.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="domino/">
+        <div class="cover"><img src="assets/domino.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="dominoName">Domino</h3>
+          <p data-i18n="dominoDesc">28 taşlık klasik domino. Taşları uçlara eşleştir, elini ilk bitiren puanı toplar. 1-3 bilgisayar rakibe karşı.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="tombala/">
+        <div class="cover"><img src="assets/tombala.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="tombalaName">Tombala</h3>
+          <p data-i18n="tombalaDesc">1-90 sayılı klasik tombala. Kartındaki sayıları kapat, 1. çinko, 2. çinko ve tombala için bilgisayar rakiplerle yarış.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      </div>
+    </div>
+    <div class="gsec" id="kat-zeka" data-cat="zeka">
+      <h3 class="gcat"><span data-i18n="catZeka">Zeka ve bulmaca</span> <small>5</small></h3>
+      <div class="games">
+      <a class="game" href="solo-test/">
+        <div class="cover"><img src="assets/solo-test.jpg" alt="" loading="lazy" style="--p: 50% 22%"></div>
+        <div class="info">
+          <h3 data-i18n="soloName">Solo Test</h3>
+          <p data-i18n="soloDesc">Piyonu komşusunun üzerinden boş deliğe atlatın, tablada tek piyon bırakmaya çalışın.</p>
+          <div class="tags"><span class="tag" data-i18n="tagModeCount">3 mod</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span><span class="tag" data-i18n="tagThemes">4 tema</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="mayin-tarlasi/">
+        <div class="cover"><img src="assets/mayin-tarlasi.jpg?v=2" alt="" loading="lazy" style="--p: 50% 50%"></div>
+        <div class="info">
+          <h3 data-i18n="mayinName">Mayın Tarlası</h3>
+          <p data-i18n="mayinDesc">Mayınlara basmadan bütün kareleri açın. Sayılar çevrede kaç mayın olduğunu söyler, şüphelendiğiniz yere bayrak dikin.</p>
+          <div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagLevels">3 zorluk ve özel saha</span><span class="tag" data-i18n="tagThemes5">5 tema</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="sudoku/">
+        <div class="cover"><img src="assets/sudoku.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="sudokuName">Sudoku</h3>
+          <p data-i18n="sudokuDesc">Her seferinde yeni, tek çözümlü sudoku. Kolay, orta ve zor seviye; not alma, ipucu, geri alma ve en iyi süre rekoru.</p>
+          <div class="tags"><span class="tag" data-i18n="tagPuzzle">Bulmaca</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="sayi-bulmaca/">
+        <div class="cover"><img src="assets/sayi-bulmaca.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="sayiName">Sayı Bulmaca</h3>
+          <p data-i18n="sayiDesc">Rakamları farklı gizli sayıyı + ve − ipuçlarıyla bul. Tek başına rekor kovala ya da bilgisayarla yarış.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagPuzzle">Bulmaca</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="hafiza/">
+        <div class="cover"><img src="assets/hafiza.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="hafizaName">Hafıza</h3>
+          <p data-i18n="hafizaDesc">Kartları ikişer ikişer aç, eşlerini bul. Tek başına rekor kır, bilgisayara karşı ya da arkadaşınla oyna.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      </div>
+    </div>
+    <div class="gsec" id="kat-kelime" data-cat="kelime">
+      <h3 class="gcat"><span data-i18n="catKelime">Kelime oyunları</span> <small>4</small></h3>
+      <div class="games">
+      <a class="game" href="adam-asmaca/">
+        <div class="cover"><img src="assets/adam-asmaca.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="adamName">Adam Asmaca</h3>
+          <p data-i18n="adamDesc">Harf harf tahmin et, adam asılmadan kelimeyi bul. 9 kategori, 3 zorluk; arkadaşınla iki kişi de oynayabilirsin.</p>
+          <div class="tags"><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="isim-sehir/">
+        <div class="cover"><img src="assets/isim-sehir.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="isimName">İsim Şehir</h3>
+          <p data-i18n="isimDesc">Harf belli olunca isim, şehir, hayvan ve diğer kategorilere yaz. Bilgisayara karşı, arkadaşlarınla ya da tek başına.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagWord">Kelime oyunu</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="bomba/">
+        <div class="cover"><img src="assets/bomba.jpg" alt="" loading="lazy" style="--p: 50% 30%"></div>
+        <div class="info">
+          <h3 data-i18n="bombaName">Dilimin Ucunda</h3>
+          <p data-i18n="bombaDesc">Hecenin geçtiği bir kelime söyleyin, bombayı yanınızdakine paslayın. Patladığında elinde olan can kaybeder.</p>
+          <div class="tags"><span class="tag" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      <a class="game" href="kelime-avi/">
+        <div class="cover"><img src="assets/kelime-avi.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
+        <div class="info">
+          <h3 data-i18n="kelimeaviName">Kelime Avı</h3>
+          <p data-i18n="kelimeaviDesc">Harf tablosuna gizlenmiş kelimeleri bul. Hayvanlar, şehirler, meslekler gibi temalar, üç zorluk ve süre rekoru.</p>
+          <div class="tags"><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
+      </div>
+    </div>
+    <div class="gsec" id="kat-kart" data-cat="kart">
       <h3 class="gcat"><span data-i18n="catKart">Kart oyunları</span> <small>8</small></h3>
       <div class="games">
       <a class="game" href="pisti/">
@@ -344,253 +599,8 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
       </a>
       </div>
     </div>
-    <div class="gsec" data-cat="masa">
-      <h3 class="gcat"><span data-i18n="catMasa">Tahta ve taş oyunları</span> <small>13</small></h3>
-      <div class="games">
-      <a class="game" href="tavla/">
-        <div class="cover"><img src="assets/tavla.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="tavlaName">Tavla</h3>
-          <p data-i18n="tavlaDesc">Klasik tavla, Mahbusa ve Gülbahar bir arada. Zarları at, pullarını topla, maçı kazan. Bilgisayara karşı ya da iki kişi.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagModeCount">3 mod</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="okey/">
-        <div class="cover"><img src="assets/okey.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="okeyName">Okey</h3>
-          <p data-i18n="okeyDesc">Klasik Okey ve 101 Okey bir arada. Taşlarını diz, per aç, elini ilk sen bitir. Üç bilgisayar rakiple dört kişilik masa.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="domino/">
-        <div class="cover"><img src="assets/domino.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="dominoName">Domino</h3>
-          <p data-i18n="dominoDesc">28 taşlık klasik domino. Taşları uçlara eşleştir, elini ilk bitiren puanı toplar. 1-3 bilgisayar rakibe karşı.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="dama/">
-        <div class="cover"><img src="assets/dama.jpg" alt="" loading="lazy" style="--p: 50% 30%"></div>
-        <div class="info">
-          <h3 data-i18n="damaName">Türk Daması</h3>
-          <p data-i18n="damaDesc">Taşlarınızı ileri ve yana sürün, rakibin taşlarını atlayarak alın, son sıraya varıp dama olun.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="dort-tas/">
-        <div class="cover"><img src="assets/dort-tas.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="dortName">Dört Taş</h3>
-          <p data-i18n="dortDesc">Taşları sütunlara bırak, aynı renkten dört taşı yan yana, alt alta ya da çapraz ilk dizen kazanır.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="dokuz-tas/">
-        <div class="cover"><img src="assets/dokuz-tas.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="dokuzName">Dokuz Taş</h3>
-          <p data-i18n="dokuzDesc">Taşlarını diz, üçlü kur, rakibinin taşlarını al. Bilgisayara karşı ya da arkadaşınla oyna.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="mangala/">
-        <div class="cover"><img src="assets/mangala.jpg" alt="" loading="lazy" style="--p: 50% 18%"></div>
-        <div class="info">
-          <h3 data-i18n="mangalaName">Mangala</h3>
-          <p data-i18n="mangalaDesc">Taşları kuyulara dağıtın, rakibin taşlarını yakalayın, hazinenizde en çok taşı siz toplayın.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="kizma-birader/">
-        <div class="cover"><img src="assets/kizma-birader.jpg" alt="" loading="lazy" style="--p: 50% 12%"></div>
-        <div class="info">
-          <h3 data-i18n="kizmaName">Kızma Birader</h3>
-          <p data-i18n="kizmaDesc">Zarı atın, piyonlarınızı evine götürün, yolunuzdaki rakibi başa gönderin. 2-4 kişilik klasik kutu oyunu.</p>
-          <div class="tags"><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="yilan-merdiven/">
-        <div class="cover"><img src="assets/yilan-merdiven.jpg" alt="" loading="lazy" style="--p: 50% 12%"></div>
-        <div class="info">
-          <h3 data-i18n="yilanName">Yılan Merdiven</h3>
-          <p data-i18n="yilanDesc">Zarı atın, merdivenlerle yukarı tırmanın, yılanlara yakalanmadan 100'e ilk siz ulaşın.</p>
-          <div class="tags"><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="tombala/">
-        <div class="cover"><img src="assets/tombala.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="tombalaName">Tombala</h3>
-          <p data-i18n="tombalaDesc">1-90 sayılı klasik tombala. Kartındaki sayıları kapat, 1. çinko, 2. çinko ve tombala için bilgisayar rakiplerle yarış.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="cin-damasi/">
-        <div class="cover"><img src="assets/cin-damasi.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="cindamaName">Çin Daması</h3>
-          <p data-i18n="cindamaDesc">Yıldız tahtada on taşını zincirleme atlayışlarla karşı köşeye ilk taşıyan kazanır. 2, 3, 4 ya da 6 kişi; bilgisayara karşı ya da aynı cihazda.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="tas-cevirme/">
-        <div class="cover"><img src="assets/tas-cevirme.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="tascevirName">Taş Çevirme</h3>
-          <p data-i18n="tascevirDesc">Rakibin taşlarını kendi taşlarınla kuşat, rengini çevir. Sonunda tahtada çok taşı olan kazanır. Bilgisayara karşı ya da iki kişi.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="amiral-batti/">
-        <div class="cover"><img src="assets/amiral-batti.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="amiralName">Amiral Battı</h3>
-          <p data-i18n="amiralDesc">Gemilerini yerleştir, rakip sulara ateş et ve bilgisayarın filosunu ondan önce batır.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" data-cat="zeka">
-      <h3 class="gcat"><span data-i18n="catZeka">Zeka ve bulmaca</span> <small>5</small></h3>
-      <div class="games">
-      <a class="game" href="sudoku/">
-        <div class="cover"><img src="assets/sudoku.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="sudokuName">Sudoku</h3>
-          <p data-i18n="sudokuDesc">Her seferinde yeni, tek çözümlü sudoku. Kolay, orta ve zor seviye; not alma, ipucu, geri alma ve en iyi süre rekoru.</p>
-          <div class="tags"><span class="tag" data-i18n="tagPuzzle">Bulmaca</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="sayi-bulmaca/">
-        <div class="cover"><img src="assets/sayi-bulmaca.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="sayiName">Sayı Bulmaca</h3>
-          <p data-i18n="sayiDesc">Rakamları farklı gizli sayıyı + ve − ipuçlarıyla bul. Tek başına rekor kovala ya da bilgisayarla yarış.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagPuzzle">Bulmaca</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="solo-test/">
-        <div class="cover"><img src="assets/solo-test.jpg" alt="" loading="lazy" style="--p: 50% 22%"></div>
-        <div class="info">
-          <h3 data-i18n="soloName">Solo Test</h3>
-          <p data-i18n="soloDesc">Piyonu komşusunun üzerinden boş deliğe atlatın, tablada tek piyon bırakmaya çalışın.</p>
-          <div class="tags"><span class="tag" data-i18n="tagModeCount">3 mod</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span><span class="tag" data-i18n="tagThemes">4 tema</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="mayin-tarlasi/">
-        <div class="cover"><img src="assets/mayin-tarlasi.jpg?v=2" alt="" loading="lazy" style="--p: 50% 50%"></div>
-        <div class="info">
-          <h3 data-i18n="mayinName">Mayın Tarlası</h3>
-          <p data-i18n="mayinDesc">Mayınlara basmadan bütün kareleri açın. Sayılar çevrede kaç mayın olduğunu söyler, şüphelendiğiniz yere bayrak dikin.</p>
-          <div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagLevels">3 zorluk ve özel saha</span><span class="tag" data-i18n="tagThemes5">5 tema</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="hafiza/">
-        <div class="cover"><img src="assets/hafiza.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="hafizaName">Hafıza</h3>
-          <p data-i18n="hafizaDesc">Kartları ikişer ikişer aç, eşlerini bul. Tek başına rekor kır, bilgisayara karşı ya da arkadaşınla oyna.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" data-cat="kelime">
-      <h3 class="gcat"><span data-i18n="catKelime">Kelime oyunları</span> <small>4</small></h3>
-      <div class="games">
-      <a class="game" href="bomba/">
-        <div class="cover"><img src="assets/bomba.jpg" alt="" loading="lazy" style="--p: 50% 30%"></div>
-        <div class="info">
-          <h3 data-i18n="bombaName">Dilimin Ucunda</h3>
-          <p data-i18n="bombaDesc">Hecenin geçtiği bir kelime söyleyin, bombayı yanınızdakine paslayın. Patladığında elinde olan can kaybeder.</p>
-          <div class="tags"><span class="tag" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="adam-asmaca/">
-        <div class="cover"><img src="assets/adam-asmaca.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="adamName">Adam Asmaca</h3>
-          <p data-i18n="adamDesc">Harf harf tahmin et, adam asılmadan kelimeyi bul. 9 kategori, 3 zorluk; arkadaşınla iki kişi de oynayabilirsin.</p>
-          <div class="tags"><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="kelime-avi/">
-        <div class="cover"><img src="assets/kelime-avi.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="kelimeaviName">Kelime Avı</h3>
-          <p data-i18n="kelimeaviDesc">Harf tablosuna gizlenmiş kelimeleri bul. Hayvanlar, şehirler, meslekler gibi temalar, üç zorluk ve süre rekoru.</p>
-          <div class="tags"><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="isim-sehir/">
-        <div class="cover"><img src="assets/isim-sehir.jpg?v=1" alt="" loading="lazy" style="--p: 50% 45%"></div>
-        <div class="info">
-          <h3 data-i18n="isimName">İsim Şehir</h3>
-          <p data-i18n="isimDesc">Harf belli olunca isim, şehir, hayvan ve diğer kategorilere yaz. Bilgisayara karşı, arkadaşlarınla ya da tek başına.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagWord">Kelime oyunu</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" data-cat="beceri">
-      <h3 class="gcat"><span data-i18n="catBeceri">Beceri oyunları</span> <small>3</small></h3>
-      <div class="games">
-      <a class="game" href="sulu-halka/">
-        <div class="cover"><img src="assets/sulu-halka.jpg" alt="" loading="lazy"></div>
-        <div class="info">
-          <h3 data-i18n="suluName">Sulu Halka</h3>
-          <p data-i18n="suluDesc">Su jetiyle halkaları yükseltin ve çubuklara geçirin. Yetişkinler için gerçekçi fizikli zor bir mod da var.</p>
-          <div class="tags"><span class="tag" data-i18n="tagModes">Çocuk ve yetişkin modu</span><span class="tag" data-i18n="tagGyro">Jiroskop desteği</span><span class="tag" data-i18n="tagThemes">4 tema</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="civi-futbolu/">
-        <div class="cover"><img src="assets/civi-futbolu.jpg" alt="" loading="lazy" style="--p: 50% 50%"></div>
-        <div class="info">
-          <h3 data-i18n="civiName">Çivi Futbolu</h3>
-          <p data-i18n="civiDesc">Parayı fırlatın, tahtaya çakılı çivilerin arasından geçirip rakip kaleye gol atın.</p>
-          <div class="tags"><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="saniye/">
-        <div class="cover"><img src="assets/saniye.jpg" alt="" loading="lazy" style="--p: 50% 58%"></div>
-        <div class="info">
-          <h3 data-i18n="saniyeName">Cuk</h3>
-          <p data-i18n="saniyeDesc">Hedef süreyi seçin, kronometre gizlenince içinden sayın ve tam zamanında durdurun. Salisesine kadar ölçülür.</p>
-          <div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
     <div class="games">
-      <!-- Yeni oyun: kartı uygun kategorinin (.gsec) .games kutusuna ekleyin; kategorideki ve "Tümü" düğmesindeki sayıları da güncelleyin. -->
+      <!-- Yeni oyun: kartı uygun kategorinin (.gsec) .games kutusuna ekleyin; kategori başlığındaki ve düğmesindeki sayıları da güncelleyin. -->
       <div class="soon">
         <h3 data-i18n="soonTitle">Sırada yeni oyunlar var</h3>
       </div>
@@ -670,8 +680,8 @@ const I18N_EN = {
   getPlay: 'Get it on Google Play', seeShots: 'See screenshots',
   fStreet: 'street games: Triangle, Line, Hole', fMaze: 'maze levels, 4 worlds', fMarbles: 'marbles', fPlaces: 'locations',
   shots: 'Screenshots',
-  catsAria: 'Categories', catAll: 'All', catKartS: 'Cards', catMasaS: 'Board & tiles', catZekaS: 'Puzzles', catKelimeS: 'Words', catBeceriS: 'Skill',
-  catKart: 'Card games', catMasa: 'Board and tile games', catZeka: 'Puzzles and brain games', catKelime: 'Word games', catBeceri: 'Skill games',
+  catsAria: 'Categories', catBeceriS: 'Skill', catStratejiS: 'Strategy', catZarS: 'Dice', catOkeyS: 'Okey & tiles', catZekaS: 'Puzzles', catKelimeS: 'Words', catKartS: 'Cards',
+  catBeceri: 'Skill games', catStrateji: 'Strategy games', catZar: 'Dice games', catOkey: 'Okey and tile games', catZeka: 'Puzzles and brain games', catKelime: 'Word games', catKart: 'Card games',
   browserEyebrow: 'Browser games', browserGames: 'Play right in your browser',
   play: 'Play', suluName: 'Water Ring Toss',
   suluDesc: 'Lift the rings with a water jet and land them on the pegs. There is also a harder mode with realistic physics for adults.',
@@ -740,18 +750,39 @@ function setLang(lang) {
 let saved = null;
 try { saved = localStorage.getItem('lang'); } catch (e) {}
 setLang(/^tr/i.test(new URLSearchParams(location.search).get('lang') || saved || navigator.language || 'tr') ? 'tr' : 'en');
-// Kategori süzgeci: seçim yalnız bu tarayıcıda ("kat") tutulur
-function setCat(c, scroll) {
-  if (!document.querySelector(`.cats [data-cat="${c}"]`)) c = 'hepsi';
-  document.querySelectorAll('.cats button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.cat === c));
-  document.querySelectorAll('.gsec').forEach((g) => { g.hidden = c !== 'hepsi' && g.dataset.cat !== c; });
-  if (scroll) { const t = document.querySelector('.cats'), y = t.parentElement.querySelector('.gsec:not([hidden])'); if (y && t.getBoundingClientRect().top <= 1) scrollTo({ top: y.getBoundingClientRect().top + scrollY - t.offsetHeight - 8, behavior: 'smooth' }); }
+// Kategoriler: düğmeye basınca o bölüme kayar; sayfa kaydıkça ekrandaki bölümün düğmesi yanar
+{
+  const bar = document.querySelector('.cats'), secs = [...document.querySelectorAll('.gsec')];
+  let lock = 0, cur = '';
+  const mark = (c) => {
+    if (c === cur) return; cur = c;
+    bar.querySelectorAll('a').forEach((x) => x.setAttribute('aria-current', x.dataset.cat === c));
+    const b = bar.querySelector(`[data-cat="${c}"]`);
+    if (b) bar.scrollTo({ left: b.offsetLeft - (bar.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' });
+  };
+  const spy = () => {
+    if (Date.now() < lock) return;
+    const line = bar.offsetHeight + 60; let c = secs[0].dataset.cat;
+    for (const x of secs) if (x.getBoundingClientRect().top <= line) c = x.dataset.cat;
+    // sayfanın sonuna gelinince son bölüm sayılır
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) c = secs[secs.length - 1].dataset.cat;
+    mark(c);
+  };
+  const go = (c, smooth) => {
+    const x = document.getElementById('kat-' + c); if (!x) return;
+    lock = Date.now() + 1500; mark(c);
+    scrollTo({ top: x.getBoundingClientRect().top + scrollY - bar.offsetHeight - 8, behavior: smooth ? 'smooth' : 'auto' });
+  };
+  bar.addEventListener('click', (e) => {
+    const a = e.target.closest('a[data-cat]'); if (!a) return;
+    e.preventDefault(); go(a.dataset.cat, true);
+  });
+  let raf = 0;
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; spy(); }); }, { passive: true });
+  addEventListener('scrollend', () => { lock = 0; spy(); });
+  const h = location.hash.replace(/^#(kat-)?/, '');
+  if (secs.some((x) => x.dataset.cat === h)) requestAnimationFrame(() => go(h, false)); else spy();
 }
-document.querySelectorAll('.cats button').forEach((b) => b.addEventListener('click', () => {
-  setCat(b.dataset.cat, true);
-  try { localStorage.setItem('kat', b.dataset.cat); } catch (e) {}
-}));
-{ let k = null; try { k = localStorage.getItem('kat'); } catch (e) {} setCat(k || 'hepsi'); }
 document.querySelectorAll('[data-set-lang]').forEach((b) => b.addEventListener('click', () => {
   setLang(b.dataset.setLang);
   try { localStorage.setItem('lang', b.dataset.setLang); } catch (e) {}
