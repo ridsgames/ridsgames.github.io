@@ -830,7 +830,7 @@ function say(s, gold) {
   const el = $('msg'); el.textContent = s; el.classList.add('on'); el.classList.toggle('gold', !!gold);
   clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2600);
 }
-function popText(s, x, y) { const p = $('pop'); p.textContent = s; p.style.left = (x ?? L.cx) + 'px'; p.style.top = (y ?? L.midY) + 'px'; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go'); }
+function popText(s, x, y) { const p = $('pop'); p.textContent = s; p.style.left = (x != null ? x : L.cx) + 'px'; p.style.top = (y != null ? y : L.midY) + 'px'; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go'); }
 function save() { try { if (G && !G.over && !(G.h && G.h.mid)) localStorage.setItem('rids_batak_game', JSON.stringify(G)); } catch (e) {} }
 function loadSaved() {
   try {

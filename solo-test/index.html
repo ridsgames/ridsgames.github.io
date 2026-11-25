@@ -1179,11 +1179,12 @@ html.rgSet #topHeader { display: flex; }
       // --- CANVAS BOYUTLANDIRMA VE KOORDİNAT HESAPLAMA ---
       const yatayMq = matchMedia('(orientation: landscape) and (max-height: 500px)');
       function resizeCanvas() {
-        const headerH = document.getElementById("topHeader")?.offsetHeight ?? 44;
-        const hudH = document.getElementById("topHud")?.offsetHeight || 50;
-        const statusH = document.getElementById("statusBanner")?.offsetHeight || 28;
-        const controlsH = document.getElementById("bottomControls")?.offsetHeight || 42;
-        const footerH = document.getElementById("bottomFooter")?.offsetHeight ?? 28;
+        const hEl = (id) => document.getElementById(id) || {}; // ?. ve ?? eski tarayıcılarda sayfayı bozar
+        const headerH = hEl("topHeader").offsetHeight != null ? hEl("topHeader").offsetHeight : 44;
+        const hudH = hEl("topHud").offsetHeight || 50;
+        const statusH = hEl("statusBanner").offsetHeight || 28;
+        const controlsH = hEl("bottomControls").offsetHeight || 42;
+        const footerH = hEl("bottomFooter").offsetHeight != null ? hEl("bottomFooter").offsetHeight : 28;
         const verticalPadding = window.innerWidth < 1024 ? 36 : 70;
 
         let availW = Math.min(window.innerWidth - 20, 460);

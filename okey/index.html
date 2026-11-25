@@ -975,7 +975,7 @@ function cpuTurn() {
       if (!is101()) {
         const h = G.hand[p];
         const fin = h.filter((id) => complete(h.filter((x) => x !== id)));
-        if (fin.length) { busy = false; finishOkey(p, fin.find(isJ) ?? fin[0]); return; }
+        if (fin.length) { busy = false; finishOkey(p, fin.find(isJ) !== undefined ? fin.find(isJ) : fin[0]); return; }
       } else { cpu101Lay(p); if (voidCheck()) { voidHand(); return; } }
       if (G.phase !== 'play') { busy = false; return; }
       const id = cpuDiscard(p); busy = false; discard(p, id);

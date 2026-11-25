@@ -988,7 +988,7 @@ window.__dama = {
   setSpeed: (s) => { speed = s; },
   state: () => ({ G, busy, over: G && G.over, turn: G && G.turn, canPlay: !!canPlay(), sel, moves: moves.map((m) => ({ from: m.from, to: m.to, path: m.path, caps: m.caps })), epoch }),
   cell: (i) => { const r = cv.getBoundingClientRect(); return [r.left + cx(i), r.top + cy(i)]; },
-  setBoard: (b, turn, opts = {}) => { epoch++; closeAll(); startState(opts.mode || 'cpu', opts.level || 'easy', b, turn, opts.white ?? 0, { quiet: opts.quiet || 0 }); applyLang(); nextAction(); },
+  setBoard: (b, turn, opts = {}) => { epoch++; closeAll(); startState(opts.mode || 'cpu', opts.level || 'easy', b, turn, opts.white != null ? opts.white : 0, { quiet: opts.quiet || 0 }); applyLang(); nextAction(); },
   view: () => Array.from(view)
 };
 
