@@ -360,8 +360,11 @@ async function get(path, params, what) {
     const wait = lastCall + 650 - Date.now(); if (wait > 0) await sleep(wait);
     lastCall = Date.now();
     let r;
-    try { r = await fetch(`${API}${path}?${new URLSearchParams(params)}`, { headers: { Authorization: 'Bearer ' + key } }); }
+    // yanıt vermeyen istek sonsuza kadar beklemesin: 15 sn sonra kesilip yeniden denenir
+    const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 15000);
+    try { r = await fetch(`${API}${path}?${new URLSearchParams(params)}`, { headers: { Authorization: 'Bearer ' + key }, signal: ac.signal }); }
     catch (e) { last = 'bağlantı'; continue; }
+    finally { clearTimeout(timer); }
     if (r.status === 401) throw Object.assign(new Error('Anahtar geçersiz. Yeni bir anahtar oluşturup tekrar gir.'), { auth: true });
     if (r.status === 403) throw Object.assign(new Error('Anahtarın istatistik okuma izni yok. Oluştururken "Read statistics" işaretli olmalı.'), { auth: true });
     if (r.status === 429 || r.status === 404 || r.status >= 500) { last = String(r.status); continue; }
