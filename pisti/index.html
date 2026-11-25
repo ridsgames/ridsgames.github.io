@@ -247,12 +247,13 @@ footer { display: none; }
   background: rgba(2, 6, 23, .9); border: 1px solid rgba(148, 163, 184, .32); box-shadow: 0 8px 24px rgba(0, 0, 0, .5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 #skorPop .skor { background: none; padding: 4px 8px; }
 /* Oyuncu plakaları: isim ve anlık puan, sırası gelenin çerçevesi sarı */
-#stage .seat { position: absolute; z-index: 300; left: 50%; top: 0; display: flex; align-items: center; gap: 7px; padding: 4px 6px 4px 12px; border-radius: 12px; white-space: nowrap; pointer-events: none;
+#stage .seat { position: absolute; z-index: 300; left: 50%; top: 0; display: flex; align-items: center; gap: 7px; padding: 3px 6px 3px 3px; border-radius: 999px; white-space: nowrap; pointer-events: none;
   font-weight: 800; font-size: clamp(12px, calc(var(--cw, 90px) * .13), 17px); letter-spacing: .04em; text-transform: uppercase; color: #fff;
   background: linear-gradient(180deg, #9a3412, #7c2d12); border: 2px solid #d97706; box-shadow: 0 3px 8px rgba(0, 0, 0, .4); transition: border-color .2s, box-shadow .2s; }
 #stage .seat.on { border-color: #fde047; box-shadow: 0 0 0 3px rgba(253, 224, 71, .35), 0 3px 8px rgba(0, 0, 0, .4); }
 #stage .seat .cn { font-size: 1em; min-width: 24px; padding: 1px 6px; border-radius: 6px; text-align: center; letter-spacing: 0; color: #111827; font-variant-numeric: tabular-nums; }
 #stage #seat0 .cn { background: #fecaca; } #stage #seat1 .cn { background: #bfdbfe; }
+#stage .seat .ava { width: 1.9em; height: 1.9em; flex: none; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .5); }
 #stage .seat .px { font-size: 11px; letter-spacing: 0; color: #fde68a; }
 @media (orientation: landscape) and (max-height: 500px) {
   #skorPop .skor > div { font-size: 15px; } #skorPop .skor .ava { width: 22px; height: 22px; }
@@ -667,7 +668,7 @@ function updateDock(hint) {
   $('skor').setAttribute('aria-label', t.scoreAria(sc[0], sc[1]));
   for (const q of [0, 1]) {
     const e = $('seat' + q); e.classList.toggle('on', !!(h && !h.done && !G.over && p === q));
-    e.innerHTML = `<span>${q ? t.cpuName : t.meName}</span>${h && h.pisti[q] ? `<span class="px">${t.extra(h.pisti[q])}</span>` : ''}<span class="cn">${sc[q]}</span>`;
+    e.innerHTML = `<i class="ava" style="background-position:${avaPos(q)}"></i><span>${q ? t.cpuName : t.meName}</span>${h && h.pisti[q] ? `<span class="px">${t.extra(h.pisti[q])}</span>` : ''}<span class="cn">${sc[q]}</span>`;
   }
   if (L) placeSeats();
 }
