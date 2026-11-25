@@ -417,7 +417,7 @@ function cpuPick(st, level, rnd = Math.random) {
     if (r === 7 && level === 'hard' && !pend && !danger && rest.length > 2) v -= 0.9; // 7'liyi savunmaya sakla
     if (r === 8) v += (n === 2 ? 1.2 : 0.5) + danger * 2.5;
     if (r === 10) v += n === 2 ? 1.2 : counts[pv] > nxC && nxC <= 2 ? 2 : -0.2;
-    if (r === 1) v += 0.4 + (minOther <= 2 ? 1.2 : 0);
+    if (r === 1) v += 0.6; // as: üstüne bir kart daha atılır
     v += rnd() * (level === 'mid' ? 0.9 : 0.15);
     if (v > bv) { bv = v; best = c; }
   }
@@ -448,8 +448,8 @@ const STR = {
       ['📥', 'Atacak kartın yoksa desteye dokunup <b>bir kart çekersin</b>. Uyuyorsa hemen atabilir ya da pas geçebilirsin, uymuyorsa sıra geçer.'],
       ['7️⃣', '<b>7</b> atılınca sıradaki oyuncu <b>3 kart çeker</b>. Elinde 7 ya da joker varsa onu atar, ceza büyüyerek bir sonrakine geçer: 3, 6, 9...'],
       ['🃏', '<b>Joker</b> her kartın üstüne atılır, sıradakine <b>5 kart</b> çektirir ve istediğin rengi seçersin. 7\'nin üstüne de atılır.'],
-      ['🤵', '<b>Vale (J)</b> her kartın üstüne atılır, istediğin rengi seçersin ve <b>üstüne bir kart daha atarsın</b>. Atacak kartın yoksa çekersin.'],
-      ['⏭️', '<b>8</b> sıradakini atlatır. <b>10</b> yönü değiştirir; iki kişide sıra yine sende kalır. <b>As</b> atınca diğer herkes 1 kart çeker.'],
+      ['🤵', '<b>Vale (J)</b> her kartın üstüne atılır, istediğin rengi seçersin.'],
+      ['⏭️', '<b>8</b> sıradakini atlatır. <b>10</b> yönü değiştirir; iki kişide sıra yine sende kalır. <b>As</b> atan üstüne <b>bir kart daha atar</b>; atacak kartı yoksa çeker.'],
       ['🧮', 'Elini biri bitirince diğerlerinin elinde kalanlar <b>ceza puanı</b> olur: joker 50, vale 25, 7 20, as 15, papaz ve kız 10, diğerleri üstündeki sayı kadar.'],
       ['🔒', 'Deste biter ve yerdeki kartlar yeni deste için yetmezse (5 karttan az) el kapanır; elinde en az ceza kalan eli kazanmış sayılır.'],
       ['🏆', 'Biri seçilen ceza sınırına ulaşınca oyun biter, <b>en az cezası olan</b> kazanır. <b>Tek el</b> seçersen elini ilk bitiren kazanır.']
@@ -462,7 +462,7 @@ const STR = {
     wants: (p, s) => (p === 0 ? `${STR.tr.suit[s]} istedin` : `${STR.tr.names[p]} ${STR.tr.suit[s].toLowerCase()} istedi`),
     drewN: (p, k) => (p === 0 ? `${k} kart çektin` : `${STR.tr.names[p]} ${k} kart çekti`),
     skipped: (p) => (p === 0 ? 'Sıran atlandı' : `${STR.tr.names[p]} atlandı`), reversed: 'Yön değişti', again: 'Sıra yine sende', againCpu: (p) => `Sıra yine ${STR.tr.names[p]} oyuncusunda`,
-    ace: (p) => (p === 0 ? 'As! Diğer herkes 1 kart çekiyor' : `${STR.tr.names[p]} as attı, diğerleri 1 kart çekiyor`),
+    ace: (p) => (p === 0 ? 'As! Üstüne bir kart daha at' : `${STR.tr.names[p]} as attı, bir kart daha atıyor`),
     passed: (p) => (p === 0 ? 'Pas geçtin' : `${STR.tr.names[p]} pas geçti`), lastCard: (p) => (p === 0 ? 'Son kartın kaldı!' : `${STR.tr.names[p]}: son kart!`), lastTag: 'Son kart!',
     blocked: 'Deste bitti, yerdeki kartlar yetmiyor: el kapandı', blockSub: (p) => (p === 0 ? 'El kapandı, en az ceza sende kaldı.' : `El kapandı, en az ceza ${STR.tr.names[p]} oyuncusunda kaldı.`),
     out: (p) => (p === 0 ? 'Elini bitirdin!' : `${STR.tr.names[p]} elini bitirdi`), outPop: 'BİTTİ!', reshuf: 'Yerdeki kartlar karıştırılıp deste yapıldı',
@@ -485,8 +485,8 @@ const STR = {
       ['📥', 'If you cannot play, tap the deck to <b>draw one card</b>. If it fits you may play it or pass; if not, your turn ends.'],
       ['7️⃣', 'A <b>7</b> makes the next player <b>draw 3</b>. With a 7 or a joker they can pass it on and the penalty grows: 3, 6, 9...'],
       ['🃏', 'A <b>joker</b> goes on anything, makes the next player <b>draw 5</b> and you pick the suit. It can also answer a 7.'],
-      ['🤵', 'A <b>jack (J)</b> goes on anything, you pick the suit and <b>play one more card on top</b>. If you can\'t, you draw.'],
-      ['⏭️', 'An <b>8</b> skips the next player. A <b>10</b> reverses the direction; with two players you go again. An <b>ace</b> makes everyone else draw 1.'],
+      ['🤵', 'A <b>jack (J)</b> goes on anything, and you pick the suit.'],
+      ['⏭️', 'An <b>8</b> skips the next player. A <b>10</b> reverses the direction; with two players you go again. After an <b>ace</b> you <b>play one more card on top</b>; if you can\'t, you draw.'],
       ['🧮', 'When someone goes out, the others score <b>penalty points</b> for the cards they hold: joker 50, jack 25, 7 20, ace 15, king and queen 10, others their number.'],
       ['🔒', 'If the deck runs out and the pile is too small to make a new one (under 5 cards), the hand is closed and the player holding the fewest points wins it.'],
       ['🏆', 'When someone reaches the chosen limit the game ends and <b>the fewest points</b> wins. With <b>One hand</b> the first to go out wins.']
@@ -499,7 +499,7 @@ const STR = {
     wants: (p, s) => (p === 0 ? `You asked for ${STR.en.suit[s].toLowerCase()}` : `${STR.en.names[p]} asks for ${STR.en.suit[s].toLowerCase()}`),
     drewN: (p, k) => (p === 0 ? `You drew ${k}` : `${STR.en.names[p]} drew ${k}`),
     skipped: (p) => (p === 0 ? 'You are skipped' : `${STR.en.names[p]} is skipped`), reversed: 'Direction reversed', again: 'Your turn again', againCpu: (p) => `${STR.en.names[p]} goes again`,
-    ace: (p) => (p === 0 ? 'Ace! Everyone else draws 1' : `${STR.en.names[p]} played an ace, the others draw 1`),
+    ace: (p) => (p === 0 ? 'Ace! Play one more card on top' : `${STR.en.names[p]} played an ace and plays again`),
     passed: (p) => (p === 0 ? 'You passed' : `${STR.en.names[p]} passed`), lastCard: (p) => (p === 0 ? 'Last card!' : `${STR.en.names[p]}: last card!`), lastTag: 'Last card!',
     blocked: 'The deck ran out and the pile is too small: the hand is closed', blockSub: (p) => (p === 0 ? 'The hand was closed, you held the fewest points.' : `The hand was closed, ${STR.en.names[p]} held the fewest points.`),
     out: (p) => (p === 0 ? 'You went out!' : `${STR.en.names[p]} went out`), outPop: 'OUT!', reshuf: 'The pile was shuffled into a new deck',
@@ -828,11 +828,7 @@ async function playCard(p, c) {
   if (isJoker(c) || r === 7) { h.pend += isJoker(c) ? JOKER_PEN : SEVEN; popText('+' + h.pend); Sfx.seven(); buzz(40); }
   else if (r === 8) { say(t.skipped(nx)); Sfx.skip(); nx = nextP(nx); }
   else if (r === 10) { h.dir = -h.dir; if (n === 2) { nx = p; say(p === 0 ? t.again : t.againCpu(p)); } else { nx = nextP(p); say(t.reversed); } Sfx.skip(); render(300); }
-  else if (r === 11) { nx = p; say(p === 0 ? t.again : t.againCpu(p)); } // vale atan üstüne bir kart daha atar
-  else if (r === 1) {
-    say(t.ace(p)); await wait(300); if (my !== epoch) return;
-    for (let k = 1; k < n; k++) { if ((await drawCards(my, stepP(p, k * h.dir, n), 1)) === null) return h.block && my === epoch ? blockHand() : undefined; }
-  }
+  else if (r === 1) { nx = p; say(t.ace(p)); } // as atan üstüne bir kart daha atar; atacak kartı yoksa çeker
   if (h.hands[p].length === 1) { say(t.lastCard(p), true); Sfx.last(); }
   await wait(250); if (my !== epoch) return;
   h.turn = nx; h.mid = false; save(); nextAction();
