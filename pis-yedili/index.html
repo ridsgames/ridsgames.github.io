@@ -448,7 +448,7 @@ const STR = {
       ['📥', 'Atacak kartın yoksa desteye dokunup <b>bir kart çekersin</b>. Uyuyorsa hemen atabilir ya da pas geçebilirsin, uymuyorsa sıra geçer.'],
       ['7️⃣', '<b>7</b> atılınca sıradaki oyuncu <b>3 kart çeker</b>. Elinde 7 ya da joker varsa onu atar, ceza büyüyerek bir sonrakine geçer: 3, 6, 9...'],
       ['🃏', '<b>Joker</b> her kartın üstüne atılır, sıradakine <b>5 kart</b> çektirir ve istediğin rengi seçersin. 7\'nin üstüne de atılır.'],
-      ['🤵', '<b>Vale (J)</b> her kartın üstüne atılır, istediğin rengi seçersin.'],
+      ['🤵', '<b>Vale (J)</b> her kartın üstüne atılır, istediğin rengi seçersin ve <b>üstüne bir kart daha atarsın</b>. Atacak kartın yoksa çekersin.'],
       ['⏭️', '<b>8</b> sıradakini atlatır. <b>10</b> yönü değiştirir; iki kişide sıra yine sende kalır. <b>As</b> atınca diğer herkes 1 kart çeker.'],
       ['🧮', 'Elini biri bitirince diğerlerinin elinde kalanlar <b>ceza puanı</b> olur: joker 50, vale 25, 7 20, as 15, papaz ve kız 10, diğerleri üstündeki sayı kadar.'],
       ['🔒', 'Deste biter ve yerdeki kartlar yeni deste için yetmezse (5 karttan az) el kapanır; elinde en az ceza kalan eli kazanmış sayılır.'],
@@ -485,7 +485,7 @@ const STR = {
       ['📥', 'If you cannot play, tap the deck to <b>draw one card</b>. If it fits you may play it or pass; if not, your turn ends.'],
       ['7️⃣', 'A <b>7</b> makes the next player <b>draw 3</b>. With a 7 or a joker they can pass it on and the penalty grows: 3, 6, 9...'],
       ['🃏', 'A <b>joker</b> goes on anything, makes the next player <b>draw 5</b> and you pick the suit. It can also answer a 7.'],
-      ['🤵', 'A <b>jack (J)</b> goes on anything and you pick the suit.'],
+      ['🤵', 'A <b>jack (J)</b> goes on anything, you pick the suit and <b>play one more card on top</b>. If you can\'t, you draw.'],
       ['⏭️', 'An <b>8</b> skips the next player. A <b>10</b> reverses the direction; with two players you go again. An <b>ace</b> makes everyone else draw 1.'],
       ['🧮', 'When someone goes out, the others score <b>penalty points</b> for the cards they hold: joker 50, jack 25, 7 20, ace 15, king and queen 10, others their number.'],
       ['🔒', 'If the deck runs out and the pile is too small to make a new one (under 5 cards), the hand is closed and the player holding the fewest points wins it.'],
@@ -828,6 +828,7 @@ async function playCard(p, c) {
   if (isJoker(c) || r === 7) { h.pend += isJoker(c) ? JOKER_PEN : SEVEN; popText('+' + h.pend); Sfx.seven(); buzz(40); }
   else if (r === 8) { say(t.skipped(nx)); Sfx.skip(); nx = nextP(nx); }
   else if (r === 10) { h.dir = -h.dir; if (n === 2) { nx = p; say(p === 0 ? t.again : t.againCpu(p)); } else { nx = nextP(p); say(t.reversed); } Sfx.skip(); render(300); }
+  else if (r === 11) { nx = p; say(p === 0 ? t.again : t.againCpu(p)); } // vale atan üstüne bir kart daha atar
   else if (r === 1) {
     say(t.ace(p)); await wait(300); if (my !== epoch) return;
     for (let k = 1; k < n; k++) { if ((await drawCards(my, stepP(p, k * h.dir, n), 1)) === null) return h.block && my === epoch ? blockHand() : undefined; }
