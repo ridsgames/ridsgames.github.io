@@ -5,11 +5,37 @@
 //    <dk> dilimin üst sınırıdır (DILIM); 90 dakikadan uzunsa 120. Panel, dilim ortalarıyla toplam süreyi hesaplar.
 //  - Ziyaret: sekmede açılan ilk sayfa "site/giris" sayar (sekme kapanınca sıfırlanır).
 //  - Hata: yakalanmayan hatalar "<sayfa>/hata" olarak, ileti başlıkta; sayfa başına en fazla 3.
+//  - Kampanya: adres utm_campaign/campaign taşıyorsa etiket sekmede saklanır (rids_kampanya, sekme kapanınca silinir).
+//    O sekmedeki giriş, oyun başlatma/bitirme ve süre olayları ayrıca "kampanya/<etiket>/<olay>" olarak da sayılır.
 (function () {
   const me = document.currentScript, page = me && me.dataset.page, name = (me && me.dataset.name) || page;
   if (!page) return;
   const DILIM = [1, 2, 3, 5, 7, 10, 15, 20, 30, 45, 60, 90], BOS = 60000, EN_AZ = 3;
   const queue = [];
+  // kampanya etiketi: yalnız küçük harf, rakam, - ve _ (en fazla 40)
+  let camp = '';
+  try {
+    const q = new URLSearchParams(location.search), c = (q.get('utm_campaign') || q.get('campaign') || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40);
+    if (c) sessionStorage.setItem('rids_kampanya', c);
+    camp = sessionStorage.getItem('rids_kampanya') || '';
+  } catch (e) {}
+  // oyunlar sayacı doğrudan çağırır: sayaç sarılarak kampanyalı sekmedeki olaylar bir kez daha kampanya adıyla gönderilir
+  const KAMP = /^(?:site\/(giris)|[a-z0-9-]+\/(basladi|bitti|sure\/\d+|ek\/\d+))$/;
+  function wrap() {
+    const gc = window.goatcounter;
+    if (!camp || !gc || typeof gc.count !== 'function' || gc.count.rk) return !!(gc && gc.count && gc.count.rk);
+    const orig = gc.count;
+    const w = function (v) {
+      const r = orig.apply(this, arguments);
+      try {
+        const m = v && v.event ? String(v.path || '').replace(/^\/+/, '').match(KAMP) : null;
+        if (m) { const k = m[1] || m[2]; orig.call(this, { path: `kampanya/${camp}/${k}`, title: `Kampanya ${camp}: ${k}`, event: true }); }
+      } catch (e) {}
+      return r;
+    };
+    w.rk = true; gc.count = w; return true;
+  }
+  if (camp && !wrap()) { let n = 0; const t = setInterval(() => { if (wrap() || ++n > 60) clearInterval(t); }, 250); }
   function send(path, title) {
     queue.push({ path, title, event: true });
     drain();
@@ -19,6 +45,7 @@
   function drain() {
     const gc = window.goatcounter;
     if (gc && typeof gc.count === 'function') {
+      wrap();
       while (queue.length) { try { gc.count(queue.shift()); } catch (e) {} }
       return;
     }

@@ -394,6 +394,7 @@ function summarize(hits, list) {
   const g = {}; for (const x of [...GAMES.map((x) => x.slug), 'ana-sayfa']) g[x] = blank();
   const pageDays = {}, entryDays = {}, startDays = {}, pageHours = new Array(24).fill(0), entryHours = new Array(24).fill(0), startHours = new Array(24).fill(0);
   let pageviews = 0, entries = 0, starts = 0, ends = 0;
+  const camps = {};
   const today = list.length === 1 ? dayKey(list[0]) : null;
   const add = (h, days, hours, extra) => {
     for (const s of h.stats || []) {
@@ -406,6 +407,12 @@ function summarize(hits, list) {
     const p = clean(h.path), parts = p.split('/'), slug = parts[0], kind = parts[1], val = parts.slice(2).join('/');
     if (!h.event) { pageviews += h.count; add(h, pageDays, pageHours); if (g[p]) g[p].opens += h.count; continue; }
     if (p === 'site/giris') { entries += h.count; add(h, entryDays, entryHours); continue; }
+    if (slug === 'kampanya' && parts.length >= 3) { // olcum.js: kampanyalı sekmeden gelen olayların kopyası
+      const c = camps[parts[1]] || (camps[parts[1]] = { giris: 0, starts: 0, ends: 0, time: 0 }), k = parts[2], m = MID[+parts[3]];
+      if (k === 'giris') c.giris += h.count; else if (k === 'basladi') c.starts += h.count; else if (k === 'bitti') c.ends += h.count;
+      else if ((k === 'sure' || k === 'ek') && m != null) c.time += m * h.count;
+      continue;
+    }
     const x = g[slug]; if (!x) continue;
     switch (kind) {
       case 'basladi': x.starts += h.count; starts += h.count; add(h, startDays, startHours, x.startDays); break;
@@ -430,7 +437,7 @@ function summarize(hits, list) {
   const siteTime = gameTime + g['ana-sayfa'].time;
   const visits = useEntries ? entries : pageviews;
   return {
-    g, visits, pageviews, starts, ends, useEntries,
+    g, visits, pageviews, starts, ends, useEntries, camps,
     visitDays: useEntries ? entryDays : pageDays, visitHours: useEntries ? entryHours : pageHours, startDays, startHours,
     gameTime, gameAvg: gameVisits ? gameTime / gameVisits : 0, siteTime, siteAvg: visits ? siteTime / visits : 0, hasTime: siteTime > 0
   };
@@ -606,7 +613,7 @@ const KNOWN = [[/youtu/i, 'YouTube'], [/instagram/i, 'Instagram'], [/tiktok/i, '
 function refLabel(name, scheme) {
   const n = String(name || '').trim();
   if (!n || n === '(no data)') return 'Doğrudan veya bilinmiyor';
-  if (/^ridsgames\.github\.io/.test(n)) return 'Site içinden';
+  if (/^(www\.)?ridsgames\.(github\.io|com)/.test(n)) return 'Site içinden';
   const k = KNOWN.find(([re]) => re.test(n));
   const label = k ? k[1] : esc(n.replace(/^https?:\/\//, ''));
   return scheme === 'c' ? label + '<span class="chip cut">etiketli</span>' : label;
@@ -623,7 +630,12 @@ function drawLists(cur, lists) {
   const merged = {};
   for (const r of lists.refs) { const l = refLabel(r.name, r.ref_scheme); merged[l] = (merged[l] || 0) + r.count; }
   rows($('refs'), Object.entries(merged).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count).slice(0, 8));
-  rows($('camps'), lists.camps.slice(0, 8).map((c) => ({ label: esc(c.name || c.id), count: c.count })), { empty: 'Henüz etiketli paylaşım yok.' });
+  rows($('camps'), lists.camps.slice(0, 8).map((c) => {
+    const k = cur.camps[String(c.name || '').toLowerCase()];
+    // ayrıntı yalnız ölçümün başladığı tarihten sonra gelenler için: giriş, oyun başlatma, bitirme, ziyaretçi başına süre
+    const sub = k && k.giris ? `<small>${fmt.format(k.giris)} ziyaretçi · ${fmt.format(k.starts)} oyun başlatma (%${Math.round(k.starts / k.giris * 100)}) · ${fmt.format(k.ends)} bitirme · kişi başı ${dur(k.time / k.giris)}</small>` : '';
+    return { label: esc(c.name || c.id) + sub, count: c.count };
+  }), { empty: 'Henüz etiketli paylaşım yok.' });
   rows($('locs'), lists.locs.slice(0, 8).map((l) => {
     const code = String(l.id || '').slice(0, 2);
     let nm = l.name || code || 'Bilinmiyor';
