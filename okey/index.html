@@ -149,7 +149,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .seat .op { font-size: 9.5px; font-weight: 800; padding: 1px 5px; border-radius: 6px; background: #22c55e; color: #052e16; letter-spacing: 0; }
 .seat.s2 { top: 0; left: 50%; transform: translateX(-50%); border-top: 0; border-radius: 0 0 14px 14px; }
 .seat.s3, .seat.s1 { top: 50%; writing-mode: vertical-rl; padding: 14px 4px; }
-.seat.s3 { left: 0; transform: translateY(-50%) rotate(180deg); border-left: 0; border-radius: 0 14px 14px 0; }
+.seat.s3 { left: 0; transform: translateY(-50%); border-left: 0; border-radius: 0 14px 14px 0; }
 .seat.s1 { right: 0; transform: translateY(-50%); border-right: 0; border-radius: 14px 0 0 14px; }
 .seat.s3 .op, .seat.s1 .op { writing-mode: horizontal-tb; }
 .table { position: relative; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding: 30px 34px 6px; overflow: hidden; border-radius: 14px;
@@ -272,7 +272,6 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .seat .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; border: 1.5px solid rgba(255, 255, 255, .8); }
 .seat.s1 .dot { background: #38bdf8; } .seat.s2 .dot { background: #e879f9; } .seat.s3 .dot { background: #fb923c; }
 .seat .cn { font-size: 11px; font-weight: 800; min-width: 18px; padding: 1px 4px; border-radius: 4px; background: #fffdf8; color: #111827; text-align: center; letter-spacing: 0; writing-mode: horizontal-tb; }
-.seat.s3 .cn, .seat.s3 .op { transform: rotate(180deg); }
 .table.hov { box-shadow: inset 0 0 0 3px #fbbf24, inset 0 0 40px rgba(0, 0, 0, .35); }
 .table { padding-left: 46px; padding-right: 46px; }
 .toast { top: 36%; }

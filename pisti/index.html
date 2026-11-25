@@ -241,11 +241,19 @@ footer { display: none; }
 }
 /* Sıra ve puan paneli yok: sol üstteki kupa düğmesi puan tablosunu açar */
 .dock { display: none !important; }
-.rgFab.sk { top: max(6px, env(safe-area-inset-top)); left: max(6px, env(safe-area-inset-left)); }
+.rgFab.sk { top: calc(max(6px, env(safe-area-inset-top)) + 46px); right: max(6px, env(safe-area-inset-right)); }
 .rgFab.sk[aria-expanded="true"] { background: rgba(15, 23, 42, .95); color: #ffe066; border-color: rgba(255, 224, 102, .6); }
-#skorPop { position: fixed; z-index: 31; top: calc(max(6px, env(safe-area-inset-top)) + 48px); left: max(6px, env(safe-area-inset-left)); padding: 6px; border-radius: 14px;
+#skorPop { position: fixed; z-index: 31; top: calc(max(6px, env(safe-area-inset-top)) + 92px); right: max(6px, env(safe-area-inset-right)); padding: 6px; border-radius: 14px;
   background: rgba(2, 6, 23, .9); border: 1px solid rgba(148, 163, 184, .32); box-shadow: 0 8px 24px rgba(0, 0, 0, .5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 #skorPop .skor { background: none; padding: 4px 8px; }
+/* Oyuncu plakaları: isim ve anlık puan, sırası gelenin çerçevesi sarı */
+#stage .seat { position: absolute; z-index: 300; left: 50%; top: 0; display: flex; align-items: center; gap: 7px; padding: 4px 6px 4px 12px; border-radius: 12px; white-space: nowrap; pointer-events: none;
+  font-weight: 800; font-size: clamp(12px, calc(var(--cw, 90px) * .13), 17px); letter-spacing: .04em; text-transform: uppercase; color: #fff;
+  background: linear-gradient(180deg, #9a3412, #7c2d12); border: 2px solid #d97706; box-shadow: 0 3px 8px rgba(0, 0, 0, .4); transition: border-color .2s, box-shadow .2s; }
+#stage .seat.on { border-color: #fde047; box-shadow: 0 0 0 3px rgba(253, 224, 71, .35), 0 3px 8px rgba(0, 0, 0, .4); }
+#stage .seat .cn { font-size: 1em; min-width: 24px; padding: 1px 6px; border-radius: 6px; text-align: center; letter-spacing: 0; color: #111827; font-variant-numeric: tabular-nums; }
+#stage #seat0 .cn { background: #fecaca; } #stage #seat1 .cn { background: #bfdbfe; }
+#stage .seat .px { font-size: 11px; letter-spacing: 0; color: #fde68a; }
 @media (orientation: landscape) and (max-height: 500px) {
   #skorPop .skor > div { font-size: 15px; } #skorPop .skor .ava { width: 22px; height: 22px; }
 }
@@ -278,13 +286,15 @@ footer { display: none; }
   </div>
 </header>
 <button id="rgSetBtn" class="rgFab set" type="button" aria-label="Ayarlar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-<button id="skBtn" class="rgFab sk" type="button" aria-label="Puan tablosu" aria-expanded="false" aria-controls="skorPop"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></button>
+<button id="skBtn" class="rgFab sk" type="button" aria-label="Puan tablosu" aria-expanded="false" aria-controls="skorPop"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path fill="currentColor" d="M4 20h4V10H4zm6 0h4V4h-4zm6 0h4v-7h-4z"/></svg></button>
 <button id="fsBtn" class="rgFab fs" type="button" aria-label="Tam ekran"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsIn" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
 
 <main>
   <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
   <div id="stage" aria-label="Masa">
     <span class="lbl2" id="lDeck"></span>
+    <div class="seat" id="seat1"></div>
+    <div class="seat" id="seat0"></div>
     <div id="pop"></div>
   </div>
   <div class="dock" id="dock">
@@ -435,7 +445,7 @@ const STR = {
       ['🧮', 'El sonunda her <b>vale</b> ve <b>as</b> 1, <b>sinek 2\'si</b> 2, <b>karo 10\'u</b> 3 puan. <b>En çok kartı</b> alan 3 puan daha alır.'],
       ['🏆', 'Eller sürer, seçtiğin sayıya ilk ulaşan kazanır. İkiniz birden geçerseniz çok olan kazanır. <b>Tek el</b> seçersen tek el sonucu belirler.']
     ],
-    turnYou: 'Sıra sende', turnCpu: 'Sıra bilgisayarda', hintYou: 'Bir kart at', hintHit: 'Parlayan kartlar yerdekileri alır', hintThink: 'Bilgisayar düşünüyor...', hintDeal: 'Kartlar dağıtılıyor...',
+    turnYou: 'Sıra sende', turnCpu: 'Sıra bilgisayarda', meName: 'Sen', cpuName: 'Bilgisayar', hintYou: 'Bir kart at', hintHit: 'Parlayan kartlar yerdekileri alır', hintThink: 'Bilgisayar düşünüyor...', hintDeal: 'Kartlar dağıtılıyor...',
     pisti: 'PİŞTİ!', jpisti: 'VALE PİŞTİ!', capYou: 'Yerdekileri aldın', capCpu: 'Bilgisayar yerdekileri aldı',
     pistiYou: (n) => `Pişti! +${n} puan`, pistiCpu: (n) => `Bilgisayar pişti yaptı, +${n}`, lastDeal: 'Son dağıtım', restYou: 'Yerde kalanlar sana geldi', restCpu: 'Yerde kalanlar bilgisayara gitti',
     deck: 'Deste', handOver: (n) => `${n}. el bitti`, handSub: (a, b) => (a === b ? 'Bu el berabere.' : a > b ? 'Bu eli sen aldın.' : 'Bu eli bilgisayar aldı.'),
@@ -460,7 +470,7 @@ const STR = {
       ['🧮', 'At the end of a hand every <b>jack</b> and <b>ace</b> is 1, the <b>2 of clubs</b> 2 and the <b>10 of diamonds</b> 3 points. <b>Most cards</b> gets 3 more.'],
       ['🏆', 'Hands continue until someone reaches the target. If both pass it, the higher score wins. With <b>One hand</b> a single hand decides.']
     ],
-    turnYou: 'Your turn', turnCpu: 'Computer\'s turn', hintYou: 'Play a card', hintHit: 'Glowing cards take the pile', hintThink: 'The computer is thinking...', hintDeal: 'Dealing...',
+    turnYou: 'Your turn', turnCpu: 'Computer\'s turn', meName: 'You', cpuName: 'Computer', hintYou: 'Play a card', hintHit: 'Glowing cards take the pile', hintThink: 'The computer is thinking...', hintDeal: 'Dealing...',
     pisti: 'PISHTI!', jpisti: 'JACK PISHTI!', capYou: 'You took the pile', capCpu: 'The computer took the pile',
     pistiYou: (n) => `Pishti! +${n} points`, pistiCpu: (n) => `The computer scored a pishti, +${n}`, lastDeal: 'Last deal', restYou: 'The cards left on the table are yours', restCpu: 'The cards left on the table go to the computer',
     deck: 'Deck', handOver: (n) => `Hand ${n} is over`, handSub: (a, b) => (a === b ? 'This hand is a tie.' : a > b ? 'You won this hand.' : 'The computer won this hand.'),
@@ -588,6 +598,7 @@ function render(dur = 380) {
 function badges() {
   const h = G && G.h, t = T();
   const set = (id, n, x, y) => { const b = $(id); b.textContent = n; b.classList.toggle('zero', !n); b.style.left = x + 'px'; b.style.top = y + 'px'; };
+  placeSeats();
   const ld = $('lDeck'); ld.textContent = h && h.deck.length === 0 && (h.hands[0].length || h.hands[1].length) ? t.lastDeal : ''; ld.style.left = L.deckX + 'px'; ld.style.top = (L.midY - 8) + 'px';
 }
 
@@ -654,6 +665,25 @@ function updateDock(hint) {
   $('ex0').textContent = h ? t.extra(h.pisti[0]) : ''; $('ex1').textContent = h ? t.extra(h.pisti[1]) : '';
   $('hedef').textContent = G ? t.target(G.target) : '';
   $('skor').setAttribute('aria-label', t.scoreAria(sc[0], sc[1]));
+  for (const q of [0, 1]) {
+    const e = $('seat' + q); e.classList.toggle('on', !!(h && !h.done && !G.over && p === q));
+    e.innerHTML = `<span>${q ? t.cpuName : t.meName}</span>${h && h.pisti[q] ? `<span class="px">${t.extra(h.pisti[q])}</span>` : ''}<span class="cn">${sc[q]}</span>`;
+  }
+  if (L) placeSeats();
+}
+// Plakalar: elin yanında yer varsa yanına, yoksa elin üstüne/altına
+function placeSeats() {
+  const a = $('seat0'), b = $('seat1'), pw = Math.max(a.offsetWidth, b.offsetWidth), ph = a.offsetHeight;
+  const myHalf = (3 * L.sp + L.cw) / 2, opHalf = (3 * L.cw * .62 + L.cw) / 2, oppBottom = L.ch * .5 + 6;
+  const side = L.W / 2 - Math.max(myHalf, opHalf) - 14 > pw;
+  const at = (e, x, y, tf) => { e.style.left = x + 'px'; e.style.top = y + 'px'; e.style.transform = tf; };
+  if (side) {
+    at(b, Math.max(8, L.W / 2 - opHalf - 16 - b.offsetWidth), oppBottom / 2, 'translateY(-50%)');
+    at(a, Math.max(8, L.W / 2 - myHalf - 16 - a.offsetWidth), L.handY, 'translateY(-50%)');
+  } else {
+    at(b, L.W / 2, oppBottom + 10, 'translateX(-50%)');
+    at(a, L.W / 2, L.handY - L.ch / 2 - 16 - ph, 'translateX(-50%)');
+  }
 }
 function seeAll(h, ...cs) { for (const c of cs) h.seen.add(c); }
 async function dealRound(my, first) { // 4'er kart, başlayan oyuncudan başlayarak birer birer
