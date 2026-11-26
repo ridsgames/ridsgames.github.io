@@ -460,7 +460,7 @@ const STR = {
       ['❗', 'Almak <b>zorunlu</b>. Birden çok seçenek varsa <b>en çok taş alan</b> seriyi oynamalısın; eşitlerden istediğini seçebilirsin.'],
       ['👑', 'Son sıraya varan taş <b>dama</b> olur. Alış serisinde son sıraya varırsa seriyi taş olarak bitirir, dama hamle sonunda olur.'],
       ['🏃', 'Dama <b>dört yöne istediği kadar</b> gider. Aynı çizgideki rakip taşı aradaki boş karelerden geçerek atlar ve arkasındaki boş karelerden birine konar. Alış serisinde geldiği yöne geri dönemez.'],
-      ['🤝', 'Taş alınmadan ve dama olmayan taş oynanmadan <b>25 tur</b> geçerse oyun berabere biter.'],
+      ['🤝', 'İki tarafta da <b>birer taş</b> kalırsa ya da <b>aynı konum üç kez</b> tekrarlanırsa oyun berabere biter.'],
       ['👆', 'Oynatmak istediğin taşa dokun, sonra gideceği kareye. Yeşil halkalı taşlar oynayabilir.']
     ],
     turnYou: 'Sıra sende', turnCpu: 'Sıra bilgisayarda', turnP: (c) => `${c}ın sırası`, W: 'Beyaz', B: 'Siyah',
@@ -470,7 +470,7 @@ const STR = {
     capYou: (n) => (n > 1 ? `${n} taş aldın!` : 'Taş aldın!'), capCpu: (n) => `Bilgisayar ${n} taş aldı`, capP: (c, n) => `${c} ${n} taş aldı`,
     kingYou: 'Dama oldun!', kingCpu: 'Bilgisayarın taşı dama oldu', kingP: (c) => `${c}ın taşı dama oldu`,
     youWin: 'Kazandın!', cpuWins: 'Bilgisayar kazandı', pWins: (c) => `${c} kazandı`, draw: 'Berabere!',
-    whyAll: 'Rakibin hiç taşı kalmadı.', whyBlock: 'Rakibin oynayacak hamlesi kalmadı.', whyLoseAll: 'Hiç taşın kalmadı.', whyLoseBlock: 'Oynayacak hamlen kalmadı.', whyDraw: '25 tur boyunca taş alınmadı.',
+    whyAll: 'Rakibin hiç taşı kalmadı.', whyBlock: 'Rakibin oynayacak hamlesi kalmadı.', whyLoseAll: 'Hiç taşın kalmadı.', whyLoseBlock: 'Oynayacak hamlen kalmadı.', whyOne: 'İki tarafta da birer taş kaldı.', whyRep: 'Aynı konum üç kez tekrarlandı.',
     again: 'Tekrar oyna', toMenu: 'Ayarları değiştir', scoreAria: (a, b) => `Kalan taşlar: ${a} ve ${b}`, kings: (n) => (n ? `👑${n}` : ''),
     white: 'beyaz', black: 'siyah'
   },
@@ -487,7 +487,7 @@ const STR = {
       ['❗', 'Capturing is <b>compulsory</b>. If there are several options you must play the sequence that takes <b>the most pieces</b>; among equal ones you may choose.'],
       ['👑', 'A man reaching the last row becomes a <b>king</b>. If it gets there during a capture sequence it finishes as a man and is crowned at the end of the move.'],
       ['🏃', 'A king moves <b>any distance in all four directions</b>. It captures an opponent piece on the same line from afar and lands on any empty square beyond it. During a sequence it cannot turn back the way it came.'],
-      ['🤝', 'If <b>25 rounds</b> pass with no capture and no man moved, the game is a draw.'],
+      ['🤝', 'The game is a draw when <b>each side has one piece</b> left or <b>the same position occurs three times</b>.'],
       ['👆', 'Tap the piece you want to move, then its target square. Pieces with a green ring can move.']
     ],
     turnYou: 'Your turn', turnCpu: 'Computer\'s turn', turnP: (c) => `${c}'s turn`, W: 'White', B: 'Black',
@@ -497,7 +497,7 @@ const STR = {
     capYou: (n) => (n > 1 ? `You captured ${n} pieces!` : 'You captured a piece!'), capCpu: (n) => `The computer captured ${n}`, capP: (c, n) => `${c} captured ${n}`,
     kingYou: 'You crowned a king!', kingCpu: 'The computer crowned a king', kingP: (c) => `${c} crowned a king`,
     youWin: 'You win!', cpuWins: 'The computer wins', pWins: (c) => `${c} wins`, draw: 'It\'s a draw!',
-    whyAll: 'Your opponent has no pieces left.', whyBlock: 'Your opponent has no move left.', whyLoseAll: 'You have no pieces left.', whyLoseBlock: 'You have no move left.', whyDraw: 'No capture for 25 rounds.',
+    whyAll: 'Your opponent has no pieces left.', whyBlock: 'Your opponent has no move left.', whyLoseAll: 'You have no pieces left.', whyLoseBlock: 'You have no move left.', whyOne: 'Each side has one piece left.', whyRep: 'The same position occurred three times.',
     again: 'Play again', toMenu: 'Change settings', scoreAria: (a, b) => `Pieces left: ${a} and ${b}`, kings: (n) => (n ? `👑${n}` : ''),
     white: 'white', black: 'black'
   }
@@ -508,10 +508,9 @@ let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || saved
 const T = () => STR[lang];
 const $ = (id) => document.getElementById(id);
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const DRAW_PLIES = 50;
 
 // ---------- Durum ----------
-// G: { mode, level, b: 64 kare, turn, white: beyazla oynayan (başlayan) oyuncu, quiet: sessiz yarım hamle sayısı, last: son hamle, ms, hist: geri alma için }
+// G: { mode, level, b: 64 kare, turn, white: beyazla oynayan (başlayan) oyuncu, last: son hamle, ms, hist: geri alma için }
 let G = null, setup = { mode: 'cpu', level: 'easy', first: 'me' };
 let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false;
 let moves = [], sel = -1, prefix = null, hover = -1, hilite = null;
@@ -747,7 +746,7 @@ function say(s, warn) {
   const el = $('msg'); el.textContent = s; el.classList.add('on'); el.classList.toggle('warn', !!warn);
   clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2800);
 }
-const pack = () => ({ mode: G.mode, level: G.level, b: Array.from(G.b), turn: G.turn, white: G.white, quiet: G.quiet, last: G.last && { from: G.last.from, to: G.last.to }, ms: Math.round(G.ms) });
+const pack = () => ({ mode: G.mode, level: G.level, b: Array.from(G.b), turn: G.turn, white: G.white, last: G.last && { from: G.last.from, to: G.last.to }, ms: Math.round(G.ms) });
 function save() { try { if (G && !G.over) localStorage.setItem('rids_dama_game', JSON.stringify(pack())); } catch (e) {} }
 function loadSaved() {
   try {
@@ -777,8 +776,10 @@ function deselect() { sel = -1; prefix = null; }
 async function nextAction() {
   const my = epoch; if (!G || G.over) return;
   moves = genMoves(G.b, G.turn); deselect(); view = G.b.slice();
-  if (!moves.length) return finish(1 - G.turn, countPieces(G.b)[G.turn][0] + countPieces(G.b)[G.turn][1] ? 'block' : 'all');
-  if (G.quiet >= DRAW_PLIES) return finish(-1, 'draw');
+  const n = countPieces(G.b), key = G.b.join();
+  if (n[0][0] + n[0][1] === 1 && n[1][0] + n[1][1] === 1) return finish(-1, 'one');
+  if (!moves.length) return finish(1 - G.turn, n[G.turn][0] + n[G.turn][1] ? 'block' : 'all');
+  if (G.hist.filter((h) => h.turn === G.turn && h.b.join() === key).length >= 2) return finish(-1, 'rep'); // ponytail: geçmiş son 60 yarım hamle, yeniden yüklemede sıfırlanır
   busy = isCpu(G.turn); updateDock();
   if (isCpu(G.turn)) {
     await wait(450); if (my !== epoch) return;
@@ -811,7 +812,6 @@ async function playMove(m) {
   if (m.caps.length) Sfx.place();
   anim = null; view = after.slice();
   G.b = after; G.last = { from: m.from, to: m.to, caps: m.caps };
-  G.quiet = m.caps.length || !isKing(v) ? 0 : G.quiet + 1;
   if (m.caps.length) {
     floater(cx(m.to), cy(m.to) - cell * .5, '+' + m.caps.length);
     if (m.caps.length > 1 || !two) say(two ? t.capP(colName(p), m.caps.length) : p === 0 ? t.capYou(m.caps.length) : t.capCpu(m.caps.length));
@@ -832,14 +832,14 @@ function finish(w, why) {
   const humanWon = w === 0 || (two && w === 1), n = countPieces(G.b);
   $('trophy').textContent = w < 0 ? '🤝' : humanWon ? '🏆' : '🐳';
   $('winTitle').textContent = w < 0 ? t.draw : two ? t.pWins(colName(w)) : w === 0 ? t.youWin : t.cpuWins;
-  $('winSub').textContent = w < 0 ? t.whyDraw : two || w === 0 ? (why === 'all' ? t.whyAll : t.whyBlock) : why === 'all' ? t.whyLoseAll : t.whyLoseBlock;
+  $('winSub').textContent = w < 0 ? (why === 'one' ? t.whyOne : t.whyRep) : two || w === 0 ? (why === 'all' ? t.whyAll : t.whyBlock) : why === 'all' ? t.whyLoseAll : t.whyLoseBlock;
   $('final').innerHTML = [0, 1].map((p) => `<span class="${w === p ? 'win' : ''}"><i class="ava" style="background-position:${avaPos(avaIdx(p))}"></i>${n[p][0] + n[p][1]}</span>`).join('');
   if (w < 0 || humanWon) Sfx.win(); else Sfx.lose();
   buzz([60, 60, 120]); if (humanWon) confetti();
   const my = epoch; setTimeout(() => { if (my === epoch) { $('winOv').hidden = false; $('againBtn').focus(); } }, 900 / speed);
 }
 function startState(mode, level, b, turn, white, extra = {}) {
-  G = { mode, level, b: Int8Array.from(b), turn, white, quiet: 0, last: null, ms: 0, over: false, hist: [], ...extra };
+  G = { mode, level, b: Int8Array.from(b), turn, white, last: null, ms: 0, over: false, hist: [], ...extra };
   view = G.b.slice(); anim = null; hilite = null; ghosts.length = 0; fx.length = 0; moves = []; deselect();
 }
 function newGame(mode, level, first) {
@@ -853,7 +853,7 @@ function newGame(mode, level, first) {
 function resume() {
   const s = loadSaved(); if (!s) return;
   epoch++; closeAll();
-  startState(s.mode, s.level, s.b, s.turn, s.white, { quiet: +s.quiet || 0, last: s.last || null, ms: Math.max(0, +s.ms || 0) });
+  startState(s.mode, s.level, s.b, s.turn, s.white, { last: s.last || null, ms: Math.max(0, +s.ms || 0) });
   applyLang(); nextAction();
 }
 function undo() { // bilgisayara karşı: insanın son hamlesine kadar geri; iki kişide bir hamle
@@ -863,7 +863,7 @@ function undo() { // bilgisayara karşı: insanın son hamlesine kadar geri; iki
   if (k < 0) return;
   const s = G.hist[k], hist = G.hist.slice(0, k);
   epoch++;
-  startState(s.mode, s.level, s.b, s.turn, s.white, { quiet: s.quiet, last: s.last, ms: G.ms, hist });
+  startState(s.mode, s.level, s.b, s.turn, s.white, { last: s.last, ms: G.ms, hist });
   sayac('geri-al', 'hamle geri alındı'); Sfx.pick(); save(); nextAction();
 }
 function confetti() {
@@ -988,7 +988,7 @@ window.__dama = {
   setSpeed: (s) => { speed = s; },
   state: () => ({ G, busy, over: G && G.over, turn: G && G.turn, canPlay: !!canPlay(), sel, moves: moves.map((m) => ({ from: m.from, to: m.to, path: m.path, caps: m.caps })), epoch }),
   cell: (i) => { const r = cv.getBoundingClientRect(); return [r.left + cx(i), r.top + cy(i)]; },
-  setBoard: (b, turn, opts = {}) => { epoch++; closeAll(); startState(opts.mode || 'cpu', opts.level || 'easy', b, turn, opts.white != null ? opts.white : 0, { quiet: opts.quiet || 0 }); applyLang(); nextAction(); },
+  setBoard: (b, turn, opts = {}) => { epoch++; closeAll(); startState(opts.mode || 'cpu', opts.level || 'easy', b, turn, opts.white != null ? opts.white : 0); applyLang(); nextAction(); },
   view: () => Array.from(view)
 };
 
