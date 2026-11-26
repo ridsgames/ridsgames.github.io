@@ -5,7 +5,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-  pages: write
 concurrency: populer
 jobs:
   guncelle:
@@ -20,14 +19,10 @@ jobs:
         env:
           GC_KEY: ${{ secrets.GOATCOUNTER_KEY }}
       - name: Değiştiyse yayınla
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           git add assets/populer.json
           if git diff --cached --quiet; then echo "Sıra değişmedi."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Güncelleme"
-          git push
-          # bu görevin gönderdiği güncelleme siteyi kendiliğinden yeniden kurmayabilir; kurulum ayrıca istenir
-          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
+          git push # site kurulumu bu güncellemeyle kendiliğinden başlar
