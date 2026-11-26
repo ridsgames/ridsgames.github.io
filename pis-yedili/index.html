@@ -216,7 +216,6 @@ table.sum td.z { color: #475569; }
 #dirB.rev { transform: scaleX(-1); }
 #tellBtn { position: absolute; z-index: 330; translate: -50% -50%; height: 34px; padding: 0 16px; border-radius: 17px; border: 1.5px solid #f87171; background: rgba(127, 29, 29, .92); color: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 4px 12px rgba(0, 0, 0, .5); }
 #tellBtn.ok { border-color: #4ade80; background: rgba(20, 83, 45, .92); }
-#tellBtn.nudge { animation: nudge .45s; } @keyframes nudge { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 .sum small.ex, table small.ex { display: block; font-size: 11px; color: #fca5a5; font-weight: 600; }
 #passBtn { position: absolute; z-index: 330; translate: -50% -50%; height: 36px; padding: 0 18px; border-radius: 18px; border: 1.5px solid #ffd43b; background: rgba(2, 6, 23, .92); color: #ffe066; font-weight: 800; font-size: 14px; box-shadow: 0 4px 12px rgba(0, 0, 0, .5); }
 #suitPick { position: absolute; z-index: 400; translate: -50% -50%; padding: 10px 12px 12px; border-radius: 16px; background: rgba(2, 6, 23, .94); border: 1px solid rgba(34, 211, 238, .55); box-shadow: 0 12px 30px rgba(0, 0, 0, .6); text-align: center; }
@@ -378,7 +377,7 @@ footer { display: none; }
 // Kart 0-53: 0-51 normal kartlar, renk = id / 13 (0 maça, 1 kupa, 2 karo, 3 sinek), değer = id % 13 + 1 (1 as, 11 vale, 12 kız, 13 papaz); 52 kırmızı, 53 siyah joker
 const suitOf = (c) => (c >= 52 ? -1 : (c / 13) | 0), rankOf = (c) => (c >= 52 ? 0 : (c % 13) + 1);
 const isJoker = (c) => c >= 52, isJack = (c) => rankOf(c) === 11, isWild = (c) => isJoker(c) || isJack(c);
-const PEN = [10, 11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 10, 10]; // elde kalan kartın ceza puanı (değere göre, 0 joker): joker 10, as 11, vale 20, kız ve papaz 10
+const PEN = [100, 11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 10, 10]; // elde kalan kartın ceza puanı (değere göre, 0 joker): joker 100, as 11, vale 25, kız ve papaz 10
 const pen = (c) => PEN[rankOf(c)];
 const isSpecial = (c) => isJoker(c) || [1, 7, 8, 10, 11].includes(rankOf(c));
 const SEVEN = 3, JOKER_PEN = 10; // 7'li ve joker kaç kart çektirir
@@ -386,6 +385,7 @@ function shuffled(rnd = Math.random, a = Array.from({ length: 54 }, (_, i) => i)
 const stepP = (p, dir, n) => (((p + dir) % n) + n) % n;
 // s: { top: yerdeki kart, suit: geçerli renk, rank: eşlenecek değer (vale altındaki kartın değerini korur), pend: biriken çekme cezası, r1: ilk tur (sadece sinek) }
 function legal(c, s) {
+  if (s.mute) return false; // "Tek" demeden tek karta inen, sırası gelince son kartını atamaz, çekmek zorunda
   if (s.pend > 0) return isJoker(c) || rankOf(c) === 7;
   if (s.r1) return !isJoker(c) && suitOf(c) === 3;
   if (s.bonus) return !isJoker(c) && (rankOf(c) === 1 || isJack(c) || suitOf(c) === s.suit); // asın üstüne başka as, aynı renk ya da vale
@@ -411,7 +411,7 @@ function cpuPick(st, level, rnd = Math.random) {
   let best = -1, bv = -Infinity;
   for (const c of valid) {
     const rest = hand.filter((x) => x !== c), r = rankOf(c), s = suitOf(c);
-    let v = pen(c) * 0.06; // ağır kartlardan kurtul
+    let v = Math.min(pen(c), 25) * 0.06; // ağır kartlardan kurtul (joker 100 olsa da hemen harcanmasın, savunmaya saklanır)
     if (!rest.length) v += 100;
     if (pend > 0) v += 6;
     if (isJoker(c)) v -= rest.length > 1 ? 3 : 0;
@@ -454,15 +454,15 @@ const STR = {
       ['🃏', 'Herkese 7 kart dağıtılır, yere kart açılmaz. Destede 52 kartın yanında <b>2 joker</b> vardır.'],
       ['♣️', '<b>İlk turda herkes sinek atar.</b> Sineği olmayan sinek gelene kadar desteden çeker, ilk turda pas yoktur. İlk atılan kart as, vale, 10, 8 ya da 7 olsa da özelliği işlemez.'],
       ['👆', 'Sonra yerdeki kartla <b>aynı renkte</b> (maça, kupa, karo, sinek) ya da <b>aynı değerde</b> bir kart atarsın.'],
-      ['📥', 'Atacak kartın yoksa desteye dokunup <b>bir kart çekersin</b>. Uyuyorsa hemen atabilir ya da pas geçebilirsin, uymuyorsa sıra geçer.'],
+      ['📥', 'Atacak kartın yoksa desteye dokunup <b>bir kart çekersin</b>; atacak kartın olsa da çekebilirsin. Uyuyorsa hemen atabilir ya da pas geçebilirsin, uymuyorsa sıra geçer.'],
       ['🅰️', '<b>As</b> atınca diğer herkes <b>1 kart çeker</b> ve sıra sende kalır: üstüne başka as, aynı renkten bir kart ya da vale atabilirsin. Atacak kartın yoksa çekersin ya da pas dersin.'],
       ['🤵', '<b>Vale (J)</b> her kartın üstüne atılır ve rengi değiştirir, değer alttaki kartta kalır (yerde karo 2 varsa maça 2 olur). Valenin üstüne vale atılmaz.'],
       ['7️⃣', '<b>7</b> atılınca sıradaki oyuncu <b>3 kart çeker</b>. Elinde 7 ya da joker varsa onu atar, ceza büyüyerek bir sonrakine geçer: 3, 6, 9...'],
       ['🃏', '<b>Joker</b> her kartın üstüne atılır, sıradakine <b>10 kart</b> çektirir ve istediğin rengi seçersin. 7\'nin üstüne de atılır.'],
       ['⏭️', '<b>8</b> sıradakini atlatır. <b>10</b> yönü değiştirir; iki kişide sıra yine sende kalır.'],
-      ['☝️', 'İki kartın kalınca, kart atmadan önce <b>"Tek kart!"</b> düğmesine basmalısın; basmadan atamazsın.'],
+      ['☝️', 'İki kartın kalınca, kart atmadan önce <b>"Tek kart!"</b> düğmesine bas. Basmadan atarsan sıra sana gelince son kartını atamaz, <b>desteden kart çekersin</b>.'],
       ['♻️', 'Deste bitince yerdeki kartlar (en üstteki hariç) karıştırılıp yeni deste olur.'],
-      ['🧮', 'Elini biri bitirince diğerlerinin elinde kalanlar <b>ceza puanı</b> olur: as 11, vale 20, kız ve papaz 10, joker 10, diğerleri üstündeki sayı kadar. Elde kalan her <b>7 için 3</b>, her <b>as için 1</b>, her <b>joker için 10</b> kart daha çekilir, onların değeri de eklenir. Son kartı <b>vale</b> ile biten olursa rakiplerin cezası <b>iki kat</b> yazılır.'],
+      ['🧮', 'Elini biri bitirince diğerlerinin elinde kalanlar <b>ceza puanı</b> olur: as 11, vale 25, kız ve papaz 10, joker 100, diğerleri üstündeki sayı kadar. Elde kalan her <b>7 için 3</b>, her <b>as için 1</b>, her <b>joker için 10</b> kart daha çekilir, onların değeri de eklenir. Son kartı <b>vale</b> ile biten olursa rakiplerin cezası <b>iki kat</b>, <b>7</b> ile biten olursa <b>üç kat</b> yazılır.'],
       ['🔒', 'Deste biter ve yerdeki kartlar yeni deste için yetmezse (5 karttan az) el kapanır; elinde en az ceza kalan eli kazanmış sayılır.'],
       ['🏆', 'Biri seçilen ceza sınırına ulaşınca oyun biter, <b>en az cezası olan</b> kazanır. <b>Tek el</b> seçersen elini ilk bitiren kazanır.']
     ],
@@ -475,7 +475,7 @@ const STR = {
     drewN: (p, k) => (p === 0 ? `${k} kart çektin` : `${STR.tr.names[p]} ${k} kart çekti`),
     skipped: (p) => (p === 0 ? 'Sıran atlandı' : `${STR.tr.names[p]} atlandı`), reversed: 'Yön değişti', again: 'Sıra yine sende', againCpu: (p) => `Sıra yine ${STR.tr.names[p]} oyuncusunda`,
     ace: (p) => (p === 0 ? 'As! Diğerleri 1 kart çekiyor' : `${STR.tr.names[p]} as attı, diğerleri 1 kart çekiyor`), clubsFirst: 'İlk turda herkes sinek atar', hintClubs: 'İlk turda sinek atmalısın, sinek gelene kadar çek', hintBonus: 'Asın üstüne as, aynı renk ya da vale atabilir ya da pas diyebilirsin',
-    tell: 'Tek kart!', tellFirst: 'Önce "Tek kart!" demelisin', dblSub: 'Vale ile bitti, cezalar iki kat!', extraN: (k) => `+${k} kart çekildi`,
+    tell: 'Tek kart!', tellFirst: '"Tek" demediğin için son kartını atamazsın, desteden çek', noTell: '"Tek" demedin! Sıran gelince son kartını atamazsın', dblSub: (m) => (m === 3 ? '7 ile bitti, cezalar üç kat!' : 'Vale ile bitti, cezalar iki kat!'), extraN: (k) => `+${k} kart çekildi`,
     passed: (p) => (p === 0 ? 'Pas geçtin' : `${STR.tr.names[p]} pas geçti`), lastCard: (p) => (p === 0 ? 'Son kartın kaldı!' : `${STR.tr.names[p]}: son kart!`), lastTag: 'Son kart!',
     blocked: 'Deste bitti, yerdeki kartlar yetmiyor: el kapandı', blockSub: (p) => (p === 0 ? 'El kapandı, en az ceza sende kaldı.' : `El kapandı, en az ceza ${STR.tr.names[p]} oyuncusunda kaldı.`),
     out: (p) => (p === 0 ? 'Elini bitirdin!' : `${STR.tr.names[p]} elini bitirdi`), outPop: 'BİTTİ!', reshuf: 'Yerdeki kartlar karıştırılıp deste yapıldı',
@@ -496,15 +496,15 @@ const STR = {
       ['🃏', 'Everyone gets 7 cards and no card is turned up. The deck has <b>2 jokers</b> besides the 52 cards.'],
       ['♣️', '<b>In the first round everyone plays a club.</b> Without a club you draw until you get one; there is no passing in the first round. The very first card has no special effect, even if it is an ace, jack, 10, 8 or 7.'],
       ['👆', 'After that play a card of <b>the same suit</b> or <b>the same rank</b> as the top card.'],
-      ['📥', 'If you cannot play, tap the deck to <b>draw one card</b>. If it fits you may play it or pass; if not, your turn ends.'],
+      ['📥', 'If you cannot play, tap the deck to <b>draw one card</b>; you may draw even when you could play. If it fits you may play it or pass; if not, your turn ends.'],
       ['🅰️', 'After an <b>ace</b> everyone else <b>draws 1</b> and you keep the turn: play another ace, a card of the same suit or a jack. If you can\'t, draw or pass.'],
       ['🤵', 'A <b>jack (J)</b> goes on anything and changes the suit; the rank stays with the card below (a 2 of diamonds becomes a 2 of spades). A jack cannot go on a jack.'],
       ['7️⃣', 'A <b>7</b> makes the next player <b>draw 3</b>. With a 7 or a joker they can pass it on and the penalty grows: 3, 6, 9...'],
       ['🃏', 'A <b>joker</b> goes on anything, makes the next player <b>draw 10</b> and you pick the suit. It can also answer a 7.'],
       ['⏭️', 'An <b>8</b> skips the next player. A <b>10</b> reverses the direction; with two players you go again.'],
-      ['☝️', 'With two cards left you must tap <b>"Last card!"</b> before playing; you cannot play without it.'],
+      ['☝️', 'With two cards left, tap <b>"Last card!"</b> before playing. If you forget, on your next turn you cannot play your last card and <b>must draw</b> instead.'],
       ['♻️', 'When the deck runs out, the played cards (except the top one) are shuffled into a new deck.'],
-      ['🧮', 'When someone goes out, the others score <b>penalty points</b> for the cards they hold: ace 11, jack 20, queen and king 10, joker 10, others their number. For every <b>7 held, 3</b> more cards are drawn, for every <b>ace, 1</b> and for every <b>joker, 10</b>; their values are added too. If the winner goes out with a <b>jack</b>, the others\' penalties are <b>doubled</b>.'],
+      ['🧮', 'When someone goes out, the others score <b>penalty points</b> for the cards they hold: ace 11, jack 25, queen and king 10, joker 100, others their number. For every <b>7 held, 3</b> more cards are drawn, for every <b>ace, 1</b> and for every <b>joker, 10</b>; their values are added too. If the winner goes out with a <b>jack</b>, the others\' penalties are <b>doubled</b>; with a <b>7</b>, <b>tripled</b>.'],
       ['🔒', 'If the deck runs out and the pile is too small to make a new one (under 5 cards), the hand is closed and the player holding the fewest points wins it.'],
       ['🏆', 'When someone reaches the chosen limit the game ends and <b>the fewest points</b> wins. With <b>One hand</b> the first to go out wins.']
     ],
@@ -517,7 +517,7 @@ const STR = {
     drewN: (p, k) => (p === 0 ? `You drew ${k}` : `${STR.en.names[p]} drew ${k}`),
     skipped: (p) => (p === 0 ? 'You are skipped' : `${STR.en.names[p]} is skipped`), reversed: 'Direction reversed', again: 'Your turn again', againCpu: (p) => `${STR.en.names[p]} goes again`,
     ace: (p) => (p === 0 ? 'Ace! Everyone else draws 1' : `${STR.en.names[p]} played an ace, the others draw 1`), clubsFirst: 'In the first round everyone plays a club', hintClubs: 'Play a club in the first round, draw until you get one', hintBonus: 'Play another ace, the same suit or a jack, or pass',
-    tell: 'Last card!', tellFirst: 'Say "Last card!" first', dblSub: 'Finished with a jack, penalties doubled!', extraN: (k) => `+${k} cards drawn`,
+    tell: 'Last card!', tellFirst: 'You didn\'t say "Last card!", so draw instead of playing it', noTell: 'You didn\'t say "Last card!": next turn you can\'t play your last card', dblSub: (m) => (m === 3 ? 'Finished with a 7, penalties tripled!' : 'Finished with a jack, penalties doubled!'), extraN: (k) => `+${k} cards drawn`,
     passed: (p) => (p === 0 ? 'You passed' : `${STR.en.names[p]} passed`), lastCard: (p) => (p === 0 ? 'Last card!' : `${STR.en.names[p]}: last card!`), lastTag: 'Last card!',
     blocked: 'The deck ran out and the pile is too small: the hand is closed', blockSub: (p) => (p === 0 ? 'The hand was closed, you held the fewest points.' : `The hand was closed, ${STR.en.names[p]} held the fewest points.`),
     out: (p) => (p === 0 ? 'You went out!' : `${STR.en.names[p]} went out`), outPop: 'OUT!', reshuf: 'The pile was shuffled into a new deck',
@@ -617,7 +617,7 @@ function put(c, x, y, rot, sc, up, z, dur) {
   el.style.transform = `translate(${x - L.cw / 2}px, ${y - L.ch / 2}px) rotate(${rot}deg) scale(${sc})`;
   el.style.zIndex = z; el.classList.toggle('up', !!up);
 }
-const tbl = (h) => { const top = h.pile[h.pile.length - 1]; return { top, suit: h.suit, pend: h.pend, rank: h.rank !== undefined ? h.rank : top != null && !isJoker(top) ? rankOf(top) : null, r1: !!(h.first && h.first[h.turn]), bonus: !!h.bonus }; };
+const tbl = (h) => { const top = h.pile[h.pile.length - 1]; return { top, suit: h.suit, pend: h.pend, rank: h.rank !== undefined ? h.rank : top != null && !isJoker(top) ? rankOf(top) : null, r1: !!(h.first && h.first[h.turn]), bonus: !!h.bonus, mute: !!(h.mute && h.turn === 0 && h.hands[0].length === 1) }; };
 const sortKey = (c) => (c >= 52 ? 100 + c : [0, 1, 3, 2][suitOf(c)] * 20 + rankOf(c));
 const sortMine = () => G.h.hands[0].sort((a, b) => sortKey(a) - sortKey(b));
 let hotCard = -1;
@@ -625,7 +625,7 @@ function render(dur = 360) {
   if (!L) return;
   const h = G && G.h;
   if (!h) { for (let c = 0; c < 54; c++) { put(c, L.deckX - Math.min(c, 24) * 0.18, L.midY - Math.min(c, 24) * 0.18, 0, 1, false, c + 1, 0); els[c].className = c < 52 ? 'card flat' : 'card'; } ui(); return; }
-  const flat = new Set(), mine = h.hands[0], play = canPlay(), t = tbl(h), drawme = canDraw();
+  const flat = new Set(), mine = h.hands[0], play = canPlay(), t = tbl(h), drawme = mustDraw();
   h.deck.forEach((c, i) => { put(c, L.deckX - Math.min(i, 24) * 0.18, L.midY - Math.min(i, 24) * 0.18, 0, 1, false, i + 1, dur); if (i < h.deck.length - 2) flat.add(c); });
   const np = h.pile.length;
   h.pile.forEach((c, i) => {
@@ -681,7 +681,7 @@ function ui() { // koltuklar, renk, ceza ve yön işaretleri, pas düğmesi
   pb.style.left = L.pileX + 'px'; pb.style.top = (L.midY + L.ch * 0.5 + 2) + 'px';
   const d = $('dirB'); d.classList.toggle('off', n < 3 || !h); d.classList.toggle('rev', !!(h && h.dir < 0));
   const pass = $('passBtn'); pass.hidden = !(h && canPass()); pass.textContent = t.pass;
-  const tell = $('tellBtn'), tOn = !!(h && canPlay() && h.hands[0].length === 2 && !h.pend); tell.hidden = !tOn; tell.textContent = t.tell; tell.classList.toggle('ok', !!(h && h.told));
+  const tell = $('tellBtn'), tOn = !!(h && canPlay() && h.hands[0].length === 2); tell.hidden = !tOn; tell.textContent = t.tell; tell.classList.toggle('ok', !!(h && h.told));
   tell.style.left = L.cx + 'px'; tell.style.top = (L.handY - L.ch * 0.5 - 26) + 'px';
   pass.style.left = L.deckX + 'px'; pass.style.top = (L.midY + L.ch * 0.5 + 4) + 'px';
   const sp = $('suitPick'); sp.style.left = L.cx + 'px'; sp.style.top = L.midY + 'px';
@@ -739,14 +739,16 @@ function loadSaved() {
 }
 const noOv = () => $('setupOv').hidden && $('rulesOv').hidden && $('handOv').hidden && $('winOv').hidden;
 const canPlay = () => G && G.h && !G.over && !busy && G.h.turn === 0 && !G.h.done && noOv();
-const canDraw = () => canPlay() && G.h.drew < 0 && (G.h.pend > 0 || !G.h.hands[0].some((c) => legal(c, tbl(G.h))));
-const canPass = () => !!(canPlay() && !tbl(G.h).r1 && !G.h.pend && (G.h.drew >= 0 || G.h.bonus));
+const canDraw = () => canPlay() && G.h.drew < 0; // atacak kartı olsa da çekebilir
+const mustDraw = () => canDraw() && (G.h.pend > 0 || !G.h.hands[0].some((c) => legal(c, tbl(G.h))));
+const canPass = () => !!(canPlay() && !tbl(G.h).r1 && !tbl(G.h).mute && !G.h.pend && (G.h.drew >= 0 || G.h.bonus));
 function hint() {
   const t = T(), h = G.h;
   if (!h || h.done) return '';
   if (h.turn !== 0) return t.hintThink;
   const any = h.hands[0].some((c) => legal(c, tbl(h)));
   if (h.pend) return any ? t.hintPendCan(h.pend) : t.hintPend(h.pend);
+  if (tbl(h).mute) return t.tellFirst;
   if (tbl(h).r1) return t.hintClubs;
   if (h.bonus) return t.hintBonus;
   if (h.drew >= 0) return t.hintDrew;
@@ -774,7 +776,7 @@ async function drawCards(my, p, k) { // k kart çeker; son çekilen kartı dönd
   const h = G.h; let last = -1;
   for (let i = 0; i < k; i++) {
     if (!h.deck.length && !(await reshuffle(my))) { if (my !== epoch) return null; h.block = true; return null; }
-    last = h.deck.pop(); h.hands[p].push(last); if (p === 0) { sortMine(); h.told = false; }
+    last = h.deck.pop(); h.hands[p].push(last); if (p === 0) { sortMine(); h.told = false; h.mute = false; }
     Sfx.deal(); render(320); await wait(k > 3 ? 110 : 160); if (my !== epoch) return null;
   }
   return last;
@@ -840,6 +842,7 @@ async function playCard(p, c) {
   const noFx = !h.pile.length; // elin ilk kartının özelliği işlemez
   if (h.first) h.first[p] = false; h.bonus = false;
   h.hands[p].splice(h.hands[p].indexOf(c), 1); h.pile.push(c); h.drew = -1;
+  if (p === 0 && h.hands[0].length === 1 && !h.told) h.mute = true; // bilgisayar her zaman "tek" der
   if (!isWild(c)) h.miss[p] = h.miss[p].filter((s) => s !== suitOf(c));
   Sfx.play(); render(360); updateDock('');
   await wait(420); if (my !== epoch) return;
@@ -863,7 +866,7 @@ async function playCard(p, c) {
     for (let k = 1; k < n; k++) { if ((await drawCards(my, stepP(p, k * h.dir, n), 1)) === null) return h.block && my === epoch ? blockHand() : undefined; }
     nx = p; h.bonus = true;
   }
-  if (h.hands[p].length === 1) { say(t.lastCard(p), true); Sfx.last(); }
+  if (h.hands[p].length === 1) { if (p === 0 && h.mute) say(t.noTell); else { say(t.lastCard(p), true); Sfx.last(); } }
   await wait(250); if (my !== epoch) return;
   h.turn = nx; h.mid = false; save(); nextAction();
 }
@@ -873,10 +876,11 @@ async function endHand(w, blocked) {
   if (!blocked) { popText(t.outPop); say(t.out(w), true); } if (w === 0) Sfx.win(); else Sfx.lose(); buzz([50, 50, 90]);
   render(520); updateDock('');
   await wait(1500); if (my !== epoch) return;
-  const pool = shuffled(Math.random, [...h.deck, ...h.pile.slice(0, -1)]), dbl = !blocked && isJack(h.pile[h.pile.length - 1]);
+  const pool = shuffled(Math.random, [...h.deck, ...h.pile.slice(0, -1)]), top = h.pile[h.pile.length - 1];
+  const mult = blocked ? 1 : isJack(top) ? 2 : rankOf(top) === 7 ? 3 : 1; // vale ile biten iki, 7 ile biten üç kat yazdırır
   h.extra = h.hands.map((hd, i) => (i === w ? [] : hd.flatMap((c) => (isJoker(c) ? pool.splice(0, JOKER_PEN) : rankOf(c) === 7 ? pool.splice(0, 3) : rankOf(c) === 1 ? pool.splice(0, 1) : []))));
-  h.dbl = dbl;
-  h.res = h.hands.map((hd, i) => (i === w ? 0 : (hd.reduce((s, c) => s + pen(c), 0) + h.extra[i].reduce((s, c) => s + pen(c), 0)) * (dbl ? 2 : 1)));
+  h.dbl = mult > 1 ? mult : 0;
+  h.res = h.hands.map((hd, i) => (i === w ? 0 : (hd.reduce((s, c) => s + pen(c), 0) + h.extra[i].reduce((s, c) => s + pen(c), 0)) * mult));
   h.res.forEach((v, i) => { G.scores[i] += v; });
   h.mid = false; save(); updateDock(''); showHand();
 }
@@ -887,7 +891,7 @@ function matchWinners() {
 }
 function showHand() {
   const t = T(), h = G.h, ws = matchWinners();
-  $('handTitle').textContent = t.handOver(G.handNo); $('handSub').textContent = (h.blocked ? t.blockSub(h.winner) : t.handSub(h.winner)) + (h.dbl ? ' ' + t.dblSub : '');
+  $('handTitle').textContent = t.handOver(G.handNo); $('handSub').textContent = (h.blocked ? t.blockSub(h.winner) : t.handSub(h.winner)) + (h.dbl ? ' ' + t.dblSub(h.dbl) : '');
   $('sumTable').innerHTML = `<thead><tr>${t.cols.map((c) => `<th>${c}</th>`).join('')}</tr></thead><tbody>`
     + h.hands.map((hd, i) => `<tr class="${i === h.winner ? 'win' : ''}"><td class="nm"><i class="ava" style="background-position:${avaPos(i)}"></i>${t.names[i]}</td><td class="${hd.length ? '' : 'z'}">${hd.length}</td><td class="${h.res[i] ? '' : 'z'}">${h.res[i]}${h.extra && h.extra[i] && h.extra[i].length ? `<small class="ex">${t.extraN(h.extra[i].length)}</small>` : ''}</td><td>${G.scores[i]}</td></tr>`).join('') + '</tbody>';
   $('nextBtn').textContent = ws ? t.seeResult : t.nextHand;
@@ -949,8 +953,7 @@ function tapCard(c) {
   if (!canPlay() || !G.h.hands[0].includes(c)) return;
   Sfx.unlock();
   const h = G.h;
-  if (!legal(c, tbl(h)) || (h.drew >= 0 && c !== h.drew)) { const el = els[c]; el.classList.remove('no'); void el.offsetWidth; el.classList.add('no'); say(T().cant); return; }
-  if (needTell()) return;
+  if (!legal(c, tbl(h)) || (h.drew >= 0 && c !== h.drew)) { const el = els[c]; el.classList.remove('no'); void el.offsetWidth; el.classList.add('no'); say(tbl(h).mute ? T().tellFirst : T().cant); return; }
   // dokunmatikte ilk dokunuş kartı kaldırır, ikincisi atar; farede tek tık yeter
   if (lastPointer !== 'mouse' && hotCard !== c) { hotCard = c; render(160); return; }
   playCard(0, c);
@@ -983,9 +986,7 @@ function dragEnd(e) {
   render(220);
 }
 const dragOk = (c) => canPlay() && G.h.hands[0].includes(c) && legal(c, tbl(G.h)) && (G.h.drew < 0 || c === G.h.drew);
-const dropPlay = (c) => { if (needTell()) { render(200); return; } playCard(0, c); };
-// İki kartı kalan, son kartı kalmadan önce 'Tek kart!' demek zorunda
-function needTell() { const h = G.h; if (h.hands[0].length !== 2 || h.told) return false; say(T().tellFirst); const b = $('tellBtn'); b.classList.remove('nudge'); void b.offsetWidth; b.classList.add('nudge'); return true; }
+const dropPlay = (c) => playCard(0, c);
 function confetti() {
   if (reduce) return;
   const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
