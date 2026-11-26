@@ -322,11 +322,12 @@ const STR = {
     wins: (n) => `${n} kazandı!`, youWin: 'Kazandın!', winSub: 'Dört piyon da evde.', again: 'Tekrar oyna', toMenu: 'Oyuncuları değiştir',
     rulesTitle: 'Nasıl oynanır?', rulesSub: 'Dört piyonunu da ilk evine götüren kazanır.', ok: 'Tamam', inHome: (n) => `${n}/4 evde`, rollAria: 'Zar at', board: 'Kızma Birader tahtası',
     ruleList: [
-      ['🎲', '<b>6 gelince</b> başlangıç bölmesinden bir piyon çıkarabilirsin. 6 atan bir daha atar.'],
+      ['🎲', 'Herkes bir piyonu <b>çıkış karesinde</b> başlar. <b>6 gelince</b> başlangıç bölmende piyon varsa çıkarmak zorundasın. 6 atan bir daha atar.'],
       ['🎯', 'Zarı her turda <b>bir kez</b> atarsın; 6 gelmezse sıra sonraki oyuncuya geçer.'],
-      ['➡️', 'Piyonlar saat yönünde, zar kadar ilerler. Kendi piyonunun üstüne gelemezsin.'],
+      ['➡️', 'Piyonlar saat yönünde, zar kadar ilerler; başka piyonların üstünden atlanır. Kendi piyonunun üstüne gelemezsin.'],
+      ['🚪', 'Bölmende piyon varken çıkış kareni boşaltmalısın: oradaki piyonu ilk oynayabildiğin zarla ilerletirsin.'],
       ['💥', 'Rakibin bulunduğu kareye gelirsen onu <b>başa yollarsın</b>: Kızma birader!'],
-      ['🏠', 'Tur bitince piyon kendi renkli evine girer. Eve <b>tam sayıyla</b> girilir, evde kendi piyonunun üstünden atlanmaz.'],
+      ['🏠', 'Tur bitince piyon kendi renkli evine girer. Eve <b>tam sayıyla</b> girilir.'],
       ['🏆', 'Dört piyonunu da ilk evine götüren kazanır.']
     ]
   },
@@ -340,11 +341,12 @@ const STR = {
     wins: (n) => `${n} wins!`, youWin: 'You win!', winSub: 'All four pieces are home.', again: 'Play again', toMenu: 'Change players',
     rulesTitle: 'How to play', rulesSub: 'Be the first to bring all four pieces home.', ok: 'OK', inHome: (n) => `${n}/4 home`, rollAria: 'Roll the die', board: 'Ludo board',
     ruleList: [
-      ['🎲', 'Roll a <b>6</b> to bring a piece out of your start area. A 6 also gives you another roll.'],
+      ['🎲', 'Everyone starts with one piece on their <b>start square</b>. On a <b>6</b> you must bring a piece out if any are left in your start area. A 6 also gives you another roll.'],
       ['🎯', 'You roll <b>once</b> per turn; unless it is a 6, the turn passes to the next player.'],
-      ['➡️', 'Pieces move clockwise by the number rolled. You cannot land on your own piece.'],
+      ['➡️', 'Pieces move clockwise by the number rolled and may jump over other pieces. You cannot land on your own piece.'],
+      ['🚪', 'While pieces wait in your start area, clear your start square: move the piece there with the first roll you can.'],
       ['💥', 'Land on an opponent and you <b>send it back</b> to its start area.'],
-      ['🏠', 'After a full lap a piece enters its coloured home row. You need the <b>exact number</b> and cannot jump your own pieces there.'],
+      ['🏠', 'After a full lap a piece enters its coloured home row. You need the <b>exact number</b>.'],
       ['🏆', 'The first to bring all four pieces home wins.']
     ]
   }
@@ -417,11 +419,15 @@ function legalMoves(p, v) {
     }
     const to = pos + v;
     if (to > 43 || occupiedOwn(to)) return;
-    for (let k = Math.max(pos + 1, 40); k < to; k++) if (occupiedOwn(k)) return; // evde kendi piyonunun üstünden atlanmaz
     const cap = to < 40 ? pieceAt(absOf(p, to)) : null;
     if (cap && cap[0] === p) return;
     out.push({ i, from: pos, to, cap });
   });
+  // Schmidt Spiele temel kuralı: bahçede piyon varken 6 ile çıkış zorunlu, çıkış karesi ilk fırsatta boşaltılır
+  if (mine.includes(-1)) {
+    const exit = out.filter((m) => m.from === -1); if (exit.length) return exit;
+    const clear = out.filter((m) => m.from === 0); if (clear.length) return clear;
+  }
   return out;
 }
 const finished = (p) => G.pieces[p].every((pos) => pos >= 40);
@@ -466,7 +472,7 @@ function newGame(seats, level) {
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
   const n = seats.filter((s) => s !== 'none').length, cpu = seats.includes('cpu');
   sayac(`mod/${n}-${cpu ? 'bilgisayar-' + lvAd(level) : 'insan'}`, `mod: ${n} oyuncu, ${cpu ? 'bilgisayara karşı, ' + lvAd(level) : 'aynı telefonda'}`);
-  G = { seats: seats.slice(), level, pieces: [0, 1, 2, 3].map(() => [-1, -1, -1, -1]), turn: 0, order: [] };
+  G = { seats: seats.slice(), level, pieces: [0, 1, 2, 3].map(() => [0, -1, -1, -1]), turn: 0, order: [] }; // her renk bir piyonla çıkış karesinde başlar
   G.turn = active()[0];
   closeAll(); startTurn(G.turn); save();
 }
