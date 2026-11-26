@@ -316,12 +316,12 @@ const STR = {
     setupSub: 'Kaç kişi oynuyor? Her renk için seç.', start: 'Başla', resume: 'Kaldığın yerden devam et', count: 'Oyuncu sayısı',
     rollTap: 'Zar atmak için zara dokun', rollCpu: 'Zar atıyor…', yourTurn: 'Sıra sende', turnOf: (n) => `${n} oynuyor`,
     six: '6 geldi, bir daha at!', moved: (v) => `${v} geldi`, ladder: (a, b) => `Merdiven! ${a} → ${b}`, snake: (a, b) => `Yılan! ${a} → ${b}`,
-    over: (n) => `Tam sayı gerek: 100'e ${n} kaldı, sıra geçti`, triple: 'Üst üste üç kez 6: hamle yok, sıra geçti',
+    over: (n) => `Tam sayı gerek: 100'e ${n} kaldı, sıra geçti`, triple: 'Üst üste üç kez 6: hamle yok, sıra geçti', firstBy: (s, n) => `Başlangıç zarı: ${s}. İlk sıra: ${n}`,
     wins: (n) => `${n} kazandı!`, youWin: 'Kazandın!', winSub: '100. kareye ilk ulaşan oldu.', again: 'Tekrar oyna', toMenu: 'Oyuncuları değiştir',
     atSquare: (n) => (n ? `${n}. kare` : 'Başlangıç'), rollAria: 'Zar at', board: 'Yılan Merdiven tahtası',
     rulesTitle: 'Nasıl oynanır?', rulesSub: '100. kareye ilk ulaşan kazanır.', ok: 'Tamam',
     ruleList: [
-      ['🎲', 'Herkes tahtanın dışından başlar. Sırayla zar atıp piyonunu <b>1\'den 100\'e</b> doğru ilerletirsin.'],
+      ['🎲', 'Herkes tahtanın dışından başlar. Önce herkes bir zar atar, <b>en yüksek atan</b> ilk oynar (eşitlikte berabere kalanlar yeniden atar). Sonra sırayla zar atıp piyonunu <b>1\'den 100\'e</b> doğru ilerletirsin.'],
       ['🪜', 'Bir <b>merdivenin</b> alt ucuna gelirsen yukarı tırmanırsın.'],
       ['🐍', 'Bir <b>yılanın</b> başına gelirsen kuyruğuna kadar kayarsın.'],
       ['🎯', '100\'e <b>tam sayıyla</b> girilir. Zar fazla gelirse piyon yerinde kalır ve sıra geçer.'],
@@ -336,12 +336,12 @@ const STR = {
     setupSub: 'How many are playing? Choose for each colour.', start: 'Start', resume: 'Continue where you left off', count: 'Players',
     rollTap: 'Tap the die to roll', rollCpu: 'Rolling…', yourTurn: 'Your turn', turnOf: (n) => `${n} to play`,
     six: 'A 6, roll again!', moved: (v) => `Rolled ${v}`, ladder: (a, b) => `Ladder! ${a} → ${b}`, snake: (a, b) => `Snake! ${a} → ${b}`,
-    over: (n) => `Exact roll needed: ${n} to go, turn passes`, triple: 'Three 6s in a row: no move, turn passes',
+    over: (n) => `Exact roll needed: ${n} to go, turn passes`, triple: 'Three 6s in a row: no move, turn passes', firstBy: (s, n) => `Opening roll: ${s}. First turn: ${n}`,
     wins: (n) => `${n} wins!`, youWin: 'You win!', winSub: 'First to reach square 100.', again: 'Play again', toMenu: 'Change players',
     atSquare: (n) => (n ? `Square ${n}` : 'At start'), rollAria: 'Roll the die', board: 'Snakes and Ladders board',
     rulesTitle: 'How to play', rulesSub: 'Be the first to reach square 100.', ok: 'OK',
     ruleList: [
-      ['🎲', 'Everyone starts off the board. Take turns rolling and move your piece from <b>1 towards 100</b>.'],
+      ['🎲', 'Everyone starts off the board. First everyone rolls once and the <b>highest roll</b> goes first (tied players roll again). Then take turns rolling and move your piece from <b>1 towards 100</b>.'],
       ['🪜', 'Land at the bottom of a <b>ladder</b> and you climb up.'],
       ['🐍', 'Land on a <b>snake\'s head</b> and you slide down to its tail.'],
       ['🎯', 'You must reach 100 with an <b>exact roll</b>. If the roll is too high, the piece stays and the turn passes.'],
@@ -450,8 +450,18 @@ function newGame(seats) {
   sayac(`mod/${n}-${cpu ? 'bilgisayar' : 'insan'}`, `mod: ${n} oyuncu, ${cpu ? 'bilgisayarlı' : 'aynı cihazda'}`);
   clearTimeout(timer); for (const k in anims) delete anims[k]; busy = false;
   G = { seats: seats.slice(), pos: [0, 0, 0, 0], turn: 0, rolls: [0, 0, 0, 0], ms: 0 };
-  G.turn = active()[0];
-  closeAll(); lb.bosalt($('lbSlot')); startTurn(G.turn);
+  const f = firstRoll();
+  closeAll(); lb.bosalt($('lbSlot')); startTurn(f.p); note(T().firstBy(f.s, shortName(f.p)));
+}
+// Başlangıç sırası: herkes bir zar atar, en yüksek atan başlar; eşitlikte yalnız berabere kalanlar yeniden atar
+// ponytail: zarlar kendiliğinden atılır, sonuç yazıyla gösterilir; tek tek zar canlandırması istenirse buraya eklenir
+function firstRoll() {
+  let c = active();
+  for (;;) {
+    const r = c.map(() => 1 + Math.floor(Math.random() * 6)), m = Math.max(...r), top = c.filter((q, i) => r[i] === m);
+    if (top.length === 1) return { p: top[0], s: c.map((q, i) => `${shortName(q)} ${r[i]}`).join(' · ') };
+    c = top;
+  }
 }
 function startTurn(p, sx = 0) { G.turn = p; sixes = sx; beginRoll(p); commit(G.pos, p, sx); }
 function beginRoll(p) {
