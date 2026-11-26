@@ -438,7 +438,7 @@ const STR = {
     tgtLbl: 'Oyun kaç sayı?', deckLbl: 'Deste', red: 'Kırmızı', black: 'Siyah', one: 'Tek el', start: 'Başla', resume: 'Kaldığın yerden devam et',
     rulesTitle: 'Nasıl oynanır?', rulesSub: 'Puanları toplayıp hedefe ilk ulaşan kazanır.', ok: 'Tamam',
     ruleList: [
-      ['🃏', 'İki oyuncuya 4\'er kart, ortaya 4 kart dağıtılır: 3\'ü kapalı, en üstteki açık.'],
+      ['🃏', 'İki oyuncuya 4\'er kart, ortaya 4 kart dağıtılır: 3\'ü kapalı, en üstteki açık. Açık kart vale çıkarsa alta konur, kapalılardan biri açılır.'],
       ['👆', 'Sırayla birer kart atılır. Attığın kart yerdeki <b>en üst kartla aynı değerdeyse</b> yerdeki bütün kartları alırsın.'],
       ['🤵', '<b>Vale (J)</b> her zaman yerdeki bütün kartları alır.'],
       ['⭐', 'Yerde <b>tek kart</b> varken aynısını atarsan <b>PİŞTİ</b>: 10 puan. Valenin üstüne valeyle <b>20 puan</b>. Tek karta valeyle almak pişti sayılmaz.'],
@@ -463,7 +463,7 @@ const STR = {
     tgtLbl: 'Play to', deckLbl: 'Deck', red: 'Red', black: 'Black', one: 'One hand', start: 'Start', resume: 'Resume game',
     rulesTitle: 'How to play', rulesSub: 'Collect points; the first to reach the target wins.', ok: 'OK',
     ruleList: [
-      ['🃏', 'Each player gets 4 cards and 4 go to the table: 3 face down, the top one face up.'],
+      ['🃏', 'Each player gets 4 cards and 4 go to the table: 3 face down, the top one face up. If the face-up card is a jack, it goes underneath and another table card is turned up.'],
       ['👆', 'Take turns playing one card. If it has <b>the same rank as the top card</b> on the table, you take the whole pile.'],
       ['🤵', 'A <b>jack (J)</b> always takes the whole pile.'],
       ['⭐', 'Matching a <b>single card</b> on the table is a <b>PISHTI</b>: 10 points. A jack on a single jack scores <b>20</b>. Taking a single card with a jack is not a pishti.'],
@@ -702,7 +702,12 @@ async function startHand() {
   const my = epoch, nd = 1 - G.dealer;
   G.handNo++;
   G.h = { deck: shuffled(), hands: [[], []], pile: [], hidden: [], won: [[], []], pisti: [0, 0], pc: [0, 0], last: -1, turn: nd, seen: new Set(), done: false, res: null, mid: true, fan: false };
-  const h = G.h; busy = true; render(0); updateDock(T().hintDeal);
+  const h = G.h;
+  // Açık kart vale olamaz: vale altta kalır, kapalılardan vale olmayan biri açılır; dördü de valeyse yeniden karılır
+  while (h.deck.slice(-4).every((c) => rankOf(c) === JACK)) h.deck = shuffled();
+  const d = h.deck, a = d.length - 4; // d[a] dördüncü çekilen, yani açık kart
+  if (rankOf(d[a]) === JACK) { const j = [a + 1, a + 2, a + 3].find((i) => rankOf(d[i]) !== JACK); [d[a], d[j]] = [d[j], d[a]]; }
+  busy = true; render(0); updateDock(T().hintDeal);
   await wait(250); if (my !== epoch) return;
   for (let k = 0; k < 4; k++) { // yere 4 kart: 3 kapalı, sonuncusu açık
     const c = h.deck.pop(); h.pile.push(c); if (k < 3) h.hidden.push(c); else seeAll(h, c);
