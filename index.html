@@ -820,6 +820,26 @@ setLang(/^tr/i.test(new URLSearchParams(location.search).get('lang') || saved ||
   const h = location.hash.replace(/^#(kat-)?/, '');
   if (secs.some((x) => x.dataset.cat === h)) requestAnimationFrame(() => go(h, false)); else spy();
 }
+// En çok oynananlar: sırayı her gün GitHub'daki görev yazar (assets/populer.json). Dosya yoksa sabit sıra kalır.
+{
+  const rail = document.querySelector('.poprail');
+  const card = (slug) => document.querySelector(`a.game[href^="${slug}/"]`);
+  const tile = (slug) => {
+    const c = card(slug), h = c.querySelector('h3'), a = document.createElement('a'), img = document.createElement('img'), sp = document.createElement('span');
+    a.className = 'ptile'; a.href = c.getAttribute('href');
+    img.src = c.querySelector('img').getAttribute('src'); img.alt = ''; img.width = 540; img.height = 540;
+    sp.dataset.i18n = h.dataset.i18n; sp.dataset.tr = h.dataset.tr || h.textContent; sp.textContent = h.textContent;
+    a.appendChild(img); a.appendChild(sp); return a;
+  };
+  const fixed = [...rail.querySelectorAll('.ptile')].map((a) => a.getAttribute('href').split('/')[0]);
+  fetch('assets/populer.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+    if (!d || !Array.isArray(d.oyunlar)) return;
+    const order = [];
+    for (const s of d.oyunlar.concat(fixed)) if (order.length < 6 && order.indexOf(s) < 0 && card(s)) order.push(s);
+    if (order.join() === fixed.join()) return;
+    rail.innerHTML = ''; order.forEach((s) => rail.appendChild(tile(s)));
+  }).catch(() => {});
+}
 // Oyun arama: Türkçe harfler sadeleştirilir; Türkçe ve İngilizce ad ile kategori adı aranır
 {
   const box = document.getElementById('ara'), pop = document.getElementById('populer'), none = document.getElementById('sonucyok'), cats = document.querySelector('.cats');

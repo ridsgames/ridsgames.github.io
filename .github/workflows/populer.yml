@@ -1,0 +1,33 @@
+name: En çok oynananlar
+on:
+  schedule:
+    - cron: '23 2 * * *' # her gün 05:23 (Türkiye)
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+concurrency: populer
+jobs:
+  guncelle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sırayı hesapla
+        run: node .github/populer.mjs
+        env:
+          GC_KEY: ${{ secrets.GOATCOUNTER_KEY }}
+      - name: Değiştiyse yayınla
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add assets/populer.json
+          if git diff --cached --quiet; then echo "Sıra değişmedi."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Güncelleme"
+          git push
+          # bu görevin gönderdiği güncelleme siteyi kendiliğinden yeniden kurmayabilir; kurulum ayrıca istenir
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
