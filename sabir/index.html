@@ -419,11 +419,11 @@ const STR = {
     winT: 'Tebrikler!', winSub: 'Bütün kartları yerine dizdin.', tTime: 'Süre', tMoves: 'Hamle', tBest: 'En iyi süre', tMode: 'Çekiş', newBest: 'Yeni rekor!',
     rulesSub: 'Tek kişilik klasik Klondike sabır oyunu.',
     ruleList: [
-      ['🃏', '52 kart yedi sütuna dağıtılır. Her sütunun yalnızca en üstteki kartı açıktır, kalanlar destede bekler.'],
+      ['🃏', '52 kart yedi sütuna dağıtılır: birinci sütuna 1, yedinciye 7 kart. Her sütunun yalnızca en üstteki kartı açıktır; kalan 24 kart destede bekler.'],
       ['⬇️', 'Sütunlarda kartı <b>bir büyük ve ters renkli</b> kartın üstüne koyabilirsin (kırmızı 8 üstüne siyah 7). Açık bir diziyi topluca taşıyabilirsin.'],
       ['👑', 'Boş sütuna yalnızca <b>papaz</b> (K) ya da papazla başlayan bir dizi konur.'],
-      ['🏁', 'Üstteki dört yuvaya her türü <b>astan papaza</b> sırayla diz. Hepsi dolunca kazanırsın.'],
-      ['👆', 'Karta dokununca gidebileceği en iyi yere gider; sürükleyerek de taşıyabilirsin. Deste bitince desteye dokunup yeniden çevir.']
+      ['🏁', 'Üstteki dört yuvaya her türü <b>astan papaza</b> sırayla diz. Hepsi dolunca kazanırsın. Gerekirse yuvadaki en üst kartı sütuna geri indirebilirsin.'],
+      ['👆', 'Karta dokununca gidebileceği en iyi yere gider; sürükleyerek de taşıyabilirsin. Deste bitince desteye dokunup yeniden çevir; bunun sınırı yok.']
     ] },
   en: { ...COMMON.en, title: 'Patience | Ridsgames', game: 'Patience',
     setupSub: 'The classic solitaire card game. Build every suit from ace to king.',
@@ -434,11 +434,11 @@ const STR = {
     winT: 'Well done!', winSub: 'Every card is home.', tTime: 'Time', tMoves: 'Moves', tBest: 'Best time', tMode: 'Draw', newBest: 'New record!',
     rulesSub: 'Classic single-player Klondike solitaire.',
     ruleList: [
-      ['🃏', '52 cards are dealt into seven columns. Only the top card of each column is face up; the rest wait in the stock.'],
+      ['🃏', '52 cards are dealt into seven columns, from 1 card in the first to 7 in the last. Only the top card of each column is face up; the other 24 cards wait in the stock.'],
       ['⬇️', 'In the columns place a card on one <b>one higher and of the opposite colour</b> (black 7 on red 8). Move face-up runs as a group.'],
       ['👑', 'Only a <b>king</b> (or a run starting with one) may go into an empty column.'],
-      ['🏁', 'Build each suit from <b>ace to king</b> on the four slots at the top. Fill them all to win.'],
-      ['👆', 'Tap a card to send it to its best spot, or drag it. When the stock runs out, tap it to turn the pile over.']
+      ['🏁', 'Build each suit from <b>ace to king</b> on the four slots at the top. Fill them all to win. If needed, you may move a slot\'s top card back down to a column.'],
+      ['👆', 'Tap a card to send it to its best spot, or drag it. When the stock runs out, tap it to turn the pile over, as many times as you like.']
     ] }
 };
 const T = () => STR[lang];
