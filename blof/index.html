@@ -577,6 +577,8 @@ function cpuTurn(p) {
 }
 function doPlay(p, ids, r) {
   if (!G.last) G.req = r; // turu açan değeri seçer
+  if (!G.last || !G.rcp) G.rcp = Array(G.n).fill(0); // bu turda her oyuncunun o değer için söylediği kart sayısı (herkes görür)
+  G.rcp[p] += ids.length; G.rc = G.rcp.reduce((a, b) => a + b, 0);
   uncaught(G.last);
   G.hands[p] = G.hands[p].filter((x) => !ids.includes(x));
   G.pile.push(...ids); G.last = { p, ids, req: G.req }; G.turns++; G.passes = 0;
@@ -625,7 +627,7 @@ function takePile() {
 }
 // Blöf açıldıktan sonra: eli biten kazanır, yoksa yeni turu “Blöf!” diyen (sıradaki oyuncu) açar
 function afterTurn() {
-  const w = G.hands.findIndex((h) => !h.length);
+  const L = G.last, w = L && !G.hands[L.p].length ? L.p : G.hands.findIndex((h) => !h.length); // son kartlarını doğru atan önce bitirmiştir; yığını alanın eli dörtlülerle boşalsa da kazanan odur
   if (w >= 0) { win(w); return; }
   G.last = null; G.reveal = null; G.req = 0; G.passes = 0;
   save(); render(); step(epoch);
@@ -640,17 +642,36 @@ function finish() {
 
 // ---------- Bilgisayar ----------
 const LVP = { kolay: { extra: 0.04, two: 0.15, acc: 0.55, lie: 0.3 }, orta: { extra: 0.14, two: 0.28, acc: 1, lie: 0.45 }, zor: { extra: 0.22, two: 0.35, acc: 1.2, lie: 0.6 } };
+// Orta ve zor: blöf ve itiraz kararını yığına, turda söylenen kart sayısına ve kartların olasılığına göre verir
+const SM = { orta: { lie2: 0.6, lieN: 0.55, thr: 0.55, noise: 0.12 }, zor: { lie2: 0.5, lieN: 0.65, thr: 0.47, noise: 0.04 } }; // değerler otomatik oyunlarla ölçülerek seçildi
+function hypGE(N, K, d, n) { // N kartın d'si çekilince içindeki K özel karttan en az n tanesinin gelme olasılığı
+  if (n <= 0) return 1; if (K < n || d < n) return 0;
+  const C = (a, b) => { if (b < 0 || b > a) return 0; let r = 1; for (let i = 0; i < b; i++) r = r * (a - i) / (i + 1); return r; };
+  let t = 0; for (let x = n; x <= Math.min(K, d); x++) t += C(K, x) * C(N - K, d - x);
+  return t / C(N, d);
+}
 // Turu açarken en çok tuttuğu değeri söyler; devam ederken elinde yoksa ya blöf yapar ya pas der (boş liste)
 function cpuPlay(p) {
-  const h = G.hands[p], cfg = LVP[G.level], by = {};
+  const h = G.hands[p], cfg = LVP[G.level], sm = SM[G.level], by = {};
   h.forEach((x) => { by[rk(x)] = (by[rk(x)] || 0) + 1; });
   const R = G.last ? G.req : +Object.keys(by).sort((a, b) => by[b] - by[a])[0];
   const have = h.filter((x) => rk(x) === R).slice(0, 4);
   const junk = h.filter((x) => rk(x) !== R).sort((a, b) => by[rk(a)] - by[rk(b)]); // önce tek kalanlar
   if (have.length) {
     const ids = have.slice();
-    if (junk.length && ids.length < 4 && h.length - ids.length > 1 && Math.random() < cfg.extra) ids.push(junk[0]);
+    // araya katılan kart: iki kişide rakip o değerin kalanını tutar ve fazlayı hemen anlar
+    const mix = !sm || (G.n > 2 && ids.length < 3);
+    if (mix && junk.length && ids.length < 4 && h.length - ids.length > 1 && Math.random() < cfg.extra) ids.push(junk[0]);
     return { ids, r: R };
+  }
+  if (sm) { // iki kişide pas, turu rakibe yeniden açtırır; bu yüzden tek kartlık blöf daha sık
+    const rc = G.rc || 0;
+    if (h.length < 2 || rc >= 4) return { ids: [], r: R }; // son kartla blöf hep yakalanır; dörtten fazlası söylenemez
+    let pl = G.n === 2 ? sm.lie2 : sm.lieN;
+    if (G.pile.length > 10) pl *= 0.6;
+    if (rc >= 3) pl *= 0.35;
+    if (Math.random() >= pl) return { ids: [], r: R };
+    return { ids: junk.slice(0, rc <= 1 && h.length > 10 && Math.random() < cfg.two ? 2 : 1), r: R };
   }
   if (Math.random() >= cfg.lie) return { ids: [], r: R };
   const k = h.length >= 3 && Math.random() < cfg.two + (h.length > 14 ? 0.25 : 0) ? (h.length > 18 && Math.random() < 0.3 ? 3 : 2) : 1;
@@ -659,10 +680,24 @@ function cpuPlay(p) {
 function cpuWantsCall(q) {
   const L = G.last, cfg = LVP[G.level], n = L.ids.length;
   const own = G.hands[q].filter((x) => rk(x) === L.req).length;
-  const known = G.level === 'zor' ? G.mem[q].filter((x) => rk(x) === L.req).length : 0;
+  const known = G.level !== 'kolay' ? G.mem[q].filter((x) => rk(x) === L.req).length : 0; // yığına kendi attığı o değerdeki kartlar
   if (own + n > 4) return Math.random() < (G.level === 'kolay' ? 0.7 : 1);
   if (own + known + n > 4) return true;
   if (G.dead.includes(L.req) && G.level !== 'kolay') return true;
+  const sm = SM[G.level];
+  if (sm) {
+    const left = G.hands[L.p].length;
+    if (!left) return true; // son kartlara itirazın kaybı yok: doğruysa da oyun biter
+    const rem = 4 - own - known, rcp = G.rcp || [], rc = G.rc || n;
+    if ((rcp[L.p] || n) > rem) return true; // bu turda söylediği, dışarıda kalabilecek kartlardan fazla: en az biri yalan
+    const N = 52 - G.hands[q].length - G.dead.length * 4 - known, has = hypGE(N, rem, Math.min(left + n, N), n);
+    const lr = [0, 0.45, 0.1, 0.04, 0.02][n]; // elinde o değer yokken n kartla blöf yapma olasılığı
+    let lie = rc === n ? 0.06 + 0.05 * n : (1 - has) * lr / (has + (1 - has) * lr); // turu açan değeri kendi seçer, çoğunlukla doğru söyler
+    if (rc - (rcp[q] || 0) > rem) lie += 0.3; // başkaları da var olandan fazla söyledi
+    let thr = sm.thr + (G.n > 2 ? 0.08 : 0) - (left <= 2 ? 0.12 : 0) + (Math.random() * 2 - 1) * sm.noise;
+    if (G.pile.length > 8 && G.hands[q].length < left) thr += 0.15; // öndeyken büyük yığına kumar oynamaz
+    return lie > thr;
+  }
   let pr = [0, 0.04, 0.09, 0.2, 0.4][n] + own * 0.1 * cfg.acc;
   const left = G.hands[L.p].length;
   if (left === 0) pr = G.level === 'kolay' ? 0.5 : G.level === 'orta' ? 0.75 : 0.9;
