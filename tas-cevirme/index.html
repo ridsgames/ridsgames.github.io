@@ -377,7 +377,7 @@ const STR = {
       ['⚫', 'Sıran gelince, rakibin bir ya da daha çok taşını kendi taşlarınla <b>iki uçtan kuşatacak</b> bir kareye taş koy.'],
       ['🔄', 'Kuşattığın bütün taşlar (yatay, dikey ve çapraz) senin rengine <b>döner</b>. Bir hamlede birden çok yön çevrilebilir.'],
       ['⭕', 'Kuşatma yapamayan oyuncu pas geçer. İki oyuncu da hamle yapamazsa ya da tahta dolarsa oyun biter.'],
-      ['🏆', 'Oyun sonunda tahtada <b>daha çok taşı</b> olan kazanır.'],
+      ['🏆', 'Oyun sonunda tahtada <b>daha çok taşı</b> olan kazanır. Boş kalan kareler kazananın sayısına eklenir.'],
       ['💡', 'Köşeler bir daha çevrilemez; köşelerin yanındaki kareler ise rakibe köşe verebilir.'],
       ['◎', 'Hamleler düğmesi koyabileceğin kareleri gösterir, İpucu iyi bir hamle önerir, Geri al son hamleni geri alır.']
     ] },
@@ -395,7 +395,7 @@ const STR = {
       ['⚫', 'On your turn place a stone so that one or more of your rival’s stones are <b>trapped between</b> it and another of your stones.'],
       ['🔄', 'Every trapped stone (across, down or diagonally) <b>flips</b> to your colour. One move can flip in several directions.'],
       ['⭕', 'If you cannot trap anything you pass. When neither player can move or the board is full, the game ends.'],
-      ['🏆', 'The player with <b>more stones</b> on the board wins.'],
+      ['🏆', 'The player with <b>more stones</b> on the board wins. Any empty squares are added to the winner’s count.'],
       ['💡', 'Corners can never be flipped back; the squares next to them can hand your rival a corner.'],
       ['◎', 'Moves shows where you can play, Hint suggests a good move and Undo takes back your last move.']
     ] }
@@ -539,7 +539,8 @@ function finish() {
   const meWon = G.mode === 'cpu' ? win === G.me : win !== 0;
   (win === 0 ? Sfx.click : meWon ? Sfx.win : Sfx.lose)();
   const title = win === 0 ? t.drawT : G.mode === 'cpu' ? (win === G.me ? t.winT : t.loseT) : t.winsT(nameOf(win));
-  showEnd({ ico: win === 0 ? '🤝' : meWon ? '🏆' : '😔', title, score: t.subScore(a, w), lost: G.mode === 'cpu' && win !== G.me && win !== 0,
+  const e = 64 - a - w; // boş kareler kazananın sayısına eklenir (federasyon kuralı)
+  showEnd({ ico: win === 0 ? '🤝' : meWon ? '🏆' : '😔', title, score: t.subScore(a + (win === 1 ? e : 0), w + (win === 2 ? e : 0)), lost: G.mode === 'cpu' && win !== G.me && win !== 0,
     stats: [[t.tBlack, a], [t.tWhite, w], [t.tMoves, G.nMoves]] });
 }
 
