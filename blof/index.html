@@ -483,7 +483,7 @@ const STR = {
     leadTurn: 'Yeni tur sende: değeri seç, 1–4 kart at', pickLead: '1–4 kart seç',
     thinking: (n) => `${n} düşünüyor…`, passed: (n) => `Pas: ${n}`, ask: (n) => `${n} son kartlarını attı. Doğru mu?`,
     calls: (a, b) => `${a}, ${b} için “Blöf!” dedi`, lied: (n) => `Yalan! ${n} yığını aldı`, truth: (a) => `Doğruymuş! ${a} yığını aldı`,
-    allPass: (n) => `Herkes pas dedi, kartlar ortada kaldı. Yeni tur: ${n}`, quad: (n, r) => `${n} dörtlü ${r} topladı, oyundan çıktı`, lieV: 'YALAN', trueV: 'DOĞRU', outT: (n) => `${n} elini bitirdi`,
+    allPass: (n) => `Herkes pas dedi, kartlar ortada kaldı. Yeni tur: ${n}`, lieV: 'YALAN', trueV: 'DOĞRU', outT: (n) => `${n} elini bitirdi`,
     winT: 'Kazandın!', winSub: 'Elindeki bütün kartlardan kurtuldun.', loseT: (n) => `${n} kazandı`, loseSub: 'Elini ilk o bitirdi.',
     tRounds: 'Tur', tBluff: 'Yakalanmayan blöfün', tCaught: 'Yakalandığın', tCalls: 'Doğru “Blöf!”', tLeft: 'Elinde kalan',
     rulesSub: '52 kartla 2–4 kişi oynanır.',
@@ -492,7 +492,6 @@ const STR = {
       ['🙈', 'Sırası gelen ya 1–4 kartı kapalı atıp hepsinin o değerde olduğunu söyler (yalan olabilir), ya <b>pas</b> der ya da önceki oyuncuya “Blöf!” der.'],
       ['⚖️', 'Blöf denince son atılan kartlar açılır. Tek bir yanlış kart varsa atan, hepsi doğruysa “Blöf!” diyen <b>ortadaki yığının tamamını</b> alır. Yeni turu “Blöf!” diyen açar.'],
       ['🤐', 'Son atandan sonra herkes pas derse tur biter, kartlar ortada kalır; yeni turu son kart atan açar.'],
-      ['4️⃣', 'Elinde aynı değerden dört kart toplanırsa bu dörtlü oyundan çıkar.'],
       ['🏆', 'Elini ilk bitiren kazanır. Son kartlarına da “Blöf!” denebilir; kimse demezse bitirmiş olursun.']
     ] },
   en: { ...COMMON.en, title: 'Bluff | Ridsgames', game: 'Bluff',
@@ -505,7 +504,7 @@ const STR = {
     leadTurn: 'New round: pick a rank and play 1–4 cards', pickLead: 'Pick 1–4 cards',
     thinking: (n) => `${n} is thinking…`, passed: (n) => `Pass: ${n}`, ask: (n) => `${n} played their last cards. True?`,
     calls: (a, b) => `${a} calls bluff on ${b}`, lied: (n) => `A lie! ${n} takes the pile`, truth: (a) => `It was true! ${a} takes the pile`,
-    allPass: (n) => `Everyone passed, the cards stay. New round: ${n}`, quad: (n, r) => `${n} collected four ${r}s, removed from play`, lieV: 'LIE', trueV: 'TRUE', outT: (n) => `${n} is out of cards`,
+    allPass: (n) => `Everyone passed, the cards stay. New round: ${n}`, lieV: 'LIE', trueV: 'TRUE', outT: (n) => `${n} is out of cards`,
     winT: 'You win!', winSub: 'You got rid of every card.', loseT: (n) => `${n} wins`, loseSub: 'They emptied their hand first.',
     tRounds: 'Turns', tBluff: 'Bluffs not caught', tCaught: 'Times caught', tCalls: 'Correct calls', tLeft: 'Cards left',
     rulesSub: '2–4 players with a 52-card deck.',
@@ -514,7 +513,6 @@ const STR = {
       ['🙈', 'On your turn play 1–4 cards face down claiming that rank (you may lie), <b>pass</b>, or call “Bluff!” on the previous player.'],
       ['⚖️', 'On a call the last cards are shown. If any is wrong, the player takes <b>the whole pile</b>; if all are true, the caller does. The caller leads the next round.'],
       ['🤐', 'If everyone passes after a play, the round ends and the cards stay; the last player to play leads.'],
-      ['4️⃣', 'Whenever you hold all four cards of a rank, they are removed from play.'],
       ['🏆', 'First to empty their hand wins. Your last cards can still be called; if nobody calls, you’re out.']
     ] }
 };
@@ -531,13 +529,6 @@ const sortH = (h) => h.sort((a, b) => rk(a) - rk(b) || st(a) - st(b));
 const cardHtml = (id, cls = '') => id < 0 ? `<div class="cd pc pcb back ${cls}"></div>` : `<div class="cd pc ${cls}" data-id="${id}">${pcImg(st(id), rk(id))}</div>`;
 const W = (ms) => ms * (REDUCED ? 0.35 : 1);
 const nextP = (p) => (p + 1) % G.n;
-function quads(p) {
-  const by = {}; G.hands[p].forEach((x) => { (by[rk(x)] = by[rk(x)] || []).push(x); });
-  const gone = Object.keys(by).filter((r) => by[r].length === 4).map(Number);
-  if (!gone.length) return [];
-  G.hands[p] = G.hands[p].filter((x) => !gone.includes(rk(x))); G.dead.push(...gone);
-  return gone;
-}
 
 // ---------- Akış ----------
 function newGame() {
@@ -547,8 +538,7 @@ function newGame() {
   const hands = Array.from({ length: n }, () => []); deck.forEach((id, k) => hands[(s + k) % n].push(id));
   sortH(hands[0]);
   G = { v: 2, n, level: setup.level, hands, pile: [], req: 0, turn: s, passes: 0, phase: 'play', last: null, reveal: null, msg: '', turns: 0, over: false, winner: -1,
-    st: { bluff: 0, caught: 0, calls: 0 }, mem: Array.from({ length: n }, () => []), dead: [] };
-  for (let p = 0; p < n; p++) quads(p);
+    st: { bluff: 0, caught: 0, calls: 0 }, mem: Array.from({ length: n }, () => []), dead: [] }; // ponytail: dörtlü çıkarma kalktı, dead artık hep boş; yalnız eski kayıtlarda dolu olabilir
   selc = new Set(); epoch++;
   sayac('basladi', 'oyun başladı');
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
@@ -621,13 +611,12 @@ function takePile() {
   const R = G.reveal; if (!R || R.taken) return;
   R.taken = true; const loser = R.loser;
   G.hands[loser].push(...G.pile); if (loser === 0) sortH(G.hands[0]);
-  const q4 = quads(loser); if (q4.length) toast(T().quad(pname(loser), q4.map((r) => RANK[r]).join(', ')));
   G.mem.forEach((m) => { m.length = 0; });
   G.pile = [];
 }
 // Blöf açıldıktan sonra: eli biten kazanır, yoksa yeni turu “Blöf!” diyen (sıradaki oyuncu) açar
 function afterTurn() {
-  const L = G.last, w = L && !G.hands[L.p].length ? L.p : G.hands.findIndex((h) => !h.length); // son kartlarını doğru atan önce bitirmiştir; yığını alanın eli dörtlülerle boşalsa da kazanan odur
+  const L = G.last, w = L && !G.hands[L.p].length ? L.p : G.hands.findIndex((h) => !h.length); // son kartlarını doğru atan önce bitirmiştir
   if (w >= 0) { win(w); return; }
   G.last = null; G.reveal = null; G.req = 0; G.passes = 0;
   save(); render(); step(epoch);
@@ -643,7 +632,7 @@ function finish() {
 // ---------- Bilgisayar ----------
 const LVP = { kolay: { extra: 0.04, two: 0.15, acc: 0.55, lie: 0.3 }, orta: { extra: 0.14, two: 0.28, acc: 1, lie: 0.45 }, zor: { extra: 0.22, two: 0.35, acc: 1.2, lie: 0.6 } };
 // Orta ve zor: blöf ve itiraz kararını yığına, turda söylenen kart sayısına ve kartların olasılığına göre verir
-const SM = { orta: { lie2: 0.6, lieN: 0.55, thr: 0.55, noise: 0.12 }, zor: { lie2: 0.5, lieN: 0.65, thr: 0.47, noise: 0.04 } }; // değerler otomatik oyunlarla ölçülerek seçildi
+const SM = { orta: { lie2: 0.6, lieN: 0.55, thr: 0.55, noise: 0.12 }, zor: { lie2: 0.5, lieN: 0.4, thr: 0.47, noise: 0.04 } }; // değerler otomatik oyunlarla ölçülerek seçildi (dörtlüler elde kalınca çok kişide blöf azaltıldı)
 function hypGE(N, K, d, n) { // N kartın d'si çekilince içindeki K özel karttan en az n tanesinin gelme olasılığı
   if (n <= 0) return 1; if (K < n || d < n) return 0;
   const C = (a, b) => { if (b < 0 || b > a) return 0; let r = 1; for (let i = 0; i < b; i++) r = r * (a - i) / (i + 1); return r; };
@@ -785,7 +774,7 @@ function boot() {
     if (G.phase === 'reveal') { takePile(); render(); afterTurn(); } else { render(); step(epoch); }
   } else openSetup();
 }
-window.__blof = { state: () => G, doPlay, doPass, resolve, cpuPlay, cpuWantsCall, quads, setG: (g) => { G = g; } };
+window.__blof = { state: () => G, doPlay, doPass, resolve, cpuPlay, cpuWantsCall, setG: (g) => { G = g; } };
 
 
 // ---------- Ortak bağlantılar ----------
