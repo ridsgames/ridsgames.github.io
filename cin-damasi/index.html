@@ -368,6 +368,7 @@ const STR = {
       ['👣', 'Taş komşu boş deliğe bir adım gider <b>ya da</b> yanındaki bir taşın üstünden atlayıp arkasındaki boş deliğe konar.'],
       ['🔗', 'Atlamalar zincirlenebilir: aynı hamlede atlayabildiğin kadar atla. Adımdan sonra atlanmaz.'],
       ['🎨', 'Kendi taşlarının da rakiplerin taşlarının da üstünden atlayabilirsin. Taşlar alınmaz.'],
+      ['🏠', 'Taşlar her köşeye girebilir. Ama hedef köşesine varan taş <b>oradan bir daha çıkamaz</b>, yalnızca köşenin içinde yer değiştirir.'],
       ['🏆', 'On taşını karşı köşeye ilk yerleştiren kazanır. Hedef köşen tamamen dolmuşsa ve içinde en az bir taşın varsa da kazanırsın; köşesinde taş bekleten rakip seni engelleyemez.']
     ] },
   en: { ...COMMON.en, title: 'Chinese Checkers | Ridsgames', game: 'Chinese Checkers',
@@ -386,6 +387,7 @@ const STR = {
       ['👣', 'A piece steps to an adjacent empty hole <b>or</b> jumps over a neighbouring piece into the empty hole beyond.'],
       ['🔗', 'Jumps can be chained in one move. You cannot jump after a step.'],
       ['🎨', 'You may jump over any piece, yours or a rival’s. Nothing is captured.'],
+      ['🏠', 'Pieces may enter any point. But a piece that reaches its target point <b>can never leave it</b>; it may only move within that point.'],
       ['🏆', 'The first to fill the opposite point with all ten pieces wins. You also win when your target point is completely full and holds at least one of your pieces, so a rival cannot block you by staying home.']
     ] }
 };
@@ -409,6 +411,7 @@ for (let x = -8; x <= 8; x++) for (let y = -8; y <= 8; y++) {
 const NB = CELLS.map((c) => DIRS.map(([a, b]) => { const k = IDX.get(`${c.x + a},${c.y + b}`); return k == null ? -1 : k; }));
 const CC = CORNER.map((f) => CELLS.map((c, i) => (f(c) ? i : -1)).filter((i) => i >= 0));
 const PROG = AXIS.map((f) => CELLS.map(f)), LATV = LAT.map((f) => CELLS.map(f));
+const INC = CORNER.map((f) => CELLS.map(f));
 
 let G = null, sel = -1, busy = false, epoch = 0, hintMv = null;
 const H = [];
@@ -419,13 +422,14 @@ function occOf(pos) { const o = Array(CELLS.length).fill(-1); pos.forEach((ps, p
 
 function movesFrom(occ, i) {
   const out = [], seen = new Set([i]), me = occ[i]; occ[i] = -1;
-  for (const j of NB[i]) if (j >= 0 && occ[j] < 0) { out.push({ from: i, to: j, path: [i, j] }); seen.add(j); }
+  const home = INC[tgtOf(me)], lock = home[i]; // hedef köşeye varmış taş köşeden çıkamaz
+  for (const j of NB[i]) if (j >= 0 && occ[j] < 0 && (!lock || home[j])) { out.push({ from: i, to: j, path: [i, j] }); seen.add(j); }
   const q = [[i, [i]]], jumped = new Set([i]);
   while (q.length) {
     const [c, path] = q.shift();
     for (let d = 0; d < 6; d++) {
       const m = NB[c][d]; if (m < 0 || occ[m] < 0) continue;
-      const t = NB[m][d]; if (t < 0 || occ[t] >= 0 || jumped.has(t)) continue;
+      const t = NB[m][d]; if (t < 0 || occ[t] >= 0 || jumped.has(t) || (lock && !home[t])) continue;
       jumped.add(t); const np = [...path, t];
       if (!seen.has(t)) { seen.add(t); out.push({ from: i, to: t, path: np }); }
       q.push([t, np]);
