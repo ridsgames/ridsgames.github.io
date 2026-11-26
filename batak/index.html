@@ -410,8 +410,8 @@ footer { display: none; }
 // Kart 0-51: renk = id / 13 (0 maça, 1 kupa, 2 karo, 3 sinek), değer = id % 13 + 1 (1 as, 11 vale, 12 kız, 13 papaz); batakta as en büyüğüdür
 const suitOf = (c) => (c / 13) | 0, rk = (c) => (c % 13 === 0 ? 14 : (c % 13) + 1);
 const idOf = (s, r) => s * 13 + (r === 14 ? 0 : r - 1);
-// min: en az ihale, force: herkes pas derse son kalanın almak zorunda olduğu ihale
-const MODES = { tekli: { min: 5, force: 5, deal: 13 }, esli: { min: 8, force: 7, deal: 13 }, gommeli: { min: 8, force: 7, deal: 16 }, ihalesiz: { min: 0, force: 0, deal: 13 } };
+// min: en az ihale, force: herkes pas derse kalan ihale; ilk: ihaleli: herkes pas derse ilk konuşana kalır (eşli ve gömmelide dağıtan pas diyemez)
+const MODES = { tekli: { min: 5, force: 4, deal: 13, ilk: true }, esli: { min: 8, force: 7, deal: 13 }, gommeli: { min: 8, force: 7, deal: 16 }, ihalesiz: { min: 0, force: 0, deal: 13 } };
 // Gömmeli üç kişiyle oynanır: üstteki koltuk (2) boş kalır
 const seatsOf = (mode) => (mode === 'gommeli' ? [0, 1, 3] : [0, 1, 2, 3]);
 function shuffled(rnd = Math.random, a = Array.from({ length: 52 }, (_, i) => i)) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -542,13 +542,13 @@ function cpuPlay(st, level, rnd = Math.random) {
   // en kısa yan renkten at (koz kesmeye hazırlık), büyük kartı sakla
   return pool.slice().sort((x, y) => (val(x) + lenOf(suitOf(x)) * 0.6 - (boss(x) ? -8 : 0)) - (val(y) + lenOf(suitOf(y)) * 0.6 - (boss(y) ? -8 : 0)))[0];
 }
-// Puan: ihaleyi alan (ya da eşi) söylediği kadar alırsa aldığı kadar yazar, alamazsa ihale kadar eksi; diğerleri aldıkları kadar
+// Puan: ihaleyi alan (ya da eşi) söylediği kadar alırsa aldığı kadar yazar, alamazsa ihale kadar eksi;
+// diğerleri aldıkları kadar, hiç el alamayan da ihale kadar eksi (eşlide takımın toplamı)
 function handScore(mode, taken, bidder, bid) {
-  if (mode === 'esli') {
-    const t = [taken[0] + taken[2], taken[1] + taken[3]], bt = bidder % 2;
-    return t.map((v, i) => (i === bt ? (v >= bid ? v : -bid) : v));
-  }
-  return taken.map((v, i) => (mode !== 'ihalesiz' && i === bidder ? (v >= bid ? v : -bid) : v));
+  if (mode === 'ihalesiz') return taken.slice();
+  const sc = (v, own) => (own ? (v >= bid ? v : -bid) : v || -bid);
+  if (mode === 'esli') return [taken[0] + taken[2], taken[1] + taken[3]].map((v, i) => sc(v, i === bidder % 2));
+  return taken.map((v, i) => (seatsOf(mode).includes(i) ? sc(v, i === bidder) : v));
 }
 </script>
 <script>
@@ -566,13 +566,13 @@ const STR = {
     ruleList: [
       ['🃏', 'Herkese 13 kart dağıtılır. <b>Gömmeli</b> batak üç kişiyle oynanır: herkese 16 kart verilir, 4 kart ortaya kapalı konur.'],
       ['♠️', '<b>Koz Maça:</b> İhale yapılmaz, koz hep <b>maçadır</b>. Dağıtanın solundaki ilk kartı açar.'],
-      ['📣', '<b>İhale:</b> Sırayla kaç el alacağını söylersin ya da pas dersin. En yükseği söyleyen ihaleyi alır, <b>kozu seçer</b> ve ilk kartı o açar. En az ihale 5; eşli ve gömmelide 8. Herkes pas derse dağıtan ihaleyi almak zorundadır: eşli ve gömmelide 7 ile, ihalelide 5 ile.'],
+      ['📣', '<b>İhale:</b> Sırayla kaç el alacağını söylersin ya da pas dersin. En yükseği söyleyen ihaleyi alır, <b>kozu seçer</b> ve ilk kartı o açar. En az ihale 5; eşli ve gömmelide 8. İhalelide herkes pas derse ihale ilk konuşana 4 ile kalır. Eşli ve gömmelide herkes pas derse dağıtan ihaleyi 7 ile almak zorundadır.'],
       ['🪏', '<b>Gömmeli:</b> İhaleyi alan ortadaki 4 kartı eline alır, sonra elinden istediği 4 kartı gömer. Gömülen kartlar oyuna girmez.'],
       ['🤝', '<b>Eşli:</b> Karşında oturan ortağındır. İhale ikinizin aldığı ellerin toplamıyla tutturulur.'],
       ['👆', 'Yerdeki renkten varsa <b>onu atmak zorundasın</b>, yerdekinden büyüğün varsa <b>büyüğünü</b> atmalısın. O renk yoksa <b>koz atmalısın</b>; koz atılmışsa ve daha büyük kozun varsa onu atmalısın. Kozun da yoksa istediğini atarsın.'],
       ['🔒', 'Koz bir elde atılmadan ilk kart olarak koz açılamaz (elinde yalnız koz kalmadıysa).'],
       ['🏅', 'Eli en büyük koz, koz yoksa açılan renkten en büyük kart alır. Eli alan sonrakini açar.'],
-      ['🧮', '<b>Puan:</b> İhaleyi alan söylediği kadar ya da daha çok el alırsa aldığı el kadar yazar; alamazsa <b>ihale kadar eksi</b> yazar, yani batar. Diğerleri aldıkları el kadar yazar.'],
+      ['🧮', '<b>Puan:</b> İhaleyi alan söylediği kadar ya da daha çok el alırsa aldığı el kadar yazar; alamazsa <b>ihale kadar eksi</b> yazar, yani batar. Diğerleri aldıkları el kadar yazar; hiç el alamayan da ihale kadar eksi yazar (eşlide takımın toplamına bakılır).'],
       ['🏆', 'Seçilen sayıda el oynanınca en çok puanı olan kazanır.']
     ],
     suit: ['Maça', 'Kupa', 'Karo', 'Sinek'], trump: 'Koz',
@@ -602,13 +602,13 @@ const STR = {
     ruleList: [
       ['🃏', 'Everyone gets 13 cards. <b>Kitty</b> is played by three: everyone gets 16 and 4 cards are placed face down in the middle.'],
       ['♠️', '<b>Spades:</b> There is no bidding and <b>spades</b> are always trumps. The player left of the dealer leads.'],
-      ['📣', '<b>Bidding:</b> In turn, say how many tricks you will take or pass. The highest bidder wins, <b>picks trumps</b> and leads first. The minimum bid is 5, or 8 in Partners and Kitty. If everyone passes the dealer must take the bid: at 7 in Partners and Kitty, at 5 in Bidding.'],
+      ['📣', '<b>Bidding:</b> In turn, say how many tricks you will take or pass. The highest bidder wins, <b>picks trumps</b> and leads first. The minimum bid is 5, or 8 in Partners and Kitty. In Bidding, if everyone passes the first player to speak takes the bid at 4. In Partners and Kitty, if everyone passes the dealer must take it at 7.'],
       ['🪏', '<b>Kitty:</b> The high bidder adds the 4 middle cards to their hand and then buries any 4 cards. Buried cards are out of play.'],
       ['🤝', '<b>Partners:</b> The player across from you is your partner. The bid is made with the tricks you take together.'],
       ['👆', 'You must <b>follow suit</b>, and if you can beat the highest card of that suit you <b>must</b>. If you cannot follow you <b>must trump</b>; if a trump is down and you can overtrump, you must. With no trumps either, play anything.'],
       ['🔒', 'You cannot lead trumps until a trump has been played, unless you hold only trumps.'],
       ['🏅', 'The highest trump wins the trick, otherwise the highest card of the suit led. The winner leads next.'],
-      ['🧮', '<b>Scoring:</b> If the high bidder takes at least the bid they score the tricks taken; otherwise they <b>lose the bid</b>. Everyone else scores the tricks they took.'],
+      ['🧮', '<b>Scoring:</b> If the high bidder takes at least the bid they score the tricks taken; otherwise they <b>lose the bid</b>. Everyone else scores the tricks they took; anyone who takes no trick at all also loses the bid (in Partners the team total counts).'],
       ['🏆', 'After the chosen number of hands the highest score wins.']
     ],
     suit: ['Spades', 'Hearts', 'Diamonds', 'Clubs'], trump: 'Trumps',
@@ -901,9 +901,9 @@ const stFor = (p) => { const h = G.h; return { ...tbl(h), hand: h.hands[p], me: 
 async function bidTurn(my) {
   const h = G.h, t = T(), m = MODES[G.mode], act = seats().filter((p) => !h.passed[p]);
   if (h.cur && (act.length === 1 || h.cur >= m.deal)) return winBid(my, h.bidder, false);
-  if (!act.length) { h.cur = m.force; return winBid(my, G.dealer, true); }
+  if (!act.length) { const p = m.ilk ? nextP(G.dealer) : G.dealer; h.cur = m.force; say(t.forced(p)); return winBid(my, p, true); }
   while (h.passed[h.turn]) h.turn = nextP(h.turn);
-  const p = h.turn, forced = !h.cur && act.length === 1; // herkes pas dedi: son kalan pas diyemez
+  const p = h.turn, forced = !m.ilk && !h.cur && act.length === 1; // eşli/gömmeli: herkes pas dedi, son kalan (dağıtan) pas diyemez
   render(); updateDock();
   let b;
   if (p === 0) { busy = false; b = await askBid(forced); if (my !== epoch) return; busy = true; }

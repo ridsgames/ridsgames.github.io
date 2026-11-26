@@ -558,14 +558,14 @@ const STR = {
     modeNote: { okey: '14 taşla per ya da 7 çift diz, 15. taşı atarak bitir. Herkes 20 puanla başlar.', 101: 'En az 101 puanlık perle ya da 5 çiftle elini aç, taşlarını işle, elini ilk sen bitir. Ceza puanı en düşük olan kazanır.' },
     lvLbl: 'Zorluk', handsLbl: 'El sayısı',
     katLbl: 'Katlama', katO: { yok: 'Katlamasız', var: 'Katlamalı' }, helpLbl: 'Yardım', helpO: { var: 'Yardımlı', yok: 'Yardımsız' },
-    optNote: (o) => [o.kat ? 'Katlamalı: her açan, kendinden önce açanın toplamından en az 1 fazla (çiftte 1 çift fazla) açar.' : '', o.help ? 'Yardımlı: Seri diz ve Çift diz düğmeleri var, açtıktan sonra işlenebilen taşlar kendiliğinden işlenir, işlenebilen taşların üstünde yeşil + işareti, okeyde yıldız olur.' : 'Yardımsız: dizme düğmeleri, otomatik işleme ve işaret yok; taşlarını sen dizer, okeyi göstergeden sen bulursun.'].filter(Boolean).join(' '),
+    optNote: (o) => [o.kat ? 'Katlamalı: her açan, kendinden önce açanın toplamından en az 1 fazla (çiftte 1 çift fazla) açar.' : '', o.help ? 'Yardımlı: Seri diz ve Çift diz düğmeleri var, açtıktan sonra işlenebilen taşlar kendiliğinden işlenir, işlenebilen taşların üstünde yeşil + işareti, okeyde yıldız olur.' : 'Yardımsız: dizme düğmeleri, otomatik işleme ve işaret yok; taşlarını sen dizer, okeyi göstergeden sen bulursun. Açtığını ya da birden çok işlediğin taşı geri toplamak 101 cezadır.'].filter(Boolean).join(' '),
     needT: (k, q) => `Açılış barajı: ${k}${q ? ` ya da ${q} çift` : ''}`, handsN: (n) => `${n} el`,
     you: 'Sen', cpuNames: ['Ahmet', 'Elif', 'Can'], tiles: (n) => `${n} taş`, tilesH: 'Taş', opened: 'açtı',
     deckL: 'Deste', indL: 'Gösterge', okeyL: 'Okey', takeL: 'Al', myL: 'At',
     colors: ['Sarı', 'Mavi', 'Kırmızı', 'Siyah'],
     drawMe: 'Desteden çek ya da soldakinin attığı taşı al', playMe: 'Bir taş at', playFirst: 'İlk el sende: bir taş at',
     play101: 'Per indir, işle ya da bir taş at', open101: 'Elini açmak için per seç', thinking: (n) => `${n} oynuyor…`,
-    sortRun: 'Seri diz', sortPair: 'Çift diz', seriB: 'Seri aç', ciftB: 'Çift aç', isleB: 'İşle', undoB: 'Geri topla', noRackPer: 'Istakada dizili geçerli per yok: perleri aralarında boşluk bırakarak diz', noRackPair: 'Istakada dizili çift yok: çiftleri yan yana, aralarında boşluk bırakarak diz', perAfterCift: 'Çift açan seri indiremez', nothingAdd: 'İşlenecek taş yok', needL: 'Açılış', pairsL: (n) => `${n} çift`, finishB: 'Bitir', showB: 'Göstergeyi göster', perB: 'Per yap', openB: 'Aç', cancelB: 'Vazgeç', findB: 'Per bul', backB: 'Geri koy (+101)', penBack: 'Yerden aldığın taşı geri koydun: +101 ceza', addMax: 'Çift açan bir turda en çok 2 taş işleyebilir', noPairAdd: 'Çift ancak çift açan birine işlenebilir', voidHand: 'Herkes çift açtı: el sayılmıyor, yeniden dağıtılıyor', okeyHand: 'okey',
+    sortRun: 'Seri diz', sortPair: 'Çift diz', seriB: 'Seri aç', ciftB: 'Çift aç', isleB: 'İşle', undoB: 'Geri topla', undoPenB: 'Geri topla (+101)', penUndo: 'Açtığını ya da işlediğin taşları geri topladın: +101 ceza', noRackPer: 'Istakada dizili geçerli per yok: perleri aralarında boşluk bırakarak diz', noRackPair: 'Istakada dizili çift yok: çiftleri yan yana, aralarında boşluk bırakarak diz', perAfterCift: 'Çift açan seri indiremez', nothingAdd: 'İşlenecek taş yok', needL: 'Açılış', pairsL: (n) => `${n} çift`, finishB: 'Bitir', showB: 'Göstergeyi göster', perB: 'Per yap', openB: 'Aç', cancelB: 'Vazgeç', findB: 'Per bul', backB: 'Geri koy (+101)', penBack: 'Yerden aldığın taşı geri koydun: +101 ceza', addMax: 'Çift açan bir turda en çok 2 taş işleyebilir', noPairAdd: 'Çift ancak çift açan birine işlenebilir', voidHand: 'Herkes çift açtı: el sayılmıyor, yeniden dağıtılıyor', okeyHand: 'okey',
     rotHint: 'Daha büyük taşlar için yan çevir', pickOne: 'Önce bir taş seç', notFinish: 'Bu taşı atınca el bitmiyor', badMeld: 'Seçtiğin taşlar per değil', notOpened: 'Önce elini açmalısın',
     needUse: 'Yerden aldığın taşı bu tur kullanmalısın', keepOne: 'Bitirmek için elinde atacak bir taş kalmalı', total: (n, k) => `Toplam ${n} / ${k}`, pairsN: (n, k) => `${n} çift / ${k}`, lowOpen: (n, k) => `Açmak için ${k} gerekli, şu an ${n}. Tek seferde bütün taşlarını açıp bitirirsen baraj gerekmez`,
     mixPairs: 'Çiftler ve perler birlikte açılamaz', cantAdd: 'Bu taş o pere işlenmez', shown: (n) => `${n} göstergeyi gösterdi: diğerleri 1 puan kaybetti`, showedMe: 'Göstergeyi gösterdin: rakipler 1 puan kaybetti',
@@ -584,7 +584,7 @@ const STR = {
       ['<i class="t101">101</i>', '<b>101:</b> Elini açmak için toplamı en az 101 olan perler ya da en az 5 çift indir; ikisi birlikte açılmaz, 12-13-1 per sayılmaz, göstergenin görevi yoktur. Açtıktan sonra yeni per indirebilir, masadaki perlere taş işleyebilirsin. Çift açan seri indiremez, başkasının serisine bir turda en çok 2 taş işler; çift açan biri varsa diğerleri ona çift işleyebilir.'],
       ['🔁', '<b>Yerden taş:</b> Soldakinin attığı taşı alırsan o tur kullanmalısın; elini açmadıysan onunla açmalısın. Alıp geri koymak 101 ceza. Açtıktan sonra yerdeki okeyin yerine geçen gerçek taşı koyarak okeyi alabilirsin.'],
       ['🏁', '<b>Bitiş:</b> Son taşını yana atarak ya da göstergenin üstüne bırakarak bitirirsin; bitirmek için elinde atacak bir taş kalmalı. Kimse açmadan tek seferde bütün taşlarını açıp bitirirsen elden bitmiş olursun, bunun için 101 gerekmez.'],
-      ['⚙️', '<b>Masa seçenekleri (101):</b> <b>Katlamalı</b> masada her açan, kendinden önce açanın toplamından en az 1 fazla açmak zorundadır (101 ile açıldıysa sonraki 102); çiftte bir çift fazla gerekir (5, 6, 7…). <b>Yardımlı</b> masada Seri diz / Çift diz düğmeleri vardır, açtıktan sonra işlenebilen taşlar kendiliğinden işlenir, işlenebilen taşların üstünde yeşil + işareti, okeyde yıldız olur; <b>yardımsız</b> masada bunların hiçbiri yoktur.'],
+      ['⚙️', '<b>Masa seçenekleri (101):</b> <b>Katlamalı</b> masada her açan, kendinden önce açanın toplamından en az 1 fazla açmak zorundadır (101 ile açıldıysa sonraki 102); çiftte bir çift fazla gerekir (5, 6, 7…). <b>Yardımlı</b> masada Seri diz / Çift diz düğmeleri vardır, açtıktan sonra işlenebilen taşlar kendiliğinden işlenir, işlenebilen taşların üstünde yeşil + işareti, okeyde yıldız olur; <b>yardımsız</b> masada bunların hiçbiri yoktur ve açtığını ya da birden çok işlediğin taşı <b>Geri topla</b> ile almak 101 cezadır (işlediğin tek taşı cezasız geri alırsın).'],
       ['⚠️', '<b>Cezalar:</b> Yerdeki bir pere işlenebilecek taşı atan ve okeyi atan 101 ceza yazar. Elinde okey kalan 101 ceza daha yazar.'],
       ['🧮', '<b>101 puanı:</b> Biten −101 yazar. Açamayan 202, açan elindeki taşların toplamını yazar; çift açanın cezası iki katıdır. Okeyle, çiftten ya da elden bitişte cezalar ve bitenin puanı iki katına çıkar; bunlar birleşirse katlanır (çiftten okey, elden okey dört kat). Deste biterse herkes elindekini yazar. Herkes çift açarsa el sayılmaz. Ceza toplamı en düşük olan kazanır.'],
       ['👆', 'Taşları sürükleyerek istakanı düzenle. Dokunarak seç, sağdaki “At” alanına sürükle ya da dokun. 101’de perlerini ve çiftlerini ıstakada aralarında boşluk bırakarak diz: göstergenin üstündeki sayı dizdiğin perlerin toplamı, sağ üstteki kutu açılış barajıdır. <b>Seri aç</b> ya da <b>Çift aç</b> dizdiklerini indirir, <b>İşle</b> seçtiğin taşı yerdeki pere işler, <b>Geri topla</b> taş atmadan önce bu tur indirdiklerini ıstakana geri alır.']
@@ -595,14 +595,14 @@ const STR = {
     modeNote: { okey: 'Arrange 14 tiles into sets and runs or 7 pairs, then discard the 15th to win. Everyone starts with 20 points.', 101: 'Open with melds worth 101 or 5 pairs, lay off tiles and go out first. Lowest penalty wins.' },
     lvLbl: 'Level', handsLbl: 'Hands',
     katLbl: 'Raising', katO: { yok: 'Fixed', var: 'Raising' }, helpLbl: 'Help', helpO: { var: 'On', yok: 'Off' },
-    optNote: (o) => [o.kat ? 'Raising: each opener must beat the previous opening by at least 1 (pairs: one more pair).' : '', o.help ? 'Help on: Sort runs / Sort pairs buttons, after opening, fitting tiles are laid off automatically, tiles that fit a meld get a green + mark and the okey has a star.' : 'Help off: no sort buttons, automatic lay-offs or marks; arrange your rack and spot the okey yourself.'].filter(Boolean).join(' '),
+    optNote: (o) => [o.kat ? 'Raising: each opener must beat the previous opening by at least 1 (pairs: one more pair).' : '', o.help ? 'Help on: Sort runs / Sort pairs buttons, after opening, fitting tiles are laid off automatically, tiles that fit a meld get a green + mark and the okey has a star.' : 'Help off: no sort buttons, automatic lay-offs or marks; arrange your rack and spot the okey yourself. Taking back an opening or more than one laid-off tile costs 101.'].filter(Boolean).join(' '),
     needT: (k, q) => `To open: ${k}${q ? ` or ${q} pairs` : ''}`, handsN: (n) => n === 1 ? '1 hand' : `${n} hands`,
     you: 'You', cpuNames: ['Alex', 'Maya', 'Leo'], tiles: (n) => `${n} tiles`, tilesH: 'Tiles', opened: 'open',
     deckL: 'Deck', indL: 'Indicator', okeyL: 'Okey', takeL: 'Take', myL: 'Discard',
     colors: ['Yellow', 'Blue', 'Red', 'Black'],
     drawMe: 'Draw from the deck or take the tile your left neighbour discarded', playMe: 'Discard a tile', playFirst: 'You start: discard a tile',
     play101: 'Lay melds, lay off tiles or discard', open101: 'Pick melds to open your hand', thinking: (n) => `${n} is playing…`,
-    sortRun: 'Sort runs', sortPair: 'Sort pairs', seriB: 'Lay melds', ciftB: 'Lay pairs', isleB: 'Lay off', undoB: 'Take back', noRackPer: 'No valid meld arranged on your rack: leave a gap between melds', noRackPair: 'No pairs arranged on your rack: put pairs side by side with a gap between them', perAfterCift: 'A pairs opener cannot lay runs or sets', nothingAdd: 'Nothing to lay off', needL: 'To open', pairsL: (n) => `${n} pairs`, finishB: 'Go out', showB: 'Show indicator', perB: 'Make meld', openB: 'Open', cancelB: 'Cancel', findB: 'Find melds', backB: 'Put back (+101)', penBack: 'You put back the tile you took: +101', addMax: 'A pairs opener may lay off at most 2 tiles a turn', noPairAdd: 'Pairs can only go to a player who opened with pairs', voidHand: 'Everyone opened with pairs: the hand is void and redealt', okeyHand: 'okey',
+    sortRun: 'Sort runs', sortPair: 'Sort pairs', seriB: 'Lay melds', ciftB: 'Lay pairs', isleB: 'Lay off', undoB: 'Take back', undoPenB: 'Take back (+101)', penUndo: 'You took back your opening or lay-offs: +101 penalty', noRackPer: 'No valid meld arranged on your rack: leave a gap between melds', noRackPair: 'No pairs arranged on your rack: put pairs side by side with a gap between them', perAfterCift: 'A pairs opener cannot lay runs or sets', nothingAdd: 'Nothing to lay off', needL: 'To open', pairsL: (n) => `${n} pairs`, finishB: 'Go out', showB: 'Show indicator', perB: 'Make meld', openB: 'Open', cancelB: 'Cancel', findB: 'Find melds', backB: 'Put back (+101)', penBack: 'You put back the tile you took: +101', addMax: 'A pairs opener may lay off at most 2 tiles a turn', noPairAdd: 'Pairs can only go to a player who opened with pairs', voidHand: 'Everyone opened with pairs: the hand is void and redealt', okeyHand: 'okey',
     rotHint: 'Turn sideways for bigger tiles', pickOne: 'Select a tile first', notFinish: 'Discarding this tile does not finish your hand', badMeld: 'Those tiles are not a meld', notOpened: 'Open your hand first',
     needUse: 'You must use the tile you took this turn', keepOne: 'Keep one tile to discard', total: (n, k) => `Total ${n} / ${k}`, pairsN: (n, k) => `${n} pairs / ${k}`, lowOpen: (n, k) => `You need ${k} to open, you have ${n}. Laying everything down and going out at once needs no minimum`,
     mixPairs: 'Pairs and melds cannot be opened together', cantAdd: 'That tile does not fit this meld', shown: (n) => `${n} showed the indicator: others lose 1 point`, showedMe: 'You showed the indicator: rivals lose 1 point',
@@ -621,7 +621,7 @@ const STR = {
       ['<i class="t101">101</i>', '<b>101:</b> Open with melds totalling at least 101 or with 5 pairs, never both; 12-13-1 is not a run and the indicator has no role. Then lay new melds and add tiles to melds on the table. A pairs opener cannot lay runs and may add at most 2 tiles a turn to others’ melds; others may lay pairs onto a pairs opener.'],
       ['🔁', '<b>Discards:</b> If you take your left neighbour’s discard you must open with it that turn (or use it if already open). Taking it and putting it back costs 101. Once open, put the real tile in place of an okey on the table to take the okey.'],
       ['🏁', '<b>Going out:</b> Discard your last tile or drop it on the indicator; you need one tile left to go out. Laying everything down and going out before anyone else opens counts as going out in one go and needs no 101.'],
-      ['⚙️', '<b>Table options (101):</b> At a <b>raising</b> table each opener must beat the previous opening by at least 1 (after 101 the next needs 102); with pairs one more pair is needed (5, 6, 7…). <b>Help on</b> gives Sort runs / Sort pairs, lays off fitting tiles automatically after you open, puts a green + on tiles that fit a meld and shows the okey with a star; <b>help off</b> gives none of these.'],
+      ['⚙️', '<b>Table options (101):</b> At a <b>raising</b> table each opener must beat the previous opening by at least 1 (after 101 the next needs 102); with pairs one more pair is needed (5, 6, 7…). <b>Help on</b> gives Sort runs / Sort pairs, lays off fitting tiles automatically after you open, puts a green + on tiles that fit a meld and shows the okey with a star; <b>help off</b> gives none of these, and using <b>Take back</b> on an opening or on more than one laid-off tile costs 101 (a single laid-off tile comes back free).'],
       ['⚠️', '<b>Penalties:</b> Discarding a tile that fits a meld on the table, or the okey, costs 101. An okey left in hand costs another 101.'],
       ['🧮', '<b>101 scoring:</b> The player who goes out scores −101. Unopened players score 202, opened ones the sum of their tiles; a pairs opener pays double. Going out with the okey, with pairs or in one go doubles the winner’s score and everyone’s penalty, and these stack (pairs + okey or one go + okey is ×4). If the deck runs out everyone scores their hand. If all four open with pairs the hand is void. Lowest total wins.'],
       ['👆', 'Drag tiles to arrange your rack. Tap to select; drag or tap onto “Discard”. In 101 arrange melds and pairs on your rack with a gap between them: the number above the indicator is the total of your arranged melds, the box top right is the opening target. <b>Lay melds</b> / <b>Lay pairs</b> put them down, <b>Lay off</b> adds the selected tile to a meld, <b>Take back</b> returns this turn’s melds to your rack before you discard.']
@@ -658,6 +658,10 @@ const is101 = () => G.mode === '101';
 // 101 seçenekleri: çiftle açma, katlamalı baraj, yardım (dizme, otomatik işleme, işaret)
 const OPT = () => Object.assign({ cift: true, kat: false, help: true }, G && G.opt);
 const helpOn = () => !is101() || OPT().help;
+// Elden: p'den başka kimse açmamış olmalı; o zaman 101 şartı da aranmaz
+const kimseAcmadi = (p) => G.opened.every((x, q) => q === p || !x);
+// Yardımsız masada açılışı ya da birden çok işlenen taşı geri toplamak 101 cezadır (tek işlenen taş cezasız)
+const undoCeza = () => !!G.undo && !helpOn() && (G.melds.length > G.undo.melds.length || (G.addN || 0) > 1);
 const needPer = () => OPT().kat && G.maxOpen && G.maxOpen[0] ? G.maxOpen[0] + 1 : 101;
 const needPair = () => OPT().kat && G.maxOpen && G.maxOpen[1] ? G.maxOpen[1] + 1 : 5;
 const openLog = [];
@@ -904,7 +908,7 @@ function discard(p, id) {
   if (p === 0) { syncRack(); selSet.delete(id); }
   Sfx.tone(420, 300, 0.06, 0.06, 'triangle', 0.08); buzz(8);
   if (pen) { G.pen[p] = (G.pen[p] || 0) + 101; toast(p === 0 ? (pen === 'okey' ? T().penOkeyMe : T().penIslekMe) : pen === 'okey' ? T().penOkey(pname(p)) : T().penIslek(pname(p)), '#f87171'); if (p === 0) Sfx.bad(); }
-  if (is101() && !h.length) return endHand(p, { ok: isJ(id), elden: G.openedAt[p] === G.tc, pairs: G.opened[p] === 'cift' });
+  if (is101() && !h.length) return endHand(p, { ok: isJ(id), elden: G.openedAt[p] === G.tc && kimseAcmadi(p), pairs: G.opened[p] === 'cift' });
   G.turn = (p + 1) % 4; G.phase = 'draw'; G.note = null; G.tc++; G.addN = 0; G.undo = null;
   if (!G.deck.length) return endHand(-1, {});
   save(); render(); kick();
@@ -1020,7 +1024,7 @@ function cpu101Lay(p) {
   if (!G.opened[p]) {
     if (G.level !== 'kolay') { // elden: bir taş dışında hepsini aç
       const ms = eldenPlan(h(), G.took);
-      if (ms) { for (const m of ms) layMeld(p, m, false); markOpen(p, 'per'); G.took = -1; save(); render(); return; }
+      if (ms && (kimseAcmadi(p) || ms.reduce((s, m) => s + parseMeld(m).val, 0) >= needPer())) { for (const m of ms) layMeld(p, m, false); markOpen(p, 'per'); G.took = -1; save(); render(); return; }
     }
     const r = solve(h(), 'sum', false);
     const need = needPer(); let ms = r.s >= need ? assign(h(), r.m, G.took) : null;
@@ -1097,7 +1101,7 @@ function unstage(i) { const m = G.stage.splice(i, 1)[0]; if (m) { G.hand[0].push
 function humanOpen() {
   if (!myTurn() || G.opened[0] || !G.stage.length) return;
   const pairs = G.stage[0].t === 'pair', tot = G.stage.reduce((s, m) => s + m.val, 0);
-  if (pairs ? G.stage.length < needPair() : tot < needPer() && G.hand[0].length !== 1) { toast(pairs ? T().pairsN(G.stage.length, needPair()) : T().lowOpen(tot, needPer()), '#f87171'); Sfx.bad(); return; }
+  if (pairs ? G.stage.length < needPair() : tot < needPer() && !(G.hand[0].length === 1 && kimseAcmadi(0))) { toast(pairs ? T().pairsN(G.stage.length, needPair()) : T().lowOpen(tot, needPer()), '#f87171'); Sfx.bad(); return; }
   if (!G.hand[0].length) { toast(T().keepOne, '#f87171'); return; }
   if (G.took >= 0 && G.hand[0].includes(G.took)) { toast(T().needUse, '#f87171'); return; }
   snap(); for (const m of G.stage) { m.o = 0; G.melds.push(m); }
@@ -1139,8 +1143,9 @@ const rackPairs = () => rackGroups().flatMap((g) => splitBest(g, true));
 function snap() { if (!G.undo) G.undo = JSON.parse(JSON.stringify({ melds: G.melds, hand: G.hand[0], rack: G.rack, opened: G.opened[0], openedAt: G.openedAt[0], maxOpen: G.maxOpen, addN: G.addN || 0, took: G.took })); }
 function humanUndo() {
   if (!myTurn() || G.phase !== 'play' || !G.undo) return;
-  const u = G.undo; G.melds = u.melds; G.hand[0] = u.hand; G.rack = u.rack; G.opened[0] = u.opened; G.openedAt[0] = u.openedAt; G.maxOpen = u.maxOpen; G.addN = u.addN; G.took = u.took; G.undo = null;
-  selSet.clear(); syncRack(); Sfx.tap(); save(); render();
+  const ceza = undoCeza(), u = G.undo; G.melds = u.melds; G.hand[0] = u.hand; G.rack = u.rack; G.opened[0] = u.opened; G.openedAt[0] = u.openedAt; G.maxOpen = u.maxOpen; G.addN = u.addN; G.took = u.took; G.undo = null;
+  if (ceza) { G.pen[0] = (G.pen[0] || 0) + 101; toast(T().penUndo, '#f87171'); Sfx.bad(); } else Sfx.tap();
+  selSet.clear(); syncRack(); save(); render();
 }
 function layRack(kind) {
   if (!myTurn() || G.phase !== 'play' || !is101()) return;
@@ -1156,7 +1161,7 @@ function layRack(kind) {
   const ids = ms.flatMap((m) => m.ids);
   if (ids.length >= G.hand[0].length) { toast(t.keepOne, '#f87171'); Sfx.bad(); return; }
   if (!G.opened[0]) {
-    const tot = ms.reduce((s, m) => s + m.val, 0), last = G.hand[0].length - ids.length === 1;
+    const tot = ms.reduce((s, m) => s + m.val, 0), last = G.hand[0].length - ids.length === 1 && kimseAcmadi(0);
     if (pair ? ms.length < needPair() && !last : tot < needPer() && !last) { toast(pair ? t.pairsN(ms.length, needPair()) : t.lowOpen(tot, needPer()), '#f87171'); Sfx.bad(); return; }
     if (G.took >= 0 && G.hand[0].includes(G.took) && !ids.includes(G.took)) { toast(t.needUse, '#f87171'); Sfx.bad(); return; }
   }
@@ -1379,7 +1384,7 @@ function render() {
         if (o !== 'cift') a += `<button type="button" id="bSeri">${esc(t.seriB)}</button>`;
         if (o !== 'per' || cifter(0) != null) a += `<button type="button" id="bCift">${esc(t.ciftB)}</button>`;
         if (o && (!helpOn() || selSet.size === 1)) a += `<button type="button" id="bIsle">${esc(t.isleB)}</button>`;
-        if (G.undo) a += `<button type="button" class="alt" id="bUndo">${esc(t.undoB)}</button>`;
+        if (G.undo) a += `<button type="button" class="alt" id="bUndo">${esc(undoCeza() ? t.undoPenB : t.undoB)}</button>`;
         if (!o && G.stage.length) a += `<button type="button" class="warn" id="bOpen">${esc(t.openB)}</button><button type="button" class="alt" id="bCancel">${esc(t.cancelB)}</button>`;
         if (G.took >= 0 && G.hand[0].includes(G.took)) a += `<button type="button" class="alt" id="bBack">${esc(t.backB)}</button>`;
       }

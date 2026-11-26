@@ -581,11 +581,11 @@ const STR = {
     conHelp: { koz: 'Kozu sen seçersin, her el +50', el: 'Her el −50', kupa: 'Her kupa −30', erkek: 'Her papaz ve vale −60', kiz: 'Her kız −100', rifki: 'Kupa papazı −320', son: 'Son iki elin her biri −180' },
     rulesTitle: 'Nasıl oynanır?', rulesSub: 'Dört kişi oynanır, herkese 13 kart dağıtılır, as en büyük karttır.', ok: 'Tamam',
     ruleList: [
-      ['🎯', 'Her elde sıradaki oyuncu <b>partiyi seçer</b> ve ilk kartı o açar. Tam oyunda herkes 2 koz ve 3 ceza seçer (20 parti), kısa oyunda 1 koz ve 1 ceza (8 parti). Her ceza oyunda en çok 2 kez oynanır.'],
+      ['🎯', 'İlk partiyi <b>karo 2’si olan</b> seçer, sonra her elde sıradaki oyuncu <b>partiyi seçer</b>; seçen ilk kartı açar. Tam oyunda herkes 2 koz ve 3 ceza seçer (20 parti), kısa oyunda 1 koz ve 1 ceza (8 parti). Her ceza oyunda en çok 2 kez oynanır.'],
       ['✋', '<b>El almaz:</b> aldığın her el −50.'],
       ['♥️', '<b>Kupa almaz:</b> aldığın her kupa −30. Kupa atılmadan kupayla el açılamaz.'],
       ['🤴', '<b>Erkek almaz:</b> aldığın her papaz ve vale −60.'],
-      ['👸', '<b>Kız almaz:</b> aldığın her kız −100.'],
+      ['👸', '<b>Kız almaz:</b> aldığın her kız −100. Herkes birer kız alırsa parti sayılmaz, kız almaz yeniden dağıtılır.'],
       ['💔', '<b>Rıfkı:</b> kupa papazını alan −320. Kupa atılmadan kupayla el açılamaz.'],
       ['⏬', '<b>Son iki:</b> son iki elin her birini alan −180.'],
       ['👑', '<b>Koz:</b> seçen kozu belirler, aldığın her el +50. Koz atılmadan kozla el açılamaz.'],
@@ -600,7 +600,7 @@ const STR = {
     pickCon: 'Ne oynanacak?', left: (n) => `${n} kaldı`, mine: (k, c) => `Senin hakkın: koz ${k}, ceza ${c}`, pickTrump: 'Kozu seç',
     whyNot: { leadKoz: 'Koz henüz atılmadı, başka renk aç', leadKupa: 'Kupa henüz atılmadı, başka renk aç', follow: 'Yerdeki renkten atmalısın', press: 'Cezalı kartını basmalısın', trump: 'O renk yok, koz atmalısın', dump: 'O renk yok, cezalı kartı atmalısın' },
     chose: (p, s) => (p === 0 ? `Seçimin: ${s}` : `${STR.tr.names[p]}: ${s}`), trumpIs: (s) => `Koz ${STR.tr.suit[s].toLowerCase()}`,
-    brokenKoz: 'Koz atıldı!', brokenKupa: 'Kupa atıldı!', took: (p) => (p === 0 ? 'Eli aldın' : `Eli ${STR.tr.names[p]} aldı`), early: 'Cezalar bitti',
+    brokenKoz: 'Koz atıldı!', brokenKupa: 'Kupa atıldı!', took: (p) => (p === 0 ? 'Eli aldın' : `Eli ${STR.tr.names[p]} aldı`), early: 'Cezalar bitti', firstPick: (p) => (p === 0 ? 'Karo 2 sende: ilk partiyi sen seçiyorsun' : `Karo 2: ilk partiyi ${STR.tr.names[p]} seçiyor`), kizVoid: 'Herkes birer kız aldı: parti sayılmıyor, yeniden dağıtılıyor',
     handOver: (n, t) => `${n}/${t}. parti bitti`, cols: ['', 'Aldı', 'Bu parti', 'Toplam'], nextHand: 'Sonraki parti', seeResult: 'Sonucu gör', progress: (h, t) => `${h}/${t}. parti`,
     youWin: 'Kazandın!', draw: 'Berabere!', wins: (ps) => `${ps.map((p) => STR.tr.names[p]).join(' ve ')} kazandı`,
     winSub: (h) => `${h} parti sonunda en yüksek puan`, again2: 'Tekrar oyna', toMenu: 'Ayarları değiştir', scoreAria: (names, sc) => 'Puanlar: ' + sc.map((v, i) => `${names[i]} ${v}`).join(', '),
@@ -615,11 +615,11 @@ const STR = {
     conHelp: { koz: 'You pick trumps, +50 a trick', el: '−50 a trick', kupa: '−30 a heart', erkek: '−60 a king or jack', kiz: '−100 a queen', rifki: 'King of hearts −320', son: 'Each of the last two tricks −180' },
     rulesTitle: 'How to play', rulesSub: 'Four players, 13 cards each, the ace is the highest card.', ok: 'OK',
     ruleList: [
-      ['🎯', 'Each deal the next player <b>chooses the contract</b> and leads first. In a full game everyone picks 2 trump and 3 penalty contracts (20 deals); in a short game 1 of each (8 deals). Each penalty can be played at most twice.'],
+      ['🎯', 'Whoever holds the <b>2♦</b> chooses the first contract, then each deal the next player <b>chooses the contract</b>; the chooser leads first. In a full game everyone picks 2 trump and 3 penalty contracts (20 deals); in a short game 1 of each (8 deals). Each penalty can be played at most twice.'],
       ['✋', '<b>No tricks:</b> −50 for each trick you take.'],
       ['♥️', '<b>No hearts:</b> −30 for each heart. You cannot lead hearts until one has been played.'],
       ['🤴', '<b>No kings/jacks:</b> −60 for each king or jack.'],
-      ['👸', '<b>No queens:</b> −100 for each queen.'],
+      ['👸', '<b>No queens:</b> −100 for each queen. If everyone takes one queen the deal does not count and no queens is dealt again.'],
       ['💔', '<b>King of hearts:</b> −320 for whoever takes it. You cannot lead hearts until one has been played.'],
       ['⏬', '<b>Last two:</b> −180 for each of the last two tricks.'],
       ['👑', '<b>Trumps:</b> the chooser names trumps, +50 for each trick. You cannot lead trumps until one has been played.'],
@@ -634,7 +634,7 @@ const STR = {
     pickCon: 'What will you play?', left: (n) => `${n} left`, mine: (k, c) => `Yours: trumps ${k}, penalties ${c}`, pickTrump: 'Pick trumps',
     whyNot: { leadKoz: 'No trump played yet, lead another suit', leadKupa: 'No heart played yet, lead another suit', follow: 'You must follow suit', press: 'You must play your penalty card', trump: 'You cannot follow, play a trump', dump: 'You cannot follow, play a penalty card' },
     chose: (p, s) => (p === 0 ? `You chose: ${s}` : `${STR.en.names[p]}: ${s}`), trumpIs: (s) => `${STR.en.suit[s]} are trumps`,
-    brokenKoz: 'Trumps played!', brokenKupa: 'Hearts played!', took: (p) => (p === 0 ? 'You took the trick' : `${STR.en.names[p]} took the trick`), early: 'All penalties taken',
+    brokenKoz: 'Trumps played!', brokenKupa: 'Hearts played!', took: (p) => (p === 0 ? 'You took the trick' : `${STR.en.names[p]} took the trick`), early: 'All penalties taken', firstPick: (p) => (p === 0 ? 'You hold the 2♦: you choose the first contract' : `2♦: ${STR.en.names[p]} chooses the first contract`), kizVoid: 'Everyone took one queen: the deal does not count and is dealt again',
     handOver: (n, t) => `Deal ${n}/${t} over`, cols: ['', 'Tricks', 'This deal', 'Total'], nextHand: 'Next deal', seeResult: 'See the result', progress: (h, t) => `Deal ${h}/${t}`,
     youWin: 'You won!', draw: 'Draw!', wins: (ps) => `${ps.map((p) => STR.en.names[p]).join(' and ')} won`,
     winSub: (h) => `Highest score after ${h} deals`, again2: 'Play again', toMenu: 'Change settings', scoreAria: (names, sc) => 'Scores: ' + sc.map((v, i) => `${names[i]} ${v}`).join(', '),
@@ -891,6 +891,10 @@ async function startHand() {
     const p = (chooser + k) % 4; h.hands[p].push(h.deck.pop()); if (p === 0) sortMine();
     if (k % 2 === 0) Sfx.deal(); render(260); await wait(30); if (my !== epoch) return;
   }
+  if (G.handNo === 1 && !G.replay) { // ilk partiyi karo 2'si olan seçer, sıra ondan devam eder
+    const p = h.hands.findIndex((x) => x.includes(idOf(2, 2)));
+    G.first = p; h.chooser = h.turn = h.leader = p; say(T().firstPick(p), true);
+  }
   h.phase = 'choose'; h.mid = false;
   save(); nextAction();
 }
@@ -909,7 +913,9 @@ let conRes = null, suitRes = null;
 async function chooseTurn(my) {
   const h = G.h, t = T(), p = h.chooser, av = availFor(p);
   let con, trump = -1;
-  if (p === 0) {
+  if (G.replay) { // herkes birer kız aldıysa aynı parti yeniden oynanır
+    con = G.replay; G.replay = null; busy = true; await wait(600); if (my !== epoch) return;
+  } else if (p === 0) {
     busy = false;
     for (;;) {
       con = await askCon(av); if (my !== epoch) return;
@@ -967,6 +973,11 @@ async function playCard(p, c) {
 }
 async function endHand() {
   const my = epoch, h = G.h;
+  if (h.con === 'kiz' && h.won.every((w) => w.filter((c) => isPen('kiz', c)).length === 1)) { // herkes birer kız aldı: parti sayılmaz
+    busy = true; G.cnt.kiz--; G.cz[h.chooser]--; G.handNo--; G.replay = 'kiz'; say(T().kizVoid, true);
+    await wait(1800); if (my !== epoch) return;
+    G.h = null; epoch++; return startHand();
+  }
   h.phase = 'done'; busy = true;
   h.res = h.pts.slice();
   h.res.forEach((v, i) => { G.scores[i] += v; });
