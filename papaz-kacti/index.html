@@ -442,7 +442,7 @@ const STR = {
   tr: { ...COMMON.tr, title: 'Papaz Kaçtı | Ridsgames', game: 'Papaz Kaçtı',
     setupSub: 'Destede tek kalan papazdan kurtul. Çiftlerini at, sıradaki oyuncudan kart çek; papaz sende kalmasın.',
     oppLbl: 'Rakip sayısı', oppN: (n) => `${n} rakip`, spdLbl: 'Oyun hızı', spd: { yavas: 'Yavaş', normal: 'Normal', hizli: 'Hızlı' },
-    setNote: 'Destedeki dört papazdan biri çıkarılır. Eşi olmayan papaz son kimde kalırsa o kaybeder.',
+    setNote: 'Destedeki dört papazdan üçü çıkarılır. Kalan tek papaz son kimde kalırsa o kaybeder.',
     you: 'Sen', cpuNames: ['Ahmet', 'Elif', 'Can'], cards: (n) => `${n} kart`, outL: 'kurtuldu', discL: (n) => `${n} çift`,
     pickFrom: (n) => `${n} adlı oyuncunun elinden bir kart seç`, pickFromS: (a, b) => `${a}, ${b} adlı oyuncunun elinden çekiyor`,
     youDrew: (c) => `${c} çektin`, youPair: (c) => `${c} çifti attın`, tookFromYou: (n, c) => `${n} senden ${c} aldı`,
@@ -451,7 +451,7 @@ const STR = {
     sortB: 'Sırala', shufB: 'Karıştır', dealt: 'Kartlar dağıtıldı, çiftler atıldı',
     winT: 'Kurtuldun!', winSub: (n) => `Papaz ${n} elinde kaldı.`, loseT: 'Papaz sende kaldı!', loseSub: 'Bir dahaki sefere papazı kaçırmayı dene.',
     tOrder: 'Kurtulma sırası', tLoser: 'Papaz kalan', tRounds: 'Çekilen kart',
-    rulesSub: 'Bir papaz çıkarılmış 51 kartlık desteyle 2–4 kişi oynanır.',
+    rulesSub: 'Üç papazı çıkarılmış 49 kartlık desteyle 2–4 kişi oynanır.',
     ruleList: [
       ['🃏', 'Bütün kartlar dağıtılır. Herkes elindeki <b>aynı sayıdaki çiftleri</b> (iki 7, iki vale gibi) ortaya atar.'],
       ['👉', 'Sırası gelen, kendinden sonraki oyuncunun kapalı elinden <b>bir kart çeker</b>. Çektiği kart elindeki bir kartla çift olursa ikisini atar.'],
@@ -462,7 +462,7 @@ const STR = {
   en: { ...COMMON.en, title: 'Old King | Ridsgames', game: 'Old King',
     setupSub: 'Do not get stuck with the lonely king. Drop your pairs and draw from the next player; whoever keeps the king loses.',
     oppLbl: 'Opponents', oppN: (n) => n === 1 ? '1 rival' : `${n} rivals`, spdLbl: 'Speed', spd: { yavas: 'Slow', normal: 'Normal', hizli: 'Fast' },
-    setNote: 'One of the four kings is removed. The king without a partner loses for whoever holds it last.',
+    setNote: 'Three of the four kings are removed. Whoever holds the last king at the end loses.',
     you: 'You', cpuNames: ['Alex', 'Maya', 'Leo'], cards: (n) => `${n} cards`, outL: 'safe', discL: (n) => `${n} pairs`,
     pickFrom: (n) => `Pick a card from ${n}’s hand`, pickFromS: (a, b) => `${a} is drawing from ${b}`,
     youDrew: (c) => `You drew ${c}`, youPair: (c) => `You dropped a pair of ${c}`, tookFromYou: (n, c) => `${n} took ${c} from you`,
@@ -471,7 +471,7 @@ const STR = {
     sortB: 'Sort', shufB: 'Shuffle', dealt: 'Cards dealt, pairs dropped',
     winT: 'You are safe!', winSub: (n) => `${n} kept the king.`, loseT: 'You kept the king!', loseSub: 'Try to pass the king on next time.',
     tOrder: 'Safe order', tLoser: 'Kept the king', tRounds: 'Cards drawn',
-    rulesSub: '2–4 players with a 51-card deck (one king removed).',
+    rulesSub: '2–4 players with a 49-card deck (three kings removed).',
     ruleList: [
       ['🃏', 'All cards are dealt. Everyone drops their <b>pairs of the same rank</b> (two 7s, two jacks…).'],
       ['👉', 'On your turn <b>draw one card</b> from the hidden hand of the next player. If it pairs with one of yours, drop both.'],
@@ -505,7 +505,7 @@ function nextActive(p) { for (let k = 1; k <= G.n; k++) { const q = (p + k) % G.
 // ---------- Akış ----------
 function newGame() {
   closeAll();
-  const n = setup.opps + 1, deck = shuffle([...Array(51).keys()]); // 51 = sinek papaz çıkarıldı
+  const n = setup.opps + 1, keep = [12, 25, 38, 51][rnd(4)], deck = shuffle([...Array(52).keys()].filter((id) => rk(id) !== 13 || id === keep)); // üç papaz çıkarılır: 49 kart, tek papaz
   const hands = Array.from({ length: n }, () => []); deck.forEach((id, k) => hands[k % n].push(id));
   G = { n, speed: setup.speed, hands, disc: [], turn: rnd(n), outOrder: [], loser: -1, over: false, flash: [], msg: '', nw: -1, draws: 0, tgSel: -1 };
   for (let p = 0; p < n; p++) { const pr = dropPairs(G.hands[p]); G.hands[p] = G.hands[p].filter((id) => !pr.includes(id)); G.disc.push(...pr); }
@@ -515,10 +515,10 @@ function newGame() {
   sayac('basladi', 'oyun başladı');
   if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
   sayac(`mod/${n}k-${G.speed}`, `mod: ${n} kişi, ${G.speed}`);
-  epoch++; busy = false; gone = new Set();
+  epoch++; busy = true; gone = new Set(); // ilk step gelene kadar dokunuş bekler
   checkOut();
   if (!G.hands[G.turn].length) G.turn = nextActive(G.turn);
-  save(); render(); setTimeout(step, 900 * SPD());
+  save(); render(); const ep = epoch; setTimeout(() => { if (ep === epoch) step(); }, 900 * SPD());
 }
 function startFromSetup() { store.set('setup', setup); newGame(); }
 function again() { newGame(); }
@@ -645,7 +645,7 @@ addEventListener('resize', () => G && render());
 
 function boot() {
   const s = store.get('game', null);
-  if (s && s.hands && !s.over) { G = s; busy = false; G.tgSel = -1; render(); setTimeout(step, 500); }
+  if (s && s.hands && !s.over) { G = s; busy = true; G.tgSel = -1; render(); const ep = epoch; setTimeout(() => { if (ep === epoch) step(); }, 500); }
   else openSetup();
 }
 window.__papaz = { state: () => G, busy: () => busy, humanPick };
