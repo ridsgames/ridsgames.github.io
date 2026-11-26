@@ -498,7 +498,7 @@ const STR = {
     thinking: (n) => `${n} oynuyor…`, mustOpen: 'Yerden aldığın kartla bu tur elini açmalısın',
     sortRun: 'Per diz', sortRank: 'Sayı diz', perB: 'Per yap', openB: 'Aç', cancelB: 'Vazgeç', findB: 'Per bul', backB: 'Geri koy',
     pickOne: 'Önce bir kart seç', badMeld: 'Seçtiğin kartlar per değil', notOpened: 'Önce elini açmalısın',
-    keepOne: 'Atmak için elinde bir kart kalmalı', total: (n) => `Toplam ${n} / 51`, lowOpen: (n) => `Açmak için 51 gerekli, şu an ${n}`,
+    keepOne: 'Atmak için elinde bir kart kalmalı', total: (n, k, p) => p ? `${p} çift` : `Toplam ${n} / ${k}`, lowOpen: (n, k) => `Açmak için ${k} gerekli, şu an ${n}`, lowPairs: 'Çiftle açmak için 5 çift ya da 4 çift ve 1 per gerekli',
     cantAdd: 'Bu kart o pere işlenmez', noFind: 'Uygun per bulunamadı',
     finished: (n) => `${n} bitirdi!`, konken: (n) => `${n} konken yaptı!`, deckOut: 'Deste bitti, el berabere',
     notOpenedR: 'açamadı', nextHand: 'Sonraki el', seeEnd: 'Sonuçlar', handN: (a, b) => `${a}. el / ${b}`, scoreL: 'Toplam', penL: 'Ceza',
@@ -508,6 +508,8 @@ const STR = {
       ['🔗', '<b>Per</b>: aynı türden sıralı en az üç kart (A-2-3 ya da Q-K-A olur, K-A-2 olmaz) ya da aynı sayıdan farklı türlerde 3–4 kart. Joker her kartın yerine geçer.'],
       ['🔄', 'Sıran gelince desteden çek ya da yerdeki son kartı al, sonra bir kart at.'],
       ['5️⃣', 'Elini açmak için toplamı en az <b>51</b> olan perleri birlikte indir. As 11, resimler 10 sayılır; A-2-3 serisinde as 1’dir. Joker yerine geçtiği kartın değerini alır.'],
+      ['📈', 'Baraj yükselir: her açan, kendinden önce açanın toplamından <b>en az 1 fazla</b> açar (biri 60 ile açtıysa sonraki en az 61).'],
+      ['👯', '<b>Çiftle açma</b>: aynı kartın iki eşi bir çifttir, joker eş olur. Puana bakmadan <b>5 çiftle</b> ya da <b>4 çift ve 1 perle</b> de açabilirsin; çiftlere kart işlenmez.'],
       ['✋', 'Açmadan yerden kart alırsan o kartla aynı tur elini açmalısın. Açtıktan sonra yeni per indirip masadaki perlere kart işleyebilirsin.'],
       ['🏁', 'Elindeki son kartı atan biter ve −51 yazar. Açamayan 100, açan elinde kalan kartların toplamını yazar (joker 25).'],
       ['💥', 'Hiç açmadan bütün elini tek turda indirip biten <b>konken</b> yapar: o elin bütün puanları iki katıdır.'],
@@ -523,7 +525,7 @@ const STR = {
     thinking: (n) => `${n} is playing…`, mustOpen: 'You took the discard: you must open with it this turn',
     sortRun: 'Sort melds', sortRank: 'Sort ranks', perB: 'Make meld', openB: 'Open', cancelB: 'Cancel', findB: 'Find melds', backB: 'Put back',
     pickOne: 'Select a card first', badMeld: 'Those cards are not a meld', notOpened: 'Open your hand first',
-    keepOne: 'Keep one card to discard', total: (n) => `Total ${n} / 51`, lowOpen: (n) => `You need 51 to open, you have ${n}`,
+    keepOne: 'Keep one card to discard', total: (n, k, p) => p ? `${p} pairs` : `Total ${n} / ${k}`, lowOpen: (n, k) => `You need ${k} to open, you have ${n}`, lowPairs: 'To open with pairs you need 5 pairs, or 4 pairs and a meld',
     cantAdd: 'That card does not fit this meld', noFind: 'No meld found',
     finished: (n) => `${n} went out!`, konken: (n) => `${n} made konken!`, deckOut: 'The deck ran out, no winner',
     notOpenedR: 'not open', nextHand: 'Next hand', seeEnd: 'Results', handN: (a, b) => `Hand ${a} / ${b}`, scoreL: 'Total', penL: 'Penalty',
@@ -533,6 +535,8 @@ const STR = {
       ['🔗', 'A <b>meld</b> is a run of three or more in one suit (A-2-3 or Q-K-A, not K-A-2) or 3–4 cards of one rank in different suits. Jokers are wild.'],
       ['🔄', 'On your turn draw from the deck or take the top discard, then discard a card.'],
       ['5️⃣', 'To open, lay melds worth at least <b>51</b> together. Aces are 11, faces 10; in A-2-3 the ace is 1. A joker takes the value it stands for.'],
+      ['📈', 'The bar rises: each opener must beat the previous opening by <b>at least 1</b> (after a 60 opening the next needs 61).'],
+      ['👯', '<b>Pairs</b>: two copies of the same card make a pair, a joker can be either. Whatever the points, you may also open with <b>5 pairs</b> or <b>4 pairs and a meld</b>; nothing can be added to pairs.'],
       ['✋', 'If you take the discard before opening, you must open with it that turn. Once open, lay new melds and add cards to melds on the table.'],
       ['🏁', 'Discarding your last card ends the hand: −51 for you. Unopened players score 100, opened ones the sum of their cards (joker 25).'],
       ['💥', 'Going out in one turn without having opened is <b>konken</b>: every score of that hand is doubled.'],
@@ -541,6 +545,7 @@ const STR = {
 };
 const T = () => STR[lang];
 const SLOTS = 26, OPEN = 51;
+const need = () => G.need || OPEN; // yükselen baraj: her açan öncekinden en az 1 fazla açar (çiftle açış barajı değiştirmez)
 let setup = Object.assign({ opps: 3, level: 'orta', hands: 3 }, store.get('setup', {}));
 if (![1, 2, 3].includes(setup.opps)) setup.opps = 3; if (!COMMON.tr.lv[setup.level]) setup.level = 'orta'; if (![1, 3, 5].includes(setup.hands)) setup.hands = 3;
 let G = null, busy = false, epoch = 0, selSet = new Set(), newId = -1, drag = null;
@@ -649,7 +654,12 @@ function parseMeld(ids) {
   }
   return best;
 }
+function parsePair(ids) { // çift: aynı kartın iki eşi, joker eş olabilir
+  if (ids.length !== 2) return null; const a = info(ids[0]), b = info(ids[1]);
+  return a.j || b.j || (a.c === b.c && a.n === b.n) ? { t: 'pair', ids: ids.slice(), val: 0 } : null;
+}
 function canAdd(m, id) {
+  if (m.t === 'pair') return false;
   const t = info(id);
   if (m.t === 'set') return m.ids.length < 4 && (t.j || (t.n === m.n && !m.cols.includes(t.c)));
   if (m.hi - m.lo >= 12) return false;
@@ -682,7 +692,7 @@ function deal() {
   const deck = shuffle([...Array(106).keys()]), st = (G.handNo - 1) % N();
   G.hand = Array.from({ length: N() }, (_, p) => deck.splice(0, 14 + (p === st ? 1 : 0)));
   G.deck = deck; G.pile = []; G.turn = st; G.phase = 'play'; G.tc = 0;
-  G.opened = Array(N()).fill(false); G.openT = Array(N()).fill(-1); G.melds = []; G.took = -1; G.stage = []; G.res = null;
+  G.need = OPEN; G.opened = Array(N()).fill(false); G.openT = Array(N()).fill(-1); G.melds = []; G.took = -1; G.stage = []; G.res = null;
   G.rack = Array(SLOTS).fill(-1); arrange('run');
   selSet = new Set(); epoch++; busy = false;
   save(); render(); kick();
@@ -784,19 +794,20 @@ function cpuWants(p, top) {
     const before = solve(G.hand[p], 'count').s, after = solve(h, 'count').s;
     return after >= before + 2 && after < h.length;
   }
-  const r = solve(h, 'sum'); if (r.s < OPEN) return false;
+  const r = solve(h, 'sum'); if (r.s < need()) return false;
   const ms = assign(h, r.m, top); return ms.some((m) => m.includes(top)) && ms.flat().length < h.length;
 }
 function cpuLay(p) {
   const h = () => G.hand[p];
   if (!G.opened[p]) {
     const r = solve(h(), 'sum');
-    let ms = r.s >= OPEN ? assign(h(), r.m, G.took) : null;
-    if (ms && ms.flat().length >= h().length) { ms.sort((a, b) => parseMeld(a).val - parseMeld(b).val); while (ms.length && ms.flat().length >= h().length) ms.shift(); if (ms.reduce((s, m) => s + parseMeld(m).val, 0) < OPEN) ms = null; }
+    let ms = r.s >= need() ? assign(h(), r.m, G.took) : null; // ponytail: bilgisayar çiftle açmaz
+    if (ms && ms.flat().length >= h().length) { ms.sort((a, b) => parseMeld(a).val - parseMeld(b).val); while (ms.length && ms.flat().length >= h().length) ms.shift(); }
+    const tot = ms ? ms.reduce((s, m) => s + parseMeld(m).val, 0) : 0; if (tot < need()) ms = null;
     if (ms && G.took >= 0 && !ms.some((m) => m.includes(G.took))) ms = null;
     // zor: konken şansı için birkaç tur bekleyebilir
     if (ms && G.level === 'zor' && G.took < 0 && h().length - ms.flat().length > 3 && G.tc < 2 * N() && !G.opened.some(Boolean)) ms = null;
-    if (ms && (G.level !== 'kolay' || Math.random() < 0.75)) { for (const m of ms) layMeld(p, m); G.opened[p] = true; G.openT[p] = G.tc; }
+    if (ms && (G.level !== 'kolay' || Math.random() < 0.75)) { for (const m of ms) layMeld(p, m); G.opened[p] = true; G.openT[p] = G.tc; G.need = tot + 1; }
     if (!G.opened[p]) return;
   }
   const r = solve(h(), 'count'); for (const m of assign(h(), r.m)) if (m.length < h().length) layMeld(p, m);
@@ -844,7 +855,7 @@ function humanDiscard(id) {
 function humanPutBack() { if (!myTurn() || !mustUse()) return; cancelStage(); const id = G.took; G.hand[0].splice(G.hand[0].indexOf(id), 1); G.pile.push(id); G.took = -1; G.phase = 'draw'; selSet.delete(id); syncRack(); save(); render(); }
 function humanMeld() {
   if (!myTurn() || G.phase !== 'play') return;
-  const ids = [...selSet], m = parseMeld(ids);
+  const ids = [...selSet], m = parseMeld(ids) || (G.opened[0] ? null : parsePair(ids));
   if (!m) { toast(T().badMeld, '#f87171'); Sfx.bad(); return; }
   if (!G.opened[0]) { G.stage.push(m); ids.forEach((id) => { G.hand[0].splice(G.hand[0].indexOf(id), 1); }); selSet.clear(); syncRack(); Sfx.tap(); save(); render(); return; }
   if (ids.length >= G.hand[0].length) { toast(T().keepOne, '#f87171'); return; }
@@ -854,12 +865,12 @@ function cancelStage() { for (const m of G.stage) G.hand[0].push(...m.ids); G.st
 function unstage(i) { const m = G.stage.splice(i, 1)[0]; if (m) { G.hand[0].push(...m.ids); syncRack(); save(); render(); } }
 function humanOpen() {
   if (!myTurn() || G.opened[0] || !G.stage.length) return;
-  const tot = G.stage.reduce((s, m) => s + m.val, 0);
-  if (tot < OPEN) { toast(T().lowOpen(tot), '#f87171'); Sfx.bad(); return; }
+  const tot = G.stage.reduce((s, m) => s + m.val, 0), pairs = G.stage.filter((m) => m.t === 'pair').length;
+  if (pairs ? !(pairs >= 5 || pairs >= 4 && G.stage.length > pairs) : tot < need()) { toast(pairs ? T().lowPairs : T().lowOpen(tot, need()), '#f87171'); Sfx.bad(); return; }
   if (!G.hand[0].length) { toast(T().keepOne, '#f87171'); return; }
   if (G.took >= 0 && G.hand[0].includes(G.took)) { toast(T().mustOpen, '#f87171'); return; }
   for (const m of G.stage) { m.o = 0; G.melds.push(m); }
-  G.stage = []; G.opened[0] = true; G.openT[0] = G.tc; G.took = -1; Sfx.good(); save(); render();
+  G.stage = []; G.opened[0] = true; G.openT[0] = G.tc; G.took = -1; if (!pairs) G.need = tot + 1; Sfx.good(); save(); render();
 }
 function humanAdd(mi) {
   if (!myTurn() || G.phase !== 'play') return;
@@ -935,7 +946,7 @@ function render() {
   const st = $('stage');
   st.hidden = !G.stage.length;
   if (!st.hidden) { const tot = G.stage.reduce((s, m) => s + m.val, 0);
-    st.innerHTML = `<div class="sm">${G.stage.map((m, i) => `<div class="meld" data-si="${i}">${m.ids.map((id) => cardHtml(id)).join('')}</div>`).join('')}</div><span class="tot">${esc(t.total(tot))}</span>`; }
+    st.innerHTML = `<div class="sm">${G.stage.map((m, i) => `<div class="meld" data-si="${i}">${m.ids.map((id) => cardHtml(id)).join('')}</div>`).join('')}</div><span class="tot">${esc(t.total(tot, need(), G.stage.filter((m) => m.t === 'pair').length))}</span>`; }
   $('rack').innerHTML = G.rack.map((id, i) => `<div class="slot" data-s="${i}">${id >= 0 ? cardHtml(id, (selSet.has(id) ? 'sel' : '') + (id === newId ? ' nw' : '')) : ''}</div>`).join('');
   let s = '';
   if (live) {
