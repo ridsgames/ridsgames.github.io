@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<script id="rgErrJs">(() => { const E = window.__rgErr = [], keep = (m, src) => { if (E.length >= 5) E.shift(); E.push({ m: String(m || '').slice(0, 300), src: String(src || '').slice(0, 400), t: new Date().toISOString().slice(11, 19) }); }, st = (x, n) => x && x.stack ? String(x.stack).split('\n').slice(1, n).map((y) => y.trim()).join(' | ') : '';
+addEventListener('error', (e) => { if (e.target && e.target !== window) return; const s = st(e.error, 4); keep(e.message, `${(e.filename || '').split('/').pop()}:${e.lineno}:${e.colno}${s ? ' ' + s : ''}`); }, true);
+addEventListener('unhandledrejection', (e) => { const r = e.reason; keep(r && r.message ? r.message : r, st(r, 3) || 'promise'); }); })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Satranç | Ridsgames</title>
+<meta name="description" content="Satranç: FIDE kurallarıyla rok, geçerken alma, terfi, şah mat, pat ve beraberlikler. Bilgisayara karşı üç seviyede ya da aynı cihazda iki kişi.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --turn: #ef4444;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); white-space: nowrap; }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill:disabled { opacity: .4; cursor: default; }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 560px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı: ileti, tahta, sıra paneli */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 8px 10px 8px; }
+.slot { flex: none; height: 32px; width: 100%; display: flex; align-items: center; justify-content: center; }
+.msg {
+  max-width: 100%; padding: 6px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 800; color: #fff; text-align: center; line-height: 1.25;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s;
+}
+.msg.on { opacity: 1; transform: none; }
+.msg.warn { border-color: #ffd43b; }
+#boardWrap { flex: 1; min-height: 0; width: 100%; max-height: calc(100vw - 16px); position: relative; } /* dikeyde tahta, ileti ve panel ortada toplanır */
+#board { position: absolute; display: block; touch-action: none; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, .55)); }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+/* Sıra paneli: keçeli ahşap tepsi */
+.dock {
+  flex: none; width: 100%; max-width: 440px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+  border-style: solid; border-width: 20px 17px 24px; border-image: url("../kizma-birader/tepsi.webp") 60 50 72 50 fill / 20px 17px 24px stretch;
+  padding: 0 4px 0 8px; background: none;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .5)) drop-shadow(0 0 7px color-mix(in srgb, var(--turn) 60%, transparent));
+  transition: filter .3s;
+}
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ava { flex: none; display: inline-block; border-radius: 50%; background: url("../kizma-birader/karakterler.webp") 0 0 / 400% 100%; }
+.chip { position: relative; width: 46px; height: 46px; box-shadow: 0 0 0 3px var(--turn), 0 3px 8px rgba(0, 0, 0, .45); transition: box-shadow .3s; }
+.chip.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .4; } 100% { scale: 1; } }
+.who .t { min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+#turnName { font-size: 17px; font-weight: 800; line-height: 1.2; color: #fff; }
+#turnMsg { font-size: 14px; color: #d8f3dc; line-height: 1.3; margin-top: 2px; min-height: 1.3em; }
+.skor { display: grid; gap: 6px; padding: 6px 8px; border-radius: 12px; background: rgba(2, 6, 23, .35); }
+.skor div { display: flex; align-items: center; gap: 7px; font-size: 16px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.skor .ava { width: 24px; height: 24px; }
+.tas { flex: none; width: 16px; height: 16px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, .6), inset 0 -2px 0 rgba(0, 0, 0, .25); }
+.tas.w { background: radial-gradient(circle at 35% 30%, #fff, #efe4cf 55%, #c9b896); }
+.tas.b { background: radial-gradient(circle at 35% 30%, #6b6b6b, #2b2b2b 55%, #111); border: 1px solid rgba(255, 255, 255, .25); }
+.skor .k { font-size: 12px; font-weight: 700; color: #ffe066; margin-left: -3px; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Yatay telefon: üst çubuk solda dar menü sütunu, kare tahta ortada, sağda ileti ve sıra paneli; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: 0 minmax(0, 1fr) clamp(150px, 26vw, 210px); grid-template-rows: auto minmax(0, 1fr); }
+  main { display: contents; }
+  .top { grid-column: 1; grid-row: 1 / 3; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; max-width: none; flex-direction: column; justify-content: flex-start; padding: 10px 6px; gap: 12px; }
+  .logo img { width: 100%; max-width: 56px; height: auto; }
+  .gname, .pill .lbl { display: none; }
+  .tools { flex-direction: column; gap: 7px; }
+  .pill { padding: 0 8px; }
+  .pill.lang { font-size: 11px; padding: 0 6px; white-space: nowrap; }
+  #boardWrap { grid-column: 2; grid-row: 1 / 3; width: auto; max-height: none; margin: 6px 4px; }
+  .slot { grid-column: 3; grid-row: 1; width: auto; height: auto; min-height: 40px; padding: 8px 8px 0 0; }
+  .msg { font-size: 12.5px; padding: 6px 10px; border-radius: 14px; }
+  .dock { grid-column: 3; grid-row: 2; width: auto; max-width: none; margin: 8px 8px 8px 0; grid-template-columns: 1fr; align-content: space-evenly; justify-items: center; gap: 10px; padding: 4px 4px 8px; }
+  .who { flex-direction: column; text-align: center; gap: 8px; }
+  .chip { width: 54px; height: 54px; }
+  .skor { grid-template-columns: 1fr; gap: 8px; }
+  body > .ov { padding: 8px; }
+  footer { display: none; }
+  #setupOv .card { max-width: 560px; padding: 14px 18px; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 8px; }
+  #setupOv .field { grid-template-columns: 130px 1fr; align-items: center; padding: 8px 0; }
+  #setupOv .btns { margin-top: 8px; grid-auto-flow: column; grid-auto-columns: 1fr; }
+}
+/* Geniş yatay ekran (tablet, bilgisayar): tahta ortada büyük, panel sağda */
+@media (orientation: landscape) and (min-height: 501px) and (min-width: 900px) {
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto minmax(0, 1fr); gap: 12px 18px; max-width: 1200px; width: 100%; margin: 0 auto; padding: 14px 18px; }
+  #boardWrap { grid-column: 1; grid-row: 1 / 3; align-self: stretch; justify-self: stretch; max-height: none; }
+  .slot { grid-column: 2; grid-row: 1; height: auto; min-height: 44px; align-items: flex-end; }
+  .msg { border-radius: 16px; }
+  .dock { grid-column: 2; grid-row: 2; align-self: start; grid-template-columns: 1fr; justify-items: center; gap: 14px; padding: 10px 6px 14px; }
+  .who { flex-direction: column; text-align: center; gap: 10px; }
+  .chip { width: 64px; height: 64px; }
+  .skor { grid-template-columns: 1fr 1fr; gap: 12px; }
+}
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.field { display: grid; gap: 8px; padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { min-height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.note { margin: 10px 0 0; font-size: 12.5px; color: var(--dim); text-align: center; line-height: 1.4; }
+.btns { display: grid; gap: 10px; margin-top: 14px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.final { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 4px 0 6px; font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.final span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; background: rgba(2, 6, 23, .55); }
+.final span.win { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.final .ava { width: 32px; height: 32px; }
+
+@media (prefers-reduced-motion: reduce) { .chip.pop { animation: none; } .msg { transition: none; } }
+/* Telefonda oyun alanı tüm ekranı kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) { footer { display: none; } }
+
+/* Tek düğme düzeni: sağ üstte ayarlar, sağ altta tam ekran; üst çubuk ayarlar penceresine dönüştü, oyun alanı ekranın tamamı */
+.top { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; padding: 16px; margin: 0; overflow: auto;
+  background: rgba(2, 6, 23, .72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 0; grid-column: auto; grid-row: auto; }
+html.rgSet .top { display: flex; }
+.top .in { position: relative; width: 100%; max-width: 340px; height: auto; margin: auto; padding: 18px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 14px;
+  border-radius: 20px; background: #0b1220; border: 1px solid rgba(34, 211, 238, .3); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
+.top .logo { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.top .logo img { height: 40px; width: auto; max-width: none; }
+.top .gname { display: inline-block; }
+.top .tools { display: grid; gap: 8px; margin: 0; flex-direction: column; }
+.top .pill { width: 100%; height: 48px; border-radius: 13px; justify-content: flex-start; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 700; }
+.top .pill .ico { width: 22px; text-align: center; font-size: 18px; }
+.top .pill .lbl { display: inline; }
+.top .pill.lang { justify-content: center; font-size: 15px; padding: 0 16px; }
+.top .rgClose { height: 44px; border-radius: 999px; border: 0; font-weight: 800; font-size: 15px; color: #e2e8f0; background: rgba(30, 41, 59, .9); }
+.rgFab { position: fixed; z-index: 30; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: rgba(2, 6, 23, .62); border: 1px solid rgba(148, 163, 184, .32); color: #e2e8f0; box-shadow: 0 3px 10px rgba(0, 0, 0, .4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.rgFab:hover { background: rgba(15, 23, 42, .9); color: #fff; }
+.rgFab.set { top: max(6px, env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); }
+.rgFab.fs { bottom: max(6px, env(safe-area-inset-bottom)); right: max(6px, env(safe-area-inset-right)); width: 36px; height: 36px; opacity: .8; }
+.rgFab.fs .fsOut, html.isFs .rgFab.fs .fsIn { display: none; } html.isFs .rgFab.fs .fsOut { display: inline; }
+footer { display: none; }
+
+/* Satranç: hamle listesi, alınan taşlar, terfi seçimi */
+.mlist { grid-column: 1 / -1; min-width: 0; min-height: 26px; overflow-x: auto; white-space: nowrap; padding: 4px 8px; border-radius: 8px; background: rgba(2, 6, 23, .35);
+  font-size: 13px; font-weight: 600; color: #d8f3dc; line-height: 18px; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); scrollbar-width: none; }
+.mlist::-webkit-scrollbar { display: none; }
+.mlist i { font-style: normal; color: #94a3b8; margin: 0 3px 0 6px; } .mlist i:first-child { margin-left: 0; }
+.mlist b { color: #ffe066; }
+.skor div { min-width: 0; }
+.cap, .pro button { font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "Apple Symbols", "DejaVu Sans", serif; }
+.cap { min-width: 0; max-width: 34vw; overflow: hidden; white-space: nowrap; font-size: 16px; font-weight: 400; letter-spacing: -2px; line-height: 1; }
+.cap.w, .pro.w button { color: #fbf6ea; text-shadow: 0 0 1px #000, 0 0 1px #000, 0 1px 2px rgba(0, 0, 0, .7); }
+.cap.b, .pro.b button { color: #1d1b19; text-shadow: 0 0 1px rgba(255, 255, 255, .8), 0 0 1px rgba(255, 255, 255, .8); }
+.skor .k { margin-left: 0; }
+.pro { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.pro button { height: 68px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: linear-gradient(135deg, #f0d6aa, #d9b583); font-size: 46px; line-height: 1; padding: 0; }
+.pro button:hover { border-color: var(--cyan); filter: brightness(1.06); }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="satranc" data-name="Satranç"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <span class="homeIco" aria-hidden="true" style="display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(8,51,68,.85);border:1.5px solid rgba(34,211,238,.5);color:#67e8f9;box-shadow:0 2px 8px rgba(0,0,0,.35);flex:none"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 3.3 2.6 11.6a.8.8 0 0 0 .53 1.4H5v7.2c0 .44.36.8.8.8h4.2v-5.6h4v5.6h4.2c.44 0 .8-.36.8-.8V13h1.87a.8.8 0 0 0 .53-1.4z"/></svg></span>
+      <span class="gname" id="gameName">Satranç</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="undoBtn" class="pill" type="button" aria-label="Geri al"><span class="ico">↶</span><span class="lbl" id="undoLbl">Geri al</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dili değiştir">TR | EN</button>
+    </div>
+    <button type="button" class="rgClose">Kapat</button>
+  </div>
+</header>
+<button id="rgSetBtn" class="rgFab set" type="button" aria-label="Ayarlar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+<button id="fsBtn" class="rgFab fs" type="button" aria-label="Tam ekran"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsIn" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+
+<main>
+  <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
+  <div id="boardWrap"><canvas id="board" role="img" aria-label="Satranç tahtası"></canvas></div>
+  <div class="dock" id="dock">
+    <div class="who">
+      <span class="chip ava" id="chip" aria-hidden="true"></span>
+      <div class="t"><div id="turnName"></div><div id="turnMsg"></div></div>
+    </div>
+    <div class="skor" id="skor" role="status">
+      <div><span class="ava" id="av0" aria-hidden="true"></span><span class="tas w"></span><span class="cap b" id="cp0"></span><span class="k" id="df0"></span></div>
+      <div><span class="ava" id="av1" aria-hidden="true"></span><span class="tas b"></span><span class="cap w" id="cp1"></span><span class="k" id="df1"></span></div>
+    </div>
+    <div class="mlist" id="mlist"></div>
+  </div>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Satranç</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="field"><span id="modeLbl"></span><div class="seg two" id="modeSeg"><button type="button" data-v="cpu"></button><button type="button" data-v="two"></button></div></div>
+    <div class="field" id="lvlField"><span id="lvlLbl"></span><div class="seg" id="lvlSeg"><button type="button" data-v="easy"></button><button type="button" data-v="mid"></button><button type="button" data-v="hard"></button></div></div>
+    <div class="field" id="colField"><span id="colLbl"></span><div class="seg" id="colSeg"><button type="button" data-v="w"></button><button type="button" data-v="b"></button><button type="button" data-v="rnd"></button></div></div>
+    <p class="note" id="setupNote"></p>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button"></button>
+      <button class="big alt" id="resumeBtn" type="button" hidden></button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1" style="outline:none"></h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button"></button></div>
+  </div>
+</div>
+
+<!-- Terfi -->
+<div class="ov" id="promoOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="promoTitle">
+    <h2 id="promoTitle"></h2>
+    <div class="pro" id="promoBtns"></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 id="winTitle"></h2>
+    <div class="final" id="final"></div>
+    <p class="sub" id="winSub"></p>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button"></button>
+      <button class="big alt" id="toMenuBtn" type="button"></button>
+    </div>
+  </div>
+</div>
+
+<script id="motor">
+// ---------- Motor: satranç kuralları (FIDE) ve bilgisayar (arayüzden bağımsız) ----------
+// Tahta 64 kare, kare = satır * 8 + sütun; satır 0 en üstte (8. yatay), sütun 0 a hattı: a8 = 0, h1 = 63.
+// Değer: 0 boş; 1 piyon, 2 at, 3 fil, 4 kale, 5 vezir, 6 şah; beyaz artı, siyah eksi.
+// Konum: { b, turn: 0 beyaz / 1 siyah, castle: 1 K, 2 Q, 4 k, 8 q, ep: geçerken alma karesi ya da -1, half: 50 hamle sayacı, full: hamle no, h: Zobrist }
+const OFF_N = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+const OFF_K = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+const DIAG = [0, 2, 5, 7], ORTH = [1, 3, 4, 6], ALLD = [0, 1, 2, 3, 4, 5, 6, 7];
+const NT = [], KT = [], RAY = [];
+for (let s = 0; s < 64; s++) {
+  const r = s >> 3, c = s & 7, ok = (a, b) => r + a >= 0 && r + a < 8 && c + b >= 0 && c + b < 8;
+  NT.push(OFF_N.filter(([a, b]) => ok(a, b)).map(([a, b]) => s + a * 8 + b));
+  KT.push(OFF_K.filter(([a, b]) => ok(a, b)).map(([a, b]) => s + a * 8 + b));
+  RAY.push(OFF_K.map(([a, b]) => { const out = []; for (let k = 1; ok(a * k, b * k); k++) out.push(s + (a * 8 + b) * k); return out; }));
+}
+// rok hakkı maskesi: şah ya da kale ilk karesinden oynarsa (ya da kale orada alınırsa) hak düşer
+const CR = new Array(64).fill(15); CR[60] = 12; CR[63] = 14; CR[56] = 13; CR[4] = 3; CR[7] = 11; CR[0] = 7;
+let zs = 0x2545f491;
+const zr = () => { zs ^= zs << 13; zs ^= zs >>> 17; zs ^= zs << 5; return zs | 0; };
+const ZP = Array.from({ length: 64 * 13 }, zr), ZC = Array.from({ length: 16 }, zr), ZE = Array.from({ length: 65 }, zr), ZT = zr();
+const zp = (sq, v) => ZP[sq * 13 + v + 6];
+function zob(p) { let h = (p.turn ? ZT : 0) ^ ZC[p.castle] ^ ZE[p.ep + 1]; for (let i = 0; i < 64; i++) if (p.b[i]) h ^= zp(i, p.b[i]); return h; }
+const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+function fromFen(f) {
+  const [rows, side, cas, ep, half, full] = String(f).trim().split(/\s+/), b = new Int8Array(64);
+  let i = 0;
+  for (const ch of rows || '') {
+    if (ch === '/') continue;
+    if (ch >= '1' && ch <= '8') { i += +ch; continue; }
+    const t = 'pnbrqk'.indexOf(ch.toLowerCase()); if (t < 0 || i > 63) return null;
+    if (t === 0 && (i < 8 || i > 55)) return null; // ilk ve son yatayda piyon olmaz
+    b[i++] = ch === ch.toLowerCase() ? -(t + 1) : t + 1;
+  }
+  if (i !== 64 || b.indexOf(6) < 0 || b.indexOf(-6) < 0) return null;
+  let c = 0; for (const ch of cas || '') c |= { K: 1, Q: 2, k: 4, q: 8 }[ch] || 0;
+  const e = ep && ep !== '-' ? 'abcdefgh'.indexOf(ep[0]) + (8 - +ep[1]) * 8 : -1;
+  const p = { b, turn: side === 'b' ? 1 : 0, castle: c, ep: e >= 0 && e < 64 ? e : -1, half: +half || 0, full: +full || 1, h: 0 };
+  p.h = zob(p); return p;
+}
+// s karesi by (1 beyaz, -1 siyah) tarafından tehdit ediliyor mu
+function attacked(b, s, by) {
+  for (const t of NT[s]) if (b[t] === 2 * by) return true;
+  for (const t of KT[s]) if (b[t] === 6 * by) return true;
+  const r = (s >> 3) + by, c = s & 7; // beyaz piyon bir alt satırdan, siyah bir üst satırdan vurur
+  if (r >= 0 && r < 8 && ((c > 0 && b[r * 8 + c - 1] === by) || (c < 7 && b[r * 8 + c + 1] === by))) return true;
+  for (const d of DIAG) for (const t of RAY[s][d]) { const v = b[t]; if (v) { if (v === 3 * by || v === 5 * by) return true; break; } }
+  for (const d of ORTH) for (const t of RAY[s][d]) { const v = b[t]; if (v) { if (v === 4 * by || v === 5 * by) return true; break; } }
+  return false;
+}
+// Şahın güvenliğine bakmadan bütün hamleler; caps: yalnız alışlar ve terfiler (sakin arama için)
+function pseudo(p, caps) {
+  const b = p.b, s = p.turn ? -1 : 1, out = [];
+  for (let f = 0; f < 64; f++) {
+    const v = b[f] * s; if (v <= 0) continue;
+    if (v === 1) {
+      const r = f >> 3, c = f & 7, fw = f - 8 * s, promo = r === (s > 0 ? 1 : 6);
+      const add = (t) => { if (promo) for (let q = 5; q >= 2; q--) out.push({ from: f, to: t, promo: q }); else out.push({ from: f, to: t, promo: 0 }); };
+      if (!b[fw] && (!caps || promo)) { add(fw); if (!caps && r === (s > 0 ? 6 : 1) && !b[fw - 8 * s]) add(fw - 8 * s); }
+      if (c > 0 && (b[fw - 1] * s < 0 || fw - 1 === p.ep)) add(fw - 1);
+      if (c < 7 && (b[fw + 1] * s < 0 || fw + 1 === p.ep)) add(fw + 1);
+    } else if (v === 2 || v === 6) {
+      for (const t of v === 2 ? NT[f] : KT[f]) { const x = b[t] * s; if (x < 0 || (!x && !caps)) out.push({ from: f, to: t, promo: 0 }); }
+    } else {
+      for (const d of v === 3 ? DIAG : v === 4 ? ORTH : ALLD) for (const t of RAY[f][d]) {
+        const x = b[t] * s; if (x > 0) break;
+        if (x < 0 || !caps) out.push({ from: f, to: t, promo: 0 });
+        if (x < 0) break;
+      }
+    }
+  }
+  if (!caps) { // rok: şah ve kale oynamamış, arası boş; şahın durduğu, geçtiği ve varacağı kare tehdit altında değil
+    const k = s > 0 ? 60 : 4, K = s > 0 ? 1 : 4, Q = s > 0 ? 2 : 8;
+    if (p.castle & K && b[k] === 6 * s && b[k + 3] === 4 * s && !b[k + 1] && !b[k + 2] && !attacked(b, k, -s) && !attacked(b, k + 1, -s) && !attacked(b, k + 2, -s)) out.push({ from: k, to: k + 2, promo: 0 });
+    if (p.castle & Q && b[k] === 6 * s && b[k - 4] === 4 * s && !b[k - 1] && !b[k - 2] && !b[k - 3] && !attacked(b, k, -s) && !attacked(b, k - 1, -s) && !attacked(b, k - 2, -s)) out.push({ from: k, to: k - 2, promo: 0 });
+  }
+  return out;
+}
+function make(p, m) { // yeni konum döner, eskisi değişmez
+  const b = p.b.slice(), v = b[m.from], s = v > 0 ? 1 : -1, cap = b[m.to], nv = m.promo ? m.promo * s : v;
+  let h = p.h ^ ZT ^ zp(m.from, v) ^ zp(m.to, nv), ep = -1, half = cap ? 0 : p.half + 1;
+  if (cap) h ^= zp(m.to, cap);
+  b[m.from] = 0; b[m.to] = nv;
+  if (v === s) { // piyon: geçerken alma, iki kare ilerleme
+    half = 0;
+    if (m.to === p.ep) { b[m.to + 8 * s] = 0; h ^= zp(m.to + 8 * s, -s); }
+    if (m.to - m.from === -16 * s) { const c = m.to & 7; if ((c > 0 && b[m.to - 1] === -s) || (c < 7 && b[m.to + 1] === -s)) ep = (m.from + m.to) >> 1; } // ponytail: yanında rakip piyon varsa yazılır, açmaz denetlenmez
+  } else if (v === 6 * s && Math.abs(m.to - m.from) === 2) { // rok: kale şahın öbür yanına geçer
+    const rf = m.to > m.from ? m.to + 1 : m.to - 2, rt = m.to > m.from ? m.to - 1 : m.to + 1;
+    b[rt] = b[rf]; b[rf] = 0; h ^= zp(rf, 4 * s) ^ zp(rt, 4 * s);
+  }
+  const castle = p.castle & CR[m.from] & CR[m.to];
+  h ^= ZC[p.castle] ^ ZC[castle] ^ ZE[p.ep + 1] ^ ZE[ep + 1];
+  return { b, turn: 1 - p.turn, castle, ep, half, full: p.full + p.turn, h };
+}
+const kingAt = (b, s) => b.indexOf(6 * s);
+function legal(p) { const s = p.turn ? -1 : 1; return pseudo(p, false).filter((m) => { const q = make(p, m); return !attacked(q.b, kingAt(q.b, s), -s); }); }
+const inCheck = (p) => { const s = p.turn ? -1 : 1; return attacked(p.b, kingAt(p.b, s), -s); };
+// Ölü konum: şah şaha, şah ve tek hafif taş şaha, yalnız aynı renk karelerde filler kaldıysa
+function dead(b) {
+  let n = 0, kn = 0, col = -1, mixed = false;
+  for (let i = 0; i < 64; i++) {
+    const t = Math.abs(b[i]); if (!t || t === 6) continue;
+    if (t !== 2 && t !== 3) return false;
+    n++; if (t === 2) { kn++; continue; }
+    const c = ((i >> 3) + (i & 7)) & 1; if (col < 0) col = c; else if (c !== col) mixed = true;
+  }
+  return n <= 1 || (!kn && !mixed);
+}
+const sqName = (i) => 'abcdefgh'[i & 7] + (8 - (i >> 3));
+function san(p, m, ms) { // cebirsel gösterim (İngilizce harflerle; arayüz Türkçeye çevirir)
+  const v = Math.abs(p.b[m.from]); let s;
+  if (v === 6 && Math.abs(m.to - m.from) === 2) s = m.to > m.from ? 'O-O' : 'O-O-O';
+  else {
+    const cap = p.b[m.to] || (v === 1 && m.to === p.ep);
+    if (v === 1) s = (cap ? 'abcdefgh'[m.from & 7] + 'x' : '') + sqName(m.to) + (m.promo ? '=' + ' PNBRQK'[m.promo] : '');
+    else {
+      const o = (ms || legal(p)).filter((x) => x.to === m.to && x.from !== m.from && Math.abs(p.b[x.from]) === v);
+      const f = o.some((x) => (x.from & 7) === (m.from & 7)), r = o.some((x) => x.from >> 3 === m.from >> 3);
+      s = ' PNBRQK'[v] + (!o.length ? '' : !f ? 'abcdefgh'[m.from & 7] : !r ? String(8 - (m.from >> 3)) : sqName(m.from)) + (cap ? 'x' : '') + sqName(m.to);
+    }
+  }
+  const q = make(p, m); if (inCheck(q)) s += legal(q).length ? '+' : '#';
+  return s;
+}
+
+// ---------- Bilgisayar: alfa-beta, sakin arama, taş değeri + kare tabloları ----------
+const AI = { ms: 1200, depth: 12 };
+const MATE = 100000, INF = 1e9, VAL = [0, 100, 320, 330, 500, 900, 0];
+const clock = typeof performance !== 'undefined' ? performance : Date;
+// Kare tabloları beyazın gözünden, a8 baştan (siyah için i ^ 56); 1 piyon ... 6 şah (orta oyun), 7 şah (oyun sonu)
+const PST = [[],
+  [0, 0, 0, 0, 0, 0, 0, 0, 50, 50, 50, 50, 50, 50, 50, 50, 10, 10, 20, 30, 30, 20, 10, 10, 5, 5, 10, 25, 25, 10, 5, 5, 0, 0, 0, 20, 20, 0, 0, 0, 5, -5, -10, 0, 0, -10, -5, 5, 5, 10, 10, -20, -20, 10, 10, 5, 0, 0, 0, 0, 0, 0, 0, 0],
+  [-50, -40, -30, -30, -30, -30, -40, -50, -40, -20, 0, 0, 0, 0, -20, -40, -30, 0, 10, 15, 15, 10, 0, -30, -30, 5, 15, 20, 20, 15, 5, -30, -30, 0, 15, 20, 20, 15, 0, -30, -30, 5, 10, 15, 15, 10, 5, -30, -40, -20, 0, 5, 5, 0, -20, -40, -50, -40, -30, -30, -30, -30, -40, -50],
+  [-20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 10, 10, 5, 0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 10, 10, 10, 10, 10, 10, -10, -10, 5, 0, 0, 0, 0, 5, -10, -20, -10, -10, -10, -10, -10, -10, -20],
+  [0, 0, 0, 0, 0, 0, 0, 0, 5, 10, 10, 10, 10, 10, 10, 5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, 0, 0, 0, 5, 5, 0, 0, 0],
+  [-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5, 5, 5, 5, 0, -10, -5, 0, 5, 5, 5, 5, 0, -5, 0, 0, 5, 5, 5, 5, 0, -5, -10, 5, 5, 5, 5, 5, 0, -10, -10, 0, 5, 0, 0, 0, 0, -10, -20, -10, -10, -5, -5, -10, -10, -20],
+  [-30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -20, -30, -30, -40, -40, -30, -30, -20, -10, -20, -20, -20, -20, -20, -20, -10, 20, 20, 0, 0, 0, 0, 20, 20, 20, 30, 10, 0, 0, 10, 30, 20],
+  [-50, -40, -30, -20, -20, -30, -40, -50, -30, -20, -10, 0, 0, -10, -20, -30, -30, -10, 20, 30, 30, 20, -10, -30, -30, -10, 30, 40, 40, 30, -10, -30, -30, -10, 30, 40, 40, 30, -10, -30, -30, -10, 20, 30, 30, 20, -10, -30, -30, -30, 0, 0, 0, 0, -30, -30, -50, -30, -30, -30, -30, -30, -30, -50]
+];
+function evaluate(p) { // sıradaki tarafın gözünden
+  const b = p.b; let s = 0, npm = 0, wk = 0, bk = 0;
+  for (let i = 0; i < 64; i++) { const t = Math.abs(b[i]); if (t > 1 && t < 6) npm += VAL[t]; }
+  const end = npm <= 1300;
+  for (let i = 0; i < 64; i++) {
+    const v = b[i]; if (!v) continue;
+    if (v > 0) { s += VAL[v] + PST[v === 6 && end ? 7 : v][i]; if (v === 6) wk = i; } else { s -= VAL[-v] + PST[v === -6 && end ? 7 : -v][i ^ 56]; if (v === -6) bk = i; }
+  }
+  if (end && Math.abs(s) > 300) { // önde olan rakip şahı kenara sıkıştırır, kendi şahını yaklaştırır
+    const lose = s > 0 ? bk : wk, win = s > 0 ? wk : bk, r = lose >> 3, c = lose & 7;
+    const edge = Math.max(3 - r, r - 4) + Math.max(3 - c, c - 4), near = 7 - Math.max(Math.abs(r - (win >> 3)), Math.abs(c - (win & 7)));
+    s += (s > 0 ? 1 : -1) * (10 * edge + 4 * near);
+  }
+  return p.turn ? -s : s;
+}
+function orderMoves(p, ms, killers) {
+  for (const m of ms) {
+    const x = p.b[m.to], a = Math.abs(p.b[m.from]);
+    m.k = x ? 10000 + 10 * VAL[Math.abs(x)] - VAL[a] : a === 1 && m.to === p.ep ? 10900 : m.promo ? 9000 + m.promo : killers && killers.some((k) => k.from === m.from && k.to === m.to) ? 8000 : 0;
+  }
+  return ms.sort((x, y) => y.k - x.k);
+}
+const tick = (st) => { if ((++st.nodes & 2047) === 0 && st.budget && clock.now() - st.t0 > st.budget) st.stop = true; return st.stop; };
+function qs(p, alpha, beta, st) {
+  if (tick(st)) return 0;
+  const e = evaluate(p); if (e >= beta) return e; if (e > alpha) alpha = e;
+  const s = p.turn ? -1 : 1;
+  for (const m of orderMoves(p, pseudo(p, true))) {
+    const q = make(p, m); if (attacked(q.b, kingAt(q.b, s), -s)) continue;
+    const v = -qs(q, -beta, -alpha, st);
+    if (st.stop) return 0;
+    if (v >= beta) return v;
+    if (v > alpha) alpha = v;
+  }
+  return alpha;
+}
+function search(p, depth, alpha, beta, ply, st) {
+  if (tick(st)) return 0;
+  if (p.half >= 100) return 0;
+  const K = st.keys, n = K.length;
+  for (let k = n - 4; k >= 0 && k >= n - p.half; k -= 2) if (K[k] === p.h) return 0; // tekrar eden konum beraberlik sayılır
+  const s = p.turn ? -1 : 1, chk = attacked(p.b, kingAt(p.b, s), -s);
+  if (chk && ply < 24) depth++; // şah çekilince bir kat daha bakılır
+  if (depth <= 0) return qs(p, alpha, beta, st);
+  const kl = st.killers[ply] || (st.killers[ply] = []);
+  let best = -INF, any = false;
+  K.push(p.h);
+  for (const m of orderMoves(p, pseudo(p, false), kl)) {
+    const q = make(p, m); if (attacked(q.b, kingAt(q.b, s), -s)) continue;
+    any = true;
+    const v = -search(q, depth - 1, -beta, -alpha, ply + 1, st);
+    if (st.stop) break;
+    if (v > best) best = v;
+    if (v > alpha) alpha = v;
+    if (alpha >= beta) { if (!p.b[m.to] && !(kl[0] && kl[0].from === m.from && kl[0].to === m.to)) { kl.unshift(m); kl.length = Math.min(kl.length, 2); } break; }
+  }
+  K.pop();
+  if (st.stop) return 0;
+  if (!any) return chk ? -MATE + ply : 0; // mat ya da pat
+  return best;
+}
+// Kökte hamleleri puanlar (derinleşerek; süre dolarsa son tamamlanan derinlik). margin: en iyiye bu kadar yakın hamlelerin puanı kesin çıkar
+function rootScores(p, maxDepth, budget, keys, margin) {
+  const st = { nodes: 0, stop: false, budget: 0, t0: clock.now(), keys: (keys || []).slice(), killers: [] };
+  let root = orderMoves(p, legal(p)).map((m) => ({ m, v: 0 })), done = root, depth = 0;
+  if (root.length <= 1) return { list: root, depth, nodes: 0 };
+  st.keys.push(p.h);
+  for (let d = 1; d <= maxDepth; d++) {
+    const out = []; let alpha = -INF;
+    for (const r of root) {
+      const v = -search(make(p, r.m), d - 1, -INF, -(alpha - margin), 1, st);
+      if (st.stop) break;
+      out.push({ m: r.m, v }); if (v > alpha) alpha = v;
+    }
+    if (st.stop) break;
+    done = root = out.sort((x, y) => y.v - x.v); depth = d; st.budget = budget; // ilk derinlik her zaman tamamlanır
+    if (Math.abs(done[0].v) > MATE - 500) break; // mat bulundu
+  }
+  return { list: done, depth, nodes: st.nodes };
+}
+// level: easy (bir kat, bazen rastgele), mid (üç kat), hard (süre sınırlı derinleşme)
+function cpuMove(p, level, keys, rnd, ms) {
+  rnd = rnd || Math.random;
+  const all = legal(p), pick = (a) => a[Math.floor(rnd() * a.length)];
+  if (all.length < 2) return all[0] || null;
+  if (level === 'easy' && rnd() < 0.2) return pick(all);
+  const c = level === 'easy' ? [1, 0, 120] : level === 'mid' ? [3, 4000, 25] : [AI.depth, ms || AI.ms, 1];
+  const r = rootScores(p, c[0], c[1], keys, c[2]), top = r.list[0].v;
+  return pick(r.list.filter((x) => x.v > top - c[2])).m;
+}
+</script>
+<script>
+// ---------- Metinler ----------
+const STR = {
+  tr: {
+    title: 'Satranç | Ridsgames', game: 'Satranç', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', undo: 'Geri al', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
+    rights: 'Tüm hakları saklıdır.', board: (s) => (s ? `Satranç tahtası. Son hamle: ${s}` : 'Satranç tahtası'),
+    setupSub: 'Taşlarını sür, rakibin şahını mat et.', modeLbl: 'Mod', modeCpu: 'Bilgisayara karşı', modeTwo: '2 oyuncu', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
+    colLbl: 'Rengin', colW: 'Beyaz', colB: 'Siyah', rnd: 'Rastgele', noteCpu: 'İlk hamleyi beyaz yapar. Siyahla oynarsan tahta senin yanına döner.', noteTwo: 'İlk hamleyi beyaz yapar. Tahta beyazın tarafından görünür.',
+    start: 'Başla', resume: 'Kaldığın yerden devam et',
+    rulesTitle: 'Nasıl oynanır?', rulesSub: 'Rakibin şahını mat eden kazanır. Kurallar FIDE Satranç Kurallarına göredir.', ok: 'Tamam',
+    ruleList: [
+      ['♟️', '<b>Piyon</b> bir kare ileri gider; ilk hamlesinde iki kare de gidebilir. Taşı yalnız <b>çapraz ileri</b> alır.'],
+      ['🐴', '<b>At</b> "L" çizerek gider ve taşların üstünden atlar. <b>Fil</b> çapraz, <b>kale</b> düz, <b>vezir</b> her yöne istediği kadar gider. <b>Şah</b> her yöne bir kare gider.'],
+      ['⚔️', 'Rakip taşın durduğu kareye giden taş onu alır. Taşların üstünden yalnız at atlayabilir.'],
+      ['⚠️', 'Şahı tehdit eden hamleye <b>şah</b> denir. Şahını tehdit altında bırakan hamle yapılamaz. Şah tehditten kurtulamıyorsa <b>mat</b> olur, oyun biter.'],
+      ['🏰', '<b>Rok:</b> Şah ve kale hiç oynamamışsa ve aralarında taş yoksa şah kaleye doğru iki kare gider, kale şahın öbür yanına geçer. Şah tehdit altındayken ya da geçeceği veya varacağı kare tehdit altındayken rok yapılamaz.'],
+      ['↗️', '<b>Geçerken alma:</b> Rakip piyon ilk hamlesinde iki kare ilerleyip piyonunun yanına gelirse, hemen sonraki hamlede onu bir kare ilerlemiş gibi çapraz alabilirsin.'],
+      ['👑', '<b>Terfi:</b> Son sıraya varan piyon aynı hamlede vezir, kale, fil ya da ata dönüşür.'],
+      ['🤝', '<b>Beraberlik:</b> pat (sırası gelenin yasal hamlesi yok, şahı da tehdit altında değil), aynı konumun üç kez oluşması, 50 hamle boyunca taş alınmaması ve piyon oynamaması, mat edecek taş kalmaması (ör. şah ve at karşısında yalnız şah).'],
+      ['👆', 'Önce taşına dokun, gidebileceği kareler işaretlenir; sonra gideceği kareye dokun. İlk hamleyi beyaz yapar.']
+    ],
+    turnYou: 'Sıra sende', turnCpu: 'Sıra bilgisayarda', turnP: (c) => `${c}ın sırası`, W: 'Beyaz', B: 'Siyah',
+    hintPick: 'Oynatacağın taşa dokun', hintTo: 'Gideceği kareye dokun', hintCheck: 'Şahın tehdit altında!', hintThink: 'Bilgisayar düşünüyor...', hintMove: 'Taş ilerliyor...',
+    check: 'Şah!', names: ['', 'piyon', 'at', 'fil', 'kale', 'vezir', 'şah'], promo: (n) => `Piyon ${n} oldu`, promoTitle: 'Piyon neye dönüşsün?',
+    noMove: 'Bu taşın gidebileceği kare yok', pinned: 'Bu taş oynarsa şahın tehdit altında kalır', mustSave: 'Şahın tehdit altında: önce onu kurtar',
+    youWin: 'Kazandın!', cpuWins: 'Bilgisayar kazandı', pWins: (c) => `${c} kazandı`, draw: 'Berabere!',
+    why: { mate: 'Şah mat.', stale: 'Pat: sırası gelen tarafın yasal hamlesi yok, şahı da tehdit altında değil.', rep: 'Aynı konum üç kez oluştu.', fifty: 'Son 50 hamlede taş alınmadı, piyon oynamadı.', dead: 'İki tarafta da mat edecek kadar taş kalmadı.' },
+    again: 'Tekrar oyna', toMenu: 'Ayarları değiştir', capAria: (a, b) => `Beyaz ${a}, siyah ${b} taş aldı`,
+    letters: { K: 'Ş', Q: 'V', R: 'K', B: 'F', N: 'A' }
+  },
+  en: {
+    title: 'Chess | Ridsgames', game: 'Chess', homeLabel: 'Ridsgames home', newGame: 'New game', undo: 'Undo', rules: 'Rules', sound: 'Sound', fs: 'Fullscreen', langAria: 'Switch language',
+    rights: 'All rights reserved.', board: (s) => (s ? `Chessboard. Last move: ${s}` : 'Chessboard'),
+    setupSub: 'Move your pieces and checkmate the enemy king.', modeLbl: 'Mode', modeCpu: 'Vs computer', modeTwo: '2 players', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
+    colLbl: 'Your colour', colW: 'White', colB: 'Black', rnd: 'Random', noteCpu: 'White moves first. If you play black the board turns to your side.', noteTwo: 'White moves first. The board is shown from white\'s side.',
+    start: 'Start', resume: 'Resume game',
+    rulesTitle: 'How to play', rulesSub: 'Checkmate your opponent\'s king to win. The rules follow the FIDE Laws of Chess.', ok: 'OK',
+    ruleList: [
+      ['♟️', 'A <b>pawn</b> moves one square forward, or two on its first move. It captures only <b>diagonally forward</b>.'],
+      ['🐴', 'The <b>knight</b> moves in an "L" and jumps over pieces. The <b>bishop</b> moves diagonally, the <b>rook</b> straight, the <b>queen</b> any distance in any direction. The <b>king</b> moves one square in any direction.'],
+      ['⚔️', 'A piece that moves onto an opponent\'s piece captures it. Only the knight may jump over other pieces.'],
+      ['⚠️', 'A move that attacks the king is <b>check</b>. You may not make a move that leaves your king attacked. If the king cannot escape the attack it is <b>checkmate</b> and the game ends.'],
+      ['🏰', '<b>Castling:</b> if the king and the rook have not moved and nothing stands between them, the king moves two squares towards the rook and the rook jumps to its other side. You cannot castle out of check or through or onto an attacked square.'],
+      ['↗️', '<b>En passant:</b> if an enemy pawn advances two squares on its first move and lands beside your pawn, on the very next move you may capture it diagonally as if it had moved one square.'],
+      ['👑', '<b>Promotion:</b> a pawn reaching the last rank becomes a queen, rook, bishop or knight in the same move.'],
+      ['🤝', '<b>Draws:</b> stalemate (the player to move has no legal move and is not in check), the same position occurring three times, 50 moves without a capture or pawn move, or too little material to mate (e.g. king and knight against a lone king).'],
+      ['👆', 'Tap your piece and its possible squares are marked, then tap where it should go. White moves first.']
+    ],
+    turnYou: 'Your turn', turnCpu: 'Computer\'s turn', turnP: (c) => `${c}'s turn`, W: 'White', B: 'Black',
+    hintPick: 'Tap the piece to move', hintTo: 'Tap its target square', hintCheck: 'Your king is in check!', hintThink: 'The computer is thinking...', hintMove: 'Moving...',
+    check: 'Check!', names: ['', 'pawn', 'knight', 'bishop', 'rook', 'queen', 'king'], promo: (n) => `Pawn promoted to a ${n}`, promoTitle: 'Promote the pawn to',
+    noMove: 'This piece has nowhere to go', pinned: 'Moving this piece would expose your king', mustSave: 'Your king is in check: get it out first',
+    youWin: 'You win!', cpuWins: 'The computer wins', pWins: (c) => `${c} wins`, draw: 'It\'s a draw!',
+    why: { mate: 'Checkmate.', stale: 'Stalemate: the player to move has no legal move and is not in check.', rep: 'The same position occurred three times.', fifty: 'No capture or pawn move in the last 50 moves.', dead: 'Neither side has enough material to checkmate.' },
+    again: 'Play again', toMenu: 'Change settings', capAria: (a, b) => `White captured ${a}, black ${b} pieces`,
+    letters: null
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Durum ----------
+// G: { mode, level, me: insanın rengi (0 beyaz, 1 siyah), start: başlangıç FEN, list: hamleler, ps: konumlar (ps[i] i. hamleden önce), sans, last, chk: tehdit altındaki şahın karesi, ms, over }
+let G = null, setup = { mode: 'cpu', level: 'easy', color: 'w' };
+let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false, aiMs = AI.ms;
+let moves = [], sel = -1, hover = -1, hilite = null, promoList = null;
+let view = fromFen(START).b, anim = null;
+const fx = [], ghosts = [];
+try { const s = JSON.parse(localStorage.getItem('rids_satranc_setup')); if (s && ['cpu', 'two'].includes(s.mode) && ['easy', 'mid', 'hard'].includes(s.level) && ['w', 'b', 'rnd'].includes(s.color)) setup = s; } catch (e) {}
+try { soundOn = localStorage.getItem('rids_satranc_sound') !== '0'; } catch (e) {}
+
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'satranc/' + olay, title: 'Satranç: ' + ad, event: true }); } catch (e) {} };
+const lvAd = (lv) => (lv === 'easy' ? 'kolay' : lv === 'mid' ? 'orta' : 'zor');
+const cur = () => G.ps[G.ps.length - 1];
+const isCpu = (side) => !!G && G.mode === 'cpu' && side !== G.me;
+const avaIdx = (side) => (!G || G.mode === 'two' ? (side === 0 ? 0 : 2) : side === G.me ? 0 : 1); // tilki, balina, kurbağa
+const avaPos = (i) => `${i * 100 / 3}% 0`;
+const TURNCOL = ['#ef4444', '#3b82f6', '#22c55e'];
+const turnCol = (side) => TURNCOL[avaIdx(side)];
+const colName = (side) => (side === 0 ? T().W : T().B);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
+const flip = () => !!(G && G.mode === 'cpu' && G.me === 1); // siyahla oynayana tahta döner
+const disp = (i) => (flip() ? 63 - i : i);
+const PTS = [0, 1, 3, 3, 5, 9, 0], GLYPH = (t) => String.fromCharCode(0x2660 - t, 0xFE0E); // dolu taş karakteri
+const PFONT = '"Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "Apple Symbols", "DejaVu Sans", serif';
+
+// ---------- Geometri ----------
+const cv = $('board'), g = cv.getContext('2d'), bgc = document.createElement('canvas'), bg = bgc.getContext('2d');
+let S = 320, dpr = 1, maxS = 900, fm = 14, cell = 36, sprites = {}, bgFlip = false;
+const avImg = new Image(); avImg.src = '../kizma-birader/karakterler.webp';
+function layout() {
+  const wrap = $('boardWrap');
+  dpr = Math.min(3, window.devicePixelRatio || 1);
+  S = Math.max(200, Math.floor(Math.min(wrap.clientWidth, wrap.clientHeight, maxS)));
+  fm = Math.round(Math.max(8, S * 0.04)); cell = (S - 2 * fm) / 8;
+  bgc.width = cv.width = Math.round(S * dpr); bgc.height = cv.height = Math.round(S * dpr);
+  cv.style.width = cv.style.height = S + 'px';
+  cv.style.left = Math.round((wrap.clientWidth - S) / 2) + 'px'; cv.style.top = Math.round((wrap.clientHeight - S) / 2) + 'px';
+  drawBg(); makeSprites();
+}
+const cx = (i) => fm + ((disp(i) & 7) + 0.5) * cell;
+const cy = (i) => fm + ((disp(i) >> 3) + 0.5) * cell;
+
+// ---------- Tahta zemini (önbellekte) ----------
+let tohum = 7;
+const rnd = () => { tohum = (tohum * 16807) % 2147483647; return (tohum - 1) / 2147483646; };
+const rr = (c, x, y, w, h, r) => { c.beginPath(); c.roundRect(x, y, w, h, r); };
+function grain(c, x, y, w, h, n, dark, light) { // ahşap damarı
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+  for (let i = 0; i < n; i++) {
+    const y0 = y + rnd() * h, a = 1 + rnd() * 3, f = .02 + rnd() * .05, p = rnd() * 6;
+    c.beginPath();
+    for (let xx = x; xx <= x + w + 4; xx += 4) { const yy = y0 + Math.sin(xx * f + p) * a; xx === x ? c.moveTo(xx, yy) : c.lineTo(xx, yy); }
+    c.strokeStyle = rnd() < .55 ? dark : light; c.globalAlpha = .05 + rnd() * .09; c.lineWidth = .5 + rnd() * 1.3; c.stroke();
+  }
+  c.restore();
+}
+function drawBg() {
+  const c = bg, fl = bgFlip = flip(); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, S, S); tohum = 11;
+  rr(c, 0, 0, S, S, Math.max(8, S * .025));
+  let d = c.createLinearGradient(0, 0, S, S); d.addColorStop(0, '#7a4219'); d.addColorStop(.5, '#5e3112'); d.addColorStop(1, '#4a250c'); c.fillStyle = d; c.fill();
+  grain(c, 0, 0, S, S, 60, 'rgb(40,18,4)', 'rgb(255,210,150)');
+  rr(c, 1, 1, S - 2, S - 2, Math.max(8, S * .025)); c.strokeStyle = 'rgba(255,215,160,.25)'; c.lineWidth = 1; c.stroke();
+  const ix = fm, iw = S - 2 * fm;
+  c.fillStyle = 'rgba(0,0,0,.45)'; c.fillRect(ix - 2, ix - 2, iw + 4, iw + 4);
+  for (let r = 0; r < 8; r++) for (let k = 0; k < 8; k++) {
+    const x = ix + k * cell, y = ix + r * cell, dark = (r + k) % 2 === 1;
+    const gr = c.createLinearGradient(x, y, x + cell, y + cell);
+    if (dark) { gr.addColorStop(0, '#a4683a'); gr.addColorStop(1, '#8f5830'); } else { gr.addColorStop(0, '#f0d6aa'); gr.addColorStop(1, '#e2c391'); }
+    c.fillStyle = gr; c.fillRect(x, y, cell + .5, cell + .5);
+    grain(c, x, y, cell, cell, 5, dark ? 'rgb(70,35,10)' : 'rgb(150,95,40)', 'rgb(255,240,210)');
+  }
+  c.strokeStyle = 'rgba(255,225,180,.35)'; c.strokeRect(ix - 1.5, ix - 1.5, iw + 3, iw + 3);
+  // kenar harfleri ve sayıları
+  if (fm >= 12) {
+    c.fillStyle = 'rgba(255,225,180,.55)'; c.font = `700 ${Math.round(fm * .55)}px Inter, system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let k = 0; k < 8; k++) { c.fillText('abcdefgh'[fl ? 7 - k : k], ix + (k + .5) * cell, S - fm / 2); c.fillText(String(fl ? k + 1 : 8 - k), fm / 2, ix + (k + .5) * cell); }
+  }
+}
+
+// ---------- Taşlar ----------
+// ponytail: taşlar sistem yazı tipindeki Unicode satranç karakterleri; karakter yoksa görünüş yazı tipine kalır, gerekirse SVG çizime geçilir
+function makeSprites() { // her taş bir kez çizilir: dolu karakter dolgu, boş karakter çizgi ve ayrıntı
+  const s = Math.ceil(cell * dpr), fs = Math.round(cell * .84 * dpr);
+  sprites = {};
+  for (let t = 1; t <= 6; t++) for (const w of [1, -1]) {
+    const k = document.createElement('canvas'); k.width = k.height = s; const c = k.getContext('2d');
+    c.font = `${fs}px ${PFONT}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    const solid = GLYPH(t), line = String.fromCharCode(0x265a - t, 0xFE0E), mt = c.measureText(solid);
+    const y = s / 2 + ((mt.actualBoundingBoxAscent || fs * .72) - (mt.actualBoundingBoxDescent || 0)) / 2;
+    c.shadowColor = 'rgba(20,8,0,.5)'; c.shadowBlur = s * .05; c.shadowOffsetY = s * .035;
+    if (w < 0) { c.lineWidth = s * .05; c.lineJoin = 'round'; c.strokeStyle = 'rgba(255,236,210,.6)'; c.strokeText(solid, s / 2, y); c.shadowColor = 'transparent'; }
+    c.fillStyle = w > 0 ? '#fbf6ea' : '#221f1c'; c.fillText(solid, s / 2, y);
+    c.shadowColor = 'transparent'; if (w > 0) { c.fillStyle = '#2a1d12'; c.fillText(line, s / 2, y); }
+    sprites[t * w] = k;
+  }
+}
+function piece(x, y, v, lift = 0, alpha = 1, scale = 1) {
+  const sp = sprites[v]; if (!sp) return;
+  const s = sp.width / dpr * scale;
+  g.save(); g.globalAlpha = alpha; g.drawImage(sp, x - s / 2, y - s / 2 - lift, s, s); g.restore();
+}
+
+// ---------- Efektler ----------
+function ring(x, y, color, big) { fx.push({ k: 'ring', x, y, color, t0: performance.now(), dur: big ? 650 : 420, big }); }
+function sparks(x, y, color, n) {
+  const t0 = performance.now();
+  for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 90; fx.push({ k: 'spark', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 40, color, r: 1.6 + Math.random() * 2, t0, dur: 450 + Math.random() * 350 }); }
+}
+function drawFx(now) {
+  for (let k = fx.length - 1; k >= 0; k--) {
+    const f = fx[k], t = (now - f.t0) / (f.dur / speed);
+    if (t >= 1) { fx.splice(k, 1); continue; }
+    if (t < 0) continue;
+    if (f.k === 'ring') { g.beginPath(); g.arc(f.x, f.y, cell * .4 * (.6 + t * (f.big ? 1.4 : .9)), 0, 7); g.strokeStyle = f.color; g.globalAlpha = (1 - t) * .9; g.lineWidth = 3 * (1 - t) + .5; g.stroke(); g.globalAlpha = 1; }
+    else {
+      const e = t * f.dur / 1000;
+      g.beginPath(); g.arc(f.x + f.vx * e, f.y + f.vy * e + 120 * e * e, f.r * (1 - t * .6), 0, 7); g.fillStyle = f.color; g.globalAlpha = 1 - t; g.fill(); g.globalAlpha = 1;
+    }
+  }
+}
+
+// ---------- Çizim ----------
+const canPlay = () => G && !G.over && !busy && !isCpu(cur().turn) && $('setupOv').hidden && $('rulesOv').hidden && $('winOv').hidden && $('promoOv').hidden;
+function tint(i, color, a) { g.save(); g.globalAlpha = a; g.fillStyle = color; g.fillRect(cx(i) - cell / 2, cy(i) - cell / 2, cell, cell); g.restore(); }
+function glow(i) { // tehdit altındaki şah
+  const x = cx(i), y = cy(i), gr = g.createRadialGradient(x, y, 0, x, y, cell * .6);
+  gr.addColorStop(0, 'rgba(255,40,40,.95)'); gr.addColorStop(.55, 'rgba(230,20,20,.5)'); gr.addColorStop(1, 'rgba(200,0,0,0)');
+  g.fillStyle = gr; g.fillRect(x - cell / 2, y - cell / 2, cell, cell);
+}
+function draw(now) {
+  if (bgFlip !== flip()) drawBg();
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, S, S); g.drawImage(bgc, 0, 0, S, S);
+  const pulse = reduce ? .85 : .62 + .38 * Math.sin(now / 260), play = canPlay();
+  if (G && G.last && !anim) { tint(G.last.from, '#ffd43b', .26); tint(G.last.to, '#ffd43b', .36); }
+  if (G && G.chk >= 0 && !anim) glow(G.chk);
+  if (play && sel >= 0) tint(sel, '#22d3ee', .4);
+  if (hilite) { tint(hilite.from, '#22d3ee', .3 + .2 * pulse); tint(hilite.to, '#22d3ee', .3 + .2 * pulse); }
+  for (let k = ghosts.length - 1; k >= 0; k--) { // alınan taş sönerek kalkar
+    const q = ghosts[k], t = (now - q.t0) / (380 / speed);
+    if (t >= 1) { ghosts.splice(k, 1); continue; }
+    piece(cx(q.i), cy(q.i), q.v, 0, 1 - t, 1 + t * .25);
+  }
+  for (let i = 0; i < 64; i++) {
+    const v = view[i]; if (!v || (anim && i === anim.from)) continue;
+    piece(cx(i), cy(i), v, play && (sel === i || (sel < 0 && hover === i && moves.some((m) => m.from === i))) ? 3 : 0);
+  }
+  if (play && sel >= 0) { // gidilebilecek kareler: boşsa nokta, alışsa halka
+    const p = cur();
+    for (const q of new Set(moves.filter((m) => m.from === sel).map((m) => m.to))) {
+      const capt = view[q] || (Math.abs(view[sel]) === 1 && q === p.ep), on = hover === q;
+      g.beginPath();
+      if (capt) { g.arc(cx(q), cy(q), cell * .43, 0, 7); g.strokeStyle = on ? 'rgba(34,211,238,.95)' : 'rgba(40,22,8,.42)'; g.lineWidth = cell * .08; g.stroke(); }
+      else { g.arc(cx(q), cy(q), cell * (on ? .2 : .16), 0, 7); g.fillStyle = on ? 'rgba(34,211,238,.9)' : 'rgba(40,22,8,.38)'; g.fill(); }
+    }
+  }
+  if (anim) { // hareket eden taş
+    const a = anim, t = Math.min(1, (now - a.t0) / a.dur), e = t * t * (3 - 2 * t);
+    piece(a.x0 + (a.x1 - a.x0) * e, a.y0 + (a.y1 - a.y0) * e, a.v, Math.sin(t * Math.PI) * cell * .12);
+    if (t >= 1 && a.res) { const r = a.res; a.res = null; r(); }
+  }
+  drawFx(now);
+}
+let lastNow = 0;
+const frame = (now) => {
+  if (G && !G.over && $('setupOv').hidden) G.ms += Math.min(1000, Math.max(0, now - lastNow));
+  lastNow = now; draw(now); requestAnimationFrame(frame);
+};
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), gn = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function knock(delay, vol, freq, len = 0.06) { // ahşap taşın tahtaya değmesi
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 4);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), gn = c.createGain();
+    f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 2.2; gn.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(gn).connect(c.destination); s.start(t);
+  }
+  return {
+    unlock: ctx,
+    pick() { knock(0, 0.18, 1500, 0.04); },
+    place() { knock(0, 0.38, 700); tone(260, 180, 0.06, 0.06, 'triangle'); },
+    capture() { knock(0, 0.4, 900); tone(700, 260, 0.2, 0.1, 'triangle'); },
+    check() { tone(880, 660, 0.16, 0.09, 'triangle'); tone(990, 740, 0.16, 0.07, 'triangle', 0.1); },
+    promo() { [523, 659, 784, 1047].forEach((f, k) => tone(f, f, 0.14, 0.1, 'triangle', k * 0.08)); },
+    err() { tone(220, 160, 0.12, 0.07, 'square'); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); },
+    lose() { [440, 370, 311, 262].forEach((f, k) => tone(f, f * .98, 0.24, 0.1, 'triangle', k * 0.16)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Bilgisayar ayrı iş parçacığında düşünür (arayüz donmaz); olmazsa burada ----------
+let worker = null, wid = 0, wres = null, wreq = null;
+try {
+  worker = new Worker(URL.createObjectURL(new Blob([$('motor').textContent, '\nonmessage = (e) => { const d = e.data; postMessage({ id: d.id, m: cpuMove(d.p, d.level, d.keys, null, d.ms) }); };'], { type: 'text/javascript' })));
+  worker.onmessage = (e) => { if (wres && e.data.id === wid) { const r = wres; wres = null; r(e.data.m); } };
+  worker.onerror = () => { worker = null; if (wres) { const r = wres; wres = null; r(cpuMove(wreq[0], wreq[1], wreq[2], null, aiMs)); } };
+} catch (e) { worker = null; }
+function think(p, level, keys) {
+  return new Promise((res) => {
+    if (!worker) return res(cpuMove(p, level, keys, null, aiMs));
+    wid++; wres = res; wreq = [p, level, keys]; worker.postMessage({ id: wid, p, level, keys, ms: aiMs });
+  });
+}
+
+// ---------- Oyun akışı ----------
+let msgT = null;
+function say(s, warn) {
+  const el = $('msg'); el.textContent = s; el.classList.add('on'); el.classList.toggle('warn', !!warn);
+  clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2800);
+}
+const pack = () => ({ mode: G.mode, level: G.level, me: G.me, start: G.start, list: G.list.map((m) => [m.from, m.to, m.promo]), ms: Math.round(G.ms) });
+function save() { try { if (G && !G.over) localStorage.setItem('rids_satranc_game', JSON.stringify(pack())); } catch (e) {} }
+function replay(start, list) { // hamleleri baştan oynatır; kural dışı biri varsa null
+  const p0 = fromFen(start); if (!p0 || !Array.isArray(list)) return null;
+  const ps = [p0], sans = [], out = [];
+  for (const x of list) {
+    const p = ps[ps.length - 1], all = legal(p), m = Array.isArray(x) && all.find((y) => y.from === x[0] && y.to === x[1] && y.promo === (x[2] || 0));
+    if (!m) return null;
+    sans.push(san(p, m, all)); out.push(m); ps.push(make(p, m));
+  }
+  return { ps, sans, list: out };
+}
+function loadSaved() {
+  try {
+    const s = JSON.parse(localStorage.getItem('rids_satranc_game'));
+    if (!s || !['cpu', 'two'].includes(s.mode) || !['easy', 'mid', 'hard'].includes(s.level) || (s.me !== 0 && s.me !== 1)) return null;
+    const r = replay(s.start || START, s.list); return r ? Object.assign(s, r) : null;
+  } catch (e) { return null; }
+}
+// Aynı konum (aynı taraf oynar, taşlar ve rok/geçerken alma hakları aynı) kaç kez oluştu
+const posKey = (q) => q.b.join() + '|' + q.turn + q.castle + '|' + (legal(q).some((m) => m.to === q.ep && Math.abs(q.b[m.from]) === 1) ? q.ep : -1);
+function repeats() {
+  const ps = G.ps, p = ps[ps.length - 1], k = posKey(p); let n = 0;
+  for (let i = ps.length - 1; i >= 0 && i >= ps.length - 1 - p.half; i -= 2) if (ps[i].h === p.h && posKey(ps[i]) === k) n++;
+  return n;
+}
+function updateDock(hint) {
+  const t = T(), side = G ? cur().turn : 0, two = !G || G.mode === 'two';
+  $('dock').style.setProperty('--turn', turnCol(side));
+  const chip = $('chip'); if (chip.dataset.p !== String(avaIdx(side))) { chip.dataset.p = avaIdx(side); chip.style.backgroundPosition = avaPos(avaIdx(side)); chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
+  for (const q of [0, 1]) $('av' + q).style.backgroundPosition = avaPos(avaIdx(q));
+  $('turnName').textContent = two ? t.turnP(colName(side)) : side === G.me ? t.turnYou : t.turnCpu;
+  if (hint == null) hint = !G || G.over ? '' : isCpu(side) ? t.hintThink : G.chk >= 0 ? t.hintCheck : sel >= 0 ? t.hintTo : t.hintPick;
+  $('turnMsg').textContent = hint;
+  // alınan taşlar ve taş üstünlüğü
+  const caps = [[], []], mat = [0, 0];
+  if (G) {
+    G.list.forEach((m, i) => { const q = G.ps[i], x = q.b[m.to] ? Math.abs(q.b[m.to]) : Math.abs(q.b[m.from]) === 1 && m.to === q.ep ? 1 : 0; if (x) caps[q.turn].push(x); });
+    for (const v of cur().b) if (v) mat[v > 0 ? 0 : 1] += PTS[Math.abs(v)];
+  }
+  for (const q of [0, 1]) { $('cp' + q).textContent = caps[q].sort((a, b) => b - a).map(GLYPH).join(''); const d = mat[q] - mat[1 - q]; $('df' + q).textContent = d > 0 ? '+' + d : ''; }
+  $('skor').setAttribute('aria-label', t.capAria(caps[0].length, caps[1].length));
+  // hamle listesi
+  const L = t.letters, tr = (s) => (L ? s.replace(/[KQRBN]/g, (c) => L[c]) : s), el = $('mlist');
+  el.innerHTML = G ? G.sans.map((s, i) => { const q = G.ps[i]; return (q.turn === 0 ? `<i>${q.full}.</i>` : i === 0 ? `<i>${q.full}...</i>` : '') + (i === G.sans.length - 1 ? `<b>${tr(s)}</b>` : tr(s)); }).join(' ') : '';
+  el.scrollLeft = el.scrollWidth;
+  cv.setAttribute('aria-label', t.board(G && G.sans.length ? tr(G.sans[G.sans.length - 1]) : ''));
+  $('undoBtn').disabled = !G || G.over || busy || !G.list.some((m, i) => G.mode === 'two' || G.ps[i].turn === G.me);
+}
+function deselect() { sel = -1; }
+async function nextAction() {
+  const my = epoch; if (!G || G.over) return;
+  const p = cur();
+  moves = legal(p); deselect(); view = p.b.slice();
+  G.chk = inCheck(p) ? kingAt(p.b, p.turn ? -1 : 1) : -1;
+  if (!moves.length) return finish(G.chk >= 0 ? 1 - p.turn : -1, G.chk >= 0 ? 'mate' : 'stale');
+  if (dead(p.b)) return finish(-1, 'dead');
+  if (repeats() >= 3) return finish(-1, 'rep');
+  if (p.half >= 100) return finish(-1, 'fifty');
+  busy = isCpu(p.turn); updateDock();
+  if (busy) {
+    await wait(300); if (my !== epoch) return;
+    const t0 = performance.now(), m = await think(p, G.level, G.ps.slice(Math.max(0, G.ps.length - 1 - p.half), -1).map((q) => q.h));
+    if (my !== epoch || !m) return;
+    await wait(Math.max(0, 250 - (performance.now() - t0))); if (my !== epoch) return;
+    hilite = m; Sfx.pick(); await wait(420); if (my !== epoch) return;
+    hilite = null; return playMove(m);
+  }
+}
+function slide(from, to, v) {
+  const d = Math.hypot(cx(to) - cx(from), cy(to) - cy(from)) / cell;
+  return new Promise((res) => { anim = { from, v, x0: cx(from), y0: cy(from), x1: cx(to), y1: cy(to), t0: performance.now(), dur: (160 + d * 45) / speed, res }; });
+}
+async function playMove(m) {
+  const my = epoch, p = cur(), t = T(), v = p.b[m.from], s = v > 0 ? 1 : -1;
+  const capSq = p.b[m.to] ? m.to : Math.abs(v) === 1 && m.to === p.ep ? m.to + 8 * s : -1;
+  busy = true; deselect(); hover = -1; hilite = null; updateDock(t.hintMove);
+  const q = make(p, m), sn = san(p, m, moves.length ? moves : legal(p));
+  await slide(m.from, m.to, v); if (my !== epoch) return;
+  view[m.from] = 0;
+  if (capSq >= 0) { ghosts.push({ i: capSq, v: p.b[capSq], t0: performance.now() }); view[capSq] = 0; sparks(cx(capSq), cy(capSq), '#ffd43b', 12); Sfx.capture(); buzz(25); } else Sfx.place();
+  view[m.to] = v;
+  if (Math.abs(v) === 6 && Math.abs(m.to - m.from) === 2) { // rokta kale de kayar
+    const rf = m.to > m.from ? m.to + 1 : m.to - 2, rt = m.to > m.from ? m.to - 1 : m.to + 1;
+    await slide(rf, rt, view[rf]); if (my !== epoch) return; Sfx.place();
+  }
+  anim = null; view = q.b.slice();
+  G.list.push(m); G.ps.push(q); G.sans.push(sn); G.last = { from: m.from, to: m.to };
+  if (m.promo) { ring(cx(m.to), cy(m.to), '#ffd43b', true); sparks(cx(m.to), cy(m.to), '#fff3b0', 22); Sfx.promo(); buzz([30, 40, 60]); say(t.promo(t.names[m.promo])); }
+  if (sn.endsWith('+')) { say(t.check, true); Sfx.check(); }
+  save();
+  await wait(capSq >= 0 || m.promo ? 300 : 120); if (my !== epoch) return;
+  nextAction();
+}
+function finish(w, why) { // w: kazanan renk (0 beyaz, 1 siyah), -1 berabere
+  const t = T(), two = G.mode === 'two';
+  G.over = true; busy = true; moves = []; deselect(); updateDock(''); try { localStorage.removeItem('rids_satranc_game'); } catch (e) {}
+  sayac('bitti', 'oyun bitti'); bitenVar = true;
+  if (!two) { const k = w < 0 ? 'berabere' : w === G.me ? 'insan' : 'bilgisayar'; sayac(`sonuc/${k}-${lvAd(G.level)}`, `sonuç: ${k === 'berabere' ? 'berabere' : k + ' kazandı'} (${lvAd(G.level)})`); }
+  const humanWon = w >= 0 && (two || w === G.me);
+  $('trophy').textContent = w < 0 ? '🤝' : humanWon ? '🏆' : '🐳';
+  $('winTitle').textContent = w < 0 ? t.draw : two ? t.pWins(colName(w)) : w === G.me ? t.youWin : t.cpuWins;
+  $('winSub').textContent = t.why[why]; $('winSub').dataset.why = why;
+  $('final').innerHTML = [0, 1].map((q) => `<span class="${w === q ? 'win' : ''}"><i class="ava" style="background-position:${avaPos(avaIdx(q))}"></i>${w < 0 ? '½' : w === q ? 1 : 0}</span>`).join('');
+  if (w < 0 || humanWon) Sfx.win(); else Sfx.lose();
+  buzz([60, 60, 120]); if (humanWon) confetti();
+  const my = epoch; setTimeout(() => { if (my === epoch) { $('winOv').hidden = false; $('againBtn').focus(); } }, 900 / speed);
+}
+function startState(mode, level, me, start, r, extra) {
+  G = Object.assign({ mode, level, me, start, list: r.list, ps: r.ps, sans: r.sans, last: null, chk: -1, ms: 0, over: false }, extra);
+  const n = G.list.length; if (n) G.last = { from: G.list[n - 1].from, to: G.list[n - 1].to };
+  view = cur().b.slice(); anim = null; hilite = null; ghosts.length = 0; fx.length = 0; moves = []; deselect();
+}
+function newGame(mode, level, color) {
+  epoch++; closeAll(); sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  const me = color === 'w' ? 0 : color === 'b' ? 1 : Math.random() < .5 ? 0 : 1, cn = me ? 'siyah' : 'beyaz';
+  sayac(mode === 'cpu' ? `mod/cpu-${lvAd(level)}-${cn}` : 'mod/iki', mode === 'cpu' ? `mod: bilgisayara karşı, ${lvAd(level)}, ${cn}` : 'mod: iki kişi');
+  startState(mode, level, mode === 'cpu' ? me : 0, START, replay(START, []));
+  save(); applyLang(); nextAction();
+}
+function resume() {
+  const s = loadSaved(); if (!s) return;
+  epoch++; closeAll();
+  startState(s.mode, s.level, s.me, s.start || START, s, { ms: Math.max(0, +s.ms || 0) });
+  applyLang(); nextAction();
+}
+function undo() { // bilgisayara karşı: insanın son hamlesinden önceye; iki kişide bir hamle
+  if (!G || G.over || busy || !G.list.length) return;
+  let k = G.list.length - 1;
+  if (G.mode === 'cpu') while (k >= 0 && G.ps[k].turn !== G.me) k--;
+  if (k < 0) return;
+  epoch++;
+  G.list.length = k; G.ps.length = k + 1; G.sans.length = k;
+  G.last = k ? { from: G.list[k - 1].from, to: G.list[k - 1].to } : null;
+  anim = null; hilite = null; ghosts.length = 0; closePromo();
+  sayac('geri-al', 'hamle geri alındı'); Sfx.pick(); save(); nextAction();
+}
+function confetti() {
+  if (reduce) return;
+  const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
+  k.hidden = false; k.width = innerWidth * d; k.height = innerHeight * d;
+  const cols = ['#ef4444', '#22d3ee', '#ffd43b', '#ffffff', '#84cc16', '#8b5cf6', '#ff6fb5'];
+  const bits = Array.from({ length: 170 }, () => ({
+    x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160,
+    w: 6 + Math.random() * 6, h: 9 + Math.random() * 8, a: Math.random() * 6, va: (Math.random() - 0.5) * 10, col: cols[Math.floor(Math.random() * cols.length)]
+  }));
+  let last = performance.now(); const end = last + 4200;
+  (function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) {
+      b.vy = Math.min(b.vy + 220 * dt, 260); b.x += (b.vx + Math.sin(now / 300 + b.a) * 40) * dt; b.y += b.vy * dt; b.a += b.va * dt;
+      c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(Math.cos(b.a * 1.7), 1);
+      c.fillStyle = b.col; c.globalAlpha = Math.min(1, (end - now) / 600); c.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); c.restore();
+    }
+    if (now < end) requestAnimationFrame(tick); else { c.clearRect(0, 0, k.width, k.height); k.hidden = true; }
+  })(last);
+}
+
+// ---------- Pencereler ve dil ----------
+function closePromo() { promoList = null; $('promoOv').hidden = true; }
+function openPromo(list) { // terfi: vezir, kale, fil, at
+  const t = T(), w = view[list[0].from] > 0;
+  promoList = list; $('promoTitle').textContent = t.promoTitle;
+  const box = $('promoBtns'); box.className = 'pro ' + (w ? 'w' : 'b');
+  box.innerHTML = [5, 4, 3, 2].map((q) => `<button type="button" data-p="${q}" aria-label="${t.names[q]}">${GLYPH(q)}</button>`).join('');
+  $('promoOv').hidden = false; box.firstChild.focus();
+}
+function closeAll() { for (const id of ['setupOv', 'rulesOv', 'winOv']) $(id).hidden = true; closePromo(); }
+function renderSetup() {
+  const t = T(), two = setup.mode === 'two';
+  $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub; $('modeLbl').textContent = t.modeLbl; $('lvlLbl').textContent = t.lvlLbl; $('colLbl').textContent = t.colLbl; $('setupNote').textContent = two ? t.noteTwo : t.noteCpu;
+  $('lvlField').hidden = $('colField').hidden = two;
+  const lab = { cpu: t.modeCpu, two: t.modeTwo, easy: t.easy, mid: t.mid, hard: t.hard, w: t.colW, b: t.colB, rnd: t.rnd };
+  const pressed = { modeSeg: setup.mode, lvlSeg: setup.level, colSeg: setup.color };
+  for (const id in pressed) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.textContent = lab[b.dataset.v]; b.setAttribute('aria-pressed', b.dataset.v === pressed[id]); });
+  $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume; $('resumeBtn').hidden = !loadSaved();
+}
+function openSetup() {
+  save(); epoch++; busy = true; hover = -1; hilite = null; deselect();
+  if (G && !G.over) { anim = null; view = cur().b.slice(); ghosts.length = 0; }
+  closeAll(); renderSetup(); $('setupOv').hidden = false; $('startBtn').focus();
+}
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('undoLbl').textContent = t.undo; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('undoBtn').setAttribute('aria-label', t.undo); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langAria);
+  $('rights').textContent = t.rights; $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('toMenuBtn').textContent = t.toMenu; $('promoTitle').textContent = t.promoTitle;
+  if (G && G.over && $('winSub').dataset.why) $('winSub').textContent = t.why[$('winSub').dataset.why];
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  renderSetup(); updateDock(G && G.over ? '' : busy && G && !isCpu(cur().turn) && anim ? t.hintMove : null);
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+// ---------- Girdi ----------
+function cellAt(e) {
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left - fm, y = e.clientY - r.top - fm;
+  if (x < 0 || y < 0 || x >= cell * 8 || y >= cell * 8) return -1;
+  return disp(Math.floor(y / cell) * 8 + Math.floor(x / cell)); // disp kendi tersidir
+}
+function tap(i) {
+  if (!canPlay() || i < 0) return;
+  const t = T(), p = cur(), s = p.turn ? -1 : 1;
+  if (sel >= 0) {
+    const to = moves.filter((m) => m.from === sel && m.to === i);
+    if (to.length > 1) { Sfx.unlock(); return openPromo(to); }
+    if (to.length) { Sfx.unlock(); return playMove(to[0]); }
+    if (i === sel) { deselect(); updateDock(); return; }
+  }
+  if (moves.some((m) => m.from === i)) { sel = i; Sfx.pick(); updateDock(); return; }
+  if (p.b[i] * s > 0) { // kendi taşı ama gidecek yeri yok: nedenini söyle
+    Sfx.err(); buzz(20);
+    say(G.chk >= 0 ? t.mustSave : pseudo(p, false).some((m) => m.from === i) ? t.pinned : t.noMove, true);
+  }
+  if (sel >= 0) { deselect(); updateDock(); }
+}
+cv.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') { hover = cellAt(e); const ok = canPlay() && moves.some((m) => m.from === hover || (m.from === sel && m.to === hover)); cv.style.cursor = ok ? 'pointer' : 'default'; } });
+cv.addEventListener('pointerleave', () => { hover = -1; });
+cv.addEventListener('pointerdown', (e) => { Sfx.unlock(); e.preventDefault(); tap(cellAt(e)); });
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { if (!$('promoOv').hidden) closePromo(); else if (!$('rulesOv').hidden) $('rulesOv').hidden = true; else if (sel >= 0) { deselect(); updateDock(); } return; }
+  if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); }
+});
+document.querySelectorAll('.seg').forEach((s) => s.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  setup[s.id === 'modeSeg' ? 'mode' : s.id === 'lvlSeg' ? 'level' : 'color'] = b.dataset.v; renderSetup();
+}));
+$('promoBtns').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-p]'); if (!b || !promoList) return;
+  const m = promoList.find((x) => x.promo === +b.dataset.p); closePromo(); if (m && canPlay()) playMove(m);
+});
+$('promoOv').addEventListener('click', (e) => { if (e.target.id === 'promoOv') closePromo(); });
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); try { localStorage.setItem('rids_satranc_setup', JSON.stringify(setup)); } catch (e) {} newGame(setup.mode, setup.level, setup.color); });
+$('resumeBtn').addEventListener('click', () => { Sfx.unlock(); resume(); });
+$('menuBtn').addEventListener('click', openSetup);
+$('undoBtn').addEventListener('click', undo);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => newGame(G.mode, G.level, G.mode === 'cpu' ? setup.color : 'w'));
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem('rids_satranc_sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+const relayout = () => layout();
+addEventListener('resize', relayout); document.addEventListener('fullscreenchange', relayout); document.addEventListener('webkitfullscreenchange', relayout);
+if (window.ResizeObserver) new ResizeObserver(relayout).observe($('boardWrap'));
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+// Deneme kancası: hızlandırma, durum okuma, konum kurma (oyuncuya görünmez)
+window.__satranc = {
+  setSpeed: (s) => { speed = s; }, setAiMs: (ms) => { aiMs = ms; },
+  state: () => ({ G, busy, over: G && G.over, turn: G && cur().turn, canPlay: !!canPlay(), sel, moves: moves.map((m) => ({ from: m.from, to: m.to, promo: m.promo })), epoch, worker: !!worker }),
+  cell: (i) => { const r = cv.getBoundingClientRect(); return [r.left + cx(i), r.top + cy(i)]; },
+  setFen: (fen, o = {}) => { const r = replay(fen, []); if (!r) return false; epoch++; closeAll(); startState(o.mode || 'two', o.level || 'easy', o.me || 0, fen, r); applyLang(); nextAction(); return true; },
+  view: () => Array.from(view)
+};
+
+layout(); applySound();
+applyLang(); openSetup();
+requestAnimationFrame(frame);
+</script>
+<script>
+(() => {
+  const H = document.documentElement, top = document.querySelector('header.top'), $ = (i) => document.getElementById(i);
+  const L = () => (H.lang || 'tr').startsWith('en') ? { s: 'Settings', c: 'Close' } : { s: 'Ayarlar', c: 'Kapat' };
+  const close = top.querySelector('.rgClose');
+  const labels = () => { const l = L(); $('rgSetBtn').setAttribute('aria-label', l.s); close.textContent = l.c;
+    top.querySelectorAll('.tools .pill').forEach((b) => { if (b.classList.contains('lang')) return; let s = b.querySelector('.lbl'); if (!s) { s = document.createElement('span'); s.className = 'lbl rgL'; b.appendChild(s); } if (s.classList.contains('rgL')) s.textContent = b.getAttribute('aria-label') || ''; }); };
+  const open = (on) => { if (on) labels(); H.classList.toggle('rgSet', on); };
+  $('rgSetBtn').addEventListener('click', () => open(!H.classList.contains('rgSet')));
+  close.addEventListener('click', () => open(false));
+  top.addEventListener('click', (e) => { if (e.target === top) open(false); });
+  top.querySelector('.tools').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && b.id !== 'soundBtn' && b.id !== 'langBtn') open(false); else setTimeout(labels, 0); }, true);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && H.classList.contains('rgSet')) { open(false); e.stopImmediatePropagation(); } }, true);
+  const fs = () => H.classList.toggle('isFs', !!(document.fullscreenElement || document.webkitFullscreenElement));
+  document.addEventListener('fullscreenchange', fs); document.addEventListener('webkitfullscreenchange', fs);
+  new MutationObserver(() => { if (H.classList.contains('rgSet')) labels(); }).observe(H, { attributes: true, attributeFilter: ['lang'] });
+})();
+</script>
+<!-- Kurulum penceresi ekrana sığsın: taşarsa boşluklar daralır, yatayda bölümler sütunlara dizilir -->
+<style id="fitSetupCss">
+#setupOv > .fz1 > h2 { font-size: 21px; margin-bottom: 2px; }
+#setupOv > .fz1 > .sub { font-size: 12.5px; margin-bottom: 6px; }
+#setupOv > .fz1 > :not(h2):not(.sub):not(.btns) { margin-top: 6px; padding-top: 6px; }
+#setupOv > .fz1 .lbl { margin-bottom: 5px; }
+#setupOv > .fz1 .note { margin-top: 4px; font-size: 12px; min-height: 0; }
+#setupOv > .fz1 > .btns { margin-top: 10px; }
+#setupOv > .fzc { display: block !important; width: 100%; max-width: min(100%, 940px) !important; columns: var(--fcols, 2); column-gap: 18px; padding: 12px 16px 14px !important; }
+#setupOv > .fzc > * { break-inside: avoid; }
+#setupOv > .fzc > :is(h2, .sub, .btns) { column-span: all; }
+#setupOv > .fzc:not(.fzn) > .wide { column-span: all; }
+#setupOv > .fzc > :not(h2):not(.sub):not(.btns) { display: block; }
+#setupOv > .fzc > .btns { position: static !important; margin: 10px 0 0 !important; padding: 0 !important; background: none !important; display: grid !important; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
+#setupOv > .fz2 > .sub { display: none; }
+#setupOv > .fz2 .seg button { height: 34px; }
+#setupOv > .fz2 .seg.tall button { height: 44px; }
+#setupOv > .fz2 .big { height: 42px; font-size: 16px; }
+#setupOv > .fz2 .note { font-size: 11.5px; line-height: 1.35; }
+#setupOv > .fz2 .seg.tall button { height: 38px; flex-direction: row; gap: 6px; }
+#setupOv > .fz2 .seg.tall .em { font-size: 17px; } #setupOv > .fz2 .seg.tall small { font-size: 12.5px; }
+#setupOv > .fz2 .catSeg button { height: 34px; }
+#setupOv > .fz2 .chips { gap: 4px; } #setupOv > .fz2 .chips button { height: 30px; padding: 0 9px; font-size: 12px; }
+#setupOv > .fz2 .stepper { grid-template-columns: 40px 1fr 40px; } #setupOv > .fz2 .stepper button { height: 38px; font-size: 22px; }
+#setupOv > .fz2 .tval output { font-size: 26px; } #setupOv > .fz2 .tval small { margin-top: 2px; }
+#setupOv > .fz2 .players, #setupOv > .fz2 .names { gap: 4px; }
+#setupOv > .fz2 :is(.prow, .names) input { height: 34px; font-size: 14px; }
+#setupOv > .fz2 .prow button { height: 34px; }
+#setupOv > .fz2 .add { height: 34px; }
+#setupOv > .fzc .seg button { font-size: 12.5px; padding: 0 2px; white-space: normal; line-height: 1.1; }
+#setupOv > .fzc .prow { grid-template-columns: 18px 1fr 34px; gap: 4px; }
+#setupOv > .fzc .catSeg { grid-template-columns: repeat(2, 1fr); }
+#setupOv > .fz3 .note { display: none; }
+#setupOv > .fzn .seg.tall:not(.two) button { flex-direction: column; height: 44px; gap: 0; }
+#setupOv > .fzn .seg.tall:not(.two) .em { font-size: 15px; } #setupOv > .fzn .seg.tall:not(.two) small { font-size: 11px; white-space: normal; }
+</style>
+<script id="fitSetupJs">
+(() => {
+  const ov = document.getElementById('setupOv'); const c = ov && ov.querySelector(':scope > .card, :scope > .card2'); if (!c) return;
+  const over = () => c.scrollHeight > c.clientHeight + 1 || c.scrollWidth > c.clientWidth + 1;
+  let busy = false, q = 0;
+  const fit = () => {
+    if (ov.hidden || busy) return; busy = true;
+    c.classList.remove('fz1', 'fz2', 'fz3', 'fzc', 'fzn'); c.style.removeProperty('--fcols');
+    if (over()) {
+      const land = innerWidth > innerHeight && innerWidth >= 560;
+      const cols = (n) => () => { c.classList.add('fzc'); c.style.setProperty('--fcols', n); };
+      const nw = () => c.classList.add('fzn'), steps = [() => c.classList.add('fz1')];
+      if (land) steps.push(cols(2), cols(3), () => c.classList.add('fz2'), nw);
+      else steps.push(() => c.classList.add('fz2'));
+      if (land && innerWidth >= 760) steps.push(cols(4));
+      if (!land && innerWidth >= 340) steps.push(cols(2), nw);
+      steps.push(() => c.classList.add('fz3'));
+      if (land && innerWidth >= 640 && innerWidth < 760) steps.push(cols(4));
+      for (const s of steps) { s(); if (!over()) break; }
+    }
+    busy = false;
+  };
+  const later = () => { cancelAnimationFrame(q); q = requestAnimationFrame(fit); };
+  new MutationObserver(later).observe(ov, { attributes: true, attributeFilter: ['hidden'], childList: true, subtree: true, characterData: true });
+  addEventListener('resize', later); addEventListener('orientationchange', later);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);
+  later();
+})();
+</script>
+<!-- Sorun bildir: yalnızca ayarlardan açılır, oyun sırasında hiçbir şey göstermez -->
+<style id="rgRepCss">
+#rgRep { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; padding: 12px; background: rgba(2, 6, 23, .72); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #e2e8f0; }
+#rgRep[hidden] { display: none; }
+#rgRep .rc { width: min(100%, 440px); max-height: calc(100dvh - 24px); overflow: auto; background: #0f172a; border: 1px solid rgba(148, 163, 184, .3); border-radius: 16px; padding: 16px; box-shadow: 0 16px 48px rgba(0, 0, 0, .5); }
+#rgRep h2 { margin: 0 0 4px; font-size: 19px; color: #f8fafc; }
+#rgRep p { margin: 0 0 10px; font-size: 13px; color: #94a3b8; }
+#rgRep textarea { box-sizing: border-box; width: 100%; min-height: 96px; resize: vertical; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .4); background: #1e293b; color: #f1f5f9; padding: 10px; font: inherit; font-size: 16px; }
+#rgRep textarea:focus { outline: 2px solid #22d3ee; outline-offset: 1px; }
+#rgRep details { margin: 8px 0 0; font-size: 12.5px; color: #94a3b8; }
+#rgRep summary { cursor: pointer; }
+#rgRep pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font: 11.5px/1.35 ui-monospace, Menlo, Consolas, monospace; color: #cbd5e1; background: #1e293b; border-radius: 8px; padding: 8px; max-height: 140px; overflow: auto; }
+#rgRep .rb { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+#rgRep button { min-height: 42px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .35); background: #1e293b; color: #e2e8f0; font: inherit; font-weight: 600; cursor: pointer; padding: 0 10px; }
+#rgRep button.go { grid-column: 1 / -1; background: #22d3ee; border-color: #22d3ee; color: #082f49; }
+#rgRep .ok { margin: 8px 0 0; font-size: 12.5px; color: #67e8f9; }
+#rgRep .ok:empty { display: none; }
+@media (max-height: 480px) { #rgRep .rc { padding: 12px 14px; } #rgRep h2 { font-size: 17px; } #rgRep p { margin-bottom: 6px; } #rgRep textarea { min-height: 56px; } #rgRep .rb { grid-template-columns: 2fr 1fr 1fr; margin-top: 8px; } #rgRep button.go { grid-column: auto; } #rgRep button { min-height: 38px; } }
+/* yatay telefonda ayarlar menüsü iki sütun, kaydırmadan sığsın */
+@media (orientation: landscape) and (max-height: 520px) { #setOv .sheet { max-width: 560px; gap: 10px; } #setOv .sheet .logo { flex-direction: row; justify-content: center; } #setOv .mlist { grid-template-columns: 1fr 1fr; } #setOv .mi { height: 42px; } }
+@media (orientation: landscape) and (max-height: 520px) { html.rgSet .top .in { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet .top .logo { flex-direction: row; justify-content: center; } html.rgSet .top .tools { grid-template-columns: 1fr 1fr; } html.rgSet .top .pill { height: 42px; } html.rgSet .top .rgClose { height: 40px; }
+  html.rgSet #topHeader > div { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet #topHeader #homeLink { flex-direction: row; } html.rgSet #topHeader #homeLink + div { grid-template-columns: 1fr 1fr; } html.rgSet #topHeader #modeSelect { grid-column: 1 / -1; height: 40px; } html.rgSet #topHeader #homeLink + div > button { height: 42px; } html.rgSet #topHeader .rgClose { height: 40px; } }
+</style>
+<script id="rgRepJs">
+(() => {
+  const MAIL = 'destek@ridsgames.com', H = document.documentElement, errs = window.__rgErr || [];
+  const T = {
+    tr: { b: 'Sorun bildir', h: 'Sorun bildir', p: 'Ne oldu? Kısaca yazın. Gönder deyince e-posta uygulamanız hazır bir mesajla açılır, siz göndermeden hiçbir şey bize ulaşmaz.', ph: 'Örnek: Kartı oynadığımda oyun takıldı.', inf: 'Mesaja eklenecek bilgiler', send: 'E-posta ile gönder', copy: 'Kopyala', close: 'Kapat', copied: 'Kopyalandı. ' + MAIL + ' adresine gönderebilirsiniz.', nocopy: 'Kopyalanamadı. Metni seçip kopyalayın ve ' + MAIL + ' adresine gönderin.', subj: 'Sorun bildirimi', game: 'Oyun', page: 'Sayfa', lang: 'Dil', scr: 'Ekran', br: 'Tarayıcı', time: 'Zaman', err: 'Son hatalar', none: 'yok', desc: 'Açıklama' },
+    en: { b: 'Report a problem', h: 'Report a problem', p: 'What happened? Write a few words. Send opens your email app with a ready message; nothing reaches us unless you send it.', ph: 'Example: the game froze when I played a card.', inf: 'Details added to the message', send: 'Send by email', copy: 'Copy', close: 'Close', copied: 'Copied. You can send it to ' + MAIL + '.', nocopy: 'Could not copy. Select the text, copy it and send it to ' + MAIL + '.', subj: 'Problem report', game: 'Game', page: 'Page', lang: 'Language', scr: 'Screen', br: 'Browser', time: 'Time', err: 'Recent errors', none: 'none', desc: 'Description' }
+  };
+  const t = () => T[(H.lang || 'tr').startsWith('en') ? 'en' : 'tr'];
+  const gname = () => { const g = document.getElementById('gameName') || document.querySelector('#homeLink .gname'); return ((g && g.textContent) || document.title || '').replace(/\s*[|·–-]\s*Ridsgames.*$/i, '').trim(); };
+  const info = () => { const l = t(), so = screen.orientation && screen.orientation.type;
+    return [`${l.game}: ${gname()}`, `${l.page}: ${location.pathname}`, `${l.lang}: ${H.lang || '-'}`,
+      `${l.scr}: ${innerWidth}x${innerHeight} @${Math.round((devicePixelRatio || 1) * 100) / 100}x${so ? ' ' + so : ''}${matchMedia('(pointer: coarse)').matches ? ' touch' : ''}`,
+      `${l.br}: ${navigator.userAgent}`, `${l.time}: ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
+      `${l.err}: ${errs.length ? '' : l.none}`, ...errs.slice(-3).reverse().map((e) => `- ${e.t} ${e.m} @ ${e.src}`)].join('\n'); };
+  let ov = null;
+  const body = () => { const l = t(), d = ov.querySelector('textarea').value.trim(); return `${l.desc}:\n${d || '-'}\n\n---\n${info()}`; };
+  const build = () => {
+    ov = document.createElement('div'); ov.id = 'rgRep'; ov.hidden = true;
+    ov.innerHTML = '<div class="rc" role="dialog" aria-modal="true" aria-labelledby="rgRepH"><h2 id="rgRepH"></h2><p class="pp"></p><textarea maxlength="1200"></textarea><details><summary></summary><pre></pre></details><div class="ok" role="status"></div><div class="rb"><button type="button" class="go"></button><button type="button" class="cp"></button><button type="button" class="cl"></button></div></div>';
+    document.body.appendChild(ov);
+    const q = (s) => ov.querySelector(s), close = () => { ov.hidden = true; };
+    q('.cl').onclick = close;
+    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    ['keydown', 'keyup', 'keypress'].forEach((k) => ov.addEventListener(k, (e) => { e.stopPropagation(); if (k === 'keydown' && e.key === 'Escape') close(); }));
+    ['pointerdown', 'mousedown', 'touchstart', 'wheel', 'contextmenu'].forEach((k) => ov.addEventListener(k, (e) => e.stopPropagation(), { passive: true }));
+    q('.go').onclick = () => { const l = t(); let b = body(); if (b.length > 1400) b = b.slice(0, 1400) + '…';
+      location.href = `mailto:${MAIL}?subject=${encodeURIComponent(`${l.subj}: ${gname()}`)}&body=${encodeURIComponent(b)}`; };
+    q('.cp').onclick = () => { const l = t(), b = `${l.subj}: ${gname()}\n\n${body()}`, ok = q('.ok');
+      const fb = () => { const a = document.createElement('textarea'); a.value = b; a.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; ov.appendChild(a); a.select(); let r = false; try { r = document.execCommand('copy'); } catch (_) {} a.remove(); ok.textContent = r ? l.copied : l.nocopy; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(b).then(() => { ok.textContent = l.copied; }, fb); else fb(); };
+  };
+  const open = () => { if (!ov) build(); const l = t(), q = (s) => ov.querySelector(s);
+    q('h2').textContent = l.h; q('.pp').textContent = l.p; q('textarea').placeholder = l.ph; q('summary').textContent = l.inf; q('pre').textContent = info();
+    q('.go').textContent = l.send; q('.cp').textContent = l.copy; q('.cl').textContent = l.close; q('.ok').textContent = '';
+    ov.hidden = false; setTimeout(() => q('textarea').focus({ preventScroll: true }), 30); };
+  // Menüye satır ekle: Kurallar düğmesinin görünüşünü kopyalar
+  const ICO = '✉';
+  let btn = null;
+  const label = () => { if (!btn) return; const l = t(); btn.setAttribute('aria-label', l.b); btn.title = l.b; const s = btn.querySelector('.rgRepL'); if (s) s.textContent = l.b; };
+  const mount = () => {
+    const rules = document.getElementById('rulesBtn'), lang = document.getElementById('langBtn');
+    btn = document.createElement('button'); btn.type = 'button'; btn.id = 'rgRepBtn';
+    if (rules && lang && rules.parentNode === lang.parentNode) {
+      btn.className = rules.className; const sp = [...rules.children].filter((x) => x.tagName === 'SPAN');
+      const a = document.createElement('span'); a.textContent = ICO; if (sp[0]) a.className = sp[0].className; btn.appendChild(a);
+      if (sp[1]) { const b = document.createElement('span'); b.className = (sp[1].className + ' rgRepL').trim(); btn.appendChild(b); }
+      lang.parentNode.insertBefore(btn, lang);
+    } else {
+      const host = document.getElementById('btn-reset-from-settings'), menu = document.getElementById('menu');
+      const s = document.createElement('span'); s.className = 'rgRepL'; btn.append(ICO + ' ', s);
+      if (host) { btn.className = host.className; host.parentNode.insertBefore(btn, host); }
+      else if (menu) { btn.style.cssText = 'background:none;border:0;box-shadow:none;color:inherit;opacity:.75;font-size:13px;text-decoration:underline;margin-top:10px;min-height:0;padding:4px'; menu.appendChild(btn); }
+      else { btn = null; return; }
+    }
+    btn.addEventListener('click', () => setTimeout(open, 0));
+    label(); new MutationObserver(label).observe(H, { attributes: true, attributeFilter: ['lang'] });
+  };
+  window.rgReport = () => open();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
+})();
+</script>
+</body>
+</html>

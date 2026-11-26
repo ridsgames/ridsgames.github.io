@@ -292,7 +292,7 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
     <p class="nores" id="sonucyok" hidden data-i18n="noResult">Bu adla bir oyun bulunamadı.</p>
     <div class="cats" role="group" data-i18n-aria="catsAria" aria-label="Kategoriler">
       <a href="#kat-beceri" data-cat="beceri" aria-current="true"><span data-i18n="catBeceriS">Beceri</span> <small>3</small></a>
-      <a href="#kat-strateji" data-cat="strateji" aria-current="false"><span data-i18n="catStratejiS">Strateji</span> <small>7</small></a>
+      <a href="#kat-strateji" data-cat="strateji" aria-current="false"><span data-i18n="catStratejiS">Strateji</span> <small>8</small></a>
       <a href="#kat-zar" data-cat="zar" aria-current="false"><span data-i18n="catZarS">Zar</span> <small>3</small></a>
       <a href="#kat-okey" data-cat="okey" aria-current="false"><span data-i18n="catOkeyS">Okey ve taş</span> <small>3</small></a>
       <a href="#kat-zeka" data-cat="zeka" aria-current="false"><span data-i18n="catZekaS">Zeka</span> <small>5</small></a>
@@ -332,8 +332,17 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
       </div>
     </div>
     <div class="gsec" id="kat-strateji" data-cat="strateji">
-      <h3 class="gcat"><span data-i18n="catStrateji">Strateji oyunları</span> <small>7</small></h3>
+      <h3 class="gcat"><span data-i18n="catStrateji">Strateji oyunları</span> <small>8</small></h3>
       <div class="games">
+      <a class="game" href="satranc/">
+        <div class="cover"><img src="assets/kapak/satranc.webp" alt="" loading="lazy" width="540" height="540"></div>
+        <div class="info">
+          <h3 data-i18n="satrancName">Satranç</h3>
+          <p data-i18n="satrancDesc">FIDE kurallarıyla klasik satranç: rok, geçerken alma, terfi, pat ve beraberlik kuralları. Bilgisayara karşı ya da aynı cihazda iki kişi.</p>
+          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
+          <span class="go" data-i18n="play">Oyna</span>
+        </div>
+      </a>
       <a class="game" href="dama/">
         <div class="cover"><img src="assets/kapak/dama.webp" alt="" loading="lazy" width="540" height="540"></div>
         <div class="info">
@@ -757,6 +766,7 @@ const I18N_EN = {
   sabirName: "Patience", sabirDesc: "Classic Klondike solitaire. Build every suit from ace to king. Draw 1 or 3, with undo and hints.",
   cindamaName: "Chinese Checkers", cindamaDesc: "Hop all ten pieces across the star with chained jumps. 2, 3, 4 or 6 players, against the computer or on one device.",
   kelimeaviName: "Word Hunt", kelimeaviDesc: "Find the words hidden in the letter grid. Themes like animals, cities and jobs, three difficulties and best times.",
+  satrancName: "Chess", satrancDesc: "Classic chess with FIDE rules: castling, en passant, promotion, stalemate and draws. Play the computer or a friend on one device.",
   blofName: "Bluff", blofDesc: "Play cards face down as the called rank, bluffing if you dare. Catch a lie and the whole pile goes to the liar. Against 1–3 computer rivals.",
   soonTitle: 'More games are on the way',
   ytTitle: 'Visit our channel', ytDesc: 'Videos of our games are on the RIDS Games channel on YouTube.', ytBtn: 'Go to the YouTube channel',
