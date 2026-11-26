@@ -220,10 +220,8 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .claim .verdict { font-size: 13px; font-weight: 800; padding: 3px 10px; border-radius: 999px; }
 .claim .verdict.lie { background: rgba(248, 113, 113, .2); color: #fecaca; } .claim .verdict.true { background: rgba(52, 211, 153, .2); color: #bbf7d0; }
 .ask { display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(100%, 320px); }
-.ask .bar { width: 100%; height: 5px; border-radius: 3px; background: rgba(0, 0, 0, .35); overflow: hidden; }
-.ask .bar i { display: block; height: 100%; width: 100%; background: #fbbf24; transform-origin: left; }
-.ask .bar i.run { animation: cd var(--t, 3s) linear forwards; }
-@keyframes cd { to { transform: scaleX(0); } }
+.req select { font-size: clamp(22px, 4.5vh, 40px); font-weight: 900; color: #fde68a; background: rgba(0, 0, 0, .3); border: 1px solid rgba(253, 230, 138, .55); border-radius: 10px; padding: 0 6px; }
+.req select option { color: #0f172a; background: #fff; }
 .ask .btns { display: flex; gap: 8px; width: 100%; }
 .ask button { flex: 1; height: 42px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, .3); background: rgba(15, 23, 42, .85); color: #e2e8f0; font-weight: 800; font-size: 14.5px; }
 .ask button.call { background: linear-gradient(135deg, #dc2626, #f87171); border-color: transparent; color: #fff; }
@@ -268,13 +266,12 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 <main id="main">
 <div class="opps" id="opps"></div>
 <div class="table panel" id="table">
-  <div class="req"><small id="reqLbl"></small><b id="reqRank"></b></div>
+  <div class="req"><small id="reqLbl"></small><b id="reqRank"></b><select id="rankSel" hidden></select></div>
   <div class="mid">
     <div class="pile" id="pile"></div>
     <div class="claim" id="claim"></div>
   </div>
   <div class="ask" id="ask" hidden>
-    <div class="bar"><i id="askBar"></i></div>
     <div class="btns"><button type="button" class="call" id="callBtn"></button><button type="button" id="passBtn"></button></div>
   </div>
 </div>
@@ -481,48 +478,50 @@ const STR = {
     oppLbl: 'Rakip sayısı', oppN: (n) => `${n} rakip`, lvLbl: 'Zorluk',
     setNote: 'Rakipler blöfünü sezmeye çalışır. Zorda daha cesur yalan söyler, daha isabetli yakalarlar.',
     you: 'Sen', cpuNames: ['Ahmet', 'Elif', 'Can'], cards: (n) => `${n} kart`, pileN: (n) => `${n} kart`,
-    reqLbl: 'Söylenecek', claim: (n, c, r) => `${n}: ${c} × ${r}`, callB: 'Blöf!', passB: 'İnan',
-    playB: (c, r) => `Oyna: ${c} × ${r}`, pickCards: (r) => `1–4 kart seç ve “${r}” diye at`, yourTurn: (r) => `Sıra sende: ${r} at (yalan da olabilir)`,
-    thinking: (n) => `${n} kartlarını seçiyor…`, deciding: 'Rakipler düşünüyor…', ask: (n) => `${n} doğru mu söylüyor?`,
+    reqLbl: 'Söylenecek', claim: (n, c, r) => `${n}: ${c} × ${r}`, callB: 'Blöf!', passB: 'Pas',
+    playB: (c, r) => `Oyna: ${c} × ${r}`, pickCards: (r) => `1–4 kart seç ve “${r}” diye at`, yourTurn: (r) => `Sıra sende: ${r} at, pas de ya da “Blöf!” de`,
+    leadTurn: 'Yeni tur sende: değeri seç, 1–4 kart at', pickLead: '1–4 kart seç',
+    thinking: (n) => `${n} düşünüyor…`, passed: (n) => `Pas: ${n}`, ask: (n) => `${n} son kartlarını attı. Doğru mu?`,
     calls: (a, b) => `${a}, ${b} için “Blöf!” dedi`, lied: (n) => `Yalan! ${n} yığını aldı`, truth: (a) => `Doğruymuş! ${a} yığını aldı`,
-    nobody: 'Kimse itiraz etmedi', quad: (n, r) => `${n} dörtlü ${r} topladı, oyundan çıktı`, lieV: 'YALAN', trueV: 'DOĞRU', outT: (n) => `${n} elini bitirdi`,
+    allPass: (n) => `Herkes pas dedi, kartlar ortada kaldı. Yeni tur: ${n}`, quad: (n, r) => `${n} dörtlü ${r} topladı, oyundan çıktı`, lieV: 'YALAN', trueV: 'DOĞRU', outT: (n) => `${n} elini bitirdi`,
     winT: 'Kazandın!', winSub: 'Elindeki bütün kartlardan kurtuldun.', loseT: (n) => `${n} kazandı`, loseSub: 'Elini ilk o bitirdi.',
     tRounds: 'Tur', tBluff: 'Yakalanmayan blöfün', tCaught: 'Yakalandığın', tCalls: 'Doğru “Blöf!”', tLeft: 'Elinde kalan',
     rulesSub: '52 kartla 2–4 kişi oynanır.',
     ruleList: [
-      ['🃏', 'Kartlar dağıtılır. Sırayla <b>as, 2, 3 … papaz</b> ve yeniden as söylenir; ortadaki gösterge söylenecek değeri yazar.'],
-      ['🙈', 'Sırası gelen 1–4 kartı kapalı atar ve hepsinin söylenen değerde olduğunu iddia eder. Elinde yoksa <b>blöf yapmak zorundadır</b>.'],
-      ['🗣️', 'Atılan kartlara herkes “Blöf!” diyebilir. Sana süre çubuğu dolana kadar karar hakkı verilir.'],
-      ['⚖️', 'Kartlar açılır. Aralarında tek bir yanlış kart varsa atan kişi, hepsi doğruysa itiraz eden <b>ortadaki yığının tamamını</b> alır.'],
+      ['🃏', 'Bütün kartlar dağıtılır; artan kart varsa fazla kartı olan başlar. Turu açan <b>istediği değeri</b> söyler (ör. “2 papaz”), tur boyunca herkes o değeri söyler.'],
+      ['🙈', 'Sırası gelen ya 1–4 kartı kapalı atıp hepsinin o değerde olduğunu söyler (yalan olabilir), ya <b>pas</b> der ya da önceki oyuncuya “Blöf!” der.'],
+      ['⚖️', 'Blöf denince son atılan kartlar açılır. Tek bir yanlış kart varsa atan, hepsi doğruysa “Blöf!” diyen <b>ortadaki yığının tamamını</b> alır. Yeni turu “Blöf!” diyen açar.'],
+      ['🤐', 'Son atandan sonra herkes pas derse tur biter, kartlar ortada kalır; yeni turu son kart atan açar.'],
       ['4️⃣', 'Elinde aynı değerden dört kart toplanırsa bu dörtlü oyundan çıkar.'],
-      ['🏆', 'Elini ilk bitiren kazanır. Son kartlarını atarken de yakalanabilirsin!']
+      ['🏆', 'Elini ilk bitiren kazanır. Son kartlarına da “Blöf!” denebilir; kimse demezse bitirmiş olursun.']
     ] },
   en: { ...COMMON.en, title: 'Bluff | Ridsgames', game: 'Bluff',
     setupSub: 'Play cards face down and claim what you like. Empty your hand first without getting caught.',
     oppLbl: 'Opponents', oppN: (n) => n === 1 ? '1 rival' : `${n} rivals`, lvLbl: 'Difficulty',
     setNote: 'Rivals try to spot your bluffs. On hard they lie more boldly and call more accurately.',
     you: 'You', cpuNames: ['Alex', 'Maya', 'Leo'], cards: (n) => `${n} cards`, pileN: (n) => `${n} cards`,
-    reqLbl: 'Claim', claim: (n, c, r) => `${n}: ${c} × ${r}`, callB: 'Bluff!', passB: 'Believe',
-    playB: (c, r) => `Play: ${c} × ${r}`, pickCards: (r) => `Pick 1–4 cards and play them as “${r}”`, yourTurn: (r) => `Your turn: play ${r} (or lie)`,
-    thinking: (n) => `${n} is choosing…`, deciding: 'Rivals are thinking…', ask: (n) => `Is ${n} telling the truth?`,
+    reqLbl: 'Claim', claim: (n, c, r) => `${n}: ${c} × ${r}`, callB: 'Bluff!', passB: 'Pass',
+    playB: (c, r) => `Play: ${c} × ${r}`, pickCards: (r) => `Pick 1–4 cards and play them as “${r}”`, yourTurn: (r) => `Your turn: play ${r}, pass or call “Bluff!”`,
+    leadTurn: 'New round: pick a rank and play 1–4 cards', pickLead: 'Pick 1–4 cards',
+    thinking: (n) => `${n} is thinking…`, passed: (n) => `Pass: ${n}`, ask: (n) => `${n} played their last cards. True?`,
     calls: (a, b) => `${a} calls bluff on ${b}`, lied: (n) => `A lie! ${n} takes the pile`, truth: (a) => `It was true! ${a} takes the pile`,
-    nobody: 'Nobody called', quad: (n, r) => `${n} collected four ${r}s, removed from play`, lieV: 'LIE', trueV: 'TRUE', outT: (n) => `${n} is out of cards`,
+    allPass: (n) => `Everyone passed, the cards stay. New round: ${n}`, quad: (n, r) => `${n} collected four ${r}s, removed from play`, lieV: 'LIE', trueV: 'TRUE', outT: (n) => `${n} is out of cards`,
     winT: 'You win!', winSub: 'You got rid of every card.', loseT: (n) => `${n} wins`, loseSub: 'They emptied their hand first.',
     tRounds: 'Turns', tBluff: 'Bluffs not caught', tCaught: 'Times caught', tCalls: 'Correct calls', tLeft: 'Cards left',
     rulesSub: '2–4 players with a 52-card deck.',
     ruleList: [
-      ['🃏', 'All cards are dealt. Players claim <b>ace, 2, 3 … king</b> in turn, then ace again; the table shows the rank to claim.'],
-      ['🙈', 'On your turn play 1–4 cards face down, claiming they are that rank. If you have none, you <b>must bluff</b>.'],
-      ['🗣️', 'Anyone can call “Bluff!”. You get until the timer bar runs out to decide.'],
-      ['⚖️', 'The cards are shown. If any card is wrong, the player takes <b>the whole pile</b>; if all are true, the caller does.'],
+      ['🃏', 'All cards are dealt; if they don’t divide evenly, a player with an extra card starts. The round leader claims <b>any rank</b> (e.g. “two kings”) and everyone claims that rank for the round.'],
+      ['🙈', 'On your turn play 1–4 cards face down claiming that rank (you may lie), <b>pass</b>, or call “Bluff!” on the previous player.'],
+      ['⚖️', 'On a call the last cards are shown. If any is wrong, the player takes <b>the whole pile</b>; if all are true, the caller does. The caller leads the next round.'],
+      ['🤐', 'If everyone passes after a play, the round ends and the cards stay; the last player to play leads.'],
       ['4️⃣', 'Whenever you hold all four cards of a rank, they are removed from play.'],
-      ['🏆', 'First to empty their hand wins. Your last cards can still be called!']
+      ['🏆', 'First to empty their hand wins. Your last cards can still be called; if nobody calls, you’re out.']
     ] }
 };
 const T = () => STR[lang];
 let setup = Object.assign({ opps: 2, level: 'orta' }, store.get('setup', {}));
 if (![1, 2, 3].includes(setup.opps)) setup.opps = 2; if (!['kolay', 'orta', 'zor'].includes(setup.level)) setup.level = 'orta';
-let G = null, selc = new Set(), epoch = 0, askT = 0;
+let G = null, selc = new Set(), epoch = 0, pickR = 0;
 const SUIT = ['♠', '♥', '♦', '♣'], RANK = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 const rk = (id) => id % 13 + 1, st = (id) => Math.floor(id / 13);
 const pname = (i) => i === 0 ? T().you : T().cpuNames[i - 1];
@@ -543,10 +542,11 @@ function quads(p) {
 // ---------- Akış ----------
 function newGame() {
   closeAll();
-  const n = setup.opps + 1, deck = shuffle([...Array(52).keys()]);
-  const hands = Array.from({ length: n }, () => []); deck.forEach((id, k) => hands[k % n].push(id));
+  const n = setup.opps + 1, deck = shuffle([...Array(52).keys()]), s = rnd(n);
+  // dağıtım s'den başlar: artan kart varsa fazlası onda olur ve oyunu o açar
+  const hands = Array.from({ length: n }, () => []); deck.forEach((id, k) => hands[(s + k) % n].push(id));
   sortH(hands[0]);
-  G = { n, level: setup.level, hands, pile: [], req: 1, turn: rnd(n), phase: 'play', last: null, reveal: null, msg: '', turns: 0, over: false, winner: -1,
+  G = { v: 2, n, level: setup.level, hands, pile: [], req: 0, turn: s, passes: 0, phase: 'play', last: null, reveal: null, msg: '', turns: 0, over: false, winner: -1,
     st: { bluff: 0, caught: 0, calls: 0 }, mem: Array.from({ length: n }, () => []), dead: [] };
   for (let p = 0; p < n; p++) quads(p);
   selc = new Set(); epoch++;
@@ -560,47 +560,43 @@ function again() { newGame(); }
 function step(ep) {
   if (ep !== epoch || !G || G.over) return;
   G.phase = 'play'; G.reveal = null;
-  if (G.turn === 0) { G.msg = T().yourTurn(RANK[G.req]); save(); render(); return; }
-  G.msg = T().thinking(pname(G.turn)); render();
-  setTimeout(() => { if (ep === epoch) doPlay(G.turn, cpuPlay(G.turn)); }, W(900));
+  const t = T(), L = G.last;
+  if (G.turn === 0) { G.msg = !L ? t.leadTurn : lastOut() ? t.ask(pname(L.p)) : t.yourTurn(RANK[G.req]); save(); render(); return; }
+  G.msg = t.thinking(pname(G.turn)); render();
+  setTimeout(() => { if (ep === epoch) cpuTurn(G.turn); }, W(900));
 }
-function doPlay(p, ids) {
+// Son atan elini bitirdiyse üstüne kart atılmaz: sıradaki ya “Blöf!” der ya pas
+const lastOut = () => !!G.last && !G.hands[G.last.p].length;
+const canPlay = () => !G.over && G.turn === 0 && G.phase === 'play' && !lastOut();
+// Yakalanmadan geçen blöfün (üstüne kart atıldı ya da herkes pas dedi)
+const uncaught = (L) => { if (L && L.p === 0 && L.ids.some((x) => rk(x) !== L.req)) G.st.bluff++; };
+function cpuTurn(p) {
+  if (G.last && cpuWantsCall(p)) { resolve(p); return; }
+  const c = lastOut() ? null : cpuPlay(p);
+  if (c && c.ids.length) doPlay(p, c.ids, c.r); else doPass(p);
+}
+function doPlay(p, ids, r) {
+  if (!G.last) G.req = r; // turu açan değeri seçer
+  uncaught(G.last);
   G.hands[p] = G.hands[p].filter((x) => !ids.includes(x));
-  G.pile.push(...ids); G.last = { p, ids, req: G.req }; G.turns++;
+  G.pile.push(...ids); G.last = { p, ids, req: G.req }; G.turns++; G.passes = 0;
   if (p !== 0) G.mem[p].push(...ids.filter((x) => rk(x) === G.req));
-  selc = new Set(); Sfx.tone(380, 300, 0.06, 0.06, 'triangle');
-  G.phase = 'window'; save();
-  const ep = epoch;
-  if (p !== 0) {
-    G.msg = T().ask(pname(p)); render(); startAsk();
-  } else {
-    G.msg = T().deciding; render();
-    setTimeout(() => { if (ep === epoch) cpuCalls(); }, W(1000));
-  }
+  selc = new Set(); pickR = 0; Sfx.tone(380, 300, 0.06, 0.06, 'triangle');
+  G.turn = nextP(p); G.msg = ''; G.phase = 'wait'; save(); render();
+  const ep = epoch; setTimeout(() => step(ep), W(700));
 }
-function startAsk() {
-  const t = G.n > 3 ? 3200 : 3600, bar = $('askBar');
-  bar.classList.remove('run'); void bar.offsetWidth; bar.style.setProperty('--t', t + 'ms'); bar.classList.add('run');
-  clearTimeout(askT); const ep = epoch;
-  askT = setTimeout(() => { if (ep === epoch && G.phase === 'window') humanDecide(false); }, t);
+function doPass(p) {
+  const L = G.last; if (!L) return;
+  G.passes++; Sfx.click();
+  if (G.passes >= G.n - 1) { // son atandan sonra herkes pas dedi: tur biter, kartlar ortada kalır
+    uncaught(L);
+    if (!G.hands[L.p].length) { win(L.p); return; }
+    G.msg = T().allPass(pname(L.p)); G.turn = L.p; G.last = null; G.req = 0; G.passes = 0;
+  } else { G.msg = T().passed(pname(p)); G.turn = nextP(p); }
+  G.phase = 'wait'; save(); render();
+  const ep = epoch; setTimeout(() => step(ep), W(900));
 }
-function humanDecide(call) {
-  if (!G || G.phase !== 'window' || !G.last || G.last.p === 0) return;
-  clearTimeout(askT); Sfx.unlock();
-  if (call) { resolve(0); return; }
-  Sfx.click(); G.phase = 'cpuwait'; G.msg = T().deciding; render();
-  const ep = epoch; setTimeout(() => { if (ep === epoch) cpuCalls(); }, W(500));
-}
-function cpuCalls() {
-  if (!G || G.over || !G.last) return;
-  const p = G.last.p;
-  for (let k = 1; k < G.n; k++) {
-    const q = (p + k) % G.n; if (q === 0) continue;
-    if (cpuWantsCall(q)) { resolve(q); return; }
-  }
-  G.msg = T().nobody; G.phase = 'done'; save(); render();
-  const ep = epoch; setTimeout(() => { if (ep === epoch) afterTurn(); }, W(700));
-}
+function win(w) { G.over = true; G.winner = w; G.phase = 'over'; save(); render(); const ep = epoch; setTimeout(() => { if (ep === epoch) finish(); }, W(600)); }
 function resolve(caller) {
   if (!G.last) return;
   const L = G.last, lie = L.ids.some((x) => rk(x) !== L.req);
@@ -627,13 +623,11 @@ function takePile() {
   G.mem.forEach((m) => { m.length = 0; });
   G.pile = [];
 }
+// Blöf açıldıktan sonra: eli biten kazanır, yoksa yeni turu “Blöf!” diyen (sıradaki oyuncu) açar
 function afterTurn() {
-  const L = G.last;
-  if (L && L.p === 0 && G.phase !== 'reveal' && L.ids.some((x) => rk(x) !== L.req)) G.st.bluff++;
-  if (L && G.phase === 'reveal' && L.p === 0 && G.reveal && !G.reveal.lie) { /* doğru oynadın */ }
   const w = G.hands.findIndex((h) => !h.length);
-  if (w >= 0) { G.over = true; G.winner = w; G.phase = 'over'; save(); render(); const ep = epoch; setTimeout(() => { if (ep === epoch) finish(); }, W(600)); return; }
-  G.req = G.req % 13 + 1; G.turn = nextP(G.turn); G.last = null; G.reveal = null;
+  if (w >= 0) { win(w); return; }
+  G.last = null; G.reveal = null; G.req = 0; G.passes = 0;
   save(); render(); step(epoch);
 }
 function finish() {
@@ -645,24 +639,27 @@ function finish() {
 }
 
 // ---------- Bilgisayar ----------
-const LVP = { kolay: { extra: 0.04, two: 0.15, acc: 0.55 }, orta: { extra: 0.14, two: 0.28, acc: 1 }, zor: { extra: 0.22, two: 0.35, acc: 1.2 } };
+const LVP = { kolay: { extra: 0.04, two: 0.15, acc: 0.55, lie: 0.3 }, orta: { extra: 0.14, two: 0.28, acc: 1, lie: 0.45 }, zor: { extra: 0.22, two: 0.35, acc: 1.2, lie: 0.6 } };
+// Turu açarken en çok tuttuğu değeri söyler; devam ederken elinde yoksa ya blöf yapar ya pas der (boş liste)
 function cpuPlay(p) {
-  const h = G.hands[p], R = G.req, cfg = LVP[G.level];
+  const h = G.hands[p], cfg = LVP[G.level], by = {};
+  h.forEach((x) => { by[rk(x)] = (by[rk(x)] || 0) + 1; });
+  const R = G.last ? G.req : +Object.keys(by).sort((a, b) => by[b] - by[a])[0];
   const have = h.filter((x) => rk(x) === R).slice(0, 4);
-  const dist = (x) => (rk(x) - R + 13) % 13; // gelecekte ne kadar uzak
-  const junk = h.filter((x) => rk(x) !== R).sort((a, b) => dist(b) - dist(a));
+  const junk = h.filter((x) => rk(x) !== R).sort((a, b) => by[rk(a)] - by[rk(b)]); // önce tek kalanlar
   if (have.length) {
     const ids = have.slice();
     if (junk.length && ids.length < 4 && h.length - ids.length > 1 && Math.random() < cfg.extra) ids.push(junk[0]);
-    return ids;
+    return { ids, r: R };
   }
+  if (Math.random() >= cfg.lie) return { ids: [], r: R };
   const k = h.length >= 3 && Math.random() < cfg.two + (h.length > 14 ? 0.25 : 0) ? (h.length > 18 && Math.random() < 0.3 ? 3 : 2) : 1;
-  return junk.slice(0, k);
+  return { ids: junk.slice(0, k), r: R };
 }
 function cpuWantsCall(q) {
   const L = G.last, cfg = LVP[G.level], n = L.ids.length;
   const own = G.hands[q].filter((x) => rk(x) === L.req).length;
-  const known = G.level === 'zor' ? G.mem[q].length : 0;
+  const known = G.level === 'zor' ? G.mem[q].filter((x) => rk(x) === L.req).length : 0;
   if (own + n > 4) return Math.random() < (G.level === 'kolay' ? 0.7 : 1);
   if (own + known + n > 4) return true;
   if (G.dead.includes(L.req) && G.level !== 'kolay') return true;
@@ -690,7 +687,11 @@ function render() {
     const h = G.hands[p].length, cls = G.over && G.winner === p ? ' on' : G.turn === p && !G.over ? ' on' : G.reveal && G.reveal.caller === p ? ' tg' : '';
     return `<div class="seat${cls}"><span class="nm">${esc(pname(p))}</span><span class="in">${esc(t.cards(h))}</span><span class="mini">${'<i></i>'.repeat(Math.min(h, 12))}</span></div>`;
   }).join('');
-  $('reqLbl').textContent = t.reqLbl; $('reqRank').textContent = RANK[(L ? L.req : G.req)];
+  const myTurn = !G.over && G.turn === 0 && G.phase === 'play', lead = myTurn && !L, sel = $('rankSel');
+  $('reqLbl').textContent = t.reqLbl; $('reqRank').textContent = RANK[L ? L.req : G.req] || '?';
+  $('reqRank').hidden = lead; sel.hidden = !lead; sel.setAttribute('aria-label', t.reqLbl);
+  if (lead) sel.value = String(pickR || (selc.size ? rk([...selc][0]) : G.hands[0].length ? rk(G.hands[0][0]) : 1));
+  const R = lead ? +sel.value : G.req;
   const pn = G.pile.length;
   $('pile').innerHTML = (pn ? Array.from({ length: Math.min(4, pn) }, (_, k) => cardHtml(-1).replace('class="cd', `style="left:${k * 3}px;top:${-k * 2}px" class="cd`)).join('') : '') + `<span>${esc(t.pileN(pn))}</span>`;
   let cl = '';
@@ -701,18 +702,16 @@ function render() {
     } else cl += `<div class="cds">${L.ids.map(() => cardHtml(-1)).join('')}</div>`;
   }
   $('claim').innerHTML = cl;
-  const asking = G.phase === 'window' && L && L.p !== 0;
-  $('ask').hidden = !asking; $('callBtn').textContent = t.callB; $('passBtn').textContent = t.passB;
+  $('ask').hidden = !(myTurn && L); $('callBtn').textContent = t.callB; $('passBtn').textContent = t.passB;
   $('status').textContent = G.over ? '' : G.msg;
-  const myTurn = !G.over && G.turn === 0 && G.phase === 'play';
   const hw = $('hand').clientWidth || $('main').clientWidth - 24, mine = G.hands[0], mh = $('main').clientHeight;
   const Lh = pcFit(Math.max(1, mine.length), hw - 4, mh * (land ? 0.34 : 0.4), small ? 72 : 120, small ? 2 : 3);
   pcApply($('hand'), Lh);
   const hh = pcRows(mine, Lh).map((part) => `<div class="row">${part.map((id) => cardHtml(id, selc.has(id) ? 'sel' : '')).join('')}</div>`).join('');
-  $('hand').innerHTML = hh; $('hand').classList.toggle('off', !myTurn);
-  $('playBtn').hidden = !myTurn;
+  $('hand').innerHTML = hh; $('hand').classList.toggle('off', !canPlay());
+  $('playBtn').hidden = !canPlay();
   $('playBtn').disabled = selc.size < 1 || selc.size > 4;
-  $('playBtn').textContent = selc.size ? t.playB(selc.size, RANK[G.req]) : t.pickCards(RANK[G.req]);
+  $('playBtn').textContent = selc.size ? t.playB(selc.size, RANK[R]) : lead ? t.pickLead : t.pickCards(RANK[R]);
 }
 function renderSetup() { segPress('oppSeg', 'o', String(setup.opps)); segPress('lvSeg', 'l', setup.level); $('setNote').textContent = T().setNote; }
 function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.over; $('startBtn').focus({ preventScroll: true }); }
@@ -727,32 +726,31 @@ const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b 
 segH('oppSeg', 'o', (v) => { setup.opps = +v; });
 segH('lvSeg', 'l', (v) => { setup.level = v; });
 $('hand').addEventListener('click', (e) => {
-  const c = e.target.closest('.cd[data-id]'); if (!c || !G || G.over || G.turn !== 0 || G.phase !== 'play') return;
+  const c = e.target.closest('.cd[data-id]'); if (!c || !G || !canPlay()) return;
   Sfx.unlock(); const id = +c.dataset.id;
   if (selc.has(id)) selc.delete(id); else if (selc.size < 4) selc.add(id); else { buzz(10); return; }
   Sfx.tap(); render();
 });
+$('rankSel').innerHTML = RANK.slice(1).map((r, i) => `<option value="${i + 1}">${r}</option>`).join('');
+$('rankSel').addEventListener('change', (e) => { pickR = +e.target.value; render(); });
 $('playBtn').addEventListener('click', () => {
-  if (!G || G.turn !== 0 || G.phase !== 'play' || selc.size < 1 || selc.size > 4) return;
-  doPlay(0, [...selc]);
+  if (!G || !canPlay() || selc.size < 1 || selc.size > 4) return;
+  doPlay(0, [...selc], +$('rankSel').value);
 });
-$('callBtn').addEventListener('click', () => humanDecide(true));
-$('passBtn').addEventListener('click', () => humanDecide(false));
+const myAsk = () => G && !G.over && G.turn === 0 && G.phase === 'play' && G.last;
+$('callBtn').addEventListener('click', () => { if (myAsk()) { Sfx.unlock(); resolve(0); } });
+$('passBtn').addEventListener('click', () => { if (myAsk()) doPass(0); });
 addEventListener('resize', () => G && render());
 
 function boot() {
   const s = store.get('game', null);
-  if (s && s.hands && !s.over) {
+  if (s && s.v === 2 && s.hands && !s.over) { // eski (sıralı değerli) kayıtlar açılmaz
     G = s; selc = new Set();
-    // yarıda kalan karar aşamaları güvenli biçimde sürdürülür
-    if (G.phase === 'play') { render(); step(epoch); }
-    else if (G.phase === 'window' && G.last && G.last.p !== 0) { render(); startAsk(); }
-    else if ((G.phase === 'window' || G.phase === 'cpuwait') && G.last) { G.phase = 'cpuwait'; render(); const ep = epoch; setTimeout(() => { if (ep === epoch) cpuCalls(); }, W(600)); }
-    else { if (G.phase === 'reveal') takePile(); render(); afterTurnSafe(); }
+    // yarıda kalan blöf açılışı tamamlanır, diğer her durumda sıra kaldığı yerden sürer
+    if (G.phase === 'reveal') { takePile(); render(); afterTurn(); } else { render(); step(epoch); }
   } else openSetup();
 }
-function afterTurnSafe() { if (G.last) afterTurn(); else step(epoch); }
-window.__blof = { state: () => G, humanDecide, doPlay, cpuPlay, cpuWantsCall, quads, setG: (g) => { G = g; } };
+window.__blof = { state: () => G, doPlay, doPass, resolve, cpuPlay, cpuWantsCall, quads, setG: (g) => { G = g; } };
 
 
 // ---------- Ortak bağlantılar ----------
