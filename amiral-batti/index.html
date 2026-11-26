@@ -365,7 +365,7 @@ const STR = {
     capE: 'Rakip sular', capM: 'Senin filon', yourTurn: 'Sıra sende',
     placeT: 'Filonu yerleştir', place: 'Gemileri sürükleyerek taşı, döndürmek için dokun', shuffle: '🔀 Karıştır', go: 'Savaşa başla ⚓', newGame: 'Yeni oyun',
     fire: 'Sıra sende: rakip sularda bir kareye ateş et', cpuFire: 'Bilgisayar ateş ediyor…',
-    miss: 'Iska', hit: 'İsabet!', sunk: (n) => `${n} battı!`, cpuMiss: 'Bilgisayar ıskaladı', cpuHit: 'Bilgisayar vurdu!', cpuSunk: (n) => `Bilgisayar ${n} batırdı!`,
+    miss: 'Iska', hit: (n) => `İsabet: ${n}!`, sunk: (n) => `${n} battı!`, cpuMiss: 'Bilgisayar ıskaladı', cpuHit: (n) => `Bilgisayar vurdu: ${n}!`, cpuSunk: (n) => `Bilgisayar ${n} batırdı!`,
     again1: ' Bir kez daha at.', badPlace: 'Buraya sığmıyor: gemiler birbirine değemez', badRot: 'Bu gemi burada döndürülemez',
     winT: 'Kazandın!', winS: 'Rakip filonun tamamını batırdın.', loseT: 'Filon battı', loseS: 'Bilgisayar tüm gemilerini buldu.',
     stShots: 'Atış', stAcc: 'İsabet oranı', stLeft: 'Ayakta kalan gemin', stCpu: 'Bilgisayarın atışı',
@@ -373,7 +373,7 @@ const STR = {
     ruleList: [
       ['🚢', 'Her iki tarafın da beş gemisi var: <b>uçak gemisi (5)</b>, <b>zırhlı (4)</b>, <b>kruvazör (3)</b>, <b>denizaltı (3)</b> ve <b>muhrip (2)</b>.'],
       ['🧭', 'Başlamadan önce gemilerini <b>sürükleyerek</b> yerleştir, döndürmek için üzerine <b>dokun</b>. Gemiler yan yana ya da köşe köşe değemez.'],
-      ['🎯', 'Sıran gelince rakip sularda bir kareye ateş et. <b>Beyaz nokta</b> ıska, <b>ateş</b> isabet demektir.'],
+      ['🎯', 'Sıran gelince rakip sularda bir kareye ateş et. <b>Beyaz nokta</b> ıska, <b>ateş</b> isabet demektir. İsabette rakip <b>hangi gemiyi vurduğunu</b> söyler.'],
       ['💥', 'Bir geminin bütün kareleri vurulunca gemi <b>batar</b> ve çevresindeki kareler boş olarak işaretlenir.'],
       ['🔁', 'Ayarlarda açıksa isabet ettiren oyuncu <b>bir kez daha</b> ateş eder.'],
       ['🏆', 'Rakibin bütün gemilerini ilk batıran kazanır.']
@@ -386,7 +386,7 @@ const STR = {
     capE: 'Enemy waters', capM: 'Your fleet', yourTurn: 'Your turn',
     placeT: 'Place your fleet', place: 'Drag ships to move them, tap to rotate', shuffle: '🔀 Shuffle', go: 'Start battle ⚓', newGame: 'New game',
     fire: 'Your turn: fire at a square in enemy waters', cpuFire: 'The computer is firing…',
-    miss: 'Miss', hit: 'Hit!', sunk: (n) => `${n} sunk!`, cpuMiss: 'The computer missed', cpuHit: 'The computer hit!', cpuSunk: (n) => `The computer sank your ${n.toLowerCase()}!`,
+    miss: 'Miss', hit: (n) => `Hit: ${n}!`, sunk: (n) => `${n} sunk!`, cpuMiss: 'The computer missed', cpuHit: (n) => `The computer hit your ${n.toLowerCase()}!`, cpuSunk: (n) => `The computer sank your ${n.toLowerCase()}!`,
     again1: ' Fire again.', badPlace: "It doesn't fit: ships may not touch", badRot: "This ship can't rotate here",
     winT: 'You win!', winS: 'You sank the whole enemy fleet.', loseT: 'Your fleet is sunk', loseS: 'The computer found all your ships.',
     stShots: 'Shots', stAcc: 'Accuracy', stLeft: 'Ships still afloat', stCpu: "Computer's shots",
@@ -394,7 +394,7 @@ const STR = {
     ruleList: [
       ['🚢', 'Each side has five ships: <b>carrier (5)</b>, <b>battleship (4)</b>, <b>cruiser (3)</b>, <b>submarine (3)</b> and <b>destroyer (2)</b>.'],
       ['🧭', 'Before the battle, <b>drag</b> your ships into place and <b>tap</b> one to rotate it. Ships may not touch, not even at the corners.'],
-      ['🎯', 'On your turn fire at a square in enemy waters. A <b>white dot</b> is a miss, <b>fire</b> is a hit.'],
+      ['🎯', 'On your turn fire at a square in enemy waters. A <b>white dot</b> is a miss, <b>fire</b> is a hit. On a hit you are told <b>which ship</b> you hit.'],
       ['💥', 'When every square of a ship is hit it <b>sinks</b>, and the squares around it are marked empty.'],
       ['🔁', 'If enabled in setup, a player who scores a hit <b>fires again</b>.'],
       ['🏆', 'The first to sink every enemy ship wins.']
@@ -532,7 +532,7 @@ function myShot(i) {
   const r = shoot('E', i); if (!r) return;
   G.st.s++; if (r.res !== 'miss') G.st.h++;
   newCells.E = i; fx(r.res); const t = T();
-  G.msg = { k: r.res, t: r.res === 'miss' ? t.miss : r.res === 'hit' ? t.hit : t.sunk(t.ships[r.k]), x: r.res !== 'miss' && G.extra };
+  G.msg = { k: r.res, t: r.res === 'miss' ? t.miss : (r.res === 'hit' ? t.hit : t.sunk)(t.ships[r.k]), x: r.res !== 'miss' && G.extra };
   if (allSunk(G.cpu)) return finish(true);
   if (r.res === 'miss' || !G.extra) G.turn = 2;
   save(); render();
@@ -546,7 +546,7 @@ function cpuTurn() {
     const i = cpuPick(), r = shoot('M', i);
     G.st.cs++; if (r.res !== 'miss') G.st.ch++;
     newCells.M = i; fx(r.res, true); const t = T();
-    G.msg = { k: r.res, cpu: 1, t: r.res === 'miss' ? t.cpuMiss : r.res === 'hit' ? t.cpuHit : t.cpuSunk(t.ships[r.k]) };
+    G.msg = { k: r.res, cpu: 1, t: r.res === 'miss' ? t.cpuMiss : (r.res === 'hit' ? t.cpuHit : t.cpuSunk)(t.ships[r.k]) };
     if (allSunk(G.me)) { busy = false; return finish(false); }
     if (r.res === 'miss' || !G.extra) { G.turn = 1; busy = false; save(); render(); }
     else { save(); render(); cpuTurn(); }
