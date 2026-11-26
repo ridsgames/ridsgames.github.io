@@ -1,7 +1,7 @@
 name: En çok oynananlar
 on:
   schedule:
-    - cron: '23 2 * * *' # her gün 05:23 (Türkiye)
+    - cron: '0 21 * * *' # her gün 00:00 (Türkiye, UTC+3)
   workflow_dispatch:
 permissions:
   contents: write
