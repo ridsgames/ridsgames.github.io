@@ -335,7 +335,7 @@ if (key) store.set('skipgc', 't');
 let days = +(store.get('rids_panel_days') || 7);
 if (![1, 7, 30, 90].includes(days)) days = 7;
 let loadId = 0, lastOk = 0;
-const CACHE_V = 2; // veri biçimi değişince eski önbellek kullanılmaz
+const CACHE_V = 3; // veri biçimi değişince eski önbellek kullanılmaz
 
 // ---------- Zaman aralığı (yerel saatle; GoatCounter saat başına yuvarlanmış zaman ister) ----------
 const iso = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -633,7 +633,7 @@ function drawLists(cur, lists) {
   for (const r of lists.refs) { const l = refLabel(r.name, r.ref_scheme); merged[l] = (merged[l] || 0) + r.count; }
   rows($('refs'), Object.entries(merged).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count).slice(0, 8));
   rows($('camps'), lists.camps.slice(0, 8).map((c) => {
-    const k = cur.camps[String(c.name || '').toLowerCase()];
+    const k = (cur.camps || {})[String(c.name || '').toLowerCase()];
     // ayrıntı yalnız ölçümün başladığı tarihten sonra gelenler için: giriş, oyun başlatma, bitirme, ziyaretçi başına süre
     const sub = k && k.giris ? `<small>${fmt.format(k.giris)} ziyaretçi · ${fmt.format(k.starts)} oyun başlatma (%${Math.round(k.starts / k.giris * 100)}) · ${fmt.format(k.ends)} bitirme · kişi başı ${dur(k.time / k.giris)}</small>` : '';
     return { label: esc(c.name || c.id) + sub, count: c.count };
@@ -671,7 +671,10 @@ async function load() {
   const id = ++loadId, r = range(days), cacheKey = 'rids_panel_cache_' + days;
   $('err').hidden = true; $('refresh').classList.add('spin');
   let cached = null; try { cached = JSON.parse(store.get(cacheKey)); } catch (e) {}
-  if (cached && cached.days === days && cached.v === CACHE_V) render(cached); else $('dash').classList.add('loading');
+  // kayıtlı veri çizilemezse (eski biçim) atlanır; yeni veri yine çekilir
+  let shown = false;
+  if (cached && cached.days === days && cached.v === CACHE_V) { try { render(cached); shown = true; } catch (e) { store.del(cacheKey); } }
+  if (!shown) $('dash').classList.add('loading');
   try {
     const span = { start: iso(r.start), end: iso(r.end) }, pspan = { start: iso(r.pStart), end: iso(r.pEnd) };
     const hits = await allHits(span, id); if (!hits) return;
