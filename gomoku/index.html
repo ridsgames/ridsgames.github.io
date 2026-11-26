@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<script id="rgErrJs">(() => { const E = window.__rgErr = [], keep = (m, src) => { if (E.length >= 5) E.shift(); E.push({ m: String(m || '').slice(0, 300), src: String(src || '').slice(0, 400), t: new Date().toISOString().slice(11, 19) }); }, st = (x, n) => x && x.stack ? String(x.stack).split('\n').slice(1, n).map((y) => y.trim()).join(' | ') : '';
+addEventListener('error', (e) => { if (e.target && e.target !== window) return; const s = st(e.error, 4); keep(e.message, `${(e.filename || '').split('/').pop()}:${e.lineno}:${e.colno}${s ? ' ' + s : ''}`); }, true);
+addEventListener('unhandledrejection', (e) => { const r = e.reason; keep(r && r.message ? r.message : r, st(r, 3) || 'promise'); }); })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Gomoku | Ridsgames</title>
+<meta name="description" content="Gomoku: 15×15 tahtada sırayla taş koy, beş taşı yan yana, alt alta ya da çapraz ilk dizen kazanır. Bilgisayara karşı üç zorlukta ya da aynı cihazda iki kişi oyna.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --line: rgba(34, 211, 238, 0.35);
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --glow: rgba(251, 191, 36, 0.45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--glow) 28%, transparent) 0%, transparent 62%), radial-gradient(ellipse at 50% 100%, #111a2c 0%, var(--bg) 70%), var(--bg);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk yok: sağ üstte ayarlar (ve varsa skor), sağ altta tam ekran. Oyun alanı ekranın tamamı. */
+.top { display: contents; }
+.fab { position: fixed; z-index: 26; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; padding: 0;
+  background: rgba(2, 6, 23, .62); border: 1px solid rgba(148, 163, 184, .32); color: #e2e8f0; box-shadow: 0 3px 10px rgba(0, 0, 0, .4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: background .15s, transform .1s; }
+.fab:hover { background: rgba(15, 23, 42, .9); color: #fff; } .fab:active { transform: scale(.94); }
+.fab.set { top: max(6px, env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); }
+.fab.score { top: max(6px, env(safe-area-inset-top)); right: calc(max(6px, env(safe-area-inset-right)) + 46px); }
+.fab.fs { bottom: max(6px, env(safe-area-inset-bottom)); right: max(6px, env(safe-area-inset-right)); width: 36px; height: 36px; opacity: .8; }
+.fab.fs .fsOut, .isFs .fab.fs .fsIn { display: none; } .isFs .fab.fs .fsOut { display: inline; }
+.sheet { max-width: 340px; display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+.sheet .logo { display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
+.sheet .logo img { display: block; height: 40px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12.5px; color: rgba(34, 211, 238, .9); padding: 2px 10px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); }
+.mlist { display: grid; gap: 8px; }
+.mi { height: 48px; border-radius: 13px; display: flex; align-items: center; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 700; color: #e2e8f0; text-align: left;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .3); }
+.mi:hover { border-color: var(--cyan); color: #fff; }
+.mi .ico { width: 22px; text-align: center; font-size: 18px; }
+.mi.lang { justify-content: center; font-size: 15px; font-weight: 800; color: #67e8f9; letter-spacing: .04em; }
+.sheet .btns { margin-top: 0; }
+.scoreBody { display: grid; gap: 8px; margin: 6px 0 2px; }
+.scoreBody table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 15px; }
+.scoreBody th { font-size: 12px; font-weight: 700; color: var(--dim); text-align: right; padding: 0 10px; }
+.scoreBody th:first-child, .scoreBody td:first-child { text-align: left; }
+.scoreBody td { padding: 10px; background: rgba(2, 6, 23, .55); text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: #e2e8f0; }
+.scoreBody td:first-child { border-radius: 10px 0 0 10px; color: #fff; } .scoreBody td:last-child { border-radius: 0 10px 10px 0; color: #fde68a; font-weight: 800; }
+.scoreBody tr.me td { background: rgba(8, 145, 178, .22); }
+.scoreBody .sn { font-size: 13px; color: var(--dim); text-align: center; margin: 0; }
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 27; display: flex; align-items: center; justify-content: center; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.seg.two { grid-template-columns: repeat(2, 1fr); }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.five { grid-template-columns: repeat(5, 1fr); }
+.seg.tall button { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.1; }
+.seg.tall small { font-size: 11px; font-weight: 600; opacity: .75; white-space: nowrap; }
+.seg.tall .em { font-size: 19px; }
+.sec { padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); margin-top: 12px; }
+.sec .lbl { font-size: 13.5px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; }
+.note { font-size: 12.5px; color: var(--dim); margin-top: 7px; line-height: 1.4; min-height: 1.4em; }
+.custom { display: grid; gap: 6px; margin-top: 10px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 64px 44px; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.mrow button { height: 44px; border-radius: 12px; border: 1px solid rgba(34, 211, 238, .4); background: rgba(2, 6, 23, .7); font-size: 24px; font-weight: 600; line-height: 1; touch-action: manipulation; }
+.mrow button:disabled { opacity: .35; cursor: default; }
+.mrow output { text-align: center; font-size: 24px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+.btns { display: grid; gap: 10px; margin-top: 16px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.score { text-align: center; font-size: 44px; font-weight: 800; line-height: 1; margin: 2px 0 14px; color: #fde68a; font-variant-numeric: tabular-nums; }
+.score.lost { color: #fca5a5; }
+.rank { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 6px; }
+.rank li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: rgba(2, 6, 23, .55); font-size: 14.5px; font-weight: 600; }
+.rank li .b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; top: max(10px, env(safe-area-inset-top)); z-index: 28; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; max-width: calc(100vw - 24px);
+  padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 800; color: #fff; text-align: center;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); transition: opacity .2s, transform .2s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+main { flex: 1; min-height: 0; width: 100%; max-width: 72rem; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 12px 12px; }
+.panel { border-radius: 16px; background: rgba(2, 6, 23, .66); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); }
+/* Yatay telefon: pencereler iki sütun */
+@media (orientation: landscape) and (max-height: 500px) {
+  main { padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); }
+  #setupOv .card { max-width: 680px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; padding: 14px 18px 0; }
+  #setupOv h2, #setupOv .sub, #setupOv .btns, #setupOv .wide { grid-column: 1 / -1; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 4px; }
+  #setupOv .sec { margin-top: 8px; padding-top: 8px; }
+  #setupOv .btns { position: sticky; bottom: 0; z-index: 1; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 8px -18px 0; padding: 10px 18px 14px; background: linear-gradient(180deg, rgba(11, 18, 32, 0), #0b1220 30%); }
+  #winOv .card { max-width: 560px; padding: 14px 18px 16px; }
+  #winOv .trophy { font-size: 38px; } #winOv .score { font-size: 34px; margin-bottom: 8px; } #winOv .sub { margin-bottom: 8px; }
+  #winOv .rank { grid-template-columns: 1fr 1fr; }
+  #winOv .btns { grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 10px; }
+}
+
+/* Telefon ve dokunmatik: kenar boşlukları dar */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) {
+  main { padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 6px; }
+}
+
+/* Sağ üstteki ayarlar düğmesinin altına denk gelen üst satırlar yer açar */
+main > :is(.hud, .opps, .bar, .info, .pls):first-child, .scr > .head:first-child, main > .side:first-child > .ballbar:first-child { margin-right: 46px; }
+
+
+/* ---------- Oyuna özel ---------- */
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; align-content: center; gap: 10px; align-items: stretch; max-width: 600px; }
+.score { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pl { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 14px; background: rgba(2, 6, 23, .6); border: 1.5px solid rgba(148, 163, 184, .18); min-width: 0; transition: border-color .2s, background .2s; }
+.pl.on { border-color: #fbbf24; background: rgba(251, 191, 36, .1); box-shadow: 0 0 0 3px rgba(251, 191, 36, .15); }
+.pl .nm { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dk { flex: none; width: 22px; height: 22px; border-radius: 50%; }
+.dk.b, .d.b { background: radial-gradient(circle at 35% 30%, #4b5563, #0b0f19 70%); box-shadow: inset 0 -2px 3px rgba(255, 255, 255, .08), 0 2px 4px rgba(0, 0, 0, .55); }
+.dk.w, .d.w { background: radial-gradient(circle at 35% 30%, #ffffff, #d1d5db 75%); box-shadow: inset 0 -2px 3px rgba(0, 0, 0, .18), 0 2px 4px rgba(0, 0, 0, .45); }
+.bw { display: flex; align-items: center; justify-content: center; min-height: 0; }
+/* Tahta: 15×15 çizgi, taşlar kesişim noktalarına konur */
+.board { --s: 320px; --ln: rgba(69, 39, 12, .8); width: var(--s); height: var(--s); display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); padding: calc(var(--s) / 60); border-radius: 12px; touch-action: manipulation;
+  background: linear-gradient(135deg, #e9bd73, #d29a55 55%, #c4873f); border: 2px solid #78350f; box-shadow: inset 0 0 0 2px rgba(146, 64, 14, .35), 0 12px 30px rgba(0, 0, 0, .5); }
+.q { position: relative; display: grid; place-items: center; cursor: pointer; min-width: 0; min-height: 0; }
+.q::before, .q::after { content: ''; position: absolute; background: var(--ln); pointer-events: none; }
+.q::before { left: 0; right: 0; top: calc(50% - .5px); height: 1px; }
+.q::after { top: 0; bottom: 0; left: calc(50% - .5px); width: 1px; }
+.q:nth-child(15n+1)::before { left: 50%; } .q:nth-child(15n)::before { right: 50%; }
+.q:nth-child(-n+15)::after { top: 50%; } .q:nth-last-child(-n+15)::after { bottom: 50%; }
+.q.st { background: radial-gradient(circle, var(--ln) 0 calc(var(--s) / 150), transparent calc(var(--s) / 150 + .6px)); }
+@media (hover: hover) { .board.hv .q:empty:hover { background: radial-gradient(circle, var(--gh) 0 40%, transparent 43%); } }
+.d { position: relative; z-index: 1; width: 92%; height: 92%; border-radius: 50%; }
+.d.new { animation: drop .22s ease-out; }
+.d.last::after { content: ''; position: absolute; inset: 33%; border-radius: 50%; background: #ef4444; }
+.d.win { animation: glow .9s ease-in-out infinite alternate; }
+.d.pv { opacity: .6; box-shadow: 0 0 0 2px #22d3ee; }
+.hn { position: relative; z-index: 1; width: 70%; height: 70%; border-radius: 50%; box-shadow: 0 0 0 3px #22d3ee; animation: hp 1s ease-in-out infinite; }
+@keyframes hp { 50% { transform: scale(1.2); } }
+@keyframes drop { 0% { transform: scale(1.4); opacity: .3; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes glow { from { box-shadow: 0 0 0 2px #fbbf24, 0 0 12px #fbbf24; } to { box-shadow: 0 0 0 2px #fbbf24, 0 0 2px #fbbf24; } }
+.side { display: flex; flex-direction: column; gap: 8px; }
+.status { text-align: center; font-weight: 700; font-size: 15px; color: #e2e8f0; min-height: 1.4em; }
+.acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.acts button { height: 50px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, .25); background: rgba(15, 23, 42, .8); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: #e2e8f0; }
+.acts button span { font-size: 18px; line-height: 1; } .acts small { font-size: 11px; color: #94a3b8; font-weight: 600; }
+.acts button[aria-pressed="true"] { border-color: #22d3ee; } .acts button[aria-pressed="true"] small { color: #67e8f9; }
+.acts button:disabled { opacity: .4; }
+@media (orientation: landscape) {
+  main { max-width: 1020px; grid-template-columns: minmax(0, 1fr) clamp(200px, 30vw, 300px); grid-template-rows: auto minmax(0, 1fr); align-content: stretch; column-gap: 16px; }
+  .bw { grid-column: 1; grid-row: 1 / 3; }
+  .score { grid-column: 2; grid-row: 1; grid-template-columns: 1fr; margin-right: 46px; }
+  .side { grid-column: 2; grid-row: 2; justify-content: flex-start; }
+  .acts { grid-template-columns: 1fr; } .acts button { flex-direction: row; gap: 8px; height: 44px; } .acts small { font-size: 13px; color: #cbd5e1; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  main { gap: 6px; column-gap: 10px; } .pl { padding: 5px 10px; }
+  .acts { gap: 5px; } .acts button { height: 36px; } .status { font-size: 13px; }
+}
+
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="gomoku" data-name="Gomoku"></script>
+</head>
+<body>
+<header class="top">
+  <button id="setBtn" class="fab set" type="button" aria-label="Ayarlar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.3 7.3 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.3 7.3 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.7 1.7 1l.4 2.5h4l.4-2.5c.6-.3 1.2-.6 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
+  <button id="scoreBtn" class="fab score" type="button" aria-label="Skor tablosu" hidden><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path fill="currentColor" d="M4 20h4V10H4zm6 0h4V4h-4zm6 0h4v-7h-4z"/></svg></button>
+  <button id="fsBtn" class="fab fs" type="button" aria-label="Tam ekran"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path class="fsIn" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+</header>
+<main id="main">
+<div class="score" id="score">
+  <div class="pl" id="pl1"><span class="dk b"></span><span class="nm" id="nm1"></span></div>
+  <div class="pl" id="pl2"><span class="dk w"></span><span class="nm" id="nm2"></span></div>
+</div>
+<div class="bw" id="bw"><div class="board" id="board" aria-label="Gomoku"></div></div>
+<div class="side" id="side">
+  <div class="status" id="status" aria-live="polite"></div>
+  <div class="acts">
+    <button type="button" id="undoBtn"><span>↶</span><small id="undoLbl"></small></button>
+    <button type="button" id="hintBtn"><span>💡</span><small id="hintLbl"></small></button>
+    <button type="button" id="cfBtn"><span>☝️</span><small id="cfLbl"></small></button>
+  </div>
+</div>
+
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Ayarlar -->
+<div class="ov" id="setOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-label="Ayarlar">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <span class="homeIco" aria-hidden="true" style="display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(8,51,68,.85);border:1.5px solid rgba(34,211,238,.5);color:#67e8f9;box-shadow:0 2px 8px rgba(0,0,0,.35);flex:none"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 3.3 2.6 11.6a.8.8 0 0 0 .53 1.4H5v7.2c0 .44.36.8.8.8h4.2v-5.6h4v5.6h4.2c.44 0 .8-.36.8-.8V13h1.87a.8.8 0 0 0 .53-1.4z"/></svg></span>
+      <span class="gname" id="gameName">Gomoku</span>
+    </a>
+    <div class="mlist">
+      <button id="menuBtn" class="mi" type="button"><span class="ico">☰</span><span id="menuLbl">Yeni oyun</span></button>
+      <button id="scoreMi" class="mi" type="button" hidden><span class="ico">📊</span><span id="scoreLbl">Skor tablosu</span></button>
+      <button id="rulesBtn" class="mi" type="button"><span class="ico">?</span><span id="rulesLbl">Kurallar</span></button>
+      <button id="soundBtn" class="mi" type="button"><span class="ico" id="soundIco">🔊</span><span id="soundLbl">Ses</span></button>
+      <button id="langBtn" class="mi lang" type="button" aria-label="Dil / Language">TR | EN</button>
+    </div>
+    <div class="btns"><button class="big alt" id="setClose" type="button">Oyuna dön</button></div>
+  </div>
+</div>
+
+<!-- Skor tablosu -->
+<div class="ov" id="scoreOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="scoreTitle">
+    <h2 id="scoreTitle">Skor tablosu</h2>
+    <div id="scoreBody" class="scoreBody"></div>
+    <div class="btns"><button class="big" id="scoreOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Yeni oyun -->
+<div class="ov" id="setupOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Gomoku</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="sec">
+      <div class="lbl" id="modeLbl"></div>
+      <div class="seg two tall" id="modeSeg"><button type="button" data-m="cpu"></button><button type="button" data-m="iki"></button></div>
+    </div>
+    <div class="sec" id="lvSec">
+      <div class="lbl" id="lvLbl"></div>
+      <div class="seg" id="lvSeg"><button type="button" data-l="kolay"></button><button type="button" data-l="orta"></button><button type="button" data-l="zor"></button></div>
+    </div>
+    <div class="sec" id="colSec">
+      <div class="lbl" id="colLbl"></div>
+      <div class="seg two" id="colSeg"><button type="button" data-c="1"></button><button type="button" data-c="2"></button></div>
+      <div class="note" id="colNote"></div>
+    </div>
+    <div class="sec">
+      <div class="lbl" id="ruleLbl"></div>
+      <div class="seg two" id="ruleSeg"><button type="button" data-r="tam"></button><button type="button" data-r="serbest"></button></div>
+      <div class="note" id="ruleNote"></div>
+    </div>
+
+    <div class="btns">
+      <button class="big" id="startBtn" type="button">Başla</button>
+      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1">Nasıl oynanır?</h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button">Tamam</button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="winIco">🏆</div>
+    <h2 id="winTitle"></h2>
+    <p class="sub" id="winSub"></p>
+    <div class="score" id="winScore"></div>
+    <ol class="rank" id="statList"></ol>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button">Tekrar oyna</button>
+      <button class="big alt" id="viewBtn" type="button">Tahtaya bak</button>
+      <button class="big alt" id="toMenuBtn" type="button">Ayarları değiştir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Ortak: dil, ses, pencereler, sayaç ----------
+const COMMON = {
+  tr: { homeLabel: 'Ridsgames ana sayfa', settings: 'Ayarlar', scoreT: 'Skor tablosu', soundOn: 'Ses açık', soundOff: 'Ses kapalı', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langLabel: 'Dil değiştir', rights: 'Tüm hakları saklıdır.',
+    start: 'Başla', back: 'Oyuna dön', again: 'Tekrar oyna', view: 'Tahtaya bak', toMenu: 'Ayarları değiştir', rulesTitle: 'Nasıl oynanır?', ok: 'Tamam', sec: 'sn',
+    lv: { kolay: 'Kolay', orta: 'Orta', zor: 'Zor' } },
+  en: { homeLabel: 'Ridsgames home', settings: 'Settings', scoreT: 'Scoreboard', soundOn: 'Sound on', soundOff: 'Sound off', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Full screen', langLabel: 'Change language', rights: 'All rights reserved.',
+    start: 'Start', back: 'Back to game', again: 'Play again', view: 'See the board', toMenu: 'Change settings', rulesTitle: 'How to play', ok: 'OK', sec: 's',
+    lv: { kolay: 'Easy', orta: 'Medium', zor: 'Hard' } }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const $ = (id) => document.getElementById(id);
+const KEY = 'rids_gomoku_';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (n) => Math.floor(Math.random() * n);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(KEY + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(KEY + k); } catch (e) {} }
+};
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'gomoku/' + olay, title: 'Gomoku: ' + ad, event: true }); } catch (e) {} };
+let soundOn = store.get('sound', 1) !== 0, bitenVar = false;
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  return {
+    unlock: ctx, tone,
+    click() { tone(900, 700, 0.05, 0.05, 'triangle'); },
+    tap() { tone(540, 880, 0.07, 0.07); },
+    good() { tone(660, 990, 0.12, 0.08, 'triangle'); },
+    bad() { tone(220, 110, 0.22, 0.09, 'sawtooth'); },
+    win() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, f, 0.4, 0.1, 'triangle', i * 0.065)); },
+    lose() { [392, 329.6, 261.6].forEach((f, i) => tone(f, f * 0.98, 0.3, 0.09, 'triangle', i * 0.12)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+let toastT = null;
+function toast(s, color) {
+  const el = $('toast'); el.textContent = s; el.style.borderColor = color || 'var(--cyan)'; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
+}
+const OVS = ['setOv', 'scoreOv', 'setupOv', 'rulesOv', 'winOv'];
+function closeAll() { for (const id of OVS) $(id).hidden = true; }
+const anyOpen = () => OVS.some((id) => !$(id).hidden);
+const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
+function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
+  closeAll();
+  $('winIco').textContent = o.ico; $('winTitle').textContent = o.title; $('winSub').textContent = o.sub || '';
+  $('winScore').textContent = o.score || ''; $('winScore').hidden = !o.score; $('winScore').classList.toggle('lost', !!o.lost);
+  $('statList').innerHTML = (o.stats || []).map(([a, b]) => `<li><span>${a}</span><span class="b">${b}</span></li>`).join('');
+  $('winOv').hidden = false; $('againBtn').focus({ preventScroll: true });
+}
+
+
+// ---------- Oyun ----------
+const STR = {
+  tr: { ...COMMON.tr, title: 'Gomoku | Ridsgames', game: 'Gomoku',
+    setupSub: '15×15 tahtada sırayla taş koy. Beş taşı yan yana, alt alta ya da çapraz ilk dizen kazanır.',
+    modeLbl: 'Rakip', modes: { cpu: ['🤖', 'Bilgisayar'], iki: ['👥', 'İki kişi'] }, lvLbl: 'Zorluk', colLbl: 'Rengin',
+    cols: { 1: 'Siyah', 2: 'Beyaz' }, colNote: 'Siyah başlar.',
+    ruleLbl: 'Kazanma', rules: { tam: 'Tam beş', serbest: 'Beş ve fazlası' },
+    ruleNote: { tam: 'Federasyon kuralı: altı ya da daha uzun sıra kazandırmaz.', serbest: 'Serbest gomoku: altı ya da daha uzun sıra da kazandırır.' },
+    you: 'Sen', cpu: 'Bilgisayar', black: 'Siyah', white: 'Beyaz',
+    undo: 'Geri al', hint: 'İpucu', cf: 'Onaylı koy',
+    yourTurn: 'Sıra sende', cpuTurn: 'Bilgisayar düşünüyor…', turnOf: (n) => n === 'Siyah' ? 'Sıra siyahta' : 'Sıra beyazda', confirm: 'Koymak için aynı yere yine dokun',
+    overline: 'Altı ya da fazlası kazandırmaz, oyun sürüyor',
+    winT: 'Kazandın!', loseT: 'Bilgisayar kazandı', drawT: 'Berabere: tahta doldu', winsT: (n) => `${n} kazandı!`, tMoves: 'Hamle',
+    rulesSub: '15×15 tahtada, çizgilerin kesiştiği noktalara oynanır. Siyah başlar.',
+    ruleList: [
+      ['⚫', 'Sırayla <b>boş bir noktaya</b> bir taş koyulur. Konan taş yerinden oynamaz, alınmaz.'],
+      ['🏆', 'Kendi renginden <b>beş taşı</b> yatay, dikey ya da çapraz kesintisiz ilk dizen kazanır.'],
+      ['6️⃣', '<b>Tam beş</b> (federasyon kuralı): altı ya da daha uzun sıra kazandırmaz, oyun sürer. Kurulumda <b>Beş ve fazlası</b> seçilirse uzun sıra da kazandırır.'],
+      ['✅', 'Yasak hamle yoktur: iki renk de istediği boş noktaya oynayabilir.'],
+      ['🤝', 'Tahta dolar ve kimse beş dizemezse oyun <b>berabere</b> biter.'],
+      ['☝️', '<b>Onaylı koy</b> açıkken ilk dokunuş taşı gösterir, aynı noktaya yine dokununca taş konur. İpucu iyi bir hamle önerir, Geri al son hamleni geri alır.']
+    ] },
+  en: { ...COMMON.en, title: 'Gomoku | Ridsgames', game: 'Gomoku',
+    setupSub: 'Take turns placing stones on a 15×15 board. The first to line up five across, down or diagonally wins.',
+    modeLbl: 'Opponent', modes: { cpu: ['🤖', 'Computer'], iki: ['👥', 'Two players'] }, lvLbl: 'Level', colLbl: 'Your colour',
+    cols: { 1: 'Black', 2: 'White' }, colNote: 'Black moves first.',
+    ruleLbl: 'Winning', rules: { tam: 'Exactly five', serbest: 'Five or more' },
+    ruleNote: { tam: 'Federation rule: a row of six or more does not win.', serbest: 'Freestyle gomoku: a row of six or more also wins.' },
+    you: 'You', cpu: 'Computer', black: 'Black', white: 'White',
+    undo: 'Undo', hint: 'Hint', cf: 'Confirm',
+    yourTurn: 'Your turn', cpuTurn: 'Computer is thinking…', turnOf: (n) => `${n} to move`, confirm: 'Tap the same spot again to place',
+    overline: 'Six or more does not win, play on',
+    winT: 'You win!', loseT: 'The computer wins', drawT: 'Draw: the board is full', winsT: (n) => `${n} wins!`, tMoves: 'Moves',
+    rulesSub: 'Played on the intersections of a 15×15 board. Black moves first.',
+    ruleList: [
+      ['⚫', 'Take turns placing one stone on <b>any empty point</b>. Stones never move and are never captured.'],
+      ['🏆', 'The first to make an unbroken row of <b>five stones</b> across, down or diagonally wins.'],
+      ['6️⃣', '<b>Exactly five</b> (federation rule): a row of six or more does not win and play goes on. Choose <b>Five or more</b> in the setup to let long rows win too.'],
+      ['✅', 'There are no forbidden moves: both colours may play on any empty point.'],
+      ['🤝', 'If the board fills up and nobody has five, the game is a <b>draw</b>.'],
+      ['☝️', 'With <b>Confirm</b> on, the first tap shows your stone and a second tap on the same point places it. Hint suggests a good move, Undo takes back your last move.']
+    ] }
+};
+const T = () => STR[lang];
+const N = 15, NN = N * N, MID = 112, STARS = new Set([48, 56, 112, 168, 176]);
+let setup = Object.assign({ mode: 'cpu', level: 'orta', color: 1, rule: 'tam' }, store.get('setup', {}));
+if (!STR.tr.modes[setup.mode]) setup.mode = 'cpu'; if (!COMMON.tr.lv[setup.level]) setup.level = 'orta'; if (![1, 2].includes(setup.color)) setup.color = 1; if (!STR.tr.rules[setup.rule]) setup.rule = 'tam';
+let G = null, busy = false, epoch = 0, placed = -1, hintAt = -1, pend = -1;
+const cfOn = () => store.get('confirm', matchMedia('(pointer: coarse)').matches ? 1 : 0) === 1;
+const DIRS = [[0, 1], [1, 0], [1, 1], [1, -1]];
+const inB = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+
+// ---------- Motor ----------
+// Tahtadaki her beşlik pencere (5 nokta) ve iki ucundaki komşu nokta. Tam beş kuralında ucunda kendi taşı olan pencere beş vermez (altılı olur).
+const WC = [], WF = [], CW = [], CA = [], NB = [];
+for (let i = 0; i < NN; i++) { CW.push([]); CA.push([]); NB.push([]); }
+for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+  for (const [dr, dc] of DIRS) {
+    if (!inB(r + dr * 4, c + dc * 4)) continue;
+    const w = WC.length, cells = [0, 1, 2, 3, 4].map((k) => (r + dr * k) * N + c + dc * k);
+    const f = [[r - dr, c - dc], [r + dr * 5, c + dc * 5]].map(([a, b]) => inB(a, b) ? a * N + b : -1);
+    WC.push(cells); WF.push(f);
+    for (const i of cells) { CW[i].push(w); CA[i].push(w); }
+    for (const i of f) if (i >= 0) CA[i].push(w);
+  }
+  for (let a = -2; a <= 2; a++) for (let b = -2; b <= 2; b++) if ((a || b) && inB(r + a, c + b)) NB[r * N + c].push((r + a) * N + c + b);
+}
+const V = [0, 1, 12, 160, 2500, 0], WIN = 1e7;
+const ATK = [7, 35, 800, 15000, 800000], DEF = [0, 15, 400, 1800, 100000]; // hamle sıralama: kendi/rakip penceresindeki taş sayısına göre
+function mk(b, exact) {
+  const E = { b: new Int8Array(NN), n: [null, new Int8Array(WC.length), new Int8Array(WC.length)], S: [0, 0, 0], F: [0, 0, 0], nb: new Int8Array(NN), exact, left: NN };
+  b.forEach((p, i) => { if (p) put(E, i, p); });
+  return E;
+}
+function eff(E, w, p) { // pencerede p'nin işe yarar taş sayısı; rakip taşı varsa ya da (tam beşte) ucunda kendi taşı varsa -1
+  if (E.n[3 - p][w]) return -1;
+  if (E.exact) { const f = WF[w]; if ((f[0] >= 0 && E.b[f[0]] === p) || (f[1] >= 0 && E.b[f[1]] === p)) return -1; }
+  return E.n[p][w];
+}
+function acc(E, w, s) { for (let p = 1; p <= 2; p++) { const e = eff(E, w, p); if (e > 0) { E.S[p] += s * V[e]; if (e === 4) E.F[p] += s; } } }
+function put(E, i, p) {
+  const A = E.exact ? CA[i] : CW[i];
+  for (const w of A) acc(E, w, -1);
+  E.b[i] = p; E.left--; for (const w of CW[i]) E.n[p][w]++; for (const j of NB[i]) E.nb[j]++;
+  for (const w of A) acc(E, w, 1);
+}
+function take(E, i) {
+  const A = E.exact ? CA[i] : CW[i], p = E.b[i];
+  for (const w of A) acc(E, w, -1);
+  E.b[i] = 0; E.left++; for (const w of CW[i]) E.n[p][w]--; for (const j of NB[i]) E.nb[j]--;
+  for (const w of A) acc(E, w, 1);
+}
+function fours(E, p) { // p'nin tek taşla beşi tamamlayacağı noktalar
+  const out = [];
+  for (let w = 0; w < WC.length; w++) if (E.n[p][w] === 4 && eff(E, w, p) === 4) for (const i of WC[w]) if (!E.b[i] && !out.includes(i)) out.push(i);
+  return out;
+}
+function cands(E, p) { // taşlara en çok iki nokta uzaktaki boş noktalar, saldırı + savunma değerine göre sıralı
+  const o = 3 - p, out = [];
+  if (E.left === NN) return [[0, MID]];
+  for (let i = 0; i < NN; i++) {
+    if (E.b[i] || !E.nb[i]) continue;
+    let s = 0;
+    for (const w of CW[i]) { const a = eff(E, w, p), d = eff(E, w, o); s += a > 0 ? ATK[a] : d > 0 ? DEF[d] : a === 0 ? 7 : 0; }
+    out.push([s, i]);
+  }
+  return out.sort((x, y) => y[0] - x[0]);
+}
+function threats(E, p, one) { // p'nin tek hamleyle iki ayrı beş noktası açtığı (açık dörtlü, çift dörtlü) hamleler ve bunları önleyen noktalar
+  const out = new Set();
+  for (let w = 0; w < WC.length; w++) {
+    if (E.n[p][w] !== 3 || eff(E, w, p) !== 3) continue;
+    for (const c of WC[w]) {
+      if (E.b[c] || out.has(c)) continue;
+      put(E, c, p); const e = [];
+      for (const v of CW[c]) if (eff(E, v, p) === 4) for (const j of WC[v]) if (!E.b[j] && !e.includes(j)) e.push(j);
+      take(E, c);
+      if (e.length > 1) { if (one) return out.add(c); out.add(c); e.forEach((j) => out.add(j)); }
+    }
+  }
+  return out;
+}
+const makers = (E, p, set) => { for (let w = 0; w < WC.length; w++) if (E.n[p][w] === 3 && eff(E, w, p) === 3) for (const i of WC[w]) if (!E.b[i]) set.add(i); return set; }; // dörtlü yapan noktalar
+// ponytail: dörtlülerde zorunlu hamle uzatması ve yapraktaki açık dörtlü denetimi var, ayrı VCF/VCT araması yok; daha güçlü rakip gerekirse buraya eklenir
+function search(E, p, depth, alpha, beta, ply, X) {
+  if ((++X.n & 511) === 0 && performance.now() > X.dl) X.out = true;
+  const o = 3 - p;
+  if (E.F[p]) return WIN - ply;
+  let ms, ext = 0;
+  if (E.F[o]) { ms = fours(E, o); if (ms.length > 1) return -(WIN - ply - 1); ext = 1; }
+  else {
+    if (!E.left) return 0;
+    if (depth <= 0 || X.out || ply > 24) return threats(E, p, true).size ? WIN - ply - 2 : E.S[p] * 1.1 - E.S[o];
+    const th = threats(E, o); // rakip açık dörtlü kurabiliyorsa yalnız onu önleyen ya da dörtlü yapan hamlelere bak
+    ms = cands(E, p); if (th.size) { makers(E, p, th); ms = ms.filter((x) => th.has(x[1])); }
+    ms = ms.slice(0, X.k).map((x) => x[1]);
+  }
+  let best = -Infinity;
+  for (const i of ms) {
+    put(E, i, p);
+    const v = -search(E, o, depth - 1 + ext, -beta, -alpha, ply + 1, X);
+    take(E, i);
+    if (v > best) best = v; if (v > alpha) alpha = v; if (alpha >= beta) break;
+  }
+  return best;
+}
+function pickMove(b, p, level, exact) {
+  const E = mk(b, exact), o = 3 - p;
+  if (E.left === NN) return MID;
+  if (E.F[p]) return fours(E, p)[0];
+  if (E.F[o] && (level !== 'kolay' || Math.random() < 0.75)) return fours(E, o)[0];
+  const cs = cands(E, p);
+  if (level === 'kolay') { const top = cs.slice(0, 6); return Math.random() < 0.4 ? top[0][1] : top[rnd(top.length)][1]; }
+  const zor = level === 'zor', dl = performance.now() + (zor ? 900 : 200), noise = zor ? 1 : 30;
+  let order = cs.slice(0, zor ? 14 : 10).map((x) => x[1]), best = order[0];
+  for (let d = 1; d <= (zor ? 12 : 3); d++) {
+    const X = { n: 0, out: false, dl, k: zor ? 10 : 8 };
+    let bv = -Infinity, bm = -1, alpha = -Infinity;
+    for (const i of order) {
+      put(E, i, p);
+      const v = -search(E, o, d - 1, -Infinity, -alpha, 1, X) + Math.random() * noise;
+      take(E, i);
+      if (X.out) break;
+      if (v > bv) { bv = v; bm = i; } if (v > alpha) alpha = v;
+    }
+    if (X.out || bm < 0) break;
+    best = bm; order = [bm, ...order.filter((x) => x !== bm)];
+    if (Math.abs(bv) > WIN / 2) break;
+  }
+  return best;
+}
+
+// ---------- Akış ----------
+const exactR = () => G.rule === 'tam';
+const turnOf = () => G.moves.length % 2 ? 2 : 1;
+function newGame() {
+  closeAll();
+  G = { mode: setup.mode, level: setup.level, me: setup.mode === 'cpu' ? setup.color : 0, rule: setup.rule, b: Array(NN).fill(0), moves: [], over: false, win: null };
+  sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(G.mode === 'cpu' ? `mod/cpu-${G.level}-${G.me === 1 ? 'siyah' : 'beyaz'}-${G.rule}` : `mod/iki-${G.rule}`, G.mode === 'cpu' ? `mod: bilgisayar, ${G.level}` : 'mod: iki kişi');
+  epoch++; busy = false; placed = hintAt = pend = -1;
+  save(); render(); kick();
+}
+function startFromSetup() { store.set('setup', setup); newGame(); }
+function again() { newGame(); }
+const save = () => { if (G) store.set('game', G); };
+const nameOf = (p) => G.mode === 'cpu' ? (p === G.me ? T().you : T().cpu) : (p === 1 ? T().black : T().white);
+const isCpu = (p) => G.mode === 'cpu' && p !== G.me;
+function runs(b, i) { // i noktasından geçen dört doğrultudaki kesintisiz sıralar
+  const p = b[i], r = (i / N) | 0, c = i % N;
+  return DIRS.map(([dr, dc]) => {
+    const cells = [i];
+    for (const s of [1, -1]) { let rr = r + dr * s, cc = c + dc * s; while (inB(rr, cc) && b[rr * N + cc] === p) { cells.push(rr * N + cc); rr += dr * s; cc += dc * s; } }
+    return cells;
+  });
+}
+function play(i) {
+  const p = turnOf();
+  G.b[i] = p; G.moves.push(i); placed = i; hintAt = pend = -1;
+  Sfx.tone(p === 1 ? 330 : 440, p === 1 ? 300 : 400, 0.07, 0.08, 'triangle'); buzz(10);
+  const rs = runs(G.b, i), w = rs.find((x) => (exactR() ? x.length === 5 : x.length >= 5));
+  if (w) { G.over = true; G.win = { p, cells: w }; }
+  else if (G.moves.length === NN) { G.over = true; G.win = { p: 0, cells: [] }; }
+  else if (exactR() && rs.some((x) => x.length > 5)) toast(T().overline, '#fbbf24');
+  save(); render();
+  if (G.over) setTimeout(finish, 700); else kick();
+}
+function kick() {
+  if (!G || G.over || !isCpu(turnOf()) || busy) return;
+  busy = true; render();
+  const ep = epoch, t0 = performance.now();
+  setTimeout(() => {
+    if (ep !== epoch) return;
+    const m = pickMove(G.b, turnOf(), G.level, exactR());
+    setTimeout(() => { if (ep !== epoch) return; busy = false; play(m); }, Math.max(0, (REDUCED ? 60 : 380) - (performance.now() - t0)));
+  }, 30);
+}
+function humanTap(i) {
+  if (!G || G.over || busy || isCpu(turnOf()) || G.b[i]) return;
+  Sfx.unlock();
+  if (cfOn() && pend !== i) { pend = i; Sfx.click(); render(); return; }
+  play(i);
+}
+const canUndo = () => G && !busy && G.moves.length > (G.mode === 'cpu' && G.me === 2 ? 1 : 0);
+function undo() {
+  if (!canUndo()) return;
+  epoch++; busy = false;
+  do { G.b[G.moves.pop()] = 0; } while (G.mode === 'cpu' && G.moves.length && isCpu(turnOf()));
+  G.over = false; G.win = null; placed = hintAt = pend = -1;
+  Sfx.click(); save(); render(); kick();
+}
+function hint() {
+  if (!G || G.over || busy || isCpu(turnOf())) return;
+  hintAt = pickMove(G.b, turnOf(), 'orta', exactR()); pend = -1; Sfx.good(); render();
+}
+function resultText() {
+  const t = T(), win = G.win.p;
+  return win === 0 ? t.drawT : G.mode === 'cpu' ? (win === G.me ? t.winT : t.loseT) : t.winsT(nameOf(win));
+}
+function finish() {
+  if (!G || !G.over) return;
+  const t = T(), win = G.win.p;
+  bitenVar = true; sayac('bitti', 'oyun bitti');
+  if (G.mode === 'cpu') sayac(`sonuc/${win === 0 ? 'berabere' : win === G.me ? 'insan' : 'bilgisayar'}-${G.level}`, `sonuç (${G.level})`);
+  const meWon = G.mode === 'cpu' ? win === G.me : win !== 0;
+  (win === 0 ? Sfx.click : meWon ? Sfx.win : Sfx.lose)();
+  showEnd({ ico: win === 0 ? '🤝' : meWon ? '🏆' : '😔', title: resultText(), sub: t.rules[G.rule], stats: [[t.tMoves, G.moves.length]] });
+}
+
+// ---------- Çizim ----------
+function sizeBoard() {
+  const bw = $('bw'), main = $('main');
+  let s;
+  if (!matchMedia('(orientation: landscape)').matches) {
+    const cs = getComputedStyle(main), padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom), padH = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    s = Math.floor(Math.min(main.clientWidth - padH, main.clientHeight - padV - $('score').offsetHeight - $('side').offsetHeight - 22, 640));
+    bw.style.height = Math.max(240, s) + 'px';
+  } else { bw.style.height = ''; s = Math.floor(Math.min(bw.clientWidth, bw.clientHeight, 680)); }
+  $('board').style.setProperty('--s', Math.max(240, s) + 'px');
+}
+function render() {
+  if (!G) return;
+  const t = T(), turn = turnOf(); sizeBoard();
+  const human = !G.over && !busy && !isCpu(turn), win = new Set(G.win ? G.win.cells : []), last = G.moves.length ? G.moves[G.moves.length - 1] : -1;
+  const bd = $('board'); bd.classList.toggle('hv', human && !cfOn()); bd.style.setProperty('--gh', turn === 1 ? 'rgba(15, 23, 42, .45)' : 'rgba(255, 255, 255, .6)');
+  bd.innerHTML = G.b.map((v, i) => {
+    let s = '';
+    if (v) s = `<div class="d ${v === 1 ? 'b' : 'w'}${win.has(i) ? ' win' : ''}${i === last ? ' last' : ''}${!REDUCED && i === placed ? ' new' : ''}"></div>`;
+    else if (human && i === pend) s = `<div class="d pv ${turn === 1 ? 'b' : 'w'}"></div>`;
+    else if (human && i === hintAt) s = '<div class="hn"></div>';
+    return `<div class="q${STARS.has(i) ? ' st' : ''}" data-i="${i}">${s}</div>`;
+  }).join('');
+  placed = -1;
+  $('nm1').textContent = nameOf(1); $('nm2').textContent = nameOf(2);
+  $('pl1').classList.toggle('on', !G.over && turn === 1); $('pl2').classList.toggle('on', !G.over && turn === 2);
+  $('status').textContent = G.over ? resultText() : busy || isCpu(turn) ? t.cpuTurn : pend >= 0 ? t.confirm : G.mode === 'cpu' ? t.yourTurn : t.turnOf(nameOf(turn));
+  $('undoBtn').disabled = !canUndo(); $('hintBtn').disabled = !human;
+  $('cfBtn').setAttribute('aria-pressed', cfOn());
+}
+function renderSetup() {
+  const t = T();
+  segPress('modeSeg', 'm', setup.mode); segPress('lvSeg', 'l', setup.level); segPress('colSeg', 'c', String(setup.color)); segPress('ruleSeg', 'r', setup.rule);
+  $('lvSec').hidden = $('colSec').hidden = setup.mode !== 'cpu'; $('colNote').textContent = t.colNote; $('ruleNote').textContent = t.ruleNote[setup.rule];
+}
+function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.over; $('startBtn').focus({ preventScroll: true }); }
+function gameLang() {
+  const t = T();
+  $('modeLbl').textContent = t.modeLbl; $('lvLbl').textContent = t.lvLbl; $('colLbl').textContent = t.colLbl; $('ruleLbl').textContent = t.ruleLbl;
+  document.querySelectorAll('#modeSeg button').forEach((b) => { const [e, n] = t.modes[b.dataset.m]; b.innerHTML = `<span class="em">${e}</span><small>${n}</small>`; });
+  document.querySelectorAll('#lvSeg button').forEach((b) => { b.textContent = t.lv[b.dataset.l]; });
+  document.querySelectorAll('#colSeg button').forEach((b) => { b.innerHTML = `<span class="dk ${b.dataset.c === '1' ? 'b' : 'w'}" style="display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px"></span>${t.cols[b.dataset.c]}`; });
+  document.querySelectorAll('#ruleSeg button').forEach((b) => { b.textContent = t.rules[b.dataset.r]; });
+  $('undoLbl').textContent = t.undo; $('hintLbl').textContent = t.hint; $('cfLbl').textContent = t.cf; $('board').setAttribute('aria-label', t.game);
+  renderSetup(); render();
+}
+const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b = e.target.closest(`button[data-${attr}]`); if (b) { fn(b.dataset[attr]); renderSetup(); } });
+segH('modeSeg', 'm', (v) => { setup.mode = v; });
+segH('lvSeg', 'l', (v) => { setup.level = v; });
+segH('colSeg', 'c', (v) => { setup.color = +v; });
+segH('ruleSeg', 'r', (v) => { setup.rule = v; });
+$('board').addEventListener('click', (e) => { const q = e.target.closest('.q'); if (q) humanTap(+q.dataset.i); });
+$('undoBtn').addEventListener('click', undo);
+$('hintBtn').addEventListener('click', hint);
+$('cfBtn').addEventListener('click', () => { store.set('confirm', cfOn() ? 0 : 1); pend = -1; Sfx.click(); render(); });
+addEventListener('resize', () => G && render());
+
+function boot() {
+  const s = store.get('game', null);
+  if (s && Array.isArray(s.b) && s.b.length === NN && Array.isArray(s.moves) && !s.over) { G = s; busy = false; render(); kick(); }
+  else openSetup();
+}
+window.__gmk = { state: () => G, busy: () => busy, pickMove, humanTap, undo, runs, mk, fours, play: (i) => play(i) };
+
+
+// ---------- Ortak bağlantılar ----------
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langLabel);
+  const c = COMMON[lang];
+  $('setBtn').setAttribute('aria-label', c.settings); $('scoreBtn').setAttribute('aria-label', c.scoreT); $('scoreLbl').textContent = c.scoreT; $('scoreTitle').textContent = c.scoreT; $('scoreOk').textContent = t.ok; $('setClose').textContent = t.back;
+  $('setOv').querySelector('.sheet').setAttribute('aria-label', c.settings); applySound(); $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
+  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  gameLang();
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); $('soundLbl').textContent = COMMON[lang][soundOn ? 'soundOn' : 'soundOff']; }
+const hasScore = typeof scoreHtml === 'function';
+function openScore() { closeAll(); $('scoreBody').innerHTML = hasScore ? scoreHtml() : ''; $('scoreOv').hidden = false; $('scoreOk').focus({ preventScroll: true }); }
+function syncFs() { const on = !!(document.fullscreenElement || document.webkitFullscreenElement); document.documentElement.classList.toggle('isFs', on); $('fsBtn').setAttribute('aria-pressed', on); }
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('setOv').hidden || !$('scoreOv').hidden) { $('setOv').hidden = $('scoreOv').hidden = true; }
+  else if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
+  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('winOv').hidden) closeAll();
+});
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
+$('backBtn').addEventListener('click', closeAll);
+$('menuBtn').addEventListener('click', () => { $('setOv').hidden = true; openSetup(); });
+$('setBtn').addEventListener('click', () => { Sfx.unlock(); const was = !$('setOv').hidden; closeAll(); $('setOv').hidden = was; });
+$('setClose').addEventListener('click', () => { $('setOv').hidden = true; });
+$('setOv').addEventListener('click', (e) => { if (e.target.id === 'setOv') $('setOv').hidden = true; });
+$('scoreBtn').hidden = $('scoreMi').hidden = !hasScore;
+$('scoreBtn').addEventListener('click', () => { if (!$('scoreOv').hidden) { $('scoreOv').hidden = true; return; } openScore(); });
+$('scoreMi').addEventListener('click', openScore);
+$('scoreOk').addEventListener('click', () => { $('scoreOv').hidden = true; });
+$('scoreOv').addEventListener('click', (e) => { if (e.target.id === 'scoreOv') $('scoreOv').hidden = true; });
+document.addEventListener('fullscreenchange', syncFs); document.addEventListener('webkitfullscreenchange', syncFs);
+$('rulesBtn').addEventListener('click', () => { $('setOv').hidden = true; $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
+$('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
+$('viewBtn').addEventListener('click', closeAll);
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+applySound(); applyLang(); boot();
+</script>
+<!-- Kurulum penceresi ekrana sığsın: taşarsa boşluklar daralır, yatayda bölümler sütunlara dizilir -->
+<style id="fitSetupCss">
+#setupOv > .fz1 > h2 { font-size: 21px; margin-bottom: 2px; }
+#setupOv > .fz1 > .sub { font-size: 12.5px; margin-bottom: 6px; }
+#setupOv > .fz1 > :not(h2):not(.sub):not(.btns) { margin-top: 6px; padding-top: 6px; }
+#setupOv > .fz1 .lbl { margin-bottom: 5px; }
+#setupOv > .fz1 .note { margin-top: 4px; font-size: 12px; min-height: 0; }
+#setupOv > .fz1 > .btns { margin-top: 10px; }
+#setupOv > .fzc { display: block !important; width: 100%; max-width: min(100%, 940px) !important; columns: var(--fcols, 2); column-gap: 18px; padding: 12px 16px 14px !important; }
+#setupOv > .fzc > * { break-inside: avoid; }
+#setupOv > .fzc > :is(h2, .sub, .btns) { column-span: all; }
+#setupOv > .fzc:not(.fzn) > .wide { column-span: all; }
+#setupOv > .fzc > :not(h2):not(.sub):not(.btns) { display: block; }
+#setupOv > .fzc > .btns { position: static !important; margin: 10px 0 0 !important; padding: 0 !important; background: none !important; display: grid !important; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
+#setupOv > .fz2 > .sub { display: none; }
+#setupOv > .fz2 .seg button { height: 34px; }
+#setupOv > .fz2 .seg.tall button { height: 44px; }
+#setupOv > .fz2 .big { height: 42px; font-size: 16px; }
+#setupOv > .fz2 .note { font-size: 11.5px; line-height: 1.35; }
+#setupOv > .fz2 .seg.tall button { height: 38px; flex-direction: row; gap: 6px; }
+#setupOv > .fz2 .seg.tall .em { font-size: 17px; } #setupOv > .fz2 .seg.tall small { font-size: 12.5px; }
+#setupOv > .fz2 .catSeg button { height: 34px; }
+#setupOv > .fz2 .chips { gap: 4px; } #setupOv > .fz2 .chips button { height: 30px; padding: 0 9px; font-size: 12px; }
+#setupOv > .fz2 .stepper { grid-template-columns: 40px 1fr 40px; } #setupOv > .fz2 .stepper button { height: 38px; font-size: 22px; }
+#setupOv > .fz2 .tval output { font-size: 26px; } #setupOv > .fz2 .tval small { margin-top: 2px; }
+#setupOv > .fz2 .players, #setupOv > .fz2 .names { gap: 4px; }
+#setupOv > .fz2 :is(.prow, .names) input { height: 34px; font-size: 14px; }
+#setupOv > .fz2 .prow button { height: 34px; }
+#setupOv > .fz2 .add { height: 34px; }
+#setupOv > .fzc .seg button { font-size: 12.5px; padding: 0 2px; white-space: normal; line-height: 1.1; }
+#setupOv > .fzc .prow { grid-template-columns: 18px 1fr 34px; gap: 4px; }
+#setupOv > .fzc .catSeg { grid-template-columns: repeat(2, 1fr); }
+#setupOv > .fz3 .note { display: none; }
+#setupOv > .fzn .seg.tall:not(.two) button { flex-direction: column; height: 44px; gap: 0; }
+#setupOv > .fzn .seg.tall:not(.two) .em { font-size: 15px; } #setupOv > .fzn .seg.tall:not(.two) small { font-size: 11px; white-space: normal; }
+</style>
+<script id="fitSetupJs">
+(() => {
+  const ov = document.getElementById('setupOv'); const c = ov && ov.querySelector(':scope > .card, :scope > .card2'); if (!c) return;
+  const over = () => c.scrollHeight > c.clientHeight + 1 || c.scrollWidth > c.clientWidth + 1;
+  let busy = false, q = 0;
+  const fit = () => {
+    if (ov.hidden || busy) return; busy = true;
+    c.classList.remove('fz1', 'fz2', 'fz3', 'fzc', 'fzn'); c.style.removeProperty('--fcols');
+    if (over()) {
+      const land = innerWidth > innerHeight && innerWidth >= 560;
+      const cols = (n) => () => { c.classList.add('fzc'); c.style.setProperty('--fcols', n); };
+      const nw = () => c.classList.add('fzn'), steps = [() => c.classList.add('fz1')];
+      if (land) steps.push(cols(2), cols(3), () => c.classList.add('fz2'), nw);
+      else steps.push(() => c.classList.add('fz2'));
+      if (land && innerWidth >= 760) steps.push(cols(4));
+      if (!land && innerWidth >= 340) steps.push(cols(2), nw);
+      steps.push(() => c.classList.add('fz3'));
+      if (land && innerWidth >= 640 && innerWidth < 760) steps.push(cols(4));
+      for (const s of steps) { s(); if (!over()) break; }
+    }
+    busy = false;
+  };
+  const later = () => { cancelAnimationFrame(q); q = requestAnimationFrame(fit); };
+  new MutationObserver(later).observe(ov, { attributes: true, attributeFilter: ['hidden'], childList: true, subtree: true, characterData: true });
+  addEventListener('resize', later); addEventListener('orientationchange', later);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);
+  later();
+})();
+</script>
+<!-- Sorun bildir: yalnızca ayarlardan açılır, oyun sırasında hiçbir şey göstermez -->
+<style id="rgRepCss">
+#rgRep { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; padding: 12px; background: rgba(2, 6, 23, .72); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #e2e8f0; }
+#rgRep[hidden] { display: none; }
+#rgRep .rc { width: min(100%, 440px); max-height: calc(100dvh - 24px); overflow: auto; background: #0f172a; border: 1px solid rgba(148, 163, 184, .3); border-radius: 16px; padding: 16px; box-shadow: 0 16px 48px rgba(0, 0, 0, .5); }
+#rgRep h2 { margin: 0 0 4px; font-size: 19px; color: #f8fafc; }
+#rgRep p { margin: 0 0 10px; font-size: 13px; color: #94a3b8; }
+#rgRep textarea { box-sizing: border-box; width: 100%; min-height: 96px; resize: vertical; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .4); background: #1e293b; color: #f1f5f9; padding: 10px; font: inherit; font-size: 16px; }
+#rgRep textarea:focus { outline: 2px solid #22d3ee; outline-offset: 1px; }
+#rgRep details { margin: 8px 0 0; font-size: 12.5px; color: #94a3b8; }
+#rgRep summary { cursor: pointer; }
+#rgRep pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font: 11.5px/1.35 ui-monospace, Menlo, Consolas, monospace; color: #cbd5e1; background: #1e293b; border-radius: 8px; padding: 8px; max-height: 140px; overflow: auto; }
+#rgRep .rb { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+#rgRep button { min-height: 42px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .35); background: #1e293b; color: #e2e8f0; font: inherit; font-weight: 600; cursor: pointer; padding: 0 10px; }
+#rgRep button.go { grid-column: 1 / -1; background: #22d3ee; border-color: #22d3ee; color: #082f49; }
+#rgRep .ok { margin: 8px 0 0; font-size: 12.5px; color: #67e8f9; }
+#rgRep .ok:empty { display: none; }
+@media (max-height: 480px) { #rgRep .rc { padding: 12px 14px; } #rgRep h2 { font-size: 17px; } #rgRep p { margin-bottom: 6px; } #rgRep textarea { min-height: 56px; } #rgRep .rb { grid-template-columns: 2fr 1fr 1fr; margin-top: 8px; } #rgRep button.go { grid-column: auto; } #rgRep button { min-height: 38px; } }
+/* yatay telefonda ayarlar menüsü iki sütun, kaydırmadan sığsın */
+@media (orientation: landscape) and (max-height: 520px) { #setOv .sheet { max-width: 560px; gap: 10px; } #setOv .sheet .logo { flex-direction: row; justify-content: center; } #setOv .mlist { grid-template-columns: 1fr 1fr; } #setOv .mi { height: 42px; } }
+@media (orientation: landscape) and (max-height: 520px) { html.rgSet .top .in { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet .top .logo { flex-direction: row; justify-content: center; } html.rgSet .top .tools { grid-template-columns: 1fr 1fr; } html.rgSet .top .pill { height: 42px; } html.rgSet .top .rgClose { height: 40px; }
+  html.rgSet #topHeader > div { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet #topHeader #homeLink { flex-direction: row; } html.rgSet #topHeader #homeLink + div { grid-template-columns: 1fr 1fr; } html.rgSet #topHeader #modeSelect { grid-column: 1 / -1; height: 40px; } html.rgSet #topHeader #homeLink + div > button { height: 42px; } html.rgSet #topHeader .rgClose { height: 40px; } }
+</style>
+<script id="rgRepJs">
+(() => {
+  const MAIL = 'destek@ridsgames.com', H = document.documentElement, errs = window.__rgErr || [];
+  const T = {
+    tr: { b: 'Sorun bildir', h: 'Sorun bildir', p: 'Ne oldu? Kısaca yazın. Gönder deyince e-posta uygulamanız hazır bir mesajla açılır, siz göndermeden hiçbir şey bize ulaşmaz.', ph: 'Örnek: Kartı oynadığımda oyun takıldı.', inf: 'Mesaja eklenecek bilgiler', send: 'E-posta ile gönder', copy: 'Kopyala', close: 'Kapat', copied: 'Kopyalandı. ' + MAIL + ' adresine gönderebilirsiniz.', nocopy: 'Kopyalanamadı. Metni seçip kopyalayın ve ' + MAIL + ' adresine gönderin.', subj: 'Sorun bildirimi', game: 'Oyun', page: 'Sayfa', lang: 'Dil', scr: 'Ekran', br: 'Tarayıcı', time: 'Zaman', err: 'Son hatalar', none: 'yok', desc: 'Açıklama' },
+    en: { b: 'Report a problem', h: 'Report a problem', p: 'What happened? Write a few words. Send opens your email app with a ready message; nothing reaches us unless you send it.', ph: 'Example: the game froze when I played a card.', inf: 'Details added to the message', send: 'Send by email', copy: 'Copy', close: 'Close', copied: 'Copied. You can send it to ' + MAIL + '.', nocopy: 'Could not copy. Select the text, copy it and send it to ' + MAIL + '.', subj: 'Problem report', game: 'Game', page: 'Page', lang: 'Language', scr: 'Screen', br: 'Browser', time: 'Time', err: 'Recent errors', none: 'none', desc: 'Description' }
+  };
+  const t = () => T[(H.lang || 'tr').startsWith('en') ? 'en' : 'tr'];
+  const gname = () => { const g = document.getElementById('gameName') || document.querySelector('#homeLink .gname'); return ((g && g.textContent) || document.title || '').replace(/\s*[|·–-]\s*Ridsgames.*$/i, '').trim(); };
+  const info = () => { const l = t(), so = screen.orientation && screen.orientation.type;
+    return [`${l.game}: ${gname()}`, `${l.page}: ${location.pathname}`, `${l.lang}: ${H.lang || '-'}`,
+      `${l.scr}: ${innerWidth}x${innerHeight} @${Math.round((devicePixelRatio || 1) * 100) / 100}x${so ? ' ' + so : ''}${matchMedia('(pointer: coarse)').matches ? ' touch' : ''}`,
+      `${l.br}: ${navigator.userAgent}`, `${l.time}: ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
+      `${l.err}: ${errs.length ? '' : l.none}`, ...errs.slice(-3).reverse().map((e) => `- ${e.t} ${e.m} @ ${e.src}`)].join('\n'); };
+  let ov = null;
+  const body = () => { const l = t(), d = ov.querySelector('textarea').value.trim(); return `${l.desc}:\n${d || '-'}\n\n---\n${info()}`; };
+  const build = () => {
+    ov = document.createElement('div'); ov.id = 'rgRep'; ov.hidden = true;
+    ov.innerHTML = '<div class="rc" role="dialog" aria-modal="true" aria-labelledby="rgRepH"><h2 id="rgRepH"></h2><p class="pp"></p><textarea maxlength="1200"></textarea><details><summary></summary><pre></pre></details><div class="ok" role="status"></div><div class="rb"><button type="button" class="go"></button><button type="button" class="cp"></button><button type="button" class="cl"></button></div></div>';
+    document.body.appendChild(ov);
+    const q = (s) => ov.querySelector(s), close = () => { ov.hidden = true; };
+    q('.cl').onclick = close;
+    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    ['keydown', 'keyup', 'keypress'].forEach((k) => ov.addEventListener(k, (e) => { e.stopPropagation(); if (k === 'keydown' && e.key === 'Escape') close(); }));
+    ['pointerdown', 'mousedown', 'touchstart', 'wheel', 'contextmenu'].forEach((k) => ov.addEventListener(k, (e) => e.stopPropagation(), { passive: true }));
+    q('.go').onclick = () => { const l = t(); let b = body(); if (b.length > 1400) b = b.slice(0, 1400) + '…';
+      location.href = `mailto:${MAIL}?subject=${encodeURIComponent(`${l.subj}: ${gname()}`)}&body=${encodeURIComponent(b)}`; };
+    q('.cp').onclick = () => { const l = t(), b = `${l.subj}: ${gname()}\n\n${body()}`, ok = q('.ok');
+      const fb = () => { const a = document.createElement('textarea'); a.value = b; a.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; ov.appendChild(a); a.select(); let r = false; try { r = document.execCommand('copy'); } catch (_) {} a.remove(); ok.textContent = r ? l.copied : l.nocopy; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(b).then(() => { ok.textContent = l.copied; }, fb); else fb(); };
+  };
+  const open = () => { if (!ov) build(); const l = t(), q = (s) => ov.querySelector(s);
+    q('h2').textContent = l.h; q('.pp').textContent = l.p; q('textarea').placeholder = l.ph; q('summary').textContent = l.inf; q('pre').textContent = info();
+    q('.go').textContent = l.send; q('.cp').textContent = l.copy; q('.cl').textContent = l.close; q('.ok').textContent = '';
+    ov.hidden = false; setTimeout(() => q('textarea').focus({ preventScroll: true }), 30); };
+  // Menüye satır ekle: Kurallar düğmesinin görünüşünü kopyalar
+  const ICO = '✉';
+  let btn = null;
+  const label = () => { if (!btn) return; const l = t(); btn.setAttribute('aria-label', l.b); btn.title = l.b; const s = btn.querySelector('.rgRepL'); if (s) s.textContent = l.b; };
+  const mount = () => {
+    const rules = document.getElementById('rulesBtn'), lang = document.getElementById('langBtn');
+    btn = document.createElement('button'); btn.type = 'button'; btn.id = 'rgRepBtn';
+    if (rules && lang && rules.parentNode === lang.parentNode) {
+      btn.className = rules.className; const sp = [...rules.children].filter((x) => x.tagName === 'SPAN');
+      const a = document.createElement('span'); a.textContent = ICO; if (sp[0]) a.className = sp[0].className; btn.appendChild(a);
+      if (sp[1]) { const b = document.createElement('span'); b.className = (sp[1].className + ' rgRepL').trim(); btn.appendChild(b); }
+      lang.parentNode.insertBefore(btn, lang);
+    } else {
+      const host = document.getElementById('btn-reset-from-settings'), menu = document.getElementById('menu');
+      const s = document.createElement('span'); s.className = 'rgRepL'; btn.append(ICO + ' ', s);
+      if (host) { btn.className = host.className; host.parentNode.insertBefore(btn, host); }
+      else if (menu) { btn.style.cssText = 'background:none;border:0;box-shadow:none;color:inherit;opacity:.75;font-size:13px;text-decoration:underline;margin-top:10px;min-height:0;padding:4px'; menu.appendChild(btn); }
+      else { btn = null; return; }
+    }
+    btn.addEventListener('click', () => setTimeout(open, 0));
+    label(); new MutationObserver(label).observe(H, { attributes: true, attributeFilter: ['lang'] });
+  };
+  window.rgReport = () => open();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
+})();
+</script>
+</body>
+</html>
