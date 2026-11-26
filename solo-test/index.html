@@ -380,7 +380,7 @@ html.rgSet #topHeader { display: flex; }
           ranksBtn: "Unvanlar",
           lbBtn: "Sıralama",
           rankCardTitle: "Derece & Unvan Tablosu",
-          rankCardDesc: "Oyun sonunda tablada kalan piyon sayısına göre unvanınız belirlenir:",
+          rankCardDesc: "Oyun sonunda tablada kalan piyon sayısına göre unvanınız ve puanınız belirlenir:",
           bestScore: "En İyi Derece:",
           tipTitle: "Strateji İpucu",
           tipBody: "Merkezdeki delikleri hemen doldurmaktan kaçının; köşe ve kenar kollarındaki piyonları önce eritmek oyun sonunda tek piyon bırakma şansınızı artırır.",
@@ -401,17 +401,19 @@ html.rgSet #topHeader { display: flex; }
           modalRestart: "🔄 Yeni Oyun Başlat",
           modalBack: "▶️ Oyuna Dön",
           pegsUnit: "Piyon",
+          ptsUnit: "puan",
           centerBonus: " 🌟 (Merkezde Efsane Bitiriş!)",
           ranks: [
-            { count: "1", max: 1, title: "Bilgin", badge: "👑", desc: "Kusursuz strateji! Tablada yalnızca tek piyon bırakmayı başardın." },
-            { count: "2", max: 2, title: "Zeki", badge: "🧠", desc: "Harika bir oyun çıkardın, zirveye sadece tek bir adım kaldı!" },
-            { count: "3", max: 3, title: "Kurnaz", badge: "🦊", desc: "Çok iyi taktik! Hamleleri birkaç adım önceden okuyabiliyorsun." },
-            { count: "4", max: 4, title: "Başarılı", badge: "⭐", desc: "Ortalamanın oldukça üzerinde, sağlam ve dengeli bir performans." },
-            { count: "5", max: 5, title: "Dengeli", badge: "⚖️", desc: "Güzel deneme! Köşe piyonlarını biraz daha erken eriterek üst lige çıkabilirsin." },
-            { count: "6", max: 6, title: "Gelişime Açık", badge: "🌱", desc: "İyi bir ısınma turuydu; merkez deliklerini açık tutmaya odaklan." },
-            { count: "7", max: 7, title: "Aceleci", badge: "⚡", desc: "Biraz hızlı karar verdin! 'Geri Al' veya 'İpucu' ile alternatif yolları dene." },
-            { count: "8", max: 8, title: "Dalgın", badge: "☁️", desc: "Bazı piyonlar kenarlarda yalnız kaldı; piyonları birbirine yakın tutmaya çalış." },
-            { count: "9+", max: 99, title: "Acemi Kaşif", badge: "🧭", desc: "Her usta bir zamanlar acemiydi! Yeni bir stratejiyle tekrar dene." }
+            // Geleneksel kutu tablosu (puanlar dahil, 8 piyon = 24); 7-9 için sonraki baskıların yumuşatılmış adları
+            { count: "1", max: 1, pts: 200, title: "Bilgin", badge: "👑", desc: "Kusursuz strateji! Tablada yalnızca tek piyon bırakmayı başardın." },
+            { count: "2", max: 2, pts: 175, title: "Zeki", badge: "🧠", desc: "Harika bir oyun çıkardın, zirveye sadece tek bir adım kaldı!" },
+            { count: "3", max: 3, pts: 150, title: "Kurnaz", badge: "🦊", desc: "Çok iyi taktik! Hamleleri birkaç adım önceden okuyabiliyorsun." },
+            { count: "4", max: 4, pts: 125, title: "Başarılı", badge: "⭐", desc: "Ortalamanın oldukça üzerinde, sağlam ve dengeli bir performans." },
+            { count: "5", max: 5, pts: 100, title: "Normal", badge: "⚖️", desc: "Güzel deneme! Köşe piyonlarını biraz daha erken eriterek üst lige çıkabilirsin." },
+            { count: "6", max: 6, pts: 75, title: "Tecrübesiz", badge: "🌱", desc: "İyi bir ısınma turuydu; merkez deliklerini açık tutmaya odaklan." },
+            { count: "7", max: 7, pts: 50, title: "Ha Gayret", badge: "⚡", desc: "Biraz hızlı karar verdin! 'Geri Al' veya 'İpucu' ile alternatif yolları dene." },
+            { count: "8", max: 8, pts: 24, title: "Acele Etme", badge: "☁️", desc: "Bazı piyonlar kenarlarda yalnız kaldı; piyonları birbirine yakın tutmaya çalış." },
+            { count: "9+", max: 99, pts: 0, title: "Çok Çalış", badge: "🧭", desc: "Her usta bir zamanlar acemiydi! Yeni bir stratejiyle tekrar dene." }
           ]
         },
         en: {
@@ -436,7 +438,7 @@ html.rgSet #topHeader { display: flex; }
           ranksBtn: "Ranks",
           lbBtn: "Leaderboard",
           rankCardTitle: "Rank & Title Scale",
-          rankCardDesc: "Your title at the end of the game is based on how many pegs remain:",
+          rankCardDesc: "Your title and score at the end of the game are based on how many pegs remain:",
           bestScore: "Best Record:",
           tipTitle: "Strategy Tip",
           tipBody: "Avoid clogging the center hole too early; clearing the four outer arms first makes leaving a single peg much easier.",
@@ -457,17 +459,18 @@ html.rgSet #topHeader { display: flex; }
           modalRestart: "🔄 Start New Game",
           modalBack: "▶️ Back to Game",
           pegsUnit: "Pegs",
+          ptsUnit: "pts",
           centerBonus: " 🌟 (Perfect Center Finish!)",
           ranks: [
-            { count: "1", max: 1, title: "Grandmaster (Bilgin)", badge: "👑", desc: "Flawless strategy! You left only a single peg on the board." },
-            { count: "2", max: 2, title: "Mastermind (Zeki)", badge: "🧠", desc: "Brilliant game—just one jump away from perfection!" },
-            { count: "3", max: 3, title: "Tactician (Kurnaz)", badge: "🦊", desc: "Sharp tactics! You planned several moves ahead." },
-            { count: "4", max: 4, title: "Skilled (Başarılı)", badge: "⭐", desc: "Well above average, solid and thoughtful play." },
-            { count: "5", max: 5, title: "Balanced (Dengeli)", badge: "⚖️", desc: "Nice effort! Clear the outer corners earlier to reach the top ranks." },
-            { count: "6", max: 6, title: "Apprentice (Gelişime Açık)", badge: "🌱", desc: "Good warm-up round—focus on keeping central holes available." },
-            { count: "7", max: 7, title: "Hasty (Aceleci)", badge: "⚡", desc: "A bit quick on the trigger! Try Undo or Hint to explore better lines." },
-            { count: "8", max: 8, title: "Daydreamer (Dalgın)", badge: "☁️", desc: "Some pegs got stranded on the edges—keep your group connected." },
-            { count: "9+", max: 99, title: "Rookie Explorer (Acemi Kaşif)", badge: "🧭", desc: "Every master started as a beginner! Give it another go." }
+            { count: "1", max: 1, pts: 200, title: "Grandmaster (Bilgin)", badge: "👑", desc: "Flawless strategy! You left only a single peg on the board." },
+            { count: "2", max: 2, pts: 175, title: "Mastermind (Zeki)", badge: "🧠", desc: "Brilliant game—just one jump away from perfection!" },
+            { count: "3", max: 3, pts: 150, title: "Tactician (Kurnaz)", badge: "🦊", desc: "Sharp tactics! You planned several moves ahead." },
+            { count: "4", max: 4, pts: 125, title: "Skilled (Başarılı)", badge: "⭐", desc: "Well above average, solid and thoughtful play." },
+            { count: "5", max: 5, pts: 100, title: "Average (Normal)", badge: "⚖️", desc: "Nice effort! Clear the outer corners earlier to reach the top ranks." },
+            { count: "6", max: 6, pts: 75, title: "Inexperienced (Tecrübesiz)", badge: "🌱", desc: "Good warm-up round—focus on keeping central holes available." },
+            { count: "7", max: 7, pts: 50, title: "Keep Going (Ha Gayret)", badge: "⚡", desc: "A bit quick on the trigger! Try Undo or Hint to explore better lines." },
+            { count: "8", max: 8, pts: 24, title: "Slow Down (Acele Etme)", badge: "☁️", desc: "Some pegs got stranded on the edges—keep your group connected." },
+            { count: "9+", max: 99, pts: 0, title: "Study Harder (Çok Çalış)", badge: "🧭", desc: "Every master started as a beginner! Give it another go." }
           ]
         }
       };
@@ -858,7 +861,7 @@ html.rgSet #topHeader { display: flex; }
               <span class="text-sm">${rk.badge}</span>
               <span class="text-cyan-400 font-semibold whitespace-nowrap">${rk.count} ${t.pegsUnit}</span>
             </div>
-            <span class="text-right">${rk.title}</span>
+            <span class="text-right">${rk.title} · ${rk.pts} ${t.ptsUnit}</span>
           `;
           rankListContainer.appendChild(row);
         });
@@ -1133,7 +1136,7 @@ html.rgSet #topHeader { display: flex; }
 
         modalEmoji.textContent = rk.badge;
         modalTitle.textContent = pegsLeft === 1 ? t.modalWinTitle : t.modalOverTitle;
-        modalSubtitle.textContent = `${rk.title}${isCenterFinish ? t.centerBonus : ""}`;
+        modalSubtitle.textContent = `${rk.title} · ${rk.pts} ${t.ptsUnit}${isCenterFinish ? t.centerBonus : ""}`;
 
         modalStatsBox.classList.remove("hidden");
         document.getElementById("modalLblPegs").textContent = t.remaining;
