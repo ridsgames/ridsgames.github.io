@@ -206,7 +206,7 @@ main { padding-top: calc(52px + env(safe-area-inset-top)); }
 /* Yatay: tahta ekranı doldurur. Sağda yalnızca ince bir düğme şeridi kalır (ayarlar, geri al, tam ekran).
    Bilgi mesajları kısa bildirim olarak çıkar. */
 @media (orientation: landscape) {
-  main { display: flex; flex-direction: row; align-items: stretch; justify-content: center; max-width: none; gap: 0; padding-top: 6px; padding-right: calc(52px + env(safe-area-inset-right)); }
+  main { display: flex; flex-direction: row; align-items: stretch; justify-content: center; max-width: none; gap: 0; padding-top: 6px; padding-right: calc(52px + env(safe-area-inset-right)); padding-left: calc(52px + env(safe-area-inset-left)); }
   .bwrap { flex: 1; min-width: 0; height: 100%; }
   #board { height: 100%; width: auto; max-width: 100%; }
   .status, #openB, #rollB { display: none; }
@@ -233,6 +233,61 @@ body {
 .fab:hover { background: rgba(4, 47, 22, .8); }
 .status { color: #f0fdf4; text-shadow: 0 1px 2px rgba(0, 30, 10, .5); }
 .acts button.alt { color: #f0fdf4; background: rgba(4, 47, 22, .6); border-color: rgba(187, 247, 208, .3); }
+/* Açılış: tahta dizili halde görünür, altta (yatayda sağda) krem bir panel. Ayarlar "Değiştir" ile açılır. */
+#setupOv.sOv { align-items: flex-end; padding: 0; background: rgba(3, 30, 12, .22); -webkit-backdrop-filter: none; backdrop-filter: none; }
+#setupOv .sheet { display: block; position: relative; width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto; scrollbar-width: none; padding: 10px 18px calc(18px + env(safe-area-inset-bottom)); border-radius: 26px 26px 0 0; background: #fbf5e8; color: #3a210c; box-shadow: 0 -10px 30px rgba(0, 25, 8, .35); animation: sUp .45s cubic-bezier(.3, 1.1, .4, 1); }
+@keyframes sUp { from { transform: translateY(100%); } }
+#setupOv .grab { width: 40px; height: 5px; border-radius: 3px; background: #e3d3b0; margin: 0 auto 12px; }
+#setupOv .shead { display: flex; align-items: flex-start; gap: 12px; }
+#setupOv .shead h2 { margin: 0; font-size: 28px; font-weight: 900; color: #3a210c; text-align: left; letter-spacing: -.01em; }
+#setupOv .shead .sub { margin: 3px 0 0; font-size: 14px; color: #7a5a3a; text-align: left; line-height: 1.4; }
+#setupOv .qbtn { margin-left: auto; flex: none; width: 38px; height: 38px; border-radius: 50%; border: 2px solid #e3d3b0; background: #f3e8d2; font-size: 19px; font-weight: 800; color: #7a5a3a; }
+#setupOv .play { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 60px; margin-top: 16px; border: 0; border-radius: 18px; background: #e8b04a; color: #2a1606; box-shadow: 0 5px 0 #a8741f; font-size: 25px; font-weight: 900; transition: translate .12s, box-shadow .12s; }
+#setupOv .play:active { translate: 0 3px; box-shadow: 0 2px 0 #a8741f; }
+#setupOv .play svg { width: 22px; height: 22px; fill: currentColor; }
+#setupOv .play.pulse { animation: sPulse 2.6s ease-in-out 1s infinite; }
+@keyframes sPulse { 0%, 70%, 100% { scale: 1; } 80% { scale: 1.035; } 90% { scale: .99; } }
+#setupOv .newg { display: block; width: 100%; margin-top: 10px; min-height: 46px; border: 2px solid #e3d3b0; border-radius: 14px; background: none; font-size: 16.5px; font-weight: 800; color: #3a210c; }
+#setupOv .sum { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14.5px; font-weight: 700; color: #7a5a3a; }
+#setupOv .sum span { flex: 1; min-width: 0; }
+#setupOv .chg { flex: none; display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 6px 2px; font-size: 14.5px; font-weight: 900; color: #a15c0b; }
+#setupOv .chg svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; transition: rotate .3s; }
+#setupOv .open .chg svg { rotate: 180deg; }
+#setupOv .opts { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s cubic-bezier(.3, 1, .4, 1); }
+#setupOv .open .opts { grid-template-rows: 1fr; }
+#setupOv .opts > div { overflow: hidden; }
+#setupOv .sec { margin: 0; padding: 14px 0 0; border: 0; }
+#setupOv .lbl { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #7a5a3a; margin-bottom: 7px; }
+#setupOv .seg { background: #f1e5cc; border: 0; border-radius: 14px; padding: 4px; gap: 5px; }
+#setupOv .seg button { height: 40px; border-radius: 10px; color: #7a5a3a; font-size: 14.5px; font-weight: 800; }
+#setupOv .seg button[aria-pressed="true"] { background: #fff; color: #3a210c; box-shadow: 0 2px 0 #e3d3b0, inset 0 0 0 2px #e8b04a; }
+#setupOv .seg.tall button { height: 54px; }
+#setupOv .note { margin-top: 6px; font-size: 12.5px; color: #7a5a3a; min-height: 0; }
+@media (orientation: landscape) {
+  #setupOv.sOv { justify-content: flex-end; align-items: stretch; }
+  #setupOv .sheet { width: min(400px, 50vw); max-width: none; max-height: none; height: 100%; border-radius: 24px 0 0 24px; padding: 16px 18px calc(16px + env(safe-area-inset-bottom)); padding-right: max(18px, env(safe-area-inset-right)); animation-name: sLeft; box-shadow: -10px 0 30px rgba(0, 25, 8, .35); }
+  #setupOv .grab { display: none; }
+  @keyframes sLeft { from { transform: translateX(100%); } }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  #setupOv .shead h2 { font-size: 23px; } #setupOv .shead .sub { font-size: 12.5px; }
+  #setupOv .play { min-height: 52px; margin-top: 12px; font-size: 22px; }
+  #setupOv .sum { margin-top: 10px; } #setupOv .sec { padding-top: 10px; } #setupOv .seg button { height: 36px; } #setupOv .seg.tall button { height: 46px; }
+}
+/* Ana sayfa düğmesi: açılışta "Oyunlar" yazısıyla, oyunda yalnız simge */
+.fab.home { top: max(6px, env(safe-area-inset-top)); left: max(6px, env(safe-area-inset-left)); width: auto; min-width: 40px; display: flex; align-items: center; justify-content: center; gap: 0; padding: 0 10px; text-decoration: none; font-size: 14.5px; font-weight: 800; transition: padding .35s, gap .35s; }
+.fab.home svg { flex: none; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.fab.home span { max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap; transition: max-width .35s, opacity .25s; }
+html.sOpen .fab.home { z-index: 28; gap: 7px; padding: 0 14px 0 11px; }
+html.sOpen .fab.home span { max-width: 90px; opacity: 1; }
+#setupOv .play:focus-visible, #setupOv .newg:focus-visible { outline: 3px solid #a15c0b; outline-offset: 3px; }
+@media (orientation: landscape) {
+  html.sOpen main { padding-right: calc(min(400px, 50vw) + 10px); }
+  html.sOpen .fab.home { gap: 0; padding: 0 10px; } html.sOpen .fab.home span { max-width: 0; opacity: 0; }
+  #setupOv .sheet { display: flex; flex-direction: column; overflow: hidden; }
+  #setupOv .opts { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+  #setupOv .sheet > :not(.opts) { flex: none; }
+}
 #dice { position: absolute; z-index: 2; transform: translate(-50%, -50%); }
 #dice.miss::after { content: '✕'; position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px); font: 900 14px/1 Inter, system-ui, sans-serif; color: #b91c1c; }
 #ghost .ck, #ghost { pointer-events: none; }
@@ -246,6 +301,7 @@ body {
 </head>
 <body>
 <header class="top">
+  <a id="homeFab" class="fab home" href="../" aria-label="Ana sayfaya dön"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/></svg><span id="homeFabL">Oyunlar</span></a>
   <button id="setBtn" class="fab set" type="button" aria-label="Ayarlar"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.3 7.3 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.3 7.3 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.7 1.7 1l.4 2.5h4l.4-2.5c.6-.3 1.2-.6 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
   <button id="scoreBtn" class="fab score" type="button" aria-label="Skor tablosu" hidden><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path fill="currentColor" d="M4 20h4V10H4zm6 0h4V4h-4zm6 0h4v-7h-4z"/></svg></button>
   <button id="fsBtn" class="fab fs" type="button" aria-label="Tam ekran"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path class="fsIn" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
@@ -290,10 +346,14 @@ body {
 </div>
 
 <!-- Yeni oyun -->
-<div class="ov" id="setupOv" hidden>
-  <div class="card" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
-    <h2 id="setupTitle">Tavla</h2>
-    <p class="sub" id="setupSub"></p>
+<div class="ov sOv" id="setupOv" hidden>
+  <div class="sheet" id="sSheet" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <div class="grab"></div>
+    <div class="shead">
+      <div><h2 id="setupTitle">Tavla</h2><p class="sub" id="setupSub"></p></div>
+      <button class="qbtn" type="button" id="sRules" aria-label="Nasıl oynanır?">?</button>
+    </div>
+    <div class="opts"><div>
     <div class="sec">
       <div class="lbl" id="varLbl"></div>
       <div class="seg tall" id="varSeg"><button type="button" data-v="tavla"></button><button type="button" data-v="mahbusa"></button><button type="button" data-v="gulbahar"></button></div>
@@ -311,11 +371,10 @@ body {
       <div class="lbl" id="tgtLbl"></div>
       <div class="seg" id="tgtSeg"><button type="button" data-t="1"></button><button type="button" data-t="3"></button><button type="button" data-t="5"></button></div>
     </div>
-
-    <div class="btns">
-      <button class="big" id="startBtn" type="button">Başla</button>
-      <button class="big alt" id="backBtn" type="button">Oyuna dön</button>
-    </div>
+    </div></div>
+    <button class="play pulse" id="startBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg><span id="startLbl">Oyna</span></button>
+    <button class="newg" id="backBtn" type="button">Oyuna dön</button>
+    <div class="sum"><span id="sSum"></span><button class="chg" type="button" id="sChg" aria-expanded="false"><span id="sChgL">Değiştir</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
   </div>
 </div>
 
@@ -398,7 +457,8 @@ function toast(s, color) {
   clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1700);
 }
 const OVS = ['setOv', 'scoreOv', 'setupOv', 'rulesOv', 'winOv'];
-function closeAll() { for (const id of OVS) $(id).hidden = true; }
+function closeAll() { for (const id of OVS) $(id).hidden = true; if (document.documentElement.classList.contains('sOpen')) { document.documentElement.classList.remove('sOpen'); refit(); } }
+const refit = () => requestAnimationFrame(() => { if (!G) return; if (fitBoard()) render(); else placeDice(); });
 const anyOpen = () => OVS.some((id) => !$(id).hidden);
 const segPress = (id, attr, val) => document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', b.dataset[attr] === String(val)));
 function showEnd(o) { // o: { ico, title, sub, score, lost, stats: [[ad, değer]] }
@@ -959,6 +1019,7 @@ function render() {
 // ---------- Zar ----------
 const DC = makeDice($('dice'), 2);
 function diceState() { // gösterilecek zarlar: { v, used, side, ready, count, roll }
+  if (G.phase === 'preview') return null;
   const p = G.turn, n = G.note;
   if (G.phase === 'open') return G.open ? { v: [G.open[1], G.open[0]], side: -1 } : { v: [5, 2], side: -1, ready: true };
   if (G.phase === 'move') {
@@ -993,8 +1054,21 @@ function renderSetup() {
   const t = T();
   segPress('varSeg', 'v', setup.variant); segPress('modeSeg', 'm', setup.mode); segPress('lvSeg', 'l', setup.level); segPress('tgtSeg', 't', String(setup.target));
   $('varNote').textContent = t.varNote[setup.variant]; $('lvSec').hidden = setup.mode !== 'cpu';
+  const pick = (id) => { const b = document.querySelector(`#${id} button[aria-pressed="true"]`); return b ? (b.querySelector('small') || b).textContent : ''; };
+  $('sSum').textContent = [pick('varSeg'), pick('modeSeg'), setup.mode === 'cpu' ? pick('lvSeg') : '', pick('tgtSeg')].filter(Boolean).join(' · ');
 }
-function openSetup() { renderSetup(); closeAll(); $('setupOv').hidden = false; $('backBtn').hidden = !G || G.phase === 'over'; $('startBtn').focus({ preventScroll: true }); }
+// Açılışta oyun yoksa tahta başlangıç dizilimiyle arkada görünür (önizleme, kaydedilmez)
+function preview() {
+  setPaths(setup.variant);
+  G = { variant: setup.variant, mode: setup.mode, level: setup.level, target: setup.target, score: [0, 0], gameNo: 1, mars: [0, 0], S: initS(setup.variant), turn: 0, phase: 'preview', dice: [], R: [], stages: [], si: 0, hist: [], last: [], cur: [], rolls: 0, res: null, open: null, note: null };
+  sel = null; dsts = []; busy = false; render();
+}
+function setupOpen(v) { $('sSheet').classList.toggle('open', v); $('sChg').setAttribute('aria-expanded', v); $('sChgL').textContent = v ? (lang === 'tr' ? 'Kapat' : 'Close') : (lang === 'tr' ? 'Değiştir' : 'Change'); }
+function openSetup(expand) {
+  if (!G || G.phase === 'over' || G.phase === 'preview') preview();
+  renderSetup(); closeAll(); setupOpen(expand === true); $('setupOv').hidden = false; document.documentElement.classList.add('sOpen'); refit();
+  $('backBtn').hidden = G.phase === 'preview';
+}
 function gameLang() {
   const t = T();
   ['varLbl', 'modeLbl', 'lvLbl', 'tgtLbl'].forEach((k) => { $(k).textContent = t[k]; });
@@ -1005,7 +1079,7 @@ function gameLang() {
   $('board').setAttribute('aria-label', t.game);
   renderSetup(); render();
 }
-const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b = e.target.closest(`button[data-${attr}]`); if (b) { fn(b.dataset[attr]); renderSetup(); } });
+const segH = (id, attr, fn) => $(id).addEventListener('click', (e) => { const b = e.target.closest(`button[data-${attr}]`); if (b) { fn(b.dataset[attr]); if (G && G.phase === 'preview') preview(); renderSetup(); } });
 segH('varSeg', 'v', (v) => { setup.variant = v; });
 segH('modeSeg', 'm', (v) => { setup.mode = v; });
 segH('lvSeg', 'l', (v) => { setup.level = v; });
@@ -1106,7 +1180,7 @@ function applyLang() {
   const c = COMMON[lang];
   $('setBtn').setAttribute('aria-label', c.settings); $('scoreBtn').setAttribute('aria-label', c.scoreT); $('scoreLbl').textContent = c.scoreT; $('scoreTitle').textContent = c.scoreT; $('scoreOk').textContent = t.ok; $('setClose').textContent = t.back;
   $('setOv').querySelector('.sheet').setAttribute('aria-label', c.settings); applySound(); $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
-  $('startBtn').textContent = t.start; $('backBtn').textContent = t.back;
+  $('startLbl').textContent = lang === 'tr' ? 'Oyna' : 'Play'; $('homeFabL').textContent = lang === 'tr' ? 'Oyunlar' : 'Games'; $('homeFab').href = '../?lang=' + lang; $('homeFab').setAttribute('aria-label', t.homeLabel); $('sRules').setAttribute('aria-label', t.rulesTitle); setupOpen($('sSheet').classList.contains('open')); $('backBtn').textContent = t.back;
   $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
   $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
   $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
@@ -1121,7 +1195,7 @@ addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!$('setOv').hidden || !$('scoreOv').hidden) { $('setOv').hidden = $('scoreOv').hidden = true; }
   else if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
-  else if (!$('setupOv').hidden && G) closeAll();
+  else if (!$('setupOv').hidden && G && G.phase !== 'preview') closeAll();
   else if (!$('winOv').hidden) closeAll();
 });
 $('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); });
@@ -1138,10 +1212,12 @@ $('scoreOv').addEventListener('click', (e) => { if (e.target.id === 'scoreOv') $
 document.addEventListener('fullscreenchange', syncFs); document.addEventListener('webkitfullscreenchange', syncFs);
 $('rulesBtn').addEventListener('click', () => { $('setOv').hidden = true; $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
 $('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; });
+$('sRules').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('sChg').addEventListener('click', () => setupOpen(!$('sSheet').classList.contains('open')));
 $('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') $('rulesOv').hidden = true; });
 $('againBtn').addEventListener('click', () => { Sfx.unlock(); again(); });
 $('viewBtn').addEventListener('click', closeAll);
-$('toMenuBtn').addEventListener('click', openSetup);
+$('toMenuBtn').addEventListener('click', () => openSetup(true));
 $('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); store.set('sound', soundOn ? 1 : 0); if (soundOn) Sfx.unlock(); });
 if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
 const LAND = true;
