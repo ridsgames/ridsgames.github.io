@@ -918,7 +918,7 @@ function fitBoard() {
   let cw = 1;
   if (matchMedia('(orientation: landscape)').matches) { const r = $('bwrap').getBoundingClientRect(); if (r.width && r.height) cw = Math.max(1, Math.min(1.8, ((r.width / r.height) * H - (2 * M + BW)) / 12)); }
   cw = Math.round(cw * 20) / 20; if (cw === CW && $('board').getAttribute('viewBox') === `0 0 ${W} ${H}`) return false;
-  CW = cw; R0 = Math.min(0.45 * CW, 0.56); HB = M + 6 * CW + BW; W = +(HB + 6 * CW + M).toFixed(3);
+  CW = cw; R0 = Math.min(0.45 * CW, 0.47); /* 5 pul nokta boyuna binmeden sığar */ HB = M + 6 * CW + BW; W = +(HB + 6 * CW + M).toFixed(3);
   $('board').setAttribute('viewBox', `0 0 ${W} ${H}`); return true;
 }
 const colX = (col) => col < 6 ? M + (col + 0.5) * CW : HB + (col - 6 + 0.5) * CW;
