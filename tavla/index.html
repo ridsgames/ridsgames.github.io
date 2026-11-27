@@ -199,18 +199,17 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 @keyframes ckn { 0% { transform: scale(1.35); opacity: .3; } }
 .dst { animation: dst 1.1s ease-in-out infinite; }
 @keyframes dst { 50% { opacity: .45; } }
-/* Yatay: tahta ekranı doldurur. Oyuncu bilgisi tahtanın ortadaki boş bandında, zarın iki yanında durur.
-   Sağda yalnızca ince bir düğme şeridi kalır (ayarlar, geri al, tam ekran). Bilgi mesajları kısa bildirim olarak çıkar. */
+/* Oyuncu bilgisi tahtanın üst ve alt şeridinde (skor + toplama yeri); ayrı bilgi paneli yok. */
+main > #hud.hud { display: none; }
+#board { font-family: Inter, system-ui, sans-serif; }
+main { padding-top: calc(52px + env(safe-area-inset-top)); }
+/* Yatay: tahta ekranı doldurur. Sağda yalnızca ince bir düğme şeridi kalır (ayarlar, geri al, tam ekran).
+   Bilgi mesajları kısa bildirim olarak çıkar. */
 @media (orientation: landscape) {
-  main { display: flex; flex-direction: row; align-items: stretch; position: relative; max-width: none; gap: 0; padding-right: calc(52px + env(safe-area-inset-right)); }
+  main { display: flex; flex-direction: row; align-items: stretch; justify-content: center; max-width: none; gap: 0; padding-top: 6px; padding-right: calc(52px + env(safe-area-inset-right)); }
   .bwrap { flex: 1; min-width: 0; height: 100%; }
   #board { height: 100%; width: auto; max-width: 100%; }
-  main > #hud.hud { position: absolute; z-index: 1; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; pointer-events: none; display: block; }
-  .hud .pl { position: absolute; top: 50%; transform: translateY(-50%); max-width: var(--pw, 160px); background: rgba(28, 18, 8, .78); border-color: rgba(253, 230, 138, .22); padding: 3px 9px 3px 3px; gap: 6px; }
-  .hud .pl:first-child { right: var(--pr, 0); }
-  .hud .pl:last-child { left: var(--pl, 0); }
-  .hud .pl.on { border-color: #34d399; background: rgba(6, 78, 59, .85); }
-  .hud .mid, .status, #openB, #rollB { display: none; }
+  .status, #openB, #rollB { display: none; }
   .bar2 { display: contents; }
   .acts { position: fixed; z-index: 26; right: max(6px, env(safe-area-inset-right)); top: 50%; transform: translateY(-50%); min-height: 0; flex-direction: column; }
   .acts button.alt { flex: none; width: 40px; height: 40px; padding: 0; border-radius: 50%; font-size: 20px; line-height: 1; }
@@ -219,7 +218,6 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 }
 @media (orientation: landscape) and (max-height: 500px) {
   main { padding-top: 4px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
-  .hud .pl .ck { width: 18px; height: 18px; } .pl .nm { font-size: 12px; } .pl .pp { font-size: 10.5px; } .pl .sc { font-size: 17px; }
 }
 #dice { position: absolute; z-index: 2; transform: translate(-50%, -50%); }
 #dice.miss::after { content: '✕'; position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px); font: 900 14px/1 Inter, system-ui, sans-serif; color: #b91c1c; }
@@ -815,14 +813,15 @@ function undo() {
 
 // ---------- Çizim ----------
 const LANDQ = matchMedia('(orientation: landscape)'); let lastHint = null;
-const H = 11.8, M = 0.3, BW = 0.8, PH = 4.85, R0 = 0.45, TRW = 1.1;
+// SH: üst ve alt şerit. Her oyuncunun şeridi hem skor tablosu hem toplama yeri (çıkan pullar ev tarafında birikir).
+const SH = 0.8, H = 11.2 + 2 * SH, M = 0.3, BW = 0.8, PH = 4.85, R0 = 0.45;
 // CW: nokta genişliği. Yatay ekranda tahta boş alanı dolduracak kadar genişler (1–1.6).
-let CW = 1, W = 14.8, TRX = M + 12 + BW + 0.3, HB = M + 6 + BW; // HB: sağ yarının başı
+let CW = 1, W = 2 * M + 12 + BW, HB = M + 6 + BW; // HB: sağ yarının başı
 function fitBoard() {
   let cw = 1;
-  if (matchMedia('(orientation: landscape)').matches) { const r = $('bwrap').getBoundingClientRect(); if (r.width && r.height) cw = Math.max(1, Math.min(1.8, ((r.width / r.height) * H - (2 * M + BW + 0.3 + TRW)) / 12)); }
+  if (matchMedia('(orientation: landscape)').matches) { const r = $('bwrap').getBoundingClientRect(); if (r.width && r.height) cw = Math.max(1, Math.min(1.8, ((r.width / r.height) * H - (2 * M + BW)) / 12)); }
   cw = Math.round(cw * 20) / 20; if (cw === CW && $('board').getAttribute('viewBox') === `0 0 ${W} ${H}`) return false;
-  CW = cw; HB = M + 6 * CW + BW; TRX = HB + 6 * CW + 0.3; W = +(TRX + TRW + M).toFixed(3);
+  CW = cw; HB = M + 6 * CW + BW; W = +(HB + 6 * CW + M).toFixed(3);
   $('board').setAttribute('viewBox', `0 0 ${W} ${H}`); return true;
 }
 const colX = (col) => col < 6 ? M + (col + 0.5) * CW : HB + (col - 6 + 0.5) * CW;
@@ -836,6 +835,19 @@ function dieSvg(x, y, v, s, used) {
   const P = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] }[v];
   return `<g opacity="${used ? 0.35 : 1}"><rect x="${x - s / 2}" y="${y - s / 2}" width="${s}" height="${s}" rx="${s * 0.18}" fill="#fffbeb" stroke="#78716c" stroke-width="0.03"/>${P.map(([a, b]) => `<circle cx="${x + a * s * 0.26}" cy="${y + b * s * 0.26}" r="${s * 0.09}" fill="#1c1917"/>`).join('')}</g>`;
 }
+function strips(t, S, p) {
+  // Sol yarı: taş rengi, ad, pip, skor. Sıra kimdeyse onun şeridi yeşil yanar.
+  let h = '';
+  const live = G.phase === 'move' || G.phase === 'roll';
+  for (const pl of [0, 1]) {
+    const y = pl === 0 ? H - SH / 2 : SH / 2, on = live && p === pl, x = M + 0.05, w = 6 * CW - 0.1;
+    h += `<rect x="${x}" y="${y - SH / 2 + 0.07}" width="${w}" height="${SH - 0.14}" rx="${(SH - 0.14) / 2}" fill="${on ? 'rgba(6,78,59,.9)' : 'rgba(0,0,0,.28)'}" stroke="${on ? '#34d399' : 'none'}" stroke-width="0.05"/>`;
+    h += `<circle cx="${x + 0.33}" cy="${y}" r="0.24" fill="url(#g${pl})" stroke="${pl ? '#d97706' : '#a8a29e'}" stroke-width="0.03"/>`;
+    h += `<text x="${x + 0.7}" y="${y + 0.14}" font-size="0.4" fill="#fff"><tspan font-weight="800">${esc(pname(pl))}</tspan><tspan font-size="0.32" fill="#cbd5e1" dx="0.18">${esc(t.pip(pips(S, pl)))}</tspan></text>`;
+    h += `<text x="${x + w - 0.3}" y="${y + 0.16}" text-anchor="end" font-size="0.5" font-weight="900" fill="#fde68a">${G.score[pl]}<tspan font-size="0.3" font-weight="700" fill="#cbd5e1">/${G.target}</tspan></text>`;
+  }
+  return h;
+}
 function render() {
   if (!G) return;
   fitBoard();
@@ -844,21 +856,21 @@ function render() {
 <radialGradient id="g1" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#b91c1c"/><stop offset=".7" stop-color="#5b0d0d"/><stop offset="1" stop-color="#3b0a0a"/></radialGradient>
 <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c4a21"/><stop offset="1" stop-color="#4a2a12"/></linearGradient></defs>`;
   h += `<rect x="0" y="0" width="${W}" height="${H}" rx="0.35" fill="url(#wood)"/>`;
-  h += `<rect x="${M}" y="${M}" width="${6 * CW}" height="${H - 2 * M}" fill="#e9d5a1"/><rect x="${HB}" y="${M}" width="${6 * CW}" height="${H - 2 * M}" fill="#e9d5a1"/>`;
-  h += `<rect x="${TRX}" y="${M}" width="${TRW}" height="${H - 2 * M}" rx="0.15" fill="rgba(0,0,0,.28)"/>`;
+  h += `<rect x="${M}" y="${SH}" width="${6 * CW}" height="${H - 2 * SH}" fill="#e9d5a1"/><rect x="${HB}" y="${SH}" width="${6 * CW}" height="${H - 2 * SH}" fill="#e9d5a1"/>`;
+  h += strips(t, S, p);
   const dstSet = new Map(dsts.map((d) => [d.t, d]));
   const canMove = G.phase === 'move' && human(p) && !busy && sel === null ? new Set(allowed(S, p, G.R).map((m) => m.f)) : new Set();
   XY = {};
   const lastSet = new Set(); (G.phase === 'move' && G.cur.length ? G.cur : G.last).forEach(([, f, to]) => { if (typeof f === 'number') lastSet.add('f' + f); if (typeof to === 'number') lastSet.add('t' + to); });
   for (let a = 0; a < 24; a++) {
-    const { x, bottom } = ptGeo(a), y0 = bottom ? H - M : M, y1 = bottom ? H - M - PH : M + PH, odd = (a % 2 === 0);
+    const { x, bottom } = ptGeo(a), y0 = bottom ? H - SH : SH, y1 = bottom ? H - SH - PH : SH + PH, odd = (a % 2 === 0);
     const isD = sel !== null && dstSet.has(IDX[p][a]);
     h += `<polygon points="${x - CW / 2},${y0} ${x + CW / 2},${y0} ${x},${y1}" fill="${odd ? '#9a3412' : '#1f3a2e'}" opacity="${isD ? 1 : 0.92}"/>`;
     if (isD) h += `<polygon class="dst" points="${x - CW / 2},${y0} ${x + CW / 2},${y0} ${x},${y1}" fill="#34d399" opacity="0.55"/>`;
     if (lastSet.has('t' + a)) h += `<rect x="${x - CW / 2}" y="${bottom ? y0 - 0.12 : y0}" width="${CW}" height="0.12" fill="#fbbf24"/>`;
     else if (lastSet.has('f' + a)) h += `<rect x="${x - CW / 2}" y="${bottom ? y0 - 0.12 : y0}" width="${CW}" height="0.12" fill="rgba(251,191,36,.45)"/>`;
   }
-  h += `<rect x="${HB - BW}" y="${M}" width="${BW}" height="${H - 2 * M}" fill="#3f2410"/>`;
+  h += `<rect x="${HB - BW}" y="${SH}" width="${BW}" height="${H - 2 * SH}" fill="#3f2410"/>`;
   // pullar
   for (let a = 0; a < 24; a++) {
     const c0 = S.c[0][a], c1 = S.c[1][a]; if (!c0 && !c1) continue;
@@ -866,7 +878,7 @@ function render() {
     const list = []; if (bp >= 0) list.push([bp, true]); const n = tp >= 0 ? S.c[tp][a] : 0; for (let i = 0; i < n; i++) list.push([tp, false]);
     const tot = list.length, step = tot > 5 ? (PH - 2 * R0 - 0.05) / (tot - 1) : 0.92;
     list.forEach(([pl, pinned], i) => {
-      const y = bottom ? H - M - R0 - 0.02 - i * step : M + R0 + 0.02 + i * step;
+      const y = bottom ? H - SH - R0 - 0.02 - i * step : SH + R0 + 0.02 + i * step;
       const isSel = sel !== null && sel >= 0 && PATH[p][sel] === a && i === tot - 1;
       const top = i === tot - 1; if (top) XY[a] = [x, y];
       h += checker(x, y, pl, top ? `data-k="${a}"` : '');
@@ -886,16 +898,17 @@ function render() {
     if (n > 1) h += `<text x="${cx}" y="${pl === 0 ? H / 2 + 0.85 : H / 2 - 0.55}" text-anchor="middle" font-size="0.4" font-weight="800" fill="${pl ? '#fde68a' : '#44403c'}">${n}</text>`;
     if (sel === -1 && p === pl) h += `<circle cx="${cx}" cy="${pl === 0 ? H / 2 + 0.7 : H / 2 - 0.7}" r="${R0 + 0.06}" fill="none" stroke="#fbbf24" stroke-width="0.09"/>`;
   }
-  // çıkan pullar
+  // çıkan pullar: sahibinin şeridinde, ev tarafının köşesinden içeri doğru dizilir
   for (const pl of [0, 1]) {
-    const n = S.off[pl];
-    for (let i = 0; i < n; i++) { const y = pl === 0 ? H - M - 0.12 - i * 0.3 : M + 0.12 + i * 0.3; if (i === n - 1) XY['off' + pl] = [TRX + TRW / 2, y]; h += `<rect${i === n - 1 ? ` data-k="off${pl}"` : ''} x="${TRX + 0.12}" y="${y - 0.12}" width="${TRW - 0.24}" height="0.24" rx="0.06" fill="${pl ? '#7f1d1d' : '#efe6d2'}" stroke="${pl ? '#d97706' : '#a8a29e'}" stroke-width="0.025"/>`; }
+    const n = S.off[pl], y = pl === 0 ? H - SH / 2 : SH / 2, x0 = HB + 6 * CW - 0.2;
+    for (let i = 0; i < n; i++) { const x = x0 - i * 0.27; if (i === n - 1) XY['off' + pl] = [x, y]; h += `<rect${i === n - 1 ? ` data-k="off${pl}"` : ''} x="${x - 0.11}" y="${y - SH / 2 + 0.12}" width="0.22" height="${SH - 0.24}" rx="0.06" fill="${pl ? '#7f1d1d' : '#efe6d2'}" stroke="${pl ? '#d97706' : '#a8a29e'}" stroke-width="0.025"/>`; }
+    if (n) h += `<text x="${x0 - n * 0.27 - 0.12}" y="${y + 0.14}" text-anchor="end" font-size="0.36" font-weight="800" fill="rgba(253,230,138,.85)">${n}/15</text>`;
   }
-  if (sel !== null && dstSet.has(24)) { const by = p === 0 ? H / 2 + 0.3 : M; h += `<rect class="dst" x="${TRX}" y="${by}" width="${TRW}" height="${H / 2 - M - 0.3}" rx="0.15" fill="#34d399" opacity="0.5"/>`; }
+  if (sel !== null && dstSet.has(24)) h += `<rect class="dst" x="${HB}" y="${p === 0 ? H - SH : 0}" width="${6 * CW}" height="${SH}" rx="0.15" fill="#34d399" opacity="0.6"/>`;
   if (G.phase === 'move' && G.stages.length > 1) { const dx = p === 0 ? HB + 3 * CW : M + 3 * CW; h += `<text x="${dx}" y="${H / 2 + 1.05}" text-anchor="middle" font-size="0.36" font-weight="800" fill="#7c2d12">${G.stages.map((x) => x[0] + '-' + x[0]).join(' → ')}</text>`; }
   // dokunma alanları
-  for (let a = 0; a < 24; a++) { const { x, bottom } = ptGeo(a); h += `<rect data-h="${a}" x="${x - CW / 2}" y="${bottom ? H / 2 : M}" width="${CW}" height="${H / 2 - M}" fill="transparent"/>`; }
-  h += `<rect data-h="bar" x="${HB - BW}" y="${M}" width="${BW}" height="${H - 2 * M}" fill="transparent"/><rect data-h="off" x="${TRX}" y="${M}" width="${TRW}" height="${H - 2 * M}" fill="transparent"/>`;
+  for (let a = 0; a < 24; a++) { const { x, bottom } = ptGeo(a); h += `<rect data-h="${a}" x="${x - CW / 2}" y="${bottom ? H / 2 : SH}" width="${CW}" height="${H / 2 - SH}" fill="transparent"/>`; }
+  h += `<rect data-h="bar" x="${HB - BW}" y="${SH}" width="${BW}" height="${H - 2 * SH}" fill="transparent"/><rect data-h="off" x="${HB}" y="${p === 0 ? H - SH : 0}" width="${6 * CW}" height="${SH}" fill="transparent"/>`;
   $('board').innerHTML = h; newPts = []; renderDice();
   if (dragK) { const e = $('board').querySelector(`[data-k="${dragK}"]`); if (e) e.style.opacity = '0'; }
   if (anims.length && !REDUCED) for (const a of anims) { const e = $('board').querySelector(`[data-k="${a.to}"]`), t2 = XY[a.to]; if (e && t2 && e.animate) e.animate([{ transform: `translate(${a.from[0] - t2[0]}px, ${a.from[1] - t2[1]}px)` }, { transform: 'translate(0px, 0px)' }], { duration: 260, easing: 'cubic-bezier(.2,.7,.3,1)' }); }
@@ -924,7 +937,6 @@ function render() {
     const nk = G.phase === 'open' ? (n && n.k === 'tie' ? n : 'open' + G.gameNo) : n && ['open', 'nomove', 'forfeit', 'forced'].includes(n.k) ? n : human(p) && G.phase === 'move' && G.variant === 'tavla' && G.S.bar[p] ? 'bar' + G.hist.length + G.turn + G.gameNo : null;
     if (nk && nk !== lastHint) { lastHint = nk; toast(nk === n || G.phase === 'open' ? s.split(' · ')[0] : t.enterFirst); }
   }
-  placeHud();
   // sonuç
   const show = G.phase === 'gover' || G.phase === 'end';
   $('res').hidden = !show;
@@ -953,15 +965,6 @@ function renderDice() {
   el.classList.toggle('miss', !!d.miss); el.style.pointerEvents = d.ready ? 'auto' : 'none';
   el.dataset.side = d.side; placeDice();
 }
-function placeHud() {
-  const hd = $('hud');
-  if (!LANDQ.matches) { hd.removeAttribute('style'); return; }
-  const br = $('board').getBoundingClientRect(), mr = $('main').getBoundingClientRect(); if (!br.width) return;
-  const sc = br.width / W;
-  Object.assign(hd.style, { left: (br.left - mr.left) + 'px', top: (br.top - mr.top) + 'px', width: br.width + 'px', height: br.height + 'px' });
-  hd.style.setProperty('--pl', (M + 0.15) * sc + 'px'); hd.style.setProperty('--pr', (W - HB - 6 * CW + 0.15) * sc + 'px');
-  hd.style.setProperty('--pw', Math.max(90, 3 * CW * sc - 0.75 * sc - 10) + 'px');
-}
 function placeDice() {
   const el = $('dice'); if (el.hidden) return;
   const br = $('board').getBoundingClientRect(), wr = $('bwrap').getBoundingClientRect(); if (!br.width) return;
@@ -969,7 +972,7 @@ function placeDice() {
   el.style.left = (br.left - wr.left + dx * sc) + 'px'; el.style.top = (br.top - wr.top + (H / 2) * sc) + 'px';
   el.style.setProperty('--ds', Math.max(30, Math.round(0.92 * sc)) + 'px');
 }
-addEventListener('resize', () => { if (G && fitBoard()) render(); else { placeDice(); placeHud(); } });
+addEventListener('resize', () => { if (G && fitBoard()) render(); else placeDice(); });
 $('dice').addEventListener('click', () => { if (!G) return; if (G.phase === 'open') doOpen(); else if (G.phase === 'roll' && human(G.turn) && !busy) doRoll(); });
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function renderSetup() {
