@@ -219,21 +219,20 @@ main { padding-top: calc(52px + env(safe-area-inset-top)); }
 @media (orientation: landscape) and (max-height: 500px) {
   main { padding-top: 4px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
 }
-/* Masa: tahta açık meşe bir masanın üstünde durur (koyu kenar yok). Lamba ışığı ortada, damarlar yatay. */
+/* Masa örtüsü: kart oyunlarındaki yeşil çuha, ekranın tamamını kaplar. Kenarlar kararmaz, ortada hafif lamba ışığı. */
 body {
-  background-color: #c4935c;
+  background-color: #15773a;
   background-image:
-    radial-gradient(ellipse 75% 65% at 50% 45%, rgba(255, 236, 200, .42), rgba(255, 236, 200, 0) 70%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.003 0.09' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .18 0 0 0 0 .05 0 0 0 .55 -.12'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23g)'/%3E%3C/svg%3E"),
-    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0) 0 158px, rgba(92, 50, 18, .32) 158px 160px, rgba(255, 230, 190, .18) 160px 161px),
-    linear-gradient(180deg, #cf9f66, #b9874f);
-  background-size: auto, 600px 600px, auto, auto;
+    radial-gradient(ellipse 80% 70% at 50% 42%, rgba(134, 239, 172, .22), rgba(134, 239, 172, 0) 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 .1 0 0 0 0 .03 0 0 0 .5 -.18'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 45%, #18853f, #11692f 95%);
+  background-size: auto, 240px 240px, auto;
 }
-#board { border-radius: 10px; box-shadow: 0 14px 30px rgba(60, 30, 8, .45), 0 3px 8px rgba(60, 30, 8, .35); }
-.fab { background: rgba(70, 38, 14, .62); border-color: rgba(255, 236, 200, .35); color: #fff7e8; box-shadow: 0 3px 8px rgba(60, 30, 8, .35); }
-.fab:hover { background: rgba(70, 38, 14, .85); }
-.status { color: #3a210c; text-shadow: 0 1px 0 rgba(255, 240, 215, .55); }
-.acts button.alt { color: #fff7e8; background: rgba(70, 38, 14, .72); border-color: rgba(255, 236, 200, .3); }
+#board { border-radius: 10px; box-shadow: 0 14px 30px rgba(0, 30, 10, .5), 0 3px 8px rgba(0, 30, 10, .4); }
+.fab { background: rgba(4, 47, 22, .55); border-color: rgba(187, 247, 208, .3); color: #f0fdf4; box-shadow: 0 3px 8px rgba(0, 30, 10, .35); }
+.fab:hover { background: rgba(4, 47, 22, .8); }
+.status { color: #f0fdf4; text-shadow: 0 1px 2px rgba(0, 30, 10, .5); }
+.acts button.alt { color: #f0fdf4; background: rgba(4, 47, 22, .6); border-color: rgba(187, 247, 208, .3); }
 #dice { position: absolute; z-index: 2; transform: translate(-50%, -50%); }
 #dice.miss::after { content: '✕'; position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px); font: 900 14px/1 Inter, system-ui, sans-serif; color: #b91c1c; }
 #ghost .ck, #ghost { pointer-events: none; }
