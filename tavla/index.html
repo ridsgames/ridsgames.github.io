@@ -981,8 +981,9 @@ function render() {
     const c0 = S.c[0][a], c1 = S.c[1][a]; if (!c0 && !c1) continue;
     const { x, bottom } = ptGeo(a), tp = S.top[a], bp = c0 && c1 ? 1 - tp : -1;
     const list = []; if (bp >= 0) list.push([bp, true]); const n = tp >= 0 ? S.c[tp][a] : 0; for (let i = 0; i < n; i++) list.push([tp, false]);
-    const tot = list.length, step = Math.min(2 * R0 + 0.02, (PH - 2 * R0 - 0.05) / (Math.max(tot, 5) - 1));
-    list.forEach(([pl, pinned], i) => {
+    // En çok 5 pul çizilir, üst üste binmez; fazlası 5. pulun üstünde sayı olarak yazar
+    const all = list.length, vis = all > 5 ? list.slice(0, 4).concat([list[all - 1]]) : list, tot = vis.length, step = Math.min(2 * R0 + 0.02, (PH - 2 * R0 - 0.05) / 4);
+    vis.forEach(([pl, pinned], i) => {
       const y = bottom ? H - SH - R0 - 0.02 - i * step : SH + R0 + 0.02 + i * step;
       const isSel = sel !== null && sel >= 0 && PATH[p][sel] === a && i === tot - 1;
       const top = i === tot - 1; if (top) XY[a] = [x, y];
@@ -990,7 +991,7 @@ function render() {
       if (top && pl === p && canMove.has(IDX[p][a])) h += `<circle class="mv" cx="${x}" cy="${y}" r="${R0 + 0.05}" fill="none" stroke="#34d399" stroke-width="0.07" pointer-events="none"/>`;
       if (pinned) h += `<circle cx="${x}" cy="${y}" r="${R0 * 0.9}" fill="none" stroke="#fbbf24" stroke-width="0.07" stroke-dasharray="0.12 0.08"/>`;
       if (isSel) h += `<circle cx="${x}" cy="${y}" r="${R0 + 0.06}" fill="none" stroke="#fbbf24" stroke-width="0.09"/>`;
-      if (i === tot - 1 && tot > 5) h += `<text x="${x}" y="${y + 0.15}" text-anchor="middle" font-size="0.42" font-weight="800" fill="${pl ? '#fde68a' : '#44403c'}">${n}</text>`;
+      if (i === tot - 1 && all > 5) h += `<text x="${x}" y="${y + 0.15}" text-anchor="middle" font-size="0.42" font-weight="800" fill="${pl ? '#fde68a' : '#44403c'}">${n}</text>`;
     });
   }
   // kırık pullar
