@@ -283,6 +283,7 @@ body {
 .fab.home span { max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap; transition: max-width .35s, opacity .25s; }
 html.sOpen .fab.home { z-index: 28; gap: 7px; padding: 0 14px 0 11px; }
 html.sOpen .fab.home span { max-width: 90px; opacity: 1; }
+#setupOv [hidden] { display: none !important; }
 #setupOv .play:focus-visible, #setupOv .newg:focus-visible { outline: 3px solid #a15c0b; outline-offset: 3px; }
 @media (orientation: landscape) {
   html.sOpen main { padding-right: calc(min(400px, 50vw) + 10px); }
@@ -306,7 +307,7 @@ html.sOpen .fab.home span { max-width: 90px; opacity: 1; }
   if (q.get('rot') !== '1') return;
   window.__shell = true; document.documentElement.classList.add('vShell');
   const land0 = innerWidth > innerHeight; let gone = false;
-  const back = (lg) => { if (gone) return; gone = true; q.delete('rot'); if (lg) q.set('lang', lg); location.replace('?' + q.toString()); };
+  const back = (lg) => { if (gone) return; gone = true; try { sessionStorage.setItem('tvNoAsk', '1'); } catch (e) {} q.delete('rot'); if (lg) q.set('lang', lg); location.replace('?' + q.toString()); };
   addEventListener('message', (e) => { if (e.origin === location.origin && typeof e.data === 'string' && e.data.indexOf('vrotExit') === 0) back(e.data.split(':')[1]); });
   addEventListener('DOMContentLoaded', () => {
     const f = document.createElement('iframe'), q2 = new URLSearchParams(q); q2.delete('rot'); q2.set('ic', '1');
@@ -1085,7 +1086,7 @@ function renderSetup() {
   segPress('varSeg', 'v', setup.variant); segPress('modeSeg', 'm', setup.mode); segPress('lvSeg', 'l', setup.level); segPress('tgtSeg', 't', String(setup.target));
   $('varNote').textContent = t.varNote[setup.variant]; $('lvSec').hidden = setup.mode !== 'cpu';
   const pick = (id) => { const b = document.querySelector(`#${id} button[aria-pressed="true"]`); return b ? (b.querySelector('small') || b).textContent : ''; };
-  $('sSum').textContent = [pick('varSeg'), pick('modeSeg'), setup.mode === 'cpu' ? pick('lvSeg') : '', pick('tgtSeg')].filter(Boolean).join(' · ');
+  $('sSum').textContent = [pick('varSeg'), pick('modeSeg'), setup.mode === 'cpu' ? pick('lvSeg') : '', pick('tgtSeg'), resumeMode && G && G.target > 1 ? `${lang === 'tr' ? 'Skor' : 'Score'} ${G.score[0]}-${G.score[1]}` : ''].filter(Boolean).join(' · ');
 }
 // Açılışta oyun yoksa tahta başlangıç dizilimiyle arkada görünür (önizleme, kaydedilmez)
 function preview() {
@@ -1093,6 +1094,19 @@ function preview() {
   G = { variant: setup.variant, mode: setup.mode, level: setup.level, target: setup.target, score: [0, 0], gameNo: 1, mars: [0, 0], S: initS(setup.variant), turn: 0, phase: 'preview', dice: [], R: [], stages: [], si: 0, hist: [], last: [], cur: [], rolls: 0, res: null, open: null, note: null };
   sel = null; dsts = []; busy = false; render();
 }
+let resumeMode = false;
+function sheetLbl() {
+  const tr = lang === 'tr';
+  $('startLbl').textContent = resumeMode ? (tr ? 'Devam et' : 'Continue') : (tr ? 'Oyna' : 'Play');
+  $('backBtn').textContent = resumeMode ? (tr ? 'Yeni oyun' : 'New game') : T().back;
+  $('setupSub').textContent = resumeMode ? (tr ? 'Yarım kalan oyunun var' : 'You have an unfinished game') : T().setupSub;
+  $('sChg').hidden = resumeMode;
+}
+function openResume() {
+  resumeMode = true; Object.assign(setup, { variant: G.variant, mode: G.mode, level: G.level, target: G.target });
+  openSetup(false); sheetLbl();
+}
+function endResume() { resumeMode = false; sheetLbl(); }
 function setupOpen(v) { $('sSheet').classList.toggle('open', v); $('sChg').setAttribute('aria-expanded', v); $('sChgL').textContent = v ? (lang === 'tr' ? 'Kapat' : 'Close') : (lang === 'tr' ? 'Değiştir' : 'Change'); }
 function openSetup(expand) {
   if (!G || G.phase === 'over' || G.phase === 'preview') preview();
@@ -1166,9 +1180,12 @@ function boot() {
   const s = store.get('game', null);
   if (s && s.S && s.phase && s.phase !== 'over' && STR.tr.vars[s.variant]) {
     G = s; setPaths(G.variant); busy = false;
-    if (G.phase === 'move' && !human(G.turn)) { render(); cpuMove(); } else { render(); kick(); }
+    // Çevirme geçişinden dönüldüyse sormadan sürer; yoksa "Devam et / Yeni oyun" sorulur
+    let noAsk = window.__inFrame; try { if (sessionStorage.getItem('tvNoAsk')) { sessionStorage.removeItem('tvNoAsk'); noAsk = true; } } catch (e) {}
+    if (noAsk) resumeGo(); else { render(); openResume(); }
   } else openSetup();
 }
+function resumeGo() { if (G.phase === 'move' && !human(G.turn)) { render(); cpuMove(); } else { render(); kick(); } }
 window.__tavla = { state: () => G, busy: () => busy, sel: () => [sel, dsts], tapHit, doRoll, doOpen, undo, allowed: () => allowed(G.S, G.turn, G.R), leaves: () => leaves(G.S, G.turn, G.R), PATH, IDX, evalS };
 window.__tavla.sim = (variant, games, lv0, lv1) => {
   const keep = G; const out = { wins: [0, 0], mars: 0, turns: 0, err: null, ms: 0 }; const t0 = performance.now();
@@ -1211,7 +1228,7 @@ function applyLang() {
   const c = COMMON[lang];
   $('setBtn').setAttribute('aria-label', c.settings); $('scoreBtn').setAttribute('aria-label', c.scoreT); $('scoreLbl').textContent = c.scoreT; $('scoreTitle').textContent = c.scoreT; $('scoreOk').textContent = t.ok; $('setClose').textContent = t.back;
   $('setOv').querySelector('.sheet').setAttribute('aria-label', c.settings); applySound(); $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub;
-  $('startLbl').textContent = lang === 'tr' ? 'Oyna' : 'Play'; $('homeFabL').textContent = lang === 'tr' ? 'Oyunlar' : 'Games'; $('homeFab').href = '../?lang=' + lang; $('homeFab').setAttribute('aria-label', t.homeLabel); $('sRules').setAttribute('aria-label', t.rulesTitle); setupOpen($('sSheet').classList.contains('open')); $('backBtn').textContent = t.back;
+  $('startLbl').textContent = lang === 'tr' ? 'Oyna' : 'Play'; $('homeFabL').textContent = lang === 'tr' ? 'Oyunlar' : 'Games'; $('homeFab').href = '../?lang=' + lang; $('homeFab').setAttribute('aria-label', t.homeLabel); $('sRules').setAttribute('aria-label', t.rulesTitle); setupOpen($('sSheet').classList.contains('open')); $('backBtn').textContent = t.back; sheetLbl();
   $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
   $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
   $('againBtn').textContent = t.again; $('viewBtn').textContent = t.view; $('toMenuBtn').textContent = t.toMenu;
@@ -1226,11 +1243,11 @@ addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!$('setOv').hidden || !$('scoreOv').hidden) { $('setOv').hidden = $('scoreOv').hidden = true; }
   else if (!$('rulesOv').hidden) $('rulesOv').hidden = true;
-  else if (!$('setupOv').hidden && G && G.phase !== 'preview') closeAll();
+  else if (!$('setupOv').hidden && G && G.phase !== 'preview') { if (resumeMode) { endResume(); closeAll(); resumeGo(); } else closeAll(); }
   else if (!$('winOv').hidden) closeAll();
 });
-$('startBtn').addEventListener('click', () => { Sfx.unlock(); startFromSetup(); enterPlay(); });
-$('backBtn').addEventListener('click', closeAll);
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); if (resumeMode) { endResume(); closeAll(); enterPlay(); resumeGo(); return; } startFromSetup(); enterPlay(); });
+$('backBtn').addEventListener('click', () => { if (resumeMode) { endResume(); preview(); openSetup(false); return; } closeAll(); });
 $('menuBtn').addEventListener('click', () => { $('setOv').hidden = true; openSetup(); });
 $('setBtn').addEventListener('click', () => { Sfx.unlock(); const was = !$('setOv').hidden; closeAll(); $('setOv').hidden = was; });
 $('setClose').addEventListener('click', () => { $('setOv').hidden = true; });
@@ -1268,7 +1285,7 @@ function lockTo(o) {
   try { const so = screen.orientation; if (fsOn() && so && so.lock) return so.lock(o).then(() => true, () => false); } catch (e) {}
   return Promise.resolve(false);
 }
-function vrot() { const q = new URLSearchParams(location.search); q.delete('ic'); q.set('lang', lang); q.set('rot', '1'); location.replace('?' + q.toString()); }
+function vrot() { try { sessionStorage.setItem('tvNoAsk', '1'); } catch (e) {} const q = new URLSearchParams(location.search); q.delete('ic'); q.set('lang', lang); q.set('rot', '1'); location.replace('?' + q.toString()); }
 let played = false, hinted = false;
 function enterPlay() {
   played = true; if (IN_FRAME) return;
