@@ -85,6 +85,41 @@
   }
   window.rgKabuk = { enterPlay, rotate, fsOn, COARSE, IN_FRAME };
 
+  // ana sayfa düğmesi oyunun içeriğine binmesin: sol üst doluysa sağdaki düğmelerin altına geçer
+  function homeSpot(a) {
+    const busy = (x, y, w, h) => {
+      const VA = innerWidth * innerHeight; let n = 0;
+      for (const fx of [.15, .5, .85]) for (const fy of [.15, .5, .85]) {
+        const hit = document.elementsFromPoint(x + w * fx, y + h * fy).some((e) => {
+          if (e === a || a.contains(e) || e === H || e === document.body) return false;
+          const r = e.getBoundingClientRect(); if (r.width * r.height > VA * .3) return false;
+          const cs = getComputedStyle(e); return cs.visibility !== 'hidden' && +cs.opacity > .05;
+        });
+        if (hit) n++;
+      }
+      return n;
+    };
+    const modal = () => [...document.querySelectorAll('[role=dialog], .ov, #setupOv')].some((d) => d.getClientRects().length && getComputedStyle(d).position === 'fixed');
+    let cur = '';
+    const check = () => {
+      if (modal()) return;
+      const st = a.style; st.top = st.left = st.right = '';
+      const r0 = a.getBoundingClientRect(), W = r0.width || 40, x0 = r0.left, y0 = r0.top;
+      const xr = innerWidth - x0 - W; let yb = y0;
+      document.querySelectorAll('button, a, .fab').forEach((e) => {
+        if (e === a) return; const r = e.getBoundingClientRect(); if (!r.width || r.width > 70 || r.left < innerWidth - 80 || r.top > 160) return;
+        if (getComputedStyle(e).position === 'fixed') yb = Math.max(yb, r.bottom + 8);
+      });
+      const cand = [['', x0, y0], ['r', xr, yb], ['l2', x0, y0 + W + 8]];
+      let best = null;
+      for (const c of cand) { const n = busy(c[1], c[2], W, W); if (!best || n < best.n) best = { c, n }; if (!n) break; }
+      const k = best.c[0] + best.c[2];
+      if (best.c[0] === 'r') { st.left = 'auto'; st.right = Math.round(innerWidth - xr - W) + 'px'; st.top = Math.round(yb) + 'px'; }
+      else if (best.c[0] === 'l2') st.top = Math.round(y0 + W + 8) + 'px';
+      cur = k;
+    };
+    setTimeout(check, 400); setInterval(check, 1500); addEventListener('resize', () => setTimeout(check, 250));
+  }
   const ROT_ICON = '<g class="rgRotI" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.5a8.5 8.5 0 0 1 14.6-5.9"/><path d="M20.5 12.5a8.5 8.5 0 0 1-14.6 5.9"/><path d="M18.6 2.4v3.6H15"/><path d="M5.4 21.6V18H9"/><rect x="9.3" y="8.3" width="5.4" height="7.4" rx="1.1"/></g>';
   function setup() {
     // ana sayfa düğmesi
@@ -95,7 +130,7 @@
       a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/></svg>';
       const lab = () => { a.href = '../?lang=' + curLang(); a.setAttribute('aria-label', tr() ? 'Ana sayfaya dön' : 'Back to games'); };
       lab(); new MutationObserver(lab).observe(H, { attributes: true, attributeFilter: ['lang'] });
-      document.body.appendChild(a);
+      document.body.appendChild(a); homeSpot(a);
     }
     // tam ekran / çevirme düğmesi
     let fb = document.getElementById('fsBtn');
