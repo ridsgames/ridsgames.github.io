@@ -857,7 +857,7 @@ function strips(t, S, p) {
     const y = pl === 0 ? H - SH / 2 : SH / 2, on = live && p === pl, x = M + 0.05, w = 6 * CW - 0.1;
     h += `<rect x="${x}" y="${y - SH / 2 + 0.07}" width="${w}" height="${SH - 0.14}" rx="${(SH - 0.14) / 2}" fill="${on ? 'rgba(6,78,59,.9)' : 'rgba(0,0,0,.28)'}" stroke="${on ? '#34d399' : 'none'}" stroke-width="0.05"/>`;
     h += `<circle cx="${x + 0.33}" cy="${y}" r="0.24" fill="url(#g${pl})" stroke="${pl ? '#d97706' : '#a8a29e'}" stroke-width="0.03"/>`;
-    h += `<text x="${x + 0.7}" y="${y + 0.14}" font-size="0.4" fill="#fff"><tspan font-weight="800">${esc(pname(pl))}</tspan><tspan font-size="0.32" fill="#cbd5e1" dx="0.18">${esc(t.pip(pips(S, pl)))}</tspan></text>`;
+    h += `<text x="${x + 0.7}" y="${y + 0.14}" font-size="0.4" font-weight="800" fill="#fff">${esc(pname(pl))}</text>`;
     h += `<text x="${x + w - 0.3}" y="${y + 0.16}" text-anchor="end" font-size="0.5" font-weight="900" fill="#fde68a">${G.score[pl]}<tspan font-size="0.3" font-weight="700" fill="#cbd5e1">/${G.target}</tspan></text>`;
   }
   return h;
