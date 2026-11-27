@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Pocket Tilt</title>
+<meta name="theme-color" content="#6e4426">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/game.css">
+<style>a.ib { display: grid; place-items: center; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; }</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script src="../assets/olcum.js" data-page="pocket-tilt" data-name="Pocket Tilt"></script>
+<script>window.rgSay = function (olay, ad) { try { window.goatcounter.count({ path: "pocket-tilt/" + olay, title: "Pocket Tilt: " + ad, event: true }); } catch (e) {} };</script>
+</head>
+<body>
+<div id="bg"><i></i><i></i></div>
+<div id="toyShadow"></div>
+<canvas id="c"></canvas>
+
+<!-- Ana ekran -->
+<section id="home" class="screen">
+  <header class="topbar">
+    <div class="coins"></div>
+    <div class="sp"></div>
+    <a class="ib" id="siteHome" href="../" aria-label="RIDS Games"></a>
+    <button class="ib" id="dailyBtn" type="button" data-t-aria="dailyTitle"><i class="dot" hidden></i></button>
+    <button class="ib" id="setBtn" type="button" data-t-aria="settings"></button>
+  </header>
+  <h1 class="logo" id="logo"></h1>
+  <div class="stage"></div>
+  <div class="homeBtns">
+    <button class="btn primary big" id="playBtn" type="button"><b data-t="play">OYNA</b><small id="playSub"></small></button>
+    <div class="tiles">
+      <button class="tile" id="levelsBtn" type="button"><span data-t="levels">Bölümler</span></button>
+      <button class="tile" id="dailyMazeBtn" type="button"><span data-t="dailyMaze">Günün Labirenti</span><i class="dot" hidden></i></button>
+      <button class="tile" id="shopBtn" type="button"><span data-t="shop">Mağaza</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- Dünyalar -->
+<section id="worlds" class="screen">
+  <header class="topbar">
+    <button class="ib back" type="button" data-t-aria="back"></button>
+    <h2 data-t="levels">Bölümler</h2>
+    <div class="sp"></div>
+    <div class="coins"></div>
+  </header>
+  <div class="scroll" id="worldList"></div>
+</section>
+
+<!-- Bir dünyanın bölümleri -->
+<section id="levels" class="screen">
+  <header class="topbar">
+    <button class="ib back" type="button" data-t-aria="back"></button>
+    <h2 id="worldTitle"></h2>
+    <div class="sp"></div>
+    <div class="starPill" id="worldStars"></div>
+  </header>
+  <div class="scroll"><div class="lvGrid" id="lvGrid"></div></div>
+</section>
+
+<!-- Mağaza -->
+<section id="shop" class="screen">
+  <header class="topbar">
+    <button class="ib back" type="button" data-t-aria="back"></button>
+    <h2 data-t="shop">Mağaza</h2>
+    <div class="sp"></div>
+    <div class="coins"></div>
+  </header>
+  <div class="scroll">
+    <button class="freeCoins card" id="freeCoins" type="button"></button>
+    <h3 class="sectionTitle" data-t="balls">Bilyeler</h3>
+    <div class="skinGrid" id="skinGrid"></div>
+  </div>
+</section>
+
+<!-- Oyun -->
+<section id="game" class="screen">
+  <header class="hud">
+    <button class="ib" id="pauseBtn" type="button" data-t-aria="paused"></button>
+    <div class="hudMid">
+      <div id="lvLabel"></div>
+      <div class="timerRow"><span id="timer">00:00</span><span class="hudStars" id="hudStars"></span></div>
+    </div>
+    <button class="ib" id="hintBtn" type="button" data-t-aria="hintTitle"></button>
+  </header>
+  <div class="stage"></div>
+  <div class="gameFoot">
+    <button class="ib" id="levelBtn" type="button" data-t-aria="calibrate"><span class="vial"><i id="levelDot"></i></span></button>
+    <div id="gameHint"></div>
+    <button class="ib" id="quickRestart" type="button" data-t-aria="restart"></button>
+  </div>
+  <div class="stick" id="stick" hidden><i></i></div>
+  <div class="revive" id="revive" hidden><button class="btn ad" type="button" id="reviveBtn"></button><i class="bar"></i></div>
+</section>
+
+<!-- Pencereler -->
+<div class="ov" id="readyOv" hidden role="dialog" aria-modal="true" aria-labelledby="readyTitle"><div class="sheet">
+  <h2 id="readyTitle" data-t="readyTitle">Hazır mısın?</h2>
+  <p data-t="readyText">Oyun bekliyor. Telefonu rahat tut; hazır olduğunda düğmeye bas. 3 saniye sonra başlayacağız.</p>
+  <div id="readyCount" class="readyCount" role="status" aria-live="polite" hidden></div>
+  <button class="btn primary" id="readyBtn" type="button" data-t="readyBtn">Hazırım</button>
+  <button class="btn" id="readyLeave" type="button" data-t="readyLeave">Bölümlere dön</button>
+</div></div>
+<div class="ov" id="pauseOv" hidden><div class="sheet ribbon">
+  <h2 class="rb" data-t="paused">Duraklatıldı</h2>
+  <button class="btn primary" id="resumeBtn" type="button"></button>
+  <button class="btn" id="restartBtn" type="button"></button>
+  <button class="btn ad" id="skipBtn" type="button"></button>
+  <div class="row2">
+    <button class="btn" id="pLevelsBtn" type="button"></button>
+    <button class="btn" id="pHomeBtn" type="button"></button>
+  </div>
+  <div class="quick" id="quickToggles"></div>
+</div></div>
+
+<div class="ov" id="winOv" hidden><div class="sheet ribbon win">
+  <img class="mascot" alt="" hidden>
+  <h2 class="rb" id="winTitle"></h2>
+  <div class="winStars" id="winStars"></div>
+  <div class="winStats">
+    <div><small data-t="time">Süre</small><b id="winTime"></b></div>
+    <div><small data-t="best">En iyi</small><b id="winBest"></b></div>
+  </div>
+  <div class="winCoins" id="winCoins"></div>
+  <button class="btn ad" id="win2x" type="button"></button>
+  <button class="btn primary" id="winNext" type="button"></button>
+  <div class="row2">
+    <button class="btn" id="winRetry" type="button"></button>
+    <button class="btn" id="winLevels" type="button"></button>
+  </div>
+</div></div>
+
+<div class="ov" id="settingsOv" hidden><div class="sheet ribbon settings">
+  <h2 class="rb" data-t="settings">Ayarlar</h2>
+  <div class="setList" id="setList"></div>
+  <button class="btn primary" id="setClose" type="button"><span data-t="close">Kapat</span></button>
+</div></div>
+
+<div class="ov" id="dailyOv" hidden><div class="sheet ribbon daily">
+  <h2 class="rb" data-t="dailyTitle">Günlük Ödül</h2>
+  <div class="streak" id="dailyStreak"></div>
+  <div class="days" id="days"></div>
+  <button class="btn ad" id="claim2x" type="button"></button>
+  <button class="btn primary" id="claimBtn" type="button"></button>
+  <p class="muted" id="dailyNote"></p>
+</div></div>
+
+<div class="ov" id="hintOv" hidden><div class="sheet">
+  <div class="sheetIcon" id="hintIcon"></div>
+  <h2 data-t="hintTitle">İpucu</h2>
+  <p data-t="hintText">Hayalet bilye sana doğru yolu gösterir.</p>
+  <button class="btn ad" id="hintAd" type="button"></button>
+  <button class="btn gold" id="hintCoins" type="button"></button>
+  <button class="btn ghost" id="hintClose" type="button"><span data-t="close">Kapat</span></button>
+</div></div>
+
+<div class="ov" id="mechOv" hidden><div class="sheet mech">
+  <img class="mascot" alt="" hidden>
+  <div class="badge" data-t="newMech">Yeni</div>
+  <canvas id="mechCv" width="240" height="240"></canvas>
+  <h2 id="mechTitle"></h2>
+  <p id="mechText"></p>
+  <button class="btn primary" id="mechOk" type="button"><span data-t="gotIt">Anladım</span></button>
+</div></div>
+
+<div class="ov" id="adLoad" hidden><div class="sheet adLoad">
+  <div class="spin"></div>
+  <p data-t="adLoading">Reklam hazırlanıyor…</p>
+</div></div>
+
+<div class="ov" id="adSim" hidden><div class="sheet">
+  <div class="sheetIcon tv"></div>
+  <h2 data-t="adSim">Deneme reklamı</h2>
+  <p data-t="adSimText">Uygulamada burada gerçek bir reklam gösterilir.</p>
+  <div class="count">3</div>
+  <button class="btn primary" type="button"><span data-t="close">Kapat</span></button>
+</div></div>
+
+<div class="tutorial" id="tutorial" hidden><div class="tutIcon" id="tutIcon"></div><p id="tutText"></p></div>
+<div class="toast" id="toast"></div>
+<div class="banner" id="banner"></div>
+
+<script src="js/config.js"></script>
+<script src="js/art.js"></script>
+<script src="js/util.js"></script>
+<script src="js/materials.js"></script>
+<script src="js/save.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/skins.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/render.js"></script>
+<script src="js/input.js"></script>
+<script src="js/ads.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<script>
+// Sitede: telefonda ilk dokunuşta tam ekran ve dikey kilit (eğerken ekran dönmesin)
+(function () {
+  if (!matchMedia('(pointer: coarse)').matches) return;
+  const H = document.documentElement, rf = H.requestFullscreen || H.webkitRequestFullscreen;
+  if (!rf) return;
+  addEventListener('pointerup', function first(e) {
+    if (e.target.closest && e.target.closest('a')) return;
+    removeEventListener('pointerup', first, true);
+    try {
+      const r = rf.call(H);
+      const lock = () => { try { const o = screen.orientation; if (o && o.lock) o.lock('portrait').catch(() => {}); } catch (er) {} };
+      if (r && r.then) r.then(lock, () => {}); else setTimeout(lock, 300);
+    } catch (er) {}
+  }, true);
+})();
+</script>
+</body>
+</html>

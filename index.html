@@ -40,6 +40,7 @@
 [data-cat="zeka"] { --c: #38A2FF; --cd: #1466C4; --ct: rgba(56,162,255,.18); }
 [data-cat="kelime"] { --c: #FF5CAA; --cd: #C42B76; --ct: rgba(255,92,170,.18); }
 [data-cat="kart"] { --c: #45C85A; --cd: #22883A; --ct: rgba(69,200,90,.18); }
+[data-cat="mobil"] { --c: #12B5CB; --cd: #0A7F90; --ct: rgba(18,181,203,.18); }
 
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -86,6 +87,21 @@ h1, h2, h3 { font-family: var(--hd); font-weight: 800; line-height: 1.08; margin
 .langs [aria-pressed="true"] { background: var(--acc); color: var(--acc-ink); }
 @media (max-width: 440px) { .nav .n1 { display: none; } .logo img { height: 40px; } .nav a { padding: 9px 7px; font-size: 14px; } }
 @media (min-width: 980px) { .logo img { height: 54px; } .nav { gap: 8px; } .nav a { font-size: 17px; } }
+
+/* Mobil oyunlar: tarayıcı oyunlarının üstünde iki kart; geniş ekranda kapak solda */
+.msec { position: relative; padding-top: 14px; padding-bottom: 18px; scroll-margin-top: 62px; }
+.msec .mh { font-size: clamp(36px, 9.4vw, 60px); line-height: 1; letter-spacing: -.01em; }
+.msub { margin: -6px 0 16px; color: var(--dim); font-weight: 700; font-size: 15px; }
+@media (min-width: 720px) {
+  .games.mgames { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+  .mgames .game { flex-direction: row; }
+  .mgames .game .cv { flex: 0 0 42%; border-radius: 20px 0 0 20px; }
+  .mgames .game .cv img { height: 100%; object-fit: cover; }
+  .mgames .game .info { padding: 18px 18px 16px; gap: 8px; }
+  .mgames .game h3 { font-size: 24px; }
+  .mgames .game p { font-size: 14.5px; -webkit-line-clamp: 4; }
+}
+.msec + .intro { padding-top: 18px; }
 
 /* Giriş: başlık, arama, en çok oynananlar, zar */
 .intro { position: relative; padding-top: 14px; padding-bottom: 4px; }
@@ -259,6 +275,14 @@ h1, h2, h3 { font-family: var(--hd); font-weight: 800; line-height: 1.08; margin
 </header>
 
 <main>
+  <section class="msec wrap" id="mobil" data-cat="mobil" aria-labelledby="h-mobil">
+    <div class="ihead"><h2 class="mh" id="h-mobil" data-i18n="mobEyebrow">Mobil oyunlar</h2><span class="cnt">2 <span data-i18n="gamesWord">oyun</span></span></div>
+    <p class="msub" data-i18n="mobSub">Telefonda en keyiflisi bunlar. Yüklemeden, tarayıcıda hemen açılır.</p>
+    <div class="games mgames">
+      <a class="game" href="pocket-tilt/" data-cat="mobil"><div class="cv"><img src="assets/kapak/pocket-tilt.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="tiltName">Pocket Tilt</h3><p data-i18n="tiltDesc">Telefonu eğerek bilyeyi labirentin içinden yuvasına götür. Engellerden kaç, yıldızları topla, her gün yeni bir labirent çöz.</p><div class="tags"><span class="tag" data-i18n="tagTilt">Telefonu eğerek</span><span class="tag" data-i18n="tag105">4 dünya, 105 bölüm</span><span class="tag" data-i18n="tagDaily">Günün labirenti</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="game" href="hece-patlat/" data-cat="mobil"><div class="cv"><img src="assets/kapak/hece-patlat.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="heceName">Hece Patlat</h3><p data-i18n="heceDesc">Hece parçalarını tahtaya yerleştir, satırda kelime kurunca patlat. Kelime ve Blok modlarıyla Türkçe ya da İngilizce oyna.</p><div class="tags"><span class="tag" data-i18n="tagHeceModes">Kelime ve Blok modu</span><span class="tag" data-i18n="tagTrEn">Türkçe ve İngilizce</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+    </div>
+  </section>
   <section class="intro wrap" id="oyunlar" aria-labelledby="h-oyunlar">
     <svg class="rozet" viewBox="0 0 400 400" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="200" cy="200" r="196"/><circle cx="200" cy="200" r="184"/><circle cx="200" cy="200" r="190" stroke-width="3.4" stroke-dasharray="0.1 11.9" stroke-linecap="round"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(0.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(22.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(45.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(67.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(90.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(112.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(135.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(157.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(180.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(202.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(225.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(247.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(270.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(292.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(315.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(337.5 200 200)"/><path class="t" d="M200.00 104.00L228.12 132.12L267.88 132.12L267.88 171.88L296.00 200.00L267.88 228.12L267.88 267.88L228.12 267.88L200.00 296.00L171.88 267.88L132.12 267.88L132.12 228.12L104.00 200.00L132.12 171.88L132.12 132.12L171.88 132.12Z"/><path d="M200.00 104.00L228.12 132.12L267.88 132.12L267.88 171.88L296.00 200.00L267.88 228.12L267.88 267.88L228.12 267.88L200.00 296.00L171.88 267.88L132.12 267.88L132.12 228.12L104.00 200.00L132.12 171.88L132.12 132.12L171.88 132.12Z" transform="rotate(22.5 200 200)"/><circle cx="200" cy="200" r="46"/><path class="t" d="M200.00 162.00L211.13 173.13L226.87 173.13L226.87 188.87L238.00 200.00L226.87 211.13L226.87 226.87L211.13 226.87L200.00 238.00L188.87 226.87L173.13 226.87L173.13 211.13L162.00 200.00L173.13 188.87L173.13 173.13L188.87 173.13Z"/><circle cx="266.0" cy="200.0" r="6"/><circle cx="246.7" cy="246.7" r="6"/><circle cx="200.0" cy="266.0" r="6"/><circle cx="153.3" cy="246.7" r="6"/><circle cx="134.0" cy="200.0" r="6"/><circle cx="153.3" cy="153.3" r="6"/><circle cx="200.0" cy="134.0" r="6"/><circle cx="246.7" cy="153.3" r="6"/></svg>
     <div class="ihead"><h1 id="h-oyunlar" data-i18n="browserEyebrow">Tarayıcı oyunları</h1><span class="cnt">35 <span data-i18n="gamesWord">oyun</span></span></div>
@@ -482,6 +506,11 @@ const I18N_EN = {
   shots: 'Screenshots',
   catsAria: 'Categories', catBeceriS: 'Skill', catStratejiS: 'Strategy', catZarS: 'Dice', catOkeyS: 'Okey & tiles', catZekaS: 'Puzzles', catKelimeS: 'Words', catKartS: 'Cards',
   catBeceri: 'Skill games', catStrateji: 'Strategy games', catZar: 'Dice games', catOkey: 'Okey and tile games', catZeka: 'Puzzles and brain games', catKelime: 'Word games', catKart: 'Card games',
+  mobEyebrow: 'Mobile games', mobSub: 'These feel best on a phone. Nothing to install, they open right in your browser.',
+  tiltName: 'Pocket Tilt', tiltDesc: 'Tilt your phone to roll the marble through the maze into its hole. Dodge obstacles, collect stars and solve a new maze every day.',
+  tagTilt: 'Tilt to play', tag105: '4 worlds, 105 levels', tagDaily: 'Daily maze',
+  heceName: 'Hece Patlat', heceDesc: 'Place syllable pieces on the board and pop them when a row spells a word. Play the Word and Block modes in Turkish or English.',
+  tagHeceModes: 'Word and Block modes', tagTrEn: 'Turkish and English',
   browserEyebrow: 'Browser games', browserGames: 'Play right in your browser',
   play: 'Play', popTitle: 'Most played', searchPh: 'Search games: okey, backgammon, word…', searchAria: 'Search games', noResult: 'No game found with that name.',
   suluName: 'Water Ring Toss',
@@ -665,7 +694,7 @@ setLang(/^tr/i.test(new URLSearchParams(location.search).get('lang') || saved ||
   const MAP = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'â': 'a', 'î': 'i', 'û': 'u' };
   const norm = (t) => (t || '').toLocaleLowerCase('tr').replace(/[çğıöşüâîû]/g, (c) => MAP[c]).replace(/\s+/g, ' ').trim();
   const words = (el) => el ? [el.dataset.tr || el.textContent, I18N_EN[el.dataset.i18n] || ''].join(' ') : '';
-  const secs = [...document.querySelectorAll('.gsec')].map((sec) => ({
+  const secs = [...document.querySelectorAll('.msec, .gsec')].map((sec) => ({
     sec, cat: words(sec.querySelector('.gcat [data-i18n]')),
     cards: [...sec.querySelectorAll('a.game')].map((a) => ({ a, txt: a.getAttribute('href') + ' ' + words(a.querySelector('h3')) })),
   }));

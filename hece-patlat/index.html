@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#120d1e" />
+    <title>Hece Patlat</title>
+    <style>
+      :root {
+        --sat: env(safe-area-inset-top, 0px);
+        --sab: env(safe-area-inset-bottom, 0px);
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-z43c3RKe.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BSneLIUD.css">
+    <style>
+      .home { position: relative; }
+      #siteHome { position: absolute; top: 0; left: 0; z-index: 2; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: #ffffff0a; box-shadow: inset 0 0 0 1px var(--hair); color: var(--champ); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+      #siteHome svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      #siteHome:active { transform: scale(.94); }
+    </style>
+    <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz -->
+    <script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+    <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+    <script src="../assets/olcum.js" data-page="hece-patlat" data-name="Hece Patlat"></script>
+    <script>window.rgSay = function (olay, ad) { try { window.goatcounter.count({ path: "hece-patlat/" + olay, title: "Hece Patlat: " + ad, event: true }); } catch (e) {} };</script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      // Sitede: oyunun ana ekranına RIDS Games ana sayfasına dönüş düğmesi; telefonda ilk dokunuşta tam ekran ve dikey kilit
+      (function () {
+        const tr = () => (document.documentElement.lang || 'tr').slice(0, 2) === 'tr';
+        const put = () => {
+          const h = document.querySelector('.layer:not([hidden]) > .home'); if (!h || h.querySelector('#siteHome')) return;
+          const a = document.createElement('a'); a.id = 'siteHome'; a.href = '../?lang=' + (tr() ? 'tr' : 'en');
+          a.setAttribute('aria-label', tr() ? 'RIDS Games ana sayfa' : 'RIDS Games home');
+          a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h4.5v-5.5h3V20H18V9.5"/></svg>';
+          h.prepend(a);
+        };
+        new MutationObserver(put).observe(document.body, { childList: true, subtree: true });
+        if (!matchMedia('(pointer: coarse)').matches) return;
+        const H = document.documentElement, rf = H.requestFullscreen || H.webkitRequestFullscreen; if (!rf) return;
+        addEventListener('pointerup', function first(e) {
+          if (e.target.closest && e.target.closest('a')) return;
+          removeEventListener('pointerup', first, true);
+          try {
+            const r = rf.call(H), lock = () => { try { const o = screen.orientation; if (o && o.lock) o.lock('portrait').catch(() => {}); } catch (er) {} };
+            if (r && r.then) r.then(lock, () => {}); else setTimeout(lock, 300);
+          } catch (er) {}
+        }, true);
+      })();
+    </script>
+  </body>
+</html>
