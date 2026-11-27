@@ -552,7 +552,7 @@ const STR = {
       ['💥', '<b>Tavla:</b> Rakibin iki ya da daha fazla pulu olan noktaya konamazsın. Tek pulun üstüne konarsan pul kırılır; kırık pul oyuna dönmeden başka pul oynanmaz.'],
       ['🔒', '<b>Mahbusa:</b> Pullar tek noktadan başlar, kırma yoktur. Rakibin tek pulunun üstüne konarsan onu <b>hapsedersin</b>: sen ayrılana kadar kıpırdayamaz. Başlangıç noktasındaki son pulu (<b>ana pul</b>) hapsedilen oyunu mars ile kaybeder.'],
       ['🌹', '<b>Gülbahar:</b> Pullar karşı köşelerden aynı yöne gider, kırma yoktur ve tek pul bile noktayı tutar. İlk üç zardan sonra çift gelirse o çiftten 6-6’ya kadar bütün çiftler sırayla oynanır; biri tam oynanamazsa kalanı yanar.'],
-      ['👆', 'Oynayabileceğin pullar halkayla gösterilir. Pulu parlayan noktaya sürükle ya da pula dokunup noktaya dokun. Seçili pula yeniden dokunursan büyük zarla oynanır. Tek hamle varsa kendiliğinden oynanır. Tur bitmeden <b>Geri al</b> ile hamleni değiştirebilirsin.']
+      ['👆', 'Oynayabileceğin pullar halkayla gösterilir. Pulu parlayan noktaya sürükle ya da pula dokunup noktaya dokun. Seçili pula yeniden dokunursan seçim kalkar. Tek hamle varsa kendiliğinden oynanır. Tur bitmeden <b>Geri al</b> ile hamleni değiştirebilirsin.']
     ] },
   en: { ...COMMON.en, title: 'Backgammon | Ridsgames', game: 'Backgammon',
     setupSub: 'Classic backgammon plus the Turkish variants Mahbusa and Gülbahar. Play the computer or a friend.',
@@ -573,7 +573,7 @@ const STR = {
       ['💥', '<b>Classic:</b> You cannot land on a point with two or more enemy checkers. Landing on a lone one hits it; a hit checker must re-enter before anything else moves.'],
       ['🔒', '<b>Mahbusa:</b> All checkers start on one point and there is no hitting. Landing on a lone enemy checker <b>traps</b> it until you leave. If the last checker on a player’s starting point (the <b>mother</b>) is trapped, that player loses a gammon.'],
       ['🌹', '<b>Gülbahar:</b> Checkers start in opposite corners and travel the same way; no hitting, and a single checker holds a point. After the first three rolls, doubles cascade: play that double and every higher one up to 6-6. If one cannot be finished, the rest is lost.'],
-      ['👆', 'Checkers you can move are ringed. Drag a checker to a glowing spot, or tap it and then the spot. Tap the selected checker again to play the larger die. A forced play is made for you. Use <b>Undo</b> before your turn ends.']
+      ['👆', 'Checkers you can move are ringed. Drag a checker to a glowing spot, or tap it and then the spot. Tap the selected checker again to cancel. A forced play is made for you. Use <b>Undo</b> before your turn ends.']
     ] }
 };
 const T = () => STR[lang];
@@ -889,7 +889,7 @@ function tapHit(h) {
     const d = dsts.find((x) => x.t === pos);
     if (d) { for (const m of d.path) { doMove(m, m !== d.path[0]); if (G.phase !== 'move') return; } sel = null; dsts = []; settle(); return; }
     const same = (h === 'bar' && sel === -1) || (h !== 'bar' && h !== 'off' && IDX[p][+h] === sel);
-    if (same && dsts.length) { const one = dsts.find((x) => x.path.length === 1) || dsts[0]; for (const m of one.path) { doMove(m, m !== one.path[0]); if (G.phase !== 'move') return; } sel = null; dsts = []; settle(); return; }
+    if (same) { sel = null; dsts = []; Sfx.click(); render(); return; } // seçili pula yeniden dokunmak seçimi bırakır
   }
   let f = null;
   if (h === 'bar') { if (G.S.bar[p]) f = -1; }
