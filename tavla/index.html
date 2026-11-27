@@ -199,28 +199,27 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 @keyframes ckn { 0% { transform: scale(1.35); opacity: .3; } }
 .dst { animation: dst 1.1s ease-in-out infinite; }
 @keyframes dst { 50% { opacity: .45; } }
-/* Yatay: tahta ekranın tamamını alır; sağda ince bir şerit. Şeritte rakip üstte (tahtadaki yeri gibi),
-   durum ortada, sen ve hamle düğmesi altta (başparmağın yanında). */
+/* Yatay: tahta ekranı doldurur. Oyuncu bilgisi tahtanın ortadaki boş bandında, zarın iki yanında durur.
+   Sağda yalnızca ince bir düğme şeridi kalır (ayarlar, geri al, tam ekran). Bilgi mesajları kısa bildirim olarak çıkar. */
 @media (orientation: landscape) {
-  main { display: grid; grid-template-columns: minmax(0, 1fr) clamp(172px, 21vw, 250px); grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 8px 10px; align-content: stretch; max-width: none; }
+  main { display: flex; flex-direction: row; align-items: stretch; position: relative; max-width: none; gap: 0; padding-right: calc(52px + env(safe-area-inset-right)); }
+  .bwrap { flex: 1; min-width: 0; height: 100%; }
   #board { height: 100%; width: auto; max-width: 100%; }
-  .bwrap { grid-column: 1; grid-row: 1 / -1; }
-  main > #hud.hud, .bar2 { display: contents; }
-  .hud .pl { grid-column: 2; background: rgba(2, 6, 23, .66); border-color: rgba(148, 163, 184, .18); padding: 6px 10px 6px 6px; }
-  .hud .pl.on { border-color: #34d399; background: rgba(16, 185, 129, .16); }
-  .hud .pl .tx { flex: 1; }
-  .hud .pl:last-child { grid-row: 1; margin-right: 46px; }
-  .hud .mid { grid-column: 2; grid-row: 2; font-size: 11px; }
-  .hud .mid b, .hud .mid span { display: inline; } .hud .mid b { font-size: 12px; } .hud .mid span::before { content: ' · '; }
-  .status { grid-column: 2; grid-row: 3; align-self: center; font-size: 15px; line-height: 1.3; }
-  .hud .pl:first-child { grid-row: 4; }
-  .acts { grid-column: 2; grid-row: 5; flex-direction: column; align-items: stretch; margin-right: 44px; min-height: 44px; }
-  .acts button { max-width: none; font-size: 15px; }
+  main > #hud.hud { position: absolute; z-index: 1; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; backdrop-filter: none; pointer-events: none; display: block; }
+  .hud .pl { position: absolute; top: 50%; transform: translateY(-50%); max-width: var(--pw, 160px); background: rgba(28, 18, 8, .78); border-color: rgba(253, 230, 138, .22); padding: 3px 9px 3px 3px; gap: 6px; }
+  .hud .pl:first-child { right: var(--pr, 0); }
+  .hud .pl:last-child { left: var(--pl, 0); }
+  .hud .pl.on { border-color: #34d399; background: rgba(6, 78, 59, .85); }
+  .hud .mid, .status, #openB, #rollB { display: none; }
+  .bar2 { display: contents; }
+  .acts { position: fixed; z-index: 26; right: max(6px, env(safe-area-inset-right)); top: 50%; transform: translateY(-50%); min-height: 0; flex-direction: column; }
+  .acts button.alt { flex: none; width: 40px; height: 40px; padding: 0; border-radius: 50%; font-size: 20px; line-height: 1; }
+  .acts .ul { display: none; }
+  .fab.score { top: calc(max(6px, env(safe-area-inset-top)) + 46px); right: max(6px, env(safe-area-inset-right)); }
 }
 @media (orientation: landscape) and (max-height: 500px) {
-  main { gap: 6px 8px; }
-  .hud .pl { padding: 4px 8px 4px 4px; } .pl .sc { font-size: 18px; } .pl .nm { font-size: 13px; } .pl .ck { width: 20px; height: 20px; }
-  .status { font-size: 13.5px; } .acts button { height: 42px; font-size: 14.5px; } .acts { min-height: 42px; }
+  main { padding-top: 4px; padding-bottom: calc(4px + env(safe-area-inset-bottom)); }
+  .hud .pl .ck { width: 18px; height: 18px; } .pl .nm { font-size: 12px; } .pl .pp { font-size: 10.5px; } .pl .sc { font-size: 17px; }
 }
 #dice { position: absolute; z-index: 2; transform: translate(-50%, -50%); }
 #dice.miss::after { content: '✕'; position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px); font: 900 14px/1 Inter, system-ui, sans-serif; color: #b91c1c; }
@@ -815,12 +814,13 @@ function undo() {
 }
 
 // ---------- Çizim ----------
+const LANDQ = matchMedia('(orientation: landscape)'); let lastHint = null;
 const H = 11.8, M = 0.3, BW = 0.8, PH = 4.85, R0 = 0.45, TRW = 1.1;
 // CW: nokta genişliği. Yatay ekranda tahta boş alanı dolduracak kadar genişler (1–1.6).
 let CW = 1, W = 14.8, TRX = M + 12 + BW + 0.3, HB = M + 6 + BW; // HB: sağ yarının başı
 function fitBoard() {
   let cw = 1;
-  if (matchMedia('(orientation: landscape)').matches) { const r = $('bwrap').getBoundingClientRect(); if (r.width && r.height) cw = Math.max(1, Math.min(1.6, ((r.width / r.height) * H - (2 * M + BW + 0.3 + TRW)) / 12)); }
+  if (matchMedia('(orientation: landscape)').matches) { const r = $('bwrap').getBoundingClientRect(); if (r.width && r.height) cw = Math.max(1, Math.min(1.8, ((r.width / r.height) * H - (2 * M + BW + 0.3 + TRW)) / 12)); }
   cw = Math.round(cw * 20) / 20; if (cw === CW && $('board').getAttribute('viewBox') === `0 0 ${W} ${H}`) return false;
   CW = cw; HB = M + 6 * CW + BW; TRX = HB + 6 * CW + 0.3; W = +(TRX + TRW + M).toFixed(3);
   $('board').setAttribute('viewBox', `0 0 ${W} ${H}`); return true;
@@ -915,10 +915,16 @@ function render() {
     if (n && n.k === 'forced') s = t.forced;
     else if (human(p) && !busy) {
       s = (G.stages.length > 1 ? t.cascade(G.stages[G.si][0]) + ' · ' : '') + (G.mode === 'iki' ? pname(p) + ': ' : '') + (sel !== null ? t.pickDst : G.variant === 'tavla' && G.S.bar[p] ? t.enterFirst : t.pick);
-      acts = `<button type="button" class="alt" id="undoB"${G.hist.some((x) => x) ? '' : ' disabled'}>↶ ${esc(t.undoBtn)}</button>`;
+      acts = `<button type="button" class="alt" id="undoB" aria-label="${esc(t.undoBtn)}"${G.hist.some((x) => x) ? '' : ' disabled'}>↶<span class="ul"> ${esc(t.undoBtn)}</span></button>`;
     } else s = t.thinking(pname(p));
   }
   $('status').textContent = s; $('acts').innerHTML = acts;
+  // Yatayda durum satırı yok: önemli bilgiler bir kez kısa bildirim olarak çıkar
+  if (LANDQ.matches) {
+    const nk = G.phase === 'open' ? (n && n.k === 'tie' ? n : 'open' + G.gameNo) : n && ['open', 'nomove', 'forfeit', 'forced'].includes(n.k) ? n : human(p) && G.phase === 'move' && G.variant === 'tavla' && G.S.bar[p] ? 'bar' + G.hist.length + G.turn + G.gameNo : null;
+    if (nk && nk !== lastHint) { lastHint = nk; toast(nk === n || G.phase === 'open' ? s.split(' · ')[0] : t.enterFirst); }
+  }
+  placeHud();
   // sonuç
   const show = G.phase === 'gover' || G.phase === 'end';
   $('res').hidden = !show;
@@ -947,6 +953,15 @@ function renderDice() {
   el.classList.toggle('miss', !!d.miss); el.style.pointerEvents = d.ready ? 'auto' : 'none';
   el.dataset.side = d.side; placeDice();
 }
+function placeHud() {
+  const hd = $('hud');
+  if (!LANDQ.matches) { hd.removeAttribute('style'); return; }
+  const br = $('board').getBoundingClientRect(), mr = $('main').getBoundingClientRect(); if (!br.width) return;
+  const sc = br.width / W;
+  Object.assign(hd.style, { left: (br.left - mr.left) + 'px', top: (br.top - mr.top) + 'px', width: br.width + 'px', height: br.height + 'px' });
+  hd.style.setProperty('--pl', (M + 0.15) * sc + 'px'); hd.style.setProperty('--pr', (W - HB - 6 * CW + 0.15) * sc + 'px');
+  hd.style.setProperty('--pw', Math.max(90, 3 * CW * sc - 0.75 * sc - 10) + 'px');
+}
 function placeDice() {
   const el = $('dice'); if (el.hidden) return;
   const br = $('board').getBoundingClientRect(), wr = $('bwrap').getBoundingClientRect(); if (!br.width) return;
@@ -954,7 +969,7 @@ function placeDice() {
   el.style.left = (br.left - wr.left + dx * sc) + 'px'; el.style.top = (br.top - wr.top + (H / 2) * sc) + 'px';
   el.style.setProperty('--ds', Math.max(30, Math.round(0.92 * sc)) + 'px');
 }
-addEventListener('resize', () => { if (G && fitBoard()) render(); else placeDice(); });
+addEventListener('resize', () => { if (G && fitBoard()) render(); else { placeDice(); placeHud(); } });
 $('dice').addEventListener('click', () => { if (!G) return; if (G.phase === 'open') doOpen(); else if (G.phase === 'roll' && human(G.turn) && !busy) doRoll(); });
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function renderSetup() {
