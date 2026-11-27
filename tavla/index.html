@@ -1403,6 +1403,32 @@ applySound(); applyLang(); boot();
 @media (max-height: 480px) { #rgRep .rc { padding: 12px 14px; } #rgRep h2 { font-size: 17px; } #rgRep p { margin-bottom: 6px; } #rgRep textarea { min-height: 56px; } #rgRep .rb { grid-template-columns: 2fr 1fr 1fr; margin-top: 8px; } #rgRep button.go { grid-column: auto; } #rgRep button { min-height: 38px; } }
 /* yatay telefonda ayarlar menüsü iki sütun, kaydırmadan sığsın */
 @media (orientation: landscape) and (max-height: 520px) { #setOv .sheet { max-width: 560px; gap: 10px; } #setOv .sheet .logo { flex-direction: row; justify-content: center; } #setOv .mlist { grid-template-columns: 1fr 1fr; } #setOv .mi { height: 42px; } }
+/* açık renk pencereler: ayarlar, skor, kurallar, oyun sonu */
+#setOv, #scoreOv, #rulesOv, #winOv { background: rgba(3, 30, 12, .32); backdrop-filter: blur(3px); }
+#setOv .card, #scoreOv .card, #rulesOv .card, #winOv .card { background: #fbf5e8; color: #3a210c; border: 0; box-shadow: 0 18px 50px rgba(0, 25, 8, .4); }
+#setOv { align-items: flex-end; padding: 0; }
+#setOv .sheet { max-width: 560px; max-height: 92dvh; border-radius: 26px 26px 0 0; padding: 16px 18px calc(18px + env(safe-area-inset-bottom)); animation: cUp .4s cubic-bezier(.3, 1.1, .4, 1); }
+@keyframes cUp { from { transform: translateY(100%); } }
+@keyframes cLeft { from { transform: translateX(100%); } }
+#setOv .gname { color: #7a4a12; background: #f1e5cc; border: 0; font-weight: 700; }
+#setOv .homeIco { background: #f1e5cc !important; border-color: #e3d3b0 !important; color: #a15c0b !important; box-shadow: none !important; }
+#setOv .mi { background: #fff; border: 1px solid #ecdfc2; color: #3a210c; box-shadow: 0 1px 0 #ecdfc2; }
+#setOv .mi:hover { border-color: #d9b878; color: #3a210c; }
+#setOv .mi.lang { color: #c4ab84; } #setOv .mi.lang span { color: #a15c0b !important; }
+#setOv .big, #scoreOv .big, #rulesOv .big, #winOv .big { background: #e8b04a; border: 0; color: #2a1606; box-shadow: 0 4px 0 #a8741f; }
+#setOv .big:active, #scoreOv .big:active, #rulesOv .big:active, #winOv .big:active { transform: translateY(3px); box-shadow: 0 1px 0 #a8741f; }
+#setOv .big.alt, #scoreOv .big.alt, #rulesOv .big.alt, #winOv .big.alt { background: transparent; border: 2px solid #e3d3b0; color: #3a210c; box-shadow: none; }
+#scoreOv .sub, #rulesOv .sub, #winOv .sub, #scoreOv .scoreBody th, #scoreOv .scoreBody .sn { color: #7a5a3a; }
+#rulesOv .rules { color: #4a2e14; } #rulesOv .rules b { color: #2a1606; }
+#winOv .score { color: #a15c0b; } #winOv .score.lost { color: #b91c1c; }
+#winOv .rank li { background: #f1e5cc; color: #3a210c; }
+#scoreOv .scoreBody td { background: #f1e5cc; color: #3a210c; } #scoreOv .scoreBody td:first-child { color: #2a1606; } #scoreOv .scoreBody td:last-child { color: #a15c0b; }
+#scoreOv .scoreBody tr.me td { background: #fde7b0; }
+@media (orientation: landscape) and (max-height: 520px) {
+  #setOv { align-items: stretch; justify-content: flex-end; }
+  #setOv .sheet { width: min(440px, 60vw); max-width: none; max-height: none; height: 100%; border-radius: 26px 0 0 26px; justify-content: center; padding: max(12px, env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) 16px; animation-name: cLeft; }
+  #setOv .mi.lang { grid-column: 1 / -1; }
+}
 @media (orientation: landscape) and (max-height: 520px) { html.rgSet .top .in { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet .top .logo { flex-direction: row; justify-content: center; } html.rgSet .top .tools { grid-template-columns: 1fr 1fr; } html.rgSet .top .pill { height: 42px; } html.rgSet .top .rgClose { height: 40px; }
   html.rgSet #topHeader > div { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet #topHeader #homeLink { flex-direction: row; } html.rgSet #topHeader #homeLink + div { grid-template-columns: 1fr 1fr; } html.rgSet #topHeader #modeSelect { grid-column: 1 / -1; height: 40px; } html.rgSet #topHeader #homeLink + div > button { height: 42px; } html.rgSet #topHeader .rgClose { height: 40px; } }
 </style>
