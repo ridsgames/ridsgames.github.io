@@ -92,14 +92,21 @@ h1, h2, h3 { font-family: var(--hd); font-weight: 800; line-height: 1.08; margin
 .msec { position: relative; padding-top: 14px; padding-bottom: 18px; scroll-margin-top: 62px; }
 .msec .mh { font-size: clamp(36px, 9.4vw, 60px); line-height: 1; letter-spacing: -.01em; }
 .msub { margin: -6px 0 16px; color: var(--dim); font-weight: 700; font-size: 15px; }
+.game.app .info { padding: 16px 15px 15px; gap: 9px; }
+.ahead { display: flex; flex-direction: column; gap: 10px; }
+.aic { flex: 0 0 auto; width: 84px; height: 84px; border-radius: 22%; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: transform .4s cubic-bezier(.34,1.56,.64,1); }
+.app:hover .aic { transform: scale(1.05); }
+.anm { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.game.app h3 { font-size: 20px; }
+.dev { font-size: 13px; font-weight: 800; color: var(--cd); }
 @media (min-width: 720px) {
   .games.mgames { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
-  .mgames .game { flex-direction: row; }
-  .mgames .game .cv { flex: 0 0 42%; border-radius: 20px 0 0 20px; }
-  .mgames .game .cv img { height: 100%; object-fit: cover; }
-  .mgames .game .info { padding: 18px 18px 16px; gap: 8px; }
-  .mgames .game h3 { font-size: 24px; }
-  .mgames .game p { font-size: 14.5px; -webkit-line-clamp: 4; }
+  .game.app .info { padding: 20px; gap: 12px; }
+  .ahead { flex-direction: row; align-items: center; gap: 18px; }
+  .aic { width: 112px; height: 112px; }
+  .game.app h3 { font-size: 26px; }
+  .dev { font-size: 14.5px; }
+  .game.app p { font-size: 15px; }
 }
 .msec + .intro { padding-top: 18px; }
 
@@ -279,8 +286,8 @@ h1, h2, h3 { font-family: var(--hd); font-weight: 800; line-height: 1.08; margin
     <div class="ihead"><h2 class="mh" id="h-mobil" data-i18n="mobEyebrow">Mobil oyunlar</h2><span class="cnt">2 <span data-i18n="gamesWord">oyun</span></span></div>
     <p class="msub" data-i18n="mobSub">Telefonda en keyiflisi bunlar. Yüklemeden, tarayıcıda hemen açılır.</p>
     <div class="games mgames">
-      <a class="game" href="pocket-tilt/" data-cat="mobil"><div class="cv"><img src="assets/kapak/pocket-tilt.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="tiltName">Pocket Tilt</h3><p data-i18n="tiltDesc">Telefonu eğerek bilyeyi labirentin içinden yuvasına götür. Engellerden kaç, yıldızları topla, her gün yeni bir labirent çöz.</p><div class="tags"><span class="tag" data-i18n="tagTilt">Telefonu eğerek</span><span class="tag" data-i18n="tag105">4 dünya, 105 bölüm</span><span class="tag" data-i18n="tagDaily">Günün labirenti</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
-      <a class="game" href="hece-patlat/" data-cat="mobil"><div class="cv"><img src="assets/kapak/hece-patlat.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="heceName">Hece Patlat</h3><p data-i18n="heceDesc">Hece parçalarını tahtaya yerleştir, satırda kelime kurunca patlat. Kelime ve Blok modlarıyla Türkçe ya da İngilizce oyna.</p><div class="tags"><span class="tag" data-i18n="tagHeceModes">Kelime ve Blok modu</span><span class="tag" data-i18n="tagTrEn">Türkçe ve İngilizce</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="game app" href="pocket-tilt/" data-cat="mobil"><div class="info"><div class="ahead"><img class="aic" src="assets/kapak/pocket-tilt-ikon.webp" alt="" loading="lazy" width="384" height="384"><div class="anm"><h3 data-i18n="tiltName">Pocket Tilt</h3><span class="dev">RIDS Games</span></div></div><p data-i18n="tiltDesc">Telefonu eğerek bilyeyi labirentin içinden yuvasına götür. Engellerden kaç, yıldızları topla, her gün yeni bir labirent çöz.</p><div class="tags"><span class="tag" data-i18n="tagTilt">Telefonu eğerek</span><span class="tag" data-i18n="tag105">4 dünya, 105 bölüm</span><span class="tag" data-i18n="tagDaily">Günün labirenti</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      <a class="game app" href="hece-patlat/" data-cat="mobil"><div class="info"><div class="ahead"><img class="aic" src="assets/kapak/hece-patlat-ikon.webp" alt="" loading="lazy" width="384" height="384"><div class="anm"><h3 data-i18n="heceName">Hece Patlat</h3><span class="dev">RIDS Games</span></div></div><p data-i18n="heceDesc">Hece parçalarını tahtaya yerleştir, satırda kelime kurunca patlat. Kelime ve Blok modlarıyla Türkçe ya da İngilizce oyna.</p><div class="tags"><span class="tag" data-i18n="tagHeceModes">Kelime ve Blok modu</span><span class="tag" data-i18n="tagTrEn">Türkçe ve İngilizce</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
     </div>
   </section>
   <section class="intro wrap" id="oyunlar" aria-labelledby="h-oyunlar">
