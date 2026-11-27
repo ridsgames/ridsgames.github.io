@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,197 +9,233 @@
 <meta property="og:title" content="RIDS Games">
 <meta property="og:description" content="Klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları.">
 <meta property="og:image" content="https://www.ridsgames.com/assets/misket/paylasim.jpg">
-<meta name="theme-color" content="#0B0C0F">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A1838">
+<meta name="color-scheme" content="dark light">
 <link rel="icon" href="assets/icon.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<script>
+// Tema: kayıtlı seçim (yalnız bu tarayıcıda, "rids_tema"), yoksa cihazın açık/koyu ayarı. Boyamadan önce uygulanır.
+(function () {
+  var d = document.documentElement, t = null, mm = function (q) { return !!(window.matchMedia && window.matchMedia(q).matches); };
+  try { t = localStorage.getItem('rids_tema'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') t = mm('(prefers-color-scheme: light)') ? 'light' : 'dark';
+  d.setAttribute('data-theme', t);
+  if (mm('(prefers-reduced-motion: reduce)')) d.classList.add('rm');
+  else if ('IntersectionObserver' in window) d.classList.add('rvok');
+})();
+</script>
 <style>
 /* Yazı tipleri oyunun kendi yazı tipleri; dışarıdan hiçbir şey çekilmez. */
 @font-face { font-family: "Baloo 2"; src: url("assets/fonts/Baloo2-ExtraBold.ttf") format("truetype"); font-weight: 800; font-display: swap; }
 @font-face { font-family: "Nunito"; src: url("assets/fonts/Nunito-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Nunito"; src: url("assets/fonts/Nunito-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
-:root {
-  /* Stüdyo: logodaki siyah ve çelik. Vurgu: misketin kehribarı. Gradyan yok, yalnız düz renk. */
-  --bg: #0B0C0F;
-  --band: #111317;
-  --panel: #191C22;
-  --line: #2C323C;
-  --text: #EBEFF5;
-  --dim: #A6B0BE;
-  --amber: #F6B93B;
-  --amber-deep: #B47A10;
-  --ink: #1B1304;
-  --display: "Baloo 2", "Segoe UI", system-ui, sans-serif;
-  --body: "Nunito", "Segoe UI", system-ui, sans-serif;
-}
-* { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; background: var(--bg); scroll-behavior: smooth; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.6 var(--body); }
-img { display: block; max-width: 100%; height: auto; }
-a { color: inherit; }
+@font-face { font-family: "Nunito"; src: url("assets/fonts/Nunito-Bold.ttf") format("truetype"); font-weight: 700 900; font-display: swap; }
+/* Anadolu çinisi: lacivert ya da krem zemin, ince altın (açıkta kobalt) çizgi, turkuaz ve mercan */
+:root { --hd: "Baloo 2", "Nunito", system-ui, sans-serif; --bd: "Nunito", system-ui, sans-serif; }
+[data-theme="dark"] { --bg: #0A1838; --surface: #13295B; --surface2: #193469; --line: #2B4A88; --text: #F6F0E3; --dim: #B7C3DF; --acc: #EBBE5E; --acc-deep: #A97F2C; --acc-ink: #0A1838; --ring: rgba(235,190,94,.32); --hover: rgba(255,255,255,.07); --logo-f: sepia(1) saturate(1.7) brightness(2.3); --pat: url("assets/desen/cizgi-d.svg"); --pat-op: .16; --vig: rgba(60,203,189,.14); --rz: #E4B85E; --rz-t: #3CCBBD; --rz-op: .2; --die: #FFF9EC; }
+[data-theme="light"] { --bg: #F8F4EA; --surface: #FFFFFF; --surface2: #F7F1E3; --line: #E4D7B8; --text: #13275C; --dim: #4C5B82; --acc: #1E46B4; --acc-deep: #122E7E; --acc-ink: #FFFFFF; --ring: rgba(30,70,180,.24); --hover: rgba(0,0,0,.05); --logo-f: none; --pat: url("assets/desen/cizgi-l.svg"); --pat-op: .14; --vig: rgba(228,184,94,.2); --rz: #1E46B4; --rz-t: #0E9A8E; --rz-op: .17; --die: #FFF9EC; }
+[data-cat="beceri"] { --c: #FF6B57; --cd: #C63F2D; --ct: rgba(255,107,87,.17); }
+[data-cat="strateji"] { --c: #8C6CFF; --cd: #5A3ED4; --ct: rgba(140,108,255,.19); }
+[data-cat="zar"] { --c: #FFB21F; --cd: #BF7D00; --ct: rgba(255,178,31,.2); }
+[data-cat="okey"] { --c: #14C29B; --cd: #078566; --ct: rgba(20,194,155,.18); }
+[data-cat="zeka"] { --c: #38A2FF; --cd: #1466C4; --ct: rgba(56,162,255,.18); }
+[data-cat="kelime"] { --c: #FF5CAA; --cd: #C42B76; --ct: rgba(255,92,170,.18); }
+[data-cat="kart"] { --c: #45C85A; --cd: #22883A; --ct: rgba(69,200,90,.18); }
+
+*, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
-:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; border-radius: 6px; }
-.wrap { max-width: 1160px; margin: 0 auto; padding-left: 18px; padding-right: 18px; }
-h1, h2, h3 { font-family: var(--display); font-weight: 800; line-height: 1.02; margin: 0; }
-h2 { font-size: clamp(30px, 6vw, 46px); }
-.eyebrow { margin: 0 0 6px; font: 800 15px/1.2 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--amber); }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(--bg); scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 16px/1.55 var(--bd); transition: background-color .5s, color .5s; -webkit-font-smoothing: antialiased; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; border-radius: 8px; }
+h1, h2, h3 { font-family: var(--hd); font-weight: 800; line-height: 1.08; margin: 0; }
+.page { position: relative; z-index: 1; overflow-x: clip; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+@media (min-width: 720px) { .wrap { padding-left: 28px; padding-right: 28px; } }
+.ci { fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.eyebrow { margin: 0 0 6px; font: 800 14px/1.2 var(--hd); letter-spacing: .12em; text-transform: uppercase; color: var(--acc); }
+
+/* Arka plan: ince çizgili çini, yavaşça kayar */
+.scene { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.vig { position: absolute; inset: 0; background: radial-gradient(ellipse 90% 60% at 50% 0%, var(--vig), transparent 70%); }
+.pat { position: absolute; top: -420px; left: -420px; right: 0; bottom: -420px; background: var(--pat) 0 0 / 420px 420px repeat; opacity: var(--pat-op); animation: drift 300s linear infinite; will-change: transform; }
+@keyframes drift { to { transform: translate(420px, 420px); } }
+.rozet { position: absolute; z-index: -1; left: 50%; top: -150px; width: 600px; height: 600px; margin-left: -300px; color: var(--rz); opacity: var(--rz-op); animation: spin 240s linear infinite; pointer-events: none; transition: color .5s; }
+.rozet .t { stroke: var(--rz-t); }
+@media (min-width: 900px) { .rozet { left: auto; right: -90px; margin-left: 0; top: -200px; width: 700px; height: 700px; } }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Üst çubuk */
-.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
-.logo img { height: 46px; width: auto; mix-blend-mode: lighten; }
-.bar nav { display: flex; align-items: center; gap: 18px; font: 800 17px/1 var(--display); }
-.bar nav a { text-decoration: none; color: var(--dim); padding: 8px 0; }
-.bar nav a:hover { color: var(--text); }
-.langs { display: flex; border: 2px solid var(--line); border-radius: 10px; overflow: hidden; }
-.langs button { background: none; border: 0; padding: 7px 9px 5px; font: inherit; font-size: 15px; color: var(--dim); cursor: pointer; }
-.langs button[aria-pressed="true"] { background: var(--amber); color: var(--ink); }
+.bar { display: flex; align-items: center; gap: 10px; min-height: 68px; padding-top: env(safe-area-inset-top); position: relative; z-index: 5; }
+.logo { display: block; flex: 0 0 auto; }
+.logo img { height: 46px; width: auto; filter: var(--logo-f); transition: filter .5s; }
+.nav { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.nav a { padding: 9px; border-radius: 10px; font: 800 15px/1 var(--hd); color: var(--dim); transition: color .2s, background-color .2s; }
+.nav a:hover { color: var(--text); background: var(--hover); }
+.ibtn { flex: 0 0 auto; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); color: var(--text); padding: 0; transition: transform .2s, background-color .4s, border-color .4s, color .4s; }
+.ibtn:active { transform: scale(.9); }
+.ibtn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+[data-theme="dark"] .tbtn .moon, [data-theme="light"] .tbtn .sun { display: none; }
+.tbtn svg { animation: tspin .6s cubic-bezier(.34,1.56,.64,1); }
+[data-theme="light"] .tbtn svg { animation-name: tspin2; }
+@keyframes tspin { from { transform: rotate(-120deg) scale(.4); opacity: 0; } }
+@keyframes tspin2 { from { transform: rotate(120deg) scale(.4); opacity: 0; } }
+.langs { display: flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.langs button { border: 0; background: none; padding: 0 8px; height: 36px; font: 900 12.5px/1 var(--bd); color: var(--dim); }
+.langs [aria-pressed="true"] { background: var(--acc); color: var(--acc-ink); }
+@media (max-width: 440px) { .nav .n1 { display: none; } .logo img { height: 40px; } .nav a { padding: 9px 7px; font-size: 14px; } }
+@media (min-width: 980px) { .logo img { height: 54px; } .nav { gap: 8px; } .nav a { font-size: 17px; } }
 
-/* Düğmeler: düz renk, altında sert gölge */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  font: 800 19px/1 var(--display); text-decoration: none; white-space: nowrap;
-  padding: 16px 24px 13px; border-radius: 14px;
-  background: var(--amber); color: var(--ink); box-shadow: 0 5px 0 var(--amber-deep);
-  transition: transform .08s, box-shadow .08s;
-}
-.btn:hover { background: #FFC854; }
-.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--amber-deep); }
-.btn svg { width: 18px; height: 18px; margin-top: -3px; fill: currentColor; }
-.btn.ghost { background: var(--panel); color: var(--text); box-shadow: 0 5px 0 var(--line); }
-.btn.ghost:hover { background: #20242C; }
-.btn.ghost:active { box-shadow: 0 1px 0 var(--line); }
+/* Giriş: başlık, arama, en çok oynananlar, zar */
+.intro { position: relative; padding-top: 14px; padding-bottom: 4px; }
+.ihead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 14px; margin: 0 0 16px; }
+.intro h1 { font-size: clamp(36px, 9.4vw, 60px); line-height: 1; letter-spacing: -.01em; }
+.cnt { font: 800 16px/1 var(--bd); color: var(--dim); }
+.search { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 18px; max-width: 560px; border: 3px solid var(--line); background: var(--surface); border-radius: 999px; box-shadow: 0 4px 0 var(--line); transition: border-color .25s, box-shadow .25s, background-color .5s; }
+.search:focus-within { border-color: var(--acc); box-shadow: 0 4px 0 var(--acc-deep); }
+.search svg { flex: 0 0 auto; width: 22px; height: 22px; fill: none; stroke: var(--dim); stroke-width: 2.2; stroke-linecap: round; }
+.search input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; color: var(--text); font: 700 16px var(--bd); -webkit-appearance: none; appearance: none; }
+.search input::placeholder { color: var(--dim); opacity: .85; }
+.nores { color: var(--dim); font-weight: 800; margin: 18px 0 0; }
+.pop { margin-top: 26px; }
+.pop h2 { font-size: 23px; margin: 0 0 4px; }
+.poprail { display: flex; gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding: 0 16px; scrollbar-width: none; padding: 10px 16px 16px; margin: 0 -16px; }
+.poprail::-webkit-scrollbar, .crow::-webkit-scrollbar, .rail::-webkit-scrollbar { display: none; }
+.ptile { position: relative; flex: 0 0 auto; display: block; width: 122px; padding: 6px 6px 10px; border-radius: 22px; background: var(--surface); box-shadow: 0 4px 0 var(--cd); scroll-snap-align: start; transform: translateY(var(--lift, 0px)); transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s, background-color .5s; }
+.ptile:hover { --lift: -4px; box-shadow: 0 8px 0 var(--cd); }
+.ptile:active { --lift: 2px; box-shadow: 0 2px 0 var(--cd); }
+.ptile .cv { border-radius: 17px; }
+.ptile .nm { display: block; margin-top: 8px; text-align: center; font: 800 16px/1.1 var(--hd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cv { position: relative; display: block; aspect-ratio: 1; overflow: hidden; background: #000; }
+.cv img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.ptile:hover .cv img, .game:hover .cv img, .nres:hover .cv img { transform: scale(1.06); }
+@media (min-width: 720px) { .poprail { margin: 0; padding: 10px 2px 16px; scroll-padding: 0 2px; } .ptile { width: 146px; } }
 
-/* Öne çıkan oyun */
-.hero { display: grid; gap: 28px; padding-top: 14px; padding-bottom: 20px; }
-.hero-art { margin: 0 8px 8px 0; }
-.hero-art img { width: 100%; border-radius: 18px; border: 2px solid var(--bg); box-shadow: 8px 8px 0 var(--amber); aspect-ratio: 1024 / 500; }
-.hero h1 { display: flex; align-items: center; gap: 14px; font-size: clamp(42px, 11.5vw, 80px); }
-.hero h1 img { width: 1.15em; height: 1.15em; border-radius: 22%; flex: none; }
-.lead { margin: 14px 0 0; font-weight: 700; font-size: clamp(19px, 2.2vw, 23px); line-height: 1.4; }
-.desc { margin: 10px 0 0; color: var(--dim); max-width: 34em; }
-.actions { display: flex; flex-wrap: wrap; gap: 14px 12px; margin-top: 24px; }
-.facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.facts li { background: var(--panel); border-radius: 14px; padding: 12px 14px 11px; font-size: 14.5px; line-height: 1.35; color: var(--dim); }
-.facts b { display: block; font: 800 32px/1 var(--display); color: var(--amber); }
+/* Rastgele oyna: kahvehane zarı */
+.nob { position: relative; margin-top: 22px; }
+.dcell { position: relative; display: flex; align-items: center; justify-content: center; gap: 18px; width: 100%; min-height: 82px; padding: 12px 22px; border: 0; border-radius: 22px; background: var(--acc); color: var(--acc-ink); box-shadow: 0 5px 0 var(--acc-deep); font: 800 25px/1 var(--hd); transition: translate .15s, box-shadow .15s, background-color .4s, color .4s; }
+.dcell:active { translate: 0 3px; box-shadow: 0 2px 0 var(--acc-deep); }
+.dcell .dl { white-space: nowrap; }
+.dice { display: flex; gap: 12px; perspective: 520px; }
+.dcell:not(.used) .dice { animation: wob 4.2s ease-in-out 1.2s infinite; }
+@keyframes wob { 0%, 84%, 100% { rotate: 0deg; } 88% { rotate: -9deg; } 92% { rotate: 7deg; } 96% { rotate: -3deg; } }
+.die { --s: 36px; position: relative; display: block; width: var(--s); height: var(--s); transform-style: preserve-3d; transform: rotateX(-18deg) rotateY(24deg) rotateX(var(--x, 0deg)) rotateY(var(--y, 0deg)); transition: transform 1.5s cubic-bezier(.18,.9,.25,1.04); }
+.die i { position: absolute; inset: 0; border-radius: 22%; background-color: var(--die); -webkit-backface-visibility: hidden; backface-visibility: hidden; box-shadow: inset 0 0 0 1px rgba(60,40,20,.16), inset 0 -3px 7px rgba(90,60,30,.22); background-repeat: no-repeat; background-size: 24% 24%; --p: radial-gradient(circle, #2A1C10 52%, transparent 60%); }
+.die .f1 { transform: translateZ(calc(var(--s) / 2)); background-image: radial-gradient(circle, #C8372D 52%, transparent 60%); background-position: 50% 50%; background-size: 30% 30%; }
+.die .f2 { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); background-image: var(--p), var(--p); background-position: 18% 18%, 82% 82%; }
+.die .f3 { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); background-image: var(--p), var(--p), var(--p); background-position: 18% 18%, 50% 50%, 82% 82%; }
+.die .f4 { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); background-image: var(--p), var(--p), var(--p), var(--p); background-position: 18% 18%, 82% 18%, 18% 82%, 82% 82%; }
+.die .f5 { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); background-image: var(--p), var(--p), var(--p), var(--p), var(--p); background-position: 18% 18%, 82% 18%, 50% 50%, 18% 82%, 82% 82%; }
+.die .f6 { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); background-image: var(--p), var(--p), var(--p), var(--p), var(--p), var(--p); background-position: 20% 16%, 20% 50%, 20% 84%, 80% 16%, 80% 50%, 80% 84%; }
+.nres { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 7px 10px 7px 7px; border-radius: 22px; background: var(--surface); box-shadow: 0 5px 0 var(--cd); color: var(--text); transition: opacity .3s, scale .3s, translate .15s, box-shadow .3s, background-color .5s; }
+.nres:active { translate: 0 3px; box-shadow: 0 2px 0 var(--cd); }
+.nres .cv { flex: 0 0 auto; width: 72px; height: 72px; border-radius: 16px; }
+.nres .nm { flex: 1 1 auto; min-width: 0; font: 800 23px/1.1 var(--hd); overflow-wrap: anywhere; }
+.nbtn { flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 46px; padding: 0 20px; border-radius: 15px; background: var(--acc); color: var(--acc-ink); box-shadow: 0 4px 0 var(--acc-deep); font: 800 18px/1 var(--hd); }
+.nob.rolling .nres { opacity: .35; scale: .97; }
+.nres.yeni { animation: yeni .6s cubic-bezier(.34,1.56,.64,1); }
+@keyframes yeni { 0% { opacity: 0; scale: .86; translate: 0 -12px; } }
+@media (min-width: 720px) { .nob { display: flex; align-items: center; } .dcell { flex: 0 0 auto; width: auto; min-height: 90px; padding: 14px 34px; gap: 20px; font-size: 27px; } .nout { flex: 0 1 480px; min-width: 0; margin-left: 20px; } .nres { margin-top: 0; } .nres .cv { width: 76px; height: 76px; } .die { --s: 40px; } }
 
-section.block { padding-top: 52px; padding-bottom: 56px; }
-.band { background: var(--band); border-top: 2px solid var(--panel); border-bottom: 2px solid var(--panel); }
-.head { margin-bottom: 24px; }
-.head p:not(.eyebrow) { margin: 10px 0 0; color: var(--dim); max-width: 34em; }
+/* Kategori çubuğu */
+.band { position: relative; margin-top: 22px; }
+.cats { position: sticky; top: 0; z-index: 20; background: var(--bg); box-shadow: 0 2px 0 var(--line); transition: background-color .5s, box-shadow .5s; }
+.crow { position: relative; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 10px 16px; max-width: 1160px; margin: 0 auto; }
+@media (min-width: 720px) { .crow { padding: 10px 28px; } }
+.chip { position: relative; z-index: 1; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; height: 42px; padding: 0 15px; border-radius: 999px; background: var(--ct); color: var(--text); font: 800 15px/1 var(--hd); white-space: nowrap; transition: color .35s, background-color .35s; }
+.chip .ci { width: 18px; height: 18px; color: var(--c); transition: color .35s; }
+.chip small { font: 900 12px/1 var(--bd); opacity: .72; }
+.chip.on { background: transparent; color: #fff; }
+.chip.on .ci { color: #fff; }
+.cind { position: absolute; z-index: 0; left: 0; top: 10px; height: 42px; width: 0; border-radius: 999px; pointer-events: none; background: var(--c, #FF6B57); box-shadow: 0 3px 0 var(--cd, #C63F2D); transition: transform .55s cubic-bezier(.3,1.3,.45,1), width .55s cubic-bezier(.3,1.3,.45,1), background-color .4s, box-shadow .4s; }
 
-/* Ekran görüntüleri: yatay kaydırılan şerit, betik yok */
-.rail {
-  display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x proximity;
-  margin: 0 -18px; padding: 4px 18px 18px; scroll-padding: 0 18px;
-  scrollbar-color: var(--line) transparent; scrollbar-width: thin;
-}
-.rail img { flex: none; width: 216px; aspect-ratio: 1 / 2; border-radius: 16px; border: 2px solid var(--line); scroll-snap-align: start; background: var(--panel); }
+/* Bölümler ve kartlar */
+.gsec { padding-top: 26px; padding-bottom: 6px; scroll-margin-top: 62px; }
+@media (min-width: 720px) { .gsec { padding-top: 32px; padding-bottom: 8px; } }
+.gcat { display: flex; align-items: center; gap: 12px; font-size: clamp(24px, 6vw, 32px); margin: 0 0 16px; }
+.gcat .ic { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; background: var(--c); color: #fff; box-shadow: 0 3px 0 var(--cd); }
+.gcat .ci { width: 22px; height: 22px; stroke-width: 2.2; }
+.gcat small { font: 800 15px/1 var(--bd); color: var(--dim); margin-top: 4px; }
+.games { display: grid; gap: 18px 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 720px) { .games { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 18px; } }
+@media (min-width: 1040px) { .games { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.game { position: relative; display: flex; flex-direction: column; min-width: 0; background: var(--surface); border-radius: 20px; box-shadow: 0 5px 0 var(--cd); transform: translateY(var(--lift, 0px)); transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s, background-color .5s; }
+.game:hover { --lift: -4px; box-shadow: 0 9px 0 var(--cd); }
+.game:active { --lift: 3px; box-shadow: 0 2px 0 var(--cd); }
+.game .cv { flex: 0 0 auto; border-radius: 20px 20px 0 0; }
+.game .info { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; padding: 12px 13px 13px; }
+.game h3 { font-size: 19px; line-height: 1.12; }
+.game p { margin: 0; font-size: 13.5px; line-height: 1.42; color: var(--dim); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tags { display: none; flex-wrap: wrap; gap: 5px; }
+.tag { font-size: 11.5px; font-weight: 800; line-height: 1.3; padding: 3px 8px; border-radius: 999px; background: var(--ct); color: var(--text); }
+@media (min-width: 720px) { .tags { display: flex; } }
+.go { margin-top: auto; padding-top: 2px; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-weight: 900; font-size: 14px; }
+.go svg { width: 17px; height: 17px; fill: none; stroke: var(--c); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; transition: transform .3s; }
+.game:hover .go svg { transform: translateX(4px); }
+.soon { margin: 26px 0 8px; border: 3px dashed var(--line); border-radius: 20px; padding: 20px; color: var(--dim); }
+.soon h3 { font-size: 22px; }
 
-/* Tarayıcı oyunları: telefonda iki sütun, kare kapak */
-.search { position: relative; display: block; margin: 0 0 22px; }
-.search input { width: 100%; font: 700 17px/1.2 var(--body); color: var(--text); background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 14px 14px 14px 48px; -webkit-appearance: none; appearance: none; }
-.search input::placeholder { color: #7C8696; }
-.search input:focus { outline: none; border-color: var(--amber); }
-.search svg { position: absolute; left: 16px; top: 50%; width: 20px; height: 20px; margin-top: -10px; fill: none; stroke: var(--dim); stroke-width: 2.4; stroke-linecap: round; pointer-events: none; }
-.nores { color: var(--dim); margin: 0 0 30px; }
-.pop { margin-bottom: 30px; }
-.poprail { display: grid; grid-auto-flow: column; grid-auto-columns: 30%; gap: 12px; overflow-x: auto; scrollbar-width: none; margin: 0 -18px; padding: 2px 18px 6px; scroll-padding: 0 18px; scroll-snap-type: x proximity; }
-.poprail::-webkit-scrollbar { display: none; }
-.ptile { display: block; text-decoration: none; text-align: center; scroll-snap-align: start; }
-.ptile img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 20px; border: 2px solid var(--line); background: #000; transition: border-color .12s, transform .12s; }
-.ptile span { display: block; margin-top: 8px; font: 800 16px/1.1 var(--display); }
-.ptile:hover img { border-color: var(--amber); transform: translateY(-3px); }
-.games { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.game {
-  display: flex; flex-direction: column;
-  background: var(--panel); border: 2px solid var(--line); border-radius: 16px; overflow: hidden;
-  text-decoration: none; transition: transform .12s, border-color .12s;
-}
-.game:hover { border-color: var(--amber); transform: translateY(-3px); }
-.cover { position: relative; aspect-ratio: 1; background: #000; overflow: hidden; }
-.cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
-.game:hover .cover img { transform: scale(1.04); }
-.game .info { flex: 1; display: flex; flex-direction: column; align-items: flex-start; padding: 11px 12px 12px; }
-.game h3 { font-size: 19px; }
-/* açıklama yazısı arama ve çeviri için sayfada kalır, kartta gösterilmez */
-.game p { display: none; }
-.tags { display: none; flex-wrap: wrap; gap: 5px; margin: 10px 0 14px; }
-.tag { font-size: 12.5px; font-weight: 700; line-height: 1.2; padding: 4px 8px; border-radius: 7px; background: #262B34; color: #CCD4DF; }
-.go { display: none; margin-top: auto; font: 800 16px/1 var(--display); color: var(--amber); }
-.go::after { content: " \203A"; }
-.cats { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -18px 18px; padding: 10px 18px; background: var(--band); }
-.cats::-webkit-scrollbar { display: none; }
-.cats a { flex: none; text-decoration: none; display: inline-flex; align-items: baseline; gap: 6px; font: 800 16px/1 var(--display); padding: 10px 14px 8px; border-radius: 999px; border: 2px solid var(--line); background: var(--panel); color: var(--dim); cursor: pointer; }
-.cats a small { font: 700 12.5px/1 var(--body); color: #7C8696; }
-.cats a:hover { color: var(--text); }
-.cats a[aria-current="true"] { background: var(--amber); border-color: var(--amber); color: var(--ink); }
-.cats a[aria-current="true"] small { color: #5C430F; }
-.gsec { margin-bottom: 34px; scroll-margin-top: 70px; }
-.gcat { display: flex; align-items: baseline; gap: 8px; font-size: 24px; margin-bottom: 14px; }
-.gcat small { font: 700 15px/1 var(--body); color: var(--dim); }
-.soon { grid-column: 1 / -1; border: 2px dashed #3B424E; border-radius: 18px; padding: 22px 20px 20px; color: var(--dim); }
-.soon h3 { font-size: 24px; color: var(--text); margin-bottom: 4px; }
-.soon p { margin: 0; }
+/* Görünme animasyonu */
+.rvok .rv, .rvok .game { opacity: 0; translate: 0 26px; scale: .94; }
+.rvok .rv.in, .rvok .game.in { opacity: 1; translate: none; scale: none; }
+.rvok .rv, .rvok .game { transition: opacity .6s ease var(--d, 0s), translate .8s cubic-bezier(.34,1.4,.64,1) var(--d, 0s), scale .8s cubic-bezier(.34,1.4,.64,1) var(--d, 0s), transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s, background-color .5s, color .5s; }
+
+/* Misket Klasik */
+.misket { display: grid; gap: 22px; padding-top: 56px; padding-bottom: 8px; }
+@media (min-width: 900px) { .misket { grid-template-columns: 1.05fr 1fr; align-items: center; gap: 28px 44px; padding-top: 80px; } .misket .facts { grid-column: 1 / -1; } }
+.mart { margin: 0; position: relative; padding: 7px; border-radius: 28px; background: var(--surface); box-shadow: 0 6px 0 #5A3ED4; }
+.mart img { width: 100%; border-radius: 22px; aspect-ratio: 1024 / 500; }
+.misket h2 { display: flex; align-items: center; gap: 14px; font-size: clamp(32px, 8vw, 50px); margin: 0 0 12px; }
+.misket h2 img { width: 56px; height: 56px; border-radius: 16px; flex: 0 0 auto; box-shadow: 0 3px 0 #5A3ED4; }
+.desc { color: var(--dim); margin: 0 0 20px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; padding: 0 20px; border: 0; border-radius: 16px; background: var(--acc); color: var(--acc-ink); font: 800 18px/1 var(--hd); white-space: nowrap; box-shadow: 0 4px 0 var(--acc-deep); transition: translate .15s, box-shadow .15s, background-color .4s; }
+.btn svg { width: 19px; height: 19px; fill: currentColor; }
+.btn:active { translate: 0 3px; box-shadow: 0 1px 0 var(--acc-deep); }
+.btn.ghost { background: var(--surface); color: var(--text); box-shadow: 0 4px 0 var(--line), inset 0 0 0 3px var(--line); }
+.btn.ghost:active { box-shadow: 0 1px 0 var(--line), inset 0 0 0 3px var(--line); }
+.facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.facts li { padding: 9px 13px; border-radius: 14px; background: var(--surface); border: 2px solid var(--line); font-size: 14px; font-weight: 700; color: var(--dim); transition: background-color .5s, border-color .5s; }
+.facts b { color: var(--text); font-weight: 900; margin-right: 4px; }
+.marbles { position: absolute; left: 18px; bottom: -15px; z-index: 3; display: flex; gap: 8px; pointer-events: none; }
+.mb { width: 30px; height: 30px; border-radius: 50%; box-shadow: 0 7px 9px rgba(0,0,0,.35); --m0: #9BE3FF; --m1: rgba(230,60,50,.9); --m2: #0D4F8C; background: radial-gradient(circle at 34% 30%, rgba(255,255,255,.95) 0 9%, rgba(255,255,255,0) 26%), conic-gradient(from 20deg, var(--m1) 0 12%, transparent 12% 48%, var(--m1) 48% 58%, transparent 58%), radial-gradient(circle at 50% 56%, var(--m0) 0 40%, var(--m2) 100%); }
+.mb:nth-child(2) { --m0: #FFE08A; --m1: rgba(40,120,220,.85); --m2: #B5650C; }
+.mb:nth-child(3) { --m0: #B9F5C8; --m1: rgba(255,255,255,.92); --m2: #127A3A; }
+.mb:nth-child(4) { --m0: #FFC2D6; --m1: rgba(120,40,200,.8); --m2: #B0245A; }
+.mb:nth-child(5) { --m0: #E6EBF1; --m1: rgba(30,30,30,.7); --m2: #5D6B7C; }
+.rvok .mart .mb { transform: translateX(-130vw) rotate(-1080deg); }
+.rvok .mart.in .mb { transform: none; transition: transform 1.7s cubic-bezier(.2,.75,.25,1) calc(.25s + var(--i) * .13s); }
+.shots { padding-top: 40px; padding-bottom: 6px; }
+.shots h2, .duo h2 { font-size: clamp(28px, 6.4vw, 40px); }
+.rail { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; scroll-padding: 0 16px; margin: 14px -16px 0; padding: 8px 16px 18px; }
+.rail img { flex: 0 0 auto; width: 160px; aspect-ratio: 1 / 2; scroll-snap-align: start; border-radius: 20px; background: var(--surface); box-shadow: 0 5px 0 var(--line); }
+@media (min-width: 720px) { .rail { margin: 14px -28px 0; padding: 8px 28px 18px; scroll-padding: 0 28px; } .rail img { width: 200px; } }
 
 /* YouTube ve destek */
-.duo { display: grid; gap: 26px; align-items: center; }
-.duo p:not(.eyebrow) { color: var(--dim); margin: 12px 0 22px; max-width: 30em; }
-.thumb { position: relative; display: block; border-radius: 18px; overflow: hidden; border: 2px solid var(--line); }
+.duo { display: grid; gap: 22px; padding-top: 44px; padding-bottom: 20px; }
+@media (min-width: 860px) { .duo { grid-template-columns: 1fr 1fr; align-items: center; gap: 44px; padding-top: 64px; } }
+.duo p:not(.eyebrow) { color: var(--dim); margin: 10px 0 18px; max-width: 32em; }
+.thumb { position: relative; display: block; overflow: hidden; border-radius: 24px; box-shadow: 0 5px 0 var(--line); }
 .thumb img { width: 100%; aspect-ratio: 16 / 9; }
-.thumb span { position: absolute; left: 12px; bottom: 12px; background: var(--bg); color: var(--text); font: 800 15px/1 var(--display); padding: 9px 12px 6px; border-radius: 9px; }
-.mail { display: inline-block; font: 800 clamp(22px, 6.2vw, 34px)/1.1 var(--display); color: var(--amber); text-decoration-thickness: 2px; text-underline-offset: 5px; word-break: break-word; }
-.docs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.docs h3 { font-size: 18px; margin-bottom: 8px; }
+.thumb span { position: absolute; left: 12px; bottom: 12px; padding: 8px 12px 6px; border-radius: 10px; background: rgba(0,0,0,.62); color: #fff; font: 800 15px/1 var(--hd); }
+.mail { font: 800 clamp(22px, 6vw, 32px)/1.15 var(--hd); color: var(--acc); word-break: break-word; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.docs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.docs h3 { font-size: 18px; margin: 0 0 8px; }
 .docs ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.docs a { color: var(--dim); }
-.docs a:hover, .foot a:hover { color: var(--text); }
-
-footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); color: var(--dim); font-size: 14.5px; }
-.foot { display: grid; gap: 14px; }
-.foot img { height: 34px; width: auto; mix-blend-mode: lighten; }
+.docs a { color: var(--dim); font-weight: 800; font-size: 15px; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.docs a:hover { color: var(--text); }
+.foot { margin-top: 40px; padding-top: 28px; padding-bottom: calc(36px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: var(--dim); font-size: 14px; border-top: 2px solid var(--line); }
+.foot img { height: 36px; width: auto; filter: var(--logo-f); }
 .foot p { margin: 0; }
-.foot nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 
-@media (min-width: 620px) {
-  .wrap { padding-left: 28px; padding-right: 28px; }
-  .rail { margin: 0 -28px; padding-left: 28px; padding-right: 28px; scroll-padding: 0 28px; }
-  .rail img { width: 240px; }
-  .cats { margin-left: -28px; margin-right: -28px; padding-left: 28px; padding-right: 28px; }
-  .facts { grid-template-columns: repeat(4, 1fr); }
-  .poprail { grid-auto-flow: row; grid-template-columns: repeat(6, 1fr); overflow: visible; margin: 0; padding: 2px 0 6px; }
-  .games { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .search { max-width: 560px; }
-  .duo { grid-template-columns: 1fr 1fr; gap: 44px; }
-  .foot { grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
-}
-@media (min-width: 980px) {
-  body { font-size: 18px; }
-  .bar { padding-top: 18px; padding-bottom: 18px; }
-  .logo img { height: 56px; }
-  .bar nav { gap: 28px; font-size: 19px; }
-  .hero { grid-template: "metin kapak" auto "metin olgu" 1fr / 1fr 1.12fr; gap: 34px 56px; align-items: start; padding-top: 34px; padding-bottom: 28px; }
-  .hero > div { grid-area: metin; }
-  .hero-art { grid-area: kapak; margin: 0 14px 14px 0; }
-  .facts { grid-area: olgu; grid-template-columns: 1fr 1fr; margin-right: 14px; }
-  .hero-art img { border-radius: 24px; box-shadow: 14px 14px 0 var(--amber); }
-  .hero h1 { font-size: clamp(56px, 5.4vw, 80px); }
-  section.block { padding-top: 84px; padding-bottom: 88px; }
-  .head { margin-bottom: 34px; }
-  .gcat { font-size: 30px; margin-bottom: 18px; }
-  .gsec { margin-bottom: 48px; }
-  .pop { margin-bottom: 44px; }
-  .poprail { gap: 20px; }
-  .ptile img { border-radius: 24px; }
-  .ptile span { font-size: 19px; margin-top: 10px; }
-  .games { grid-template-columns: repeat(4, 1fr); gap: 20px; }
-  .game .info { padding: 14px 16px 16px; }
-  .game h3 { font-size: 23px; }
-  .tags, .go { display: flex; }
-  .duo { gap: 72px; }
-}
+/* Tema geçişi: düğmeden açılan daire */
+.vt-tema::view-transition-old(root), .vt-tema::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+.vt-tema::view-transition-new(root) { z-index: 2; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .btn, .game, .ptile img, .cover img { transition: none; }
+  .pat, .rozet, .dcell .dice, .tbtn svg, .nres.yeni { animation: none !important; }
+  .die { transition: none; }
 }
 </style>
 <!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
@@ -209,31 +245,136 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
 <script src="assets/olcum.js" data-page="ana-sayfa" data-name="Ana sayfa"></script>
 </head>
 <body>
-<header class="wrap bar">
-  <a class="logo" href="./" aria-label="RIDS Games ana sayfa" data-i18n-aria="home"><img src="assets/logo.webp" alt="RIDS Games" width="121" height="56"></a>
-  <nav aria-label="Bölümler" data-i18n-aria="sections">
-    <a href="#oyunlar" data-i18n="games">Oyunlar</a>
+<div class="scene" aria-hidden="true"><div class="vig"></div><div class="pat"></div></div>
+<div class="page">
+<header class="bar wrap">
+  <a class="logo" href="./" aria-label="RIDS Games ana sayfa" data-i18n-aria="home"><img src="assets/logo-seffaf.webp" alt="RIDS Games" width="420" height="195"></a>
+  <nav class="nav" aria-label="Bölümler" data-i18n-aria="sections">
+    <a class="n1" href="#oyunlar" data-i18n="games">Oyunlar</a>
+    <a href="#misket" data-i18n="navMisket">Misket</a>
     <a href="#destek" data-i18n="support">Destek</a>
+    <button class="ibtn tbtn" type="button" aria-label="Temayı değiştir" data-i18n-aria="themeAria"><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.4 5.4l1.6 1.6M17 17l1.6 1.6M5.4 18.6 7 17M17 7l1.6-1.6"/></svg><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 1 1 9.4 4a6.6 6.6 0 0 0 10.6 10.6z"/></svg></button>
     <span class="langs"><button type="button" data-set-lang="tr" lang="tr" aria-pressed="true">TR</button><button type="button" data-set-lang="en" lang="en" aria-pressed="false">EN</button></span>
   </nav>
 </header>
 
 <main>
-  <section class="hero wrap" aria-labelledby="h-misket">
-    <figure class="hero-art">
+  <section class="intro wrap" id="oyunlar" aria-labelledby="h-oyunlar">
+    <svg class="rozet" viewBox="0 0 400 400" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="200" cy="200" r="196"/><circle cx="200" cy="200" r="184"/><circle cx="200" cy="200" r="190" stroke-width="3.4" stroke-dasharray="0.1 11.9" stroke-linecap="round"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(0.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(22.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(45.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(67.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(90.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(112.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(135.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(157.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(180.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(202.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(225.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(247.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(270.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(292.5 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(315.0 200 200)"/><ellipse cx="200" cy="104" rx="23" ry="64" transform="rotate(337.5 200 200)"/><path class="t" d="M200.00 104.00L228.12 132.12L267.88 132.12L267.88 171.88L296.00 200.00L267.88 228.12L267.88 267.88L228.12 267.88L200.00 296.00L171.88 267.88L132.12 267.88L132.12 228.12L104.00 200.00L132.12 171.88L132.12 132.12L171.88 132.12Z"/><path d="M200.00 104.00L228.12 132.12L267.88 132.12L267.88 171.88L296.00 200.00L267.88 228.12L267.88 267.88L228.12 267.88L200.00 296.00L171.88 267.88L132.12 267.88L132.12 228.12L104.00 200.00L132.12 171.88L132.12 132.12L171.88 132.12Z" transform="rotate(22.5 200 200)"/><circle cx="200" cy="200" r="46"/><path class="t" d="M200.00 162.00L211.13 173.13L226.87 173.13L226.87 188.87L238.00 200.00L226.87 211.13L226.87 226.87L211.13 226.87L200.00 238.00L188.87 226.87L173.13 226.87L173.13 211.13L162.00 200.00L173.13 188.87L173.13 173.13L188.87 173.13Z"/><circle cx="266.0" cy="200.0" r="6"/><circle cx="246.7" cy="246.7" r="6"/><circle cx="200.0" cy="266.0" r="6"/><circle cx="153.3" cy="246.7" r="6"/><circle cx="134.0" cy="200.0" r="6"/><circle cx="153.3" cy="153.3" r="6"/><circle cx="200.0" cy="134.0" r="6"/><circle cx="246.7" cy="153.3" r="6"/></svg>
+    <div class="ihead"><h1 id="h-oyunlar" data-i18n="browserEyebrow">Tarayıcı oyunları</h1><span class="cnt">35 <span data-i18n="gamesWord">oyun</span></span></div>
+    <label class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+      <input id="ara" type="search" autocomplete="off" enterkeyhint="search" data-i18n-ph="searchPh" placeholder="Oyun ara: okey, tavla, kelime…" data-i18n-aria="searchAria" aria-label="Oyun ara">
+    </label>
+    <div class="pop" id="populer">
+      <h2 data-i18n="popTitle">En çok oynananlar</h2>
+      <div class="poprail">
+        <a class="ptile" href="okey/" data-cat="okey"><span class="cv"><img src="assets/kapak/okey.webp" alt="" width="540" height="540"></span><span class="nm" data-i18n="okeyName">Okey</span></a>
+        <a class="ptile" href="pisti/" data-cat="kart"><span class="cv"><img src="assets/kapak/pisti.webp" alt="" width="540" height="540"></span><span class="nm" data-i18n="pistiName">Pişti</span></a>
+        <a class="ptile" href="batak/" data-cat="kart"><span class="cv"><img src="assets/kapak/batak.webp" alt="" width="540" height="540"></span><span class="nm" data-i18n="batakName">Batak</span></a>
+        <a class="ptile" href="tavla/" data-cat="zar"><span class="cv"><img src="assets/kapak/tavla.webp" alt="" width="540" height="540"></span><span class="nm" data-i18n="tavlaName">Tavla</span></a>
+        <a class="ptile" href="king/" data-cat="kart"><span class="cv"><img src="assets/kapak/king.webp" alt="" width="540" height="540"></span><span class="nm" data-i18n="kingName">King</span></a>
+        <a class="ptile" href="kizma-birader/" data-cat="zar"><span class="cv"><img src="assets/kapak/kizma-birader.webp" alt="" width="540" height="540"></span><span class="nm" data-i18n="kizmaName">Kızma Birader</span></a>
+      </div>
+    </div>
+    <div class="nob rv" id="neoyna"><button class="dcell" type="button" data-oyunlar="civi-futbolu satranc amiral-batti okey mayin-tarlasi sudoku adam-asmaca kelime-avi batak,pis-yedili,pisti tavla yilan-merdiven,kizma-birader"><span class="dice" aria-hidden="true"><span class="die"><i class="f1"></i><i class="f2"></i><i class="f3"></i><i class="f4"></i><i class="f5"></i><i class="f6"></i></span><span class="die"><i class="f1"></i><i class="f2"></i><i class="f3"></i><i class="f4"></i><i class="f5"></i><i class="f6"></i></span></span><span class="dl" data-i18n="randomPlay">Rastgele oyna</span></button><div class="nout" aria-live="polite"><a class="nres" href="#" hidden><span class="cv"><img src="" alt="" width="540" height="540"></span><span class="nm"></span><span class="nbtn" data-i18n="play">Oyna</span></a></div></div>
+    <p class="nores" id="sonucyok" hidden data-i18n="noResult">Bu adla bir oyun bulunamadı.</p>
+  </section>
+
+  <div class="band">
+    <nav class="cats" aria-label="Kategoriler" data-i18n-aria="catsAria"><div class="crow"><i class="cind"></i><a class="chip on" href="#kat-beceri" data-cat="beceri" aria-current="true"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span data-i18n="catBeceriS">Beceri</span> <small>3</small></a><a class="chip" href="#kat-strateji" data-cat="strateji" aria-current="false"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6.4" r="2.9"/><path d="M9.3 10.6h5.4M10.3 10.6c-.2 3.2-1.3 5.6-2.9 7.3h9.2c-1.6-1.7-2.7-4.1-2.9-7.3"/><path d="M6 20.6h12"/></svg><span data-i18n="catStratejiS">Strateji</span> <small>9</small></a><a class="chip" href="#kat-zar" data-cat="zar" aria-current="false"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.6"/><circle cx="8.6" cy="8.6" r="1.25" fill="currentColor"/><circle cx="12" cy="12" r="1.25" fill="currentColor"/><circle cx="15.4" cy="15.4" r="1.25" fill="currentColor"/></svg><span data-i18n="catZarS">Zar</span> <small>3</small></a><a class="chip" href="#kat-okey" data-cat="okey" aria-current="false"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="3" width="11.6" height="18" rx="2.6"/><path d="M9.5 7.2h5l-3.2 6.9"/><path d="M9.4 17.3h5.2"/></svg><span data-i18n="catOkeyS">Okey ve taş</span> <small>3</small></a><a class="chip" href="#kat-zeka" data-cat="zeka" aria-current="false"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="M4 9.4h16M4 14.6h16M9.4 4v16M14.6 4v16"/></svg><span data-i18n="catZekaS">Zeka</span> <small>5</small></a><a class="chip" href="#kat-kelime" data-cat="kelime" aria-current="false"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 4.5h13a2 2 0 0 1 2 2v8.2a2 2 0 0 1-2 2h-6.6l-4.4 3.3v-3.3h-2a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/><path d="M9 13.4l3-6.4 3 6.4M10.1 11.2h3.8"/></svg><span data-i18n="catKelimeS">Kelime</span> <small>4</small></a><a class="chip" href="#kat-kart" data-cat="kart" aria-current="false"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.6" y="6.2" width="10.4" height="14.4" rx="2" transform="rotate(-11 8.8 13.4)"/><rect x="10" y="3.4" width="10.4" height="14.4" rx="2"/><path d="M15.2 8.4c-.9-1.4-2.9-.7-2.5.8.3 1 2.5 2.6 2.5 2.6s2.2-1.6 2.5-2.6c.4-1.5-1.6-2.2-2.5-.8z" fill="currentColor"/></svg><span data-i18n="catKartS">Kart</span> <small>8</small></a></div></nav>
+    <section class="gsec wrap" id="kat-beceri" data-cat="beceri" aria-labelledby="h-beceri">
+      <h2 class="gcat" id="h-beceri"><span class="ic"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span><span data-i18n="catBeceri">Beceri oyunları</span> <small>3</small></h2>
+      <div class="games">
+        <a class="game" href="sulu-halka/" data-cat="beceri"><div class="cv"><img src="assets/kapak/sulu-halka.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="suluName">Sulu Halka</h3><p data-i18n="suluDesc">Su jetiyle halkaları yükseltin ve çubuklara geçirin. Yetişkinler için gerçekçi fizikli zor bir mod da var.</p><div class="tags"><span class="tag" data-i18n="tagModes">Çocuk ve yetişkin modu</span><span class="tag" data-i18n="tagGyro">Jiroskop desteği</span><span class="tag" data-i18n="tagThemes">4 tema</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="civi-futbolu/" data-cat="beceri"><div class="cv"><img src="assets/kapak/civi-futbolu.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="civiName">Çivi Futbolu</h3><p data-i18n="civiDesc">Parayı fırlatın, tahtaya çakılı çivilerin arasından geçirip rakip kaleye gol atın.</p><div class="tags"><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="saniye/" data-cat="beceri"><div class="cv"><img src="assets/kapak/saniye.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="saniyeName">Cuk</h3><p data-i18n="saniyeDesc">Hedef süreyi seçin, kronometre gizlenince içinden sayın ve tam zamanında durdurun. Salisesine kadar ölçülür.</p><div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      </div>
+    </section>
+    <section class="gsec wrap" id="kat-strateji" data-cat="strateji" aria-labelledby="h-strateji">
+      <h2 class="gcat" id="h-strateji"><span class="ic"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6.4" r="2.9"/><path d="M9.3 10.6h5.4M10.3 10.6c-.2 3.2-1.3 5.6-2.9 7.3h9.2c-1.6-1.7-2.7-4.1-2.9-7.3"/><path d="M6 20.6h12"/></svg></span><span data-i18n="catStrateji">Strateji oyunları</span> <small>9</small></h2>
+      <div class="games">
+        <a class="game" href="satranc/" data-cat="strateji"><div class="cv"><img src="assets/kapak/satranc.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="satrancName">Satranç</h3><p data-i18n="satrancDesc">FIDE kurallarıyla klasik satranç: rok, geçerken alma, terfi, pat ve beraberlik kuralları. Bilgisayara karşı ya da aynı cihazda iki kişi.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="dama/" data-cat="strateji"><div class="cv"><img src="assets/kapak/dama.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="damaName">Türk Daması</h3><p data-i18n="damaDesc">Taşlarınızı ileri ve yana sürün, rakibin taşlarını atlayarak alın, son sıraya varıp dama olun.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="mangala/" data-cat="strateji"><div class="cv"><img src="assets/kapak/mangala.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="mangalaName">Mangala</h3><p data-i18n="mangalaDesc">Taşları kuyulara dağıtın, rakibin taşlarını yakalayın, hazinenizde en çok taşı siz toplayın.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="dokuz-tas/" data-cat="strateji"><div class="cv"><img src="assets/kapak/dokuz-tas.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="dokuzName">Dokuz Taş</h3><p data-i18n="dokuzDesc">Taşlarını diz, üçlü kur, rakibinin taşlarını al. Bilgisayara karşı ya da arkadaşınla oyna.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="gomoku/" data-cat="strateji"><div class="cv"><img src="assets/kapak/gomoku.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="gomokuName">Gomoku</h3><p data-i18n="gomokuDesc">15×15 tahtada sırayla taş koy; beş taşı yan yana, alt alta ya da çapraz ilk dizen kazanır.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="dort-tas/" data-cat="strateji"><div class="cv"><img src="assets/kapak/dort-tas.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="dortName">Dört Taş</h3><p data-i18n="dortDesc">Taşları sütunlara bırak, aynı renkten dört taşı yan yana, alt alta ya da çapraz ilk dizen kazanır.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="cin-damasi/" data-cat="strateji"><div class="cv"><img src="assets/kapak/cin-damasi.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="cindamaName">Çin Daması</h3><p data-i18n="cindamaDesc">Yıldız tahtada on taşını zincirleme atlayışlarla karşı köşeye ilk taşıyan kazanır. 2, 3, 4 ya da 6 kişi; bilgisayara karşı ya da aynı cihazda.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="tas-cevirme/" data-cat="strateji"><div class="cv"><img src="assets/kapak/tas-cevirme.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="tascevirName">Taş Çevirme</h3><p data-i18n="tascevirDesc">Rakibin taşlarını kendi taşlarınla kuşat, rengini çevir. Sonunda tahtada çok taşı olan kazanır. Bilgisayara karşı ya da iki kişi.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="amiral-batti/" data-cat="strateji"><div class="cv"><img src="assets/kapak/amiral-batti.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="amiralName">Amiral Battı</h3><p data-i18n="amiralDesc">Gemilerini yerleştir, rakip sulara ateş et ve bilgisayarın filosunu ondan önce batır.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      </div>
+    </section>
+    <section class="gsec wrap" id="kat-zar" data-cat="zar" aria-labelledby="h-zar">
+      <h2 class="gcat" id="h-zar"><span class="ic"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.6"/><circle cx="8.6" cy="8.6" r="1.25" fill="currentColor"/><circle cx="12" cy="12" r="1.25" fill="currentColor"/><circle cx="15.4" cy="15.4" r="1.25" fill="currentColor"/></svg></span><span data-i18n="catZar">Zar oyunları</span> <small>3</small></h2>
+      <div class="games">
+        <a class="game" href="kizma-birader/" data-cat="zar"><div class="cv"><img src="assets/kapak/kizma-birader.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="kizmaName">Kızma Birader</h3><p data-i18n="kizmaDesc">Zarı atın, piyonlarınızı evine götürün, yolunuzdaki rakibi başa gönderin. 2-4 kişilik klasik kutu oyunu.</p><div class="tags"><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="yilan-merdiven/" data-cat="zar"><div class="cv"><img src="assets/kapak/yilan-merdiven.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="yilanName">Yılan Merdiven</h3><p data-i18n="yilanDesc">Zarı atın, merdivenlerle yukarı tırmanın, yılanlara yakalanmadan 100'e ilk siz ulaşın.</p><div class="tags"><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="tavla/" data-cat="zar"><div class="cv"><img src="assets/kapak/tavla.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="tavlaName">Tavla</h3><p data-i18n="tavlaDesc">Klasik tavla, Mahbusa ve Gülbahar bir arada. Zarları at, pullarını topla, maçı kazan. Bilgisayara karşı ya da iki kişi.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagModeCount">3 mod</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      </div>
+    </section>
+    <section class="gsec wrap" id="kat-okey" data-cat="okey" aria-labelledby="h-okey">
+      <h2 class="gcat" id="h-okey"><span class="ic"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.2" y="3" width="11.6" height="18" rx="2.6"/><path d="M9.5 7.2h5l-3.2 6.9"/><path d="M9.4 17.3h5.2"/></svg></span><span data-i18n="catOkey">Okey ve taş oyunları</span> <small>3</small></h2>
+      <div class="games">
+        <a class="game" href="okey/" data-cat="okey"><div class="cv"><img src="assets/kapak/okey.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="okeyName">Okey</h3><p data-i18n="okeyDesc">Klasik Okey ve 101 Okey bir arada. Taşlarını diz, per aç, elini ilk sen bitir. Üç bilgisayar rakiple dört kişilik masa.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="domino/" data-cat="okey"><div class="cv"><img src="assets/kapak/domino.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="dominoName">Domino</h3><p data-i18n="dominoDesc">28 taşlık klasik domino. Taşları uçlara eşleştir, elini ilk bitiren puanı toplar. 1-3 bilgisayar rakibe karşı.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="tombala/" data-cat="okey"><div class="cv"><img src="assets/kapak/tombala.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="tombalaName">Tombala</h3><p data-i18n="tombalaDesc">1-90 sayılı klasik tombala. Kartındaki sayıları kapat, 1. çinko, 2. çinko ve tombala için bilgisayar rakiplerle yarış.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      </div>
+    </section>
+    <section class="gsec wrap" id="kat-zeka" data-cat="zeka" aria-labelledby="h-zeka">
+      <h2 class="gcat" id="h-zeka"><span class="ic"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="M4 9.4h16M4 14.6h16M9.4 4v16M14.6 4v16"/></svg></span><span data-i18n="catZeka">Zeka ve bulmaca</span> <small>5</small></h2>
+      <div class="games">
+        <a class="game" href="solo-test/" data-cat="zeka"><div class="cv"><img src="assets/kapak/solo-test.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="soloName">Solo Test</h3><p data-i18n="soloDesc">Piyonu komşusunun üzerinden boş deliğe atlatın, tablada tek piyon bırakmaya çalışın.</p><div class="tags"><span class="tag" data-i18n="tagModeCount">3 mod</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span><span class="tag" data-i18n="tagThemes">4 tema</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="mayin-tarlasi/" data-cat="zeka"><div class="cv"><img src="assets/kapak/mayin-tarlasi.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="mayinName">Mayın Tarlası</h3><p data-i18n="mayinDesc">Mayınlara basmadan bütün kareleri açın. Sayılar çevrede kaç mayın olduğunu söyler, şüphelendiğiniz yere bayrak dikin.</p><div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagLevels">3 zorluk ve özel saha</span><span class="tag" data-i18n="tagThemes5">5 tema</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="sudoku/" data-cat="zeka"><div class="cv"><img src="assets/kapak/sudoku.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="sudokuName">Sudoku</h3><p data-i18n="sudokuDesc">Her seferinde yeni, tek çözümlü sudoku. Kolay, orta ve zor seviye; not alma, ipucu, geri alma ve en iyi süre rekoru.</p><div class="tags"><span class="tag" data-i18n="tagPuzzle">Bulmaca</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="sayi-bulmaca/" data-cat="zeka"><div class="cv"><img src="assets/kapak/sayi-bulmaca.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="sayiName">Sayı Bulmaca</h3><p data-i18n="sayiDesc">Rakamları farklı gizli sayıyı + ve − ipuçlarıyla bul. Tek başına rekor kovala ya da bilgisayarla yarış.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagPuzzle">Bulmaca</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="hafiza/" data-cat="zeka"><div class="cv"><img src="assets/kapak/hafiza.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="hafizaName">Hafıza</h3><p data-i18n="hafizaDesc">Kartları ikişer ikişer aç, eşlerini bul. Tek başına rekor kır, bilgisayara karşı ya da arkadaşınla oyna.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      </div>
+    </section>
+    <section class="gsec wrap" id="kat-kelime" data-cat="kelime" aria-labelledby="h-kelime">
+      <h2 class="gcat" id="h-kelime"><span class="ic"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 4.5h13a2 2 0 0 1 2 2v8.2a2 2 0 0 1-2 2h-6.6l-4.4 3.3v-3.3h-2a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"/><path d="M9 13.4l3-6.4 3 6.4M10.1 11.2h3.8"/></svg></span><span data-i18n="catKelime">Kelime oyunları</span> <small>4</small></h2>
+      <div class="games">
+        <a class="game" href="adam-asmaca/" data-cat="kelime"><div class="cv"><img src="assets/kapak/adam-asmaca.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="adamName">Adam Asmaca</h3><p data-i18n="adamDesc">Harf harf tahmin et, adam asılmadan kelimeyi bul. 9 kategori, 3 zorluk; arkadaşınla iki kişi de oynayabilirsin.</p><div class="tags"><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="isim-sehir/" data-cat="kelime"><div class="cv"><img src="assets/kapak/isim-sehir.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="isimName">İsim Şehir</h3><p data-i18n="isimDesc">Harf belli olunca isim, şehir, hayvan ve diğer kategorilere yaz. Bilgisayara karşı, arkadaşlarınla ya da tek başına.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagWord">Kelime oyunu</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="bomba/" data-cat="kelime"><div class="cv"><img src="assets/kapak/bomba.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="bombaName">Dilimin Ucunda</h3><p data-i18n="bombaDesc">Hecenin geçtiği bir kelime söyleyin, bombayı yanınızdakine paslayın. Patladığında elinde olan can kaybeder.</p><div class="tags"><span class="tag" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="kelime-avi/" data-cat="kelime"><div class="cv"><img src="assets/kapak/kelime-avi.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="kelimeaviName">Kelime Avı</h3><p data-i18n="kelimeaviDesc">Harf tablosuna gizlenmiş kelimeleri bul. Hayvanlar, şehirler, meslekler gibi temalar, üç zorluk ve süre rekoru.</p><div class="tags"><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      </div>
+    </section>
+    <section class="gsec wrap" id="kat-kart" data-cat="kart" aria-labelledby="h-kart">
+      <h2 class="gcat" id="h-kart"><span class="ic"><svg class="ci" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.6" y="6.2" width="10.4" height="14.4" rx="2" transform="rotate(-11 8.8 13.4)"/><rect x="10" y="3.4" width="10.4" height="14.4" rx="2"/><path d="M15.2 8.4c-.9-1.4-2.9-.7-2.5.8.3 1 2.5 2.6 2.5 2.6s2.2-1.6 2.5-2.6c.4-1.5-1.6-2.2-2.5-.8z" fill="currentColor"/></svg></span><span data-i18n="catKart">Kart oyunları</span> <small>8</small></h2>
+      <div class="games">
+        <a class="game" href="pisti/" data-cat="kart"><div class="cv"><img src="assets/kapak/pisti.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="pistiName">Pişti</h3><p data-i18n="pistiDesc">Yerdeki kartın aynısını atıp destesini alın, valeyle her şeyi toplayın, tek kartın üstüne aynısını atıp pişti yapın.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="pis-yedili/" data-cat="kart"><div class="cv"><img src="assets/kapak/pis-yedili.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="pis7Name">Pis Yedili</h3><p data-i18n="pis7Desc">Rengi ya da sayıyı tutturun, 7'liyle kart çektirin, valeyle renk seçin, jokerle 5 kart yedirin, elinizi ilk siz bitirin.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="batak/" data-cat="kart"><div class="cv"><img src="assets/kapak/batak.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="batakName">Batak</h3><p data-i18n="batakDesc">İhaleyi alın, kozu seçin, söylediğiniz kadar eli toplayın. Koz maça, ihaleli, eşli ve gömmeli oynayın.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="king/" data-cat="kart"><div class="cv"><img src="assets/kapak/king.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="kingName">King</h3><p data-i18n="kingDesc">Sırayla partiyi seçin: el almaz, kupa almaz, kız almaz, rıfkı... Cezalardan kaçın, kozda el toplayın.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="konken/" data-cat="kart"><div class="cv"><img src="assets/kapak/konken.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="konkenName">Konken (51)</h3><p data-i18n="konkenDesc">İki deste ve iki jokerle klasik 51. Elini 51 puanla aç, kartlarını işle, konken yap. 1–3 bilgisayar rakibe karşı.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagCards">Kart oyunu</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="papaz-kacti/" data-cat="kart"><div class="cv"><img src="assets/kapak/papaz-kacti.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="papazName">Papaz Kaçtı</h3><p data-i18n="papazDesc">Çiftlerini at, sıradaki oyuncudan kart çek. Eşi olmayan papaz son kimde kalırsa o kaybeder. 1–3 bilgisayar rakibe karşı.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagCards">Kart oyunu</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="blof/" data-cat="kart"><div class="cv"><img src="assets/kapak/blof.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="blofName">Blöf</h3><p data-i18n="blofDesc">Sıradaki değeri söyleyip kartlarını kapalı at, istersen blöf yap. Yalanı yakalayan masadaki desteyi rakibine yükler. 1–3 bilgisayar rakibe karşı.</p><div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagCards">Kart oyunu</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+        <a class="game" href="sabir/" data-cat="kart"><div class="cv"><img src="assets/kapak/sabir.webp" alt="" loading="lazy" width="540" height="540"></div><div class="info"><h3 data-i18n="sabirName">Sabır</h3><p data-i18n="sabirDesc">Klasik tek kişilik kart oyunu Klondike. Kartları türlerine göre astan papaza diz. 1 ya da 3 kart çekiş, geri al ve ipucu.</p><div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span></div><span class="go"><span data-i18n="play">Oyna</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></div></a>
+      </div>
+    </section>
+    <div class="wrap">
+      <!-- Yeni oyun: kartı uygun kategorinin (.gsec) .games kutusuna ekleyin; kategori başlığındaki ve düğmesindeki sayıları, başlıktaki oyun sayısını da güncelleyin. -->
+      <div class="soon"><h3 data-i18n="soonTitle">Sırada yeni oyunlar var</h3></div>
+    </div>
+  </div>
+
+  <section class="misket wrap" id="misket" aria-labelledby="h-misket">
+    <figure class="mart rv">
       <img src="assets/misket/kapak-tr.webp" alt="Misket Klasik: taş evli bir sokakta dizili cam misketler" width="1024" height="500" data-lang="tr">
       <img src="assets/misket/kapak-en.webp" alt="Classic Marbles: glass marbles lined up on a street of stone houses" width="1024" height="500" loading="lazy" data-lang="en" lang="en" hidden>
+      <div class="marbles" aria-hidden="true"><i class="mb" style="--i:0"></i><i class="mb" style="--i:1"></i><i class="mb" style="--i:2"></i><i class="mb" style="--i:3"></i><i class="mb" style="--i:4"></i></div>
     </figure>
-    <div>
+    <div class="rv">
       <p class="eyebrow" data-i18n="featured">Öne çıkan oyun</p>
-      <h1 id="h-misket"><img src="assets/misket-klasik.webp" alt="" width="220" height="220"><span data-i18n="misketName">Misket Klasik</span></h1>
+      <h2 id="h-misket"><img src="assets/misket-klasik.webp" alt="" width="220" height="220"><span data-i18n="misketName">Misket Klasik</span></h2>
       <p class="desc" data-i18n="misketDesc">Geleneksel sokak misket oyunu, cam misketlerle ve internetsiz. Sokağın klasikleri Mors, Tumba ve Kuyu'yu oynayın. Labirent'te telefonu eğip misketleri engellerin arasından geçirerek yuvalarına oturtun; 4 dünya, 105 bölüm. Golf'te betondan çimene, kumdan su arkına uzanan parkurlarda misketi en az atışla kuyuya sokun.</p>
       <div class="actions">
         <a class="btn" href="https://play.google.com/store/apps/details?id=com.ridsgame.misketklasik" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 1h4v8h4l-6 7-6-7h4zM2 17h16v2H2z"/></svg><span data-i18n="getPlay">Google Play'den indir</span></a>
         <a class="btn ghost" href="#goruntuler" data-i18n="seeShots">Görüntülere bak</a>
       </div>
     </div>
-    <ul class="facts">
+    <ul class="facts rv">
       <li><b>3</b><span data-i18n="fStreet">sokak oyunu: Mors, Tumba, Kuyu</span></li>
       <li><b>105</b><span data-i18n="fMaze">labirent bölümü, 4 dünya</span></li>
       <li><b>26</b><span data-i18n="fMarbles">misket</span></li>
@@ -241,7 +382,7 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
     </ul>
   </section>
 
-  <section class="block wrap" id="goruntuler" aria-labelledby="h-goruntu">
+  <section class="shots wrap" id="goruntuler" aria-labelledby="h-goruntu">
     <div class="head">
       <p class="eyebrow" data-i18n="misketName">Misket Klasik</p>
       <h2 id="h-goruntu" data-i18n="shots">Oyundan görüntüler</h2>
@@ -268,397 +409,7 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
     </div>
   </section>
 
-  <div class="band">
-  <section class="block wrap" id="oyunlar" aria-labelledby="h-oyunlar">
-    <div class="head">
-      <p class="eyebrow" data-i18n="browserEyebrow">Tarayıcı oyunları</p>
-      <h2 id="h-oyunlar" data-i18n="browserGames">Tarayıcıda hemen oynayın</h2>
-    </div>
-    <label class="search">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
-      <input id="ara" type="search" autocomplete="off" enterkeyhint="search" data-i18n-ph="searchPh" placeholder="Oyun ara: okey, tavla, kelime…" data-i18n-aria="searchAria" aria-label="Oyun ara">
-    </label>
-    <div class="pop" id="populer">
-      <h3 class="gcat"><span data-i18n="popTitle">En çok oynananlar</span></h3>
-      <div class="poprail">
-        <a class="ptile" href="okey/"><img src="assets/kapak/okey.webp" alt="" width="540" height="540"><span data-i18n="okeyName">Okey</span></a>
-        <a class="ptile" href="pisti/"><img src="assets/kapak/pisti.webp" alt="" width="540" height="540"><span data-i18n="pistiName">Pişti</span></a>
-        <a class="ptile" href="batak/"><img src="assets/kapak/batak.webp" alt="" width="540" height="540"><span data-i18n="batakName">Batak</span></a>
-        <a class="ptile" href="tavla/"><img src="assets/kapak/tavla.webp" alt="" width="540" height="540"><span data-i18n="tavlaName">Tavla</span></a>
-        <a class="ptile" href="king/"><img src="assets/kapak/king.webp" alt="" width="540" height="540"><span data-i18n="kingName">King</span></a>
-        <a class="ptile" href="kizma-birader/"><img src="assets/kapak/kizma-birader.webp" alt="" width="540" height="540"><span data-i18n="kizmaName">Kızma Birader</span></a>
-      </div>
-    </div>
-    <p class="nores" id="sonucyok" hidden data-i18n="noResult">Bu adla bir oyun bulunamadı.</p>
-    <div class="cats" role="group" data-i18n-aria="catsAria" aria-label="Kategoriler">
-      <a href="#kat-beceri" data-cat="beceri" aria-current="true"><span data-i18n="catBeceriS">Beceri</span> <small>3</small></a>
-      <a href="#kat-strateji" data-cat="strateji" aria-current="false"><span data-i18n="catStratejiS">Strateji</span> <small>9</small></a>
-      <a href="#kat-zar" data-cat="zar" aria-current="false"><span data-i18n="catZarS">Zar</span> <small>3</small></a>
-      <a href="#kat-okey" data-cat="okey" aria-current="false"><span data-i18n="catOkeyS">Okey ve taş</span> <small>3</small></a>
-      <a href="#kat-zeka" data-cat="zeka" aria-current="false"><span data-i18n="catZekaS">Zeka</span> <small>5</small></a>
-      <a href="#kat-kelime" data-cat="kelime" aria-current="false"><span data-i18n="catKelimeS">Kelime</span> <small>4</small></a>
-      <a href="#kat-kart" data-cat="kart" aria-current="false"><span data-i18n="catKartS">Kart</span> <small>8</small></a>
-    </div>
-    <div class="gsec" id="kat-beceri" data-cat="beceri">
-      <h3 class="gcat"><span data-i18n="catBeceri">Beceri oyunları</span> <small>3</small></h3>
-      <div class="games">
-      <a class="game" href="sulu-halka/">
-        <div class="cover"><img src="assets/kapak/sulu-halka.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="suluName">Sulu Halka</h3>
-          <p data-i18n="suluDesc">Su jetiyle halkaları yükseltin ve çubuklara geçirin. Yetişkinler için gerçekçi fizikli zor bir mod da var.</p>
-          <div class="tags"><span class="tag" data-i18n="tagModes">Çocuk ve yetişkin modu</span><span class="tag" data-i18n="tagGyro">Jiroskop desteği</span><span class="tag" data-i18n="tagThemes">4 tema</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="civi-futbolu/">
-        <div class="cover"><img src="assets/kapak/civi-futbolu.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="civiName">Çivi Futbolu</h3>
-          <p data-i18n="civiDesc">Parayı fırlatın, tahtaya çakılı çivilerin arasından geçirip rakip kaleye gol atın.</p>
-          <div class="tags"><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="saniye/">
-        <div class="cover"><img src="assets/kapak/saniye.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="saniyeName">Cuk</h3>
-          <p data-i18n="saniyeDesc">Hedef süreyi seçin, kronometre gizlenince içinden sayın ve tam zamanında durdurun. Salisesine kadar ölçülür.</p>
-          <div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" id="kat-strateji" data-cat="strateji">
-      <h3 class="gcat"><span data-i18n="catStrateji">Strateji oyunları</span> <small>9</small></h3>
-      <div class="games">
-      <a class="game" href="satranc/">
-        <div class="cover"><img src="assets/kapak/satranc.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="satrancName">Satranç</h3>
-          <p data-i18n="satrancDesc">FIDE kurallarıyla klasik satranç: rok, geçerken alma, terfi, pat ve beraberlik kuralları. Bilgisayara karşı ya da aynı cihazda iki kişi.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="dama/">
-        <div class="cover"><img src="assets/kapak/dama.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="damaName">Türk Daması</h3>
-          <p data-i18n="damaDesc">Taşlarınızı ileri ve yana sürün, rakibin taşlarını atlayarak alın, son sıraya varıp dama olun.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="mangala/">
-        <div class="cover"><img src="assets/kapak/mangala.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="mangalaName">Mangala</h3>
-          <p data-i18n="mangalaDesc">Taşları kuyulara dağıtın, rakibin taşlarını yakalayın, hazinenizde en çok taşı siz toplayın.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="dokuz-tas/">
-        <div class="cover"><img src="assets/kapak/dokuz-tas.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="dokuzName">Dokuz Taş</h3>
-          <p data-i18n="dokuzDesc">Taşlarını diz, üçlü kur, rakibinin taşlarını al. Bilgisayara karşı ya da arkadaşınla oyna.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="gomoku/">
-        <div class="cover"><img src="assets/kapak/gomoku.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="gomokuName">Gomoku</h3>
-          <p data-i18n="gomokuDesc">15×15 tahtada sırayla taş koy; beş taşı yan yana, alt alta ya da çapraz ilk dizen kazanır.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="dort-tas/">
-        <div class="cover"><img src="assets/kapak/dort-tas.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="dortName">Dört Taş</h3>
-          <p data-i18n="dortDesc">Taşları sütunlara bırak, aynı renkten dört taşı yan yana, alt alta ya da çapraz ilk dizen kazanır.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="cin-damasi/">
-        <div class="cover"><img src="assets/kapak/cin-damasi.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="cindamaName">Çin Daması</h3>
-          <p data-i18n="cindamaDesc">Yıldız tahtada on taşını zincirleme atlayışlarla karşı köşeye ilk taşıyan kazanır. 2, 3, 4 ya da 6 kişi; bilgisayara karşı ya da aynı cihazda.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="tas-cevirme/">
-        <div class="cover"><img src="assets/kapak/tas-cevirme.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="tascevirName">Taş Çevirme</h3>
-          <p data-i18n="tascevirDesc">Rakibin taşlarını kendi taşlarınla kuşat, rengini çevir. Sonunda tahtada çok taşı olan kazanır. Bilgisayara karşı ya da iki kişi.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="amiral-batti/">
-        <div class="cover"><img src="assets/kapak/amiral-batti.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="amiralName">Amiral Battı</h3>
-          <p data-i18n="amiralDesc">Gemilerini yerleştir, rakip sulara ateş et ve bilgisayarın filosunu ondan önce batır.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" id="kat-zar" data-cat="zar">
-      <h3 class="gcat"><span data-i18n="catZar">Zar oyunları</span> <small>3</small></h3>
-      <div class="games">
-      <a class="game" href="kizma-birader/">
-        <div class="cover"><img src="assets/kapak/kizma-birader.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="kizmaName">Kızma Birader</h3>
-          <p data-i18n="kizmaDesc">Zarı atın, piyonlarınızı evine götürün, yolunuzdaki rakibi başa gönderin. 2-4 kişilik klasik kutu oyunu.</p>
-          <div class="tags"><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="yilan-merdiven/">
-        <div class="cover"><img src="assets/kapak/yilan-merdiven.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="yilanName">Yılan Merdiven</h3>
-          <p data-i18n="yilanDesc">Zarı atın, merdivenlerle yukarı tırmanın, yılanlara yakalanmadan 100'e ilk siz ulaşın.</p>
-          <div class="tags"><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagSame">Aynı cihazda</span><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="tavla/">
-        <div class="cover"><img src="assets/kapak/tavla.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="tavlaName">Tavla</h3>
-          <p data-i18n="tavlaDesc">Klasik tavla, Mahbusa ve Gülbahar bir arada. Zarları at, pullarını topla, maçı kazan. Bilgisayara karşı ya da iki kişi.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagModeCount">3 mod</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" id="kat-okey" data-cat="okey">
-      <h3 class="gcat"><span data-i18n="catOkey">Okey ve taş oyunları</span> <small>3</small></h3>
-      <div class="games">
-      <a class="game" href="okey/">
-        <div class="cover"><img src="assets/kapak/okey.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="okeyName">Okey</h3>
-          <p data-i18n="okeyDesc">Klasik Okey ve 101 Okey bir arada. Taşlarını diz, per aç, elini ilk sen bitir. Üç bilgisayar rakiple dört kişilik masa.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="domino/">
-        <div class="cover"><img src="assets/kapak/domino.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="dominoName">Domino</h3>
-          <p data-i18n="dominoDesc">28 taşlık klasik domino. Taşları uçlara eşleştir, elini ilk bitiren puanı toplar. 1-3 bilgisayar rakibe karşı.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="tombala/">
-        <div class="cover"><img src="assets/kapak/tombala.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="tombalaName">Tombala</h3>
-          <p data-i18n="tombalaDesc">1-90 sayılı klasik tombala. Kartındaki sayıları kapat, 1. çinko, 2. çinko ve tombala için bilgisayar rakiplerle yarış.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" id="kat-zeka" data-cat="zeka">
-      <h3 class="gcat"><span data-i18n="catZeka">Zeka ve bulmaca</span> <small>5</small></h3>
-      <div class="games">
-      <a class="game" href="solo-test/">
-        <div class="cover"><img src="assets/kapak/solo-test.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="soloName">Solo Test</h3>
-          <p data-i18n="soloDesc">Piyonu komşusunun üzerinden boş deliğe atlatın, tablada tek piyon bırakmaya çalışın.</p>
-          <div class="tags"><span class="tag" data-i18n="tagModeCount">3 mod</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span><span class="tag" data-i18n="tagThemes">4 tema</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="mayin-tarlasi/">
-        <div class="cover"><img src="assets/kapak/mayin-tarlasi.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="mayinName">Mayın Tarlası</h3>
-          <p data-i18n="mayinDesc">Mayınlara basmadan bütün kareleri açın. Sayılar çevrede kaç mayın olduğunu söyler, şüphelendiğiniz yere bayrak dikin.</p>
-          <div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagLevels">3 zorluk ve özel saha</span><span class="tag" data-i18n="tagThemes5">5 tema</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="sudoku/">
-        <div class="cover"><img src="assets/kapak/sudoku.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="sudokuName">Sudoku</h3>
-          <p data-i18n="sudokuDesc">Her seferinde yeni, tek çözümlü sudoku. Kolay, orta ve zor seviye; not alma, ipucu, geri alma ve en iyi süre rekoru.</p>
-          <div class="tags"><span class="tag" data-i18n="tagPuzzle">Bulmaca</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="sayi-bulmaca/">
-        <div class="cover"><img src="assets/kapak/sayi-bulmaca.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="sayiName">Sayı Bulmaca</h3>
-          <p data-i18n="sayiDesc">Rakamları farklı gizli sayıyı + ve − ipuçlarıyla bul. Tek başına rekor kovala ya da bilgisayarla yarış.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagPuzzle">Bulmaca</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="hafiza/">
-        <div class="cover"><img src="assets/kapak/hafiza.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="hafizaName">Hafıza</h3>
-          <p data-i18n="hafizaDesc">Kartları ikişer ikişer aç, eşlerini bul. Tek başına rekor kır, bilgisayara karşı ya da arkadaşınla oyna.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" id="kat-kelime" data-cat="kelime">
-      <h3 class="gcat"><span data-i18n="catKelime">Kelime oyunları</span> <small>4</small></h3>
-      <div class="games">
-      <a class="game" href="adam-asmaca/">
-        <div class="cover"><img src="assets/kapak/adam-asmaca.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="adamName">Adam Asmaca</h3>
-          <p data-i18n="adamDesc">Harf harf tahmin et, adam asılmadan kelimeyi bul. 9 kategori, 3 zorluk; arkadaşınla iki kişi de oynayabilirsin.</p>
-          <div class="tags"><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tag2p">Aynı cihazda 2 kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="isim-sehir/">
-        <div class="cover"><img src="assets/kapak/isim-sehir.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="isimName">İsim Şehir</h3>
-          <p data-i18n="isimDesc">Harf belli olunca isim, şehir, hayvan ve diğer kategorilere yaz. Bilgisayara karşı, arkadaşlarınla ya da tek başına.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagWord">Kelime oyunu</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="bomba/">
-        <div class="cover"><img src="assets/kapak/bomba.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="bombaName">Dilimin Ucunda</h3>
-          <p data-i18n="bombaDesc">Hecenin geçtiği bir kelime söyleyin, bombayı yanınızdakine paslayın. Patladığında elinde olan can kaybeder.</p>
-          <div class="tags"><span class="tag" data-i18n="tag28">Aynı cihazda 2-8 kişi</span><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tagTime">Ayarlanabilir süre</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="kelime-avi/">
-        <div class="cover"><img src="assets/kapak/kelime-avi.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="kelimeaviName">Kelime Avı</h3>
-          <p data-i18n="kelimeaviDesc">Harf tablosuna gizlenmiş kelimeleri bul. Hayvanlar, şehirler, meslekler gibi temalar, üç zorluk ve süre rekoru.</p>
-          <div class="tags"><span class="tag" data-i18n="tagWord">Kelime oyunu</span><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="gsec" id="kat-kart" data-cat="kart">
-      <h3 class="gcat"><span data-i18n="catKart">Kart oyunları</span> <small>8</small></h3>
-      <div class="games">
-      <a class="game" href="pisti/">
-        <div class="cover"><img src="assets/kapak/pisti.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="pistiName">Pişti</h3>
-          <p data-i18n="pistiDesc">Yerdeki kartın aynısını atıp destesini alın, valeyle her şeyi toplayın, tek kartın üstüne aynısını atıp pişti yapın.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="pis-yedili/">
-        <div class="cover"><img src="assets/kapak/pis-yedili.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="pis7Name">Pis Yedili</h3>
-          <p data-i18n="pis7Desc">Rengi ya da sayıyı tutturun, 7'liyle kart çektirin, valeyle renk seçin, jokerle 5 kart yedirin, elinizi ilk siz bitirin.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="batak/">
-        <div class="cover"><img src="assets/kapak/batak.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="batakName">Batak</h3>
-          <p data-i18n="batakDesc">İhaleyi alın, kozu seçin, söylediğiniz kadar eli toplayın. Koz maça, ihaleli, eşli ve gömmeli oynayın.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="king/">
-        <div class="cover"><img src="assets/kapak/king.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="kingName">King</h3>
-          <p data-i18n="kingDesc">Sırayla partiyi seçin: el almaz, kupa almaz, kız almaz, rıfkı... Cezalardan kaçın, kozda el toplayın.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagLevels3">3 zorluk</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="konken/">
-        <div class="cover"><img src="assets/kapak/konken.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="konkenName">Konken (51)</h3>
-          <p data-i18n="konkenDesc">İki deste ve iki jokerle klasik 51. Elini 51 puanla aç, kartlarını işle, konken yap. 1–3 bilgisayar rakibe karşı.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagCards">Kart oyunu</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="papaz-kacti/">
-        <div class="cover"><img src="assets/kapak/papaz-kacti.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="papazName">Papaz Kaçtı</h3>
-          <p data-i18n="papazDesc">Çiftlerini at, sıradaki oyuncudan kart çek. Eşi olmayan papaz son kimde kalırsa o kaybeder. 1–3 bilgisayar rakibe karşı.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagCards">Kart oyunu</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="blof/">
-        <div class="cover"><img src="assets/kapak/blof.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="blofName">Blöf</h3>
-          <p data-i18n="blofDesc">Sıradaki değeri söyleyip kartlarını kapalı at, istersen blöf yap. Yalanı yakalayan masadaki desteyi rakibine yükler. 1–3 bilgisayar rakibe karşı.</p>
-          <div class="tags"><span class="tag" data-i18n="tagCpu">Bilgisayara karşı</span><span class="tag" data-i18n="tag24">2-4 oyuncu</span><span class="tag" data-i18n="tagCards">Kart oyunu</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      <a class="game" href="sabir/">
-        <div class="cover"><img src="assets/kapak/sabir.webp" alt="" loading="lazy" width="540" height="540"></div>
-        <div class="info">
-          <h3 data-i18n="sabirName">Sabır</h3>
-          <p data-i18n="sabirDesc">Klasik tek kişilik kart oyunu Klondike. Kartları türlerine göre astan papaza diz. 1 ya da 3 kart çekiş, geri al ve ipucu.</p>
-          <div class="tags"><span class="tag" data-i18n="tagAlone">Tek kişi</span><span class="tag" data-i18n="tagCards">Kart oyunu</span><span class="tag" data-i18n="tagHint">İpucu ve geri al</span></div>
-          <span class="go" data-i18n="play">Oyna</span>
-        </div>
-      </a>
-      </div>
-    </div>
-    <div class="games">
-      <!-- Yeni oyun: kartı uygun kategorinin (.gsec) .games kutusuna ekleyin; kategori başlığındaki ve düğmesindeki sayıları da güncelleyin. -->
-      <div class="soon">
-        <h3 data-i18n="soonTitle">Sırada yeni oyunlar var</h3>
-      </div>
-    </div>
-  </section>
-  </div>
-
-  <section class="block wrap duo" aria-labelledby="h-youtube">
+  <section class="wrap duo" aria-labelledby="h-youtube">
     <a class="thumb" href="https://www.youtube.com/@ridsgames" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
       <img src="assets/misket/video-tr.webp" alt="" width="800" height="450" loading="lazy" data-lang="tr">
       <img src="assets/misket/video-en.webp" alt="" width="800" height="450" loading="lazy" data-lang="en" hidden>
@@ -672,8 +423,7 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
     </div>
   </section>
 
-  <div class="band">
-  <section class="block wrap duo" id="destek" aria-labelledby="h-destek">
+  <section class="wrap duo" id="destek" aria-labelledby="h-destek">
     <div>
       <p class="eyebrow" data-i18n="contact">İletişim</p>
       <h2 id="h-destek" data-i18n="support">Destek</h2>
@@ -711,14 +461,14 @@ footer { border-top: 2px solid var(--panel); padding-top: 28px; padding-bottom: 
       </div>
     </div>
   </section>
-  </div>
 </main>
 
 <footer class="wrap foot">
-  <img src="assets/logo.webp" alt="RIDS Games" width="73" height="34" loading="lazy">
+  <img src="assets/logo-seffaf.webp" alt="RIDS Games" width="420" height="195" loading="lazy">
   <p data-i18n="tagline">Klasik oyuncaklardan esinlenen mobil ve tarayıcı oyunları.</p>
   <p>© 2026 RIDS Games. <span data-i18n="rights">Tüm hakları saklıdır.</span></p>
 </footer>
+</div>
 
 <script>
 // Dil: ?lang=en|tr adresten, yoksa kayıtlı seçim, yoksa tarayıcı dili (tr dışı her dil İngilizce). Türkçe metinler HTML'de durur.
@@ -781,8 +531,18 @@ const I18N_EN = {
   soonTitle: 'More games are on the way',
   ytTitle: 'Visit our channel', ytDesc: 'Videos of our games are on the RIDS Games channel on YouTube.', ytBtn: 'Go to the YouTube channel',
   contact: 'Contact', supportDesc: 'Send us your questions, suggestions and bug reports by email.',
-  tagline: 'Mobile and browser games inspired by classic toys.', rights: 'All rights reserved.'
+  tagline: 'Mobile and browser games inspired by classic toys.', rights: 'All rights reserved.',
+  navMisket: 'Marbles', themeAria: 'Change theme', gamesWord: 'games', randomPlay: 'Random game'
 };
+const RM = document.documentElement.classList.contains('rm');
+// Görünme animasyonu: kart ve bölümler ekrana girerken yerine oturur
+{
+  const els = [...document.querySelectorAll('.rv, .game')];
+  if (document.documentElement.classList.contains('rvok')) {
+    const io = new IntersectionObserver((es) => es.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -5% 0px', threshold: 0.06 });
+    els.forEach((el) => io.observe(el));
+  }
+}
 const TR = { title: document.title };
 function setLang(lang) {
   const en = lang === 'en';
@@ -801,55 +561,94 @@ function setLang(lang) {
     el.setAttribute('placeholder', en ? I18N_EN[el.dataset.i18nPh] : el.dataset.trPh);
   });
   document.querySelectorAll('[data-lang]').forEach((el) => { el.hidden = el.dataset.lang !== lang; });
-  document.querySelectorAll('a.game, a.ptile').forEach((a) => { a.href = a.getAttribute('href').split('?')[0] + '?lang=' + lang; });
+  document.querySelectorAll('a.game, a.ptile, a.nres[data-slug]').forEach((a) => { a.href = a.getAttribute('href').split('?')[0] + '?lang=' + lang; });
   document.querySelectorAll('[data-set-lang]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.setLang === lang));
+  if (window.placeInd) window.placeInd(true);
 }
 let saved = null;
 try { saved = localStorage.getItem('lang'); } catch (e) {}
 setLang(/^tr/i.test(new URLSearchParams(location.search).get('lang') || saved || navigator.language || 'tr') ? 'tr' : 'en');
-// Kategoriler: düğmeye basınca o bölüme kayar; sayfa kaydıkça ekrandaki bölümün düğmesi yanar
+// Tema düğmesi: seçim yalnız bu tarayıcıda "rids_tema" olarak kalır
 {
-  const bar = document.querySelector('.cats'), secs = [...document.querySelectorAll('.gsec')];
-  let lock = 0, cur = '';
-  const mark = (c) => {
-    if (c === cur) return; cur = c;
-    bar.querySelectorAll('a').forEach((x) => x.setAttribute('aria-current', x.dataset.cat === c));
-    const b = bar.querySelector(`[data-cat="${c}"]`);
-    if (b) bar.scrollTo({ left: b.offsetLeft - (bar.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' });
+  const d = document.documentElement, meta = document.querySelector('meta[name="theme-color"]');
+  const sync = () => { meta.setAttribute('content', getComputedStyle(d).getPropertyValue('--bg').trim() || '#0A1838'); };
+  const VT = !!document.startViewTransition && !RM;
+  const set = (t, x, y) => {
+    const go = () => { d.setAttribute('data-theme', t); try { localStorage.setItem('rids_tema', t); } catch (e) {} sync(); };
+    if (!VT) { go(); return; }
+    const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    d.classList.add('vt-tema');
+    const tr = document.startViewTransition(go);
+    tr.ready.then(() => { d.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + r + 'px at ' + x + 'px ' + y + 'px)'] }, { duration: 720, easing: 'cubic-bezier(.45,0,.2,1)', pseudoElement: '::view-transition-new(root)' }); }).catch(() => {});
+    tr.finished.then(() => d.classList.remove('vt-tema'), () => d.classList.remove('vt-tema'));
   };
-  const spy = () => {
+  document.querySelectorAll('.tbtn').forEach((b) => b.addEventListener('click', () => {
+    const r = b.getBoundingClientRect();
+    set(d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', r.left + r.width / 2, r.top + r.height / 2);
+  }));
+  sync();
+}
+// Kategoriler: düğmeye basınca o bölüme kayar; sayfa kaydıkça ekrandaki bölümün düğmesi yanar, renkli gösterge arkasından kayar
+{
+  const bar = document.querySelector('.cats'), row = bar.querySelector('.crow'), ind = bar.querySelector('.cind');
+  const chips = [...bar.querySelectorAll('a[data-cat]')], secs = [...document.querySelectorAll('.gsec')];
+  let lock = 0, cur = '';
+  const chipOf = (c) => chips.filter((x) => x.dataset.cat === c)[0];
+  const place = (instant) => {
+    const c = chipOf(cur) || chips[0]; if (!c || !c.offsetWidth) return;
+    if (instant) ind.style.transition = 'none';
+    ind.style.width = c.offsetWidth + 'px'; ind.style.transform = 'translateX(' + c.offsetLeft + 'px)';
+    const cs = getComputedStyle(c); ind.style.setProperty('--c', cs.getPropertyValue('--c')); ind.style.setProperty('--cd', cs.getPropertyValue('--cd'));
+    if (instant) { void ind.offsetWidth; ind.style.transition = ''; }
+  };
+  window.placeInd = place;
+  const mark = (c, instant) => {
+    if (c === cur) return; cur = c;
+    chips.forEach((x) => { const on = x.dataset.cat === c; x.classList.toggle('on', on); x.setAttribute('aria-current', on); });
+    place(instant);
+    const b = chipOf(c);
+    if (b) row.scrollTo({ left: b.offsetLeft - (row.clientWidth - b.offsetWidth) / 2, behavior: instant || RM ? 'auto' : 'smooth' });
+  };
+  const spy = (instant) => {
     if (Date.now() < lock) return;
     const line = bar.offsetHeight + 60; let c = secs[0].dataset.cat;
     for (const x of secs) if (!x.hidden && x.getBoundingClientRect().top <= line) c = x.dataset.cat;
     // sayfanın sonuna gelinince son bölüm sayılır
     if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) c = secs[secs.length - 1].dataset.cat;
-    mark(c);
+    mark(c, instant === true);
   };
   const go = (c, smooth) => {
     const x = document.getElementById('kat-' + c); if (!x) return;
     lock = Date.now() + 1500; mark(c);
-    scrollTo({ top: x.getBoundingClientRect().top + scrollY - bar.offsetHeight - 8, behavior: smooth ? 'smooth' : 'auto' });
+    scrollTo({ top: x.getBoundingClientRect().top + scrollY - bar.offsetHeight - 8, behavior: smooth && !RM ? 'smooth' : 'auto' });
   };
   bar.addEventListener('click', (e) => {
     const a = e.target.closest('a[data-cat]'); if (!a) return;
     e.preventDefault(); go(a.dataset.cat, true);
   });
+  // Desen kaydırınca daha yavaş kayar (420 piksellik karo, kesintisiz)
+  const pat = document.querySelector('.pat');
+  const para = () => { if (!RM) pat.style.translate = '0 ' + (-((scrollY * 0.3) % 420)).toFixed(1) + 'px'; };
   let raf = 0;
-  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; spy(); }); }, { passive: true });
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; spy(); para(); }); }, { passive: true });
   addEventListener('scrollend', () => { lock = 0; spy(); });
+  addEventListener('resize', () => place(true));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => place(true));
+  window.catSpy = spy;
   const h = location.hash.replace(/^#(kat-)?/, '');
-  if (secs.some((x) => x.dataset.cat === h)) requestAnimationFrame(() => go(h, false)); else spy();
+  if (secs.some((x) => x.dataset.cat === h)) requestAnimationFrame(() => go(h, false)); else spy(true);
+  para();
 }
 // En çok oynananlar: sırayı her gün GitHub'daki görev yazar (assets/populer.json). Dosya yoksa sabit sıra kalır.
 {
   const rail = document.querySelector('.poprail');
   const card = (slug) => document.querySelector(`a.game[href^="${slug}/"]`);
   const tile = (slug) => {
-    const c = card(slug), h = c.querySelector('h3'), a = document.createElement('a'), img = document.createElement('img'), sp = document.createElement('span');
-    a.className = 'ptile'; a.href = c.getAttribute('href');
-    img.src = c.querySelector('img').getAttribute('src'); img.alt = ''; img.width = 540; img.height = 540;
-    sp.dataset.i18n = h.dataset.i18n; sp.dataset.tr = h.dataset.tr || h.textContent; sp.textContent = h.textContent;
-    a.appendChild(img); a.appendChild(sp); return a;
+    const c = card(slug), h = c.querySelector('h3'), a = document.createElement('a'), cv = document.createElement('span'), img = document.createElement('img'), sp = document.createElement('span');
+    a.className = 'ptile'; a.href = c.getAttribute('href'); a.dataset.cat = c.dataset.cat;
+    cv.className = 'cv'; img.src = c.querySelector('img').getAttribute('src'); img.alt = ''; img.width = 540; img.height = 540;
+    sp.className = 'nm'; sp.dataset.i18n = h.dataset.i18n; sp.dataset.tr = h.dataset.tr || h.textContent; sp.textContent = h.textContent;
+    cv.appendChild(img); a.appendChild(cv); a.appendChild(sp); return a;
   };
   const fixed = [...rail.querySelectorAll('.ptile')].map((a) => a.getAttribute('href').split('/')[0]);
   fetch('assets/populer.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
@@ -862,7 +661,7 @@ setLang(/^tr/i.test(new URLSearchParams(location.search).get('lang') || saved ||
 }
 // Oyun arama: Türkçe harfler sadeleştirilir; Türkçe ve İngilizce ad ile kategori adı aranır
 {
-  const box = document.getElementById('ara'), pop = document.getElementById('populer'), none = document.getElementById('sonucyok'), cats = document.querySelector('.cats');
+  const box = document.getElementById('ara'), pop = document.getElementById('populer'), zar = document.getElementById('neoyna'), none = document.getElementById('sonucyok'), cats = document.querySelector('.cats');
   const MAP = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'â': 'a', 'î': 'i', 'û': 'u' };
   const norm = (t) => (t || '').toLocaleLowerCase('tr').replace(/[çğıöşüâîû]/g, (c) => MAP[c]).replace(/\s+/g, ' ').trim();
   const words = (el) => el ? [el.dataset.tr || el.textContent, I18N_EN[el.dataset.i18n] || ''].join(' ') : '';
@@ -875,13 +674,48 @@ setLang(/^tr/i.test(new URLSearchParams(location.search).get('lang') || saved ||
     const q = norm(box.value); let any = false;
     secs.forEach((x) => {
       const all = q && x.cat.indexOf(q) >= 0; let n = 0;
-      x.cards.forEach((c) => { const ok = !q || all || c.txt.indexOf(q) >= 0; c.a.hidden = !ok; if (ok) n++; });
+      x.cards.forEach((c) => { const ok = !q || all || c.txt.indexOf(q) >= 0; c.a.hidden = !ok; if (ok) { n++; c.a.classList.add('in'); } });
       x.sec.hidden = n === 0; if (n) any = true;
     });
-    pop.hidden = !!q; cats.hidden = !!q; none.hidden = any;
+    pop.hidden = !!q; zar.hidden = !!q; cats.hidden = !!q; none.hidden = any;
+    if (!q) { window.placeInd(true); window.catSpy(true); }
   };
   box.addEventListener('input', run);
   box.addEventListener('keydown', (e) => { if (e.key === 'Enter') box.blur(); });
+}
+// Rastgele oyna: 11 yuvadan biri eşit sıklıkla gelir, zarlar o yuvanın toplamını (2-12) gösterir.
+// Virgülle ayrılanlar aynı yuvadadır; yuva gelince aralarından biri seçilir. Aynı oyun üst üste gelmez.
+{
+  const nob = document.getElementById('neoyna'), btn = nob.querySelector('.dcell'), dies = [...nob.querySelectorAll('.die')], res = nob.querySelector('.nres');
+  const YUVA = btn.dataset.oyunlar.split(' ').map((y) => y.split(','));
+  const FACE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };
+  let spin = 0, busy = false, last = '';
+  const rnd = (n) => Math.floor(Math.random() * n);
+  const face = (el, f, k, inst) => {
+    if (inst) el.style.transition = 'none';
+    el.style.setProperty('--x', (FACE[f][0] + 360 * k) + 'deg'); el.style.setProperty('--y', (FACE[f][1] + 360 * spin) + 'deg');
+    if (inst) { void el.offsetWidth; el.style.transition = ''; }
+  };
+  const finish = (slug) => {
+    busy = false; nob.classList.remove('rolling');
+    const g = document.querySelector(`a.game[href^="${slug}/"]`), h = g.querySelector('h3'), nm = res.querySelector('.nm');
+    res.href = g.getAttribute('href'); res.dataset.slug = slug; res.dataset.cat = g.dataset.cat;
+    res.querySelector('img').src = g.querySelector('img').getAttribute('src');
+    nm.dataset.i18n = h.dataset.i18n; nm.dataset.tr = h.dataset.tr || h.textContent; nm.textContent = h.textContent;
+    res.hidden = false; res.classList.remove('yeni'); void res.offsetWidth; res.classList.add('yeni');
+  };
+  face(dies[0], 3, 0, true); face(dies[1], 4, 0, true);
+  btn.addEventListener('click', () => {
+    if (busy) return; busy = true; btn.classList.add('used');
+    let y, slug, k = 0;
+    do { y = rnd(YUVA.length); slug = YUVA[y][rnd(YUVA[y].length)]; } while (slug === last && ++k < 30);
+    last = slug;
+    const s = y + 2, lo = Math.max(1, s - 6), a = lo + rnd(Math.min(6, s - 1) - lo + 1);
+    spin += 2; face(dies[0], a, spin, RM); face(dies[1], s - a, spin + 1, RM);
+    if (RM) { finish(slug); return; }
+    nob.classList.add('rolling');
+    setTimeout(() => finish(slug), 1050);
+  });
 }
 document.querySelectorAll('[data-set-lang]').forEach((b) => b.addEventListener('click', () => {
   setLang(b.dataset.setLang);
