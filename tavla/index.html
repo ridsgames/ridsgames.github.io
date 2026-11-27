@@ -175,7 +175,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 .pl.on { border-color: #34d399; background: rgba(16, 185, 129, .13); }
 .pl .ck { flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 -2px 3px rgba(0, 0, 0, .35), 0 1px 3px rgba(0, 0, 0, .5); }
 .pl .ck.w { background: radial-gradient(circle at 35% 30%, #fff, #e7dcc5 70%); }
-.pl .ck.b { background: radial-gradient(circle at 35% 30%, #7f1d1d, #3b0a0a 75%); border: 1px solid #b45309; }
+.pl .ck.b { background: radial-gradient(circle at 35% 30%, #4a4a4a, #141414 75%); border: 1px solid #6b7280; }
 .pl .tx { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
 .pl .nm { font-weight: 800; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl .pp { font-size: 11.5px; color: #94a3b8; font-variant-numeric: tabular-nums; }
@@ -537,7 +537,7 @@ const STR = {
     varLbl: 'Oyun', vars: { tavla: ['🎲', 'Tavla'], mahbusa: ['🔒', 'Mahbusa'], gulbahar: ['🌹', 'Gülbahar'] },
     varNote: { tavla: 'Klasik dizilim. Tek kalan pul kırılır ve kenara çıkar.', mahbusa: 'Bütün pullar tek noktadan başlar. Rakibin tek pulunun üstüne konarsan onu hapsedersin.', gulbahar: 'Pullar karşı köşelerden aynı yöne gider. Tek pul bile noktayı tutar. Çift gelince 6-6’ya kadar bütün çiftler oynanır.' },
     modeLbl: 'Rakip', modes: { cpu: 'Bilgisayar', iki: 'İki kişi' }, lvLbl: 'Zorluk', tgtLbl: 'Maç', tgts: { 1: 'Tek oyun', 3: '3 puan', 5: '5 puan' },
-    you: 'Sen', cpu: 'Bilgisayar', p1: 'Beyaz', p2: 'Kırmızı', pip: (n) => `${n} pip`, match: (n) => n === 1 ? 'Tek oyun' : `${n} puanlık maç`, gameN: (n) => `${n}. oyun`,
+    you: 'Sen', cpu: 'Bilgisayar', p1: 'Beyaz', p2: 'Siyah', pip: (n) => `${n} pip`, match: (n) => n === 1 ? 'Tek oyun' : `${n} puanlık maç`, gameN: (n) => `${n}. oyun`,
     openRoll: 'Başlamak için zar at: büyük atan başlar', openRes: (a, b, n) => `${a} – ${b}: ${n} başlıyor`, openTie: (a) => `İkisi de ${a}, yeniden at`,
     rollT: (n) => `${n}: zar at`, rollMe: 'Sıra sende: zar at', rollBtn: 'Zar at', undoBtn: 'Geri al', openBtn: 'Başlangıç zarı',
     pick: 'Oynatacağın pulu seç', pickDst: 'Parlayan yere dokun', enterFirst: 'Önce kırık pulunu oyuna sok',
@@ -558,7 +558,7 @@ const STR = {
     varLbl: 'Game', vars: { tavla: ['🎲', 'Classic'], mahbusa: ['🔒', 'Mahbusa'], gulbahar: ['🌹', 'Gülbahar'] },
     varNote: { tavla: 'Standard setup. A lone checker can be hit and sent to the bar.', mahbusa: 'All checkers start on one point. Land on a lone enemy checker to trap it.', gulbahar: 'Checkers start in opposite corners and travel the same way. A single checker holds a point. Doubles cascade up to 6-6.' },
     modeLbl: 'Opponent', modes: { cpu: 'Computer', iki: 'Two players' }, lvLbl: 'Level', tgtLbl: 'Match', tgts: { 1: 'One game', 3: '3 points', 5: '5 points' },
-    you: 'You', cpu: 'Computer', p1: 'White', p2: 'Red', pip: (n) => `${n} pips`, match: (n) => n === 1 ? 'One game' : `Match to ${n}`, gameN: (n) => `Game ${n}`,
+    you: 'You', cpu: 'Computer', p1: 'White', p2: 'Black', pip: (n) => `${n} pips`, match: (n) => n === 1 ? 'One game' : `Match to ${n}`, gameN: (n) => `Game ${n}`,
     openRoll: 'Roll to start: the higher die goes first', openRes: (a, b, n) => `${a} – ${b}: ${n} starts`, openTie: (a) => `Both rolled ${a}, roll again`,
     rollT: (n) => `${n}: roll`, rollMe: 'Your turn: roll the dice', rollBtn: 'Roll', undoBtn: 'Undo', openBtn: 'Opening roll',
     pick: 'Pick a checker to move', pickDst: 'Tap a glowing spot', enterFirst: 'Bring your checker in from the bar first',
@@ -909,14 +909,15 @@ function undo() {
 // ---------- Çizim ----------
 const LANDQ = matchMedia('(orientation: landscape)'); let lastHint = null;
 // SH: üst ve alt şerit. Her oyuncunun şeridi hem skor tablosu hem toplama yeri (çıkan pullar ev tarafında birikir).
-const SH = 0.8, H = 11.2 + 2 * SH, M = 0.3, BW = 0.8, PH = 4.85, R0 = 0.45;
+const SH = 0.8, H = 11.2 + 2 * SH, M = 0.3, BW = 0.8, PH = 4.85, RB = 0.45;
+let R0 = 0.45; // pul yarıçapı: yatayda noktalar genişleyince pul da büyür
 // CW: nokta genişliği. Yatay ekranda tahta boş alanı dolduracak kadar genişler (1–1.6).
 let CW = 1, W = 2 * M + 12 + BW, HB = M + 6 + BW; // HB: sağ yarının başı
 function fitBoard() {
   let cw = 1;
   if (matchMedia('(orientation: landscape)').matches) { const r = $('bwrap').getBoundingClientRect(); if (r.width && r.height) cw = Math.max(1, Math.min(1.8, ((r.width / r.height) * H - (2 * M + BW)) / 12)); }
   cw = Math.round(cw * 20) / 20; if (cw === CW && $('board').getAttribute('viewBox') === `0 0 ${W} ${H}`) return false;
-  CW = cw; HB = M + 6 * CW + BW; W = +(HB + 6 * CW + M).toFixed(3);
+  CW = cw; R0 = Math.min(0.45 * CW, 0.56); HB = M + 6 * CW + BW; W = +(HB + 6 * CW + M).toFixed(3);
   $('board').setAttribute('viewBox', `0 0 ${W} ${H}`); return true;
 }
 const colX = (col) => col < 6 ? M + (col + 0.5) * CW : HB + (col - 6 + 0.5) * CW;
@@ -925,7 +926,13 @@ function ptGeo(a) { // a: 0..23 (nokta a+1)
   if (n <= 12) return { x: colX(n <= 6 ? 12 - n : 12 - n), bottom: true };
   return { x: colX(n - 13), bottom: false };
 }
-function checker(x, y, p, extra = '') { return `<g ${extra}><circle cx="${x}" cy="${y}" r="${R0}" fill="url(#g${p})" stroke="${p ? '#d97706' : '#a8a29e'}" stroke-width="0.04" ${extra}/>${p ? '' : `<circle cx="${x}" cy="${y}" r="${R0 * 0.62}" fill="none" stroke="rgba(120,113,108,.35)" stroke-width="0.035"/>`}</g>`; }
+// Pul: gölge, eğimli kenar, iç yüz ve oyuk halka (klasik tavla pulu)
+function checker(x, y, p, extra = '', r = R0) {
+  const k = p ? 'rgba(255,255,255,.16)' : 'rgba(90,70,40,.22)';
+  return `<g ${extra}><circle cx="${x + 0.03}" cy="${y + 0.06}" r="${r}" fill="rgba(40,20,5,.38)"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#e${p})" stroke="${p ? '#050505' : '#9c9282'}" stroke-width="0.025"/>`
+    + `<circle cx="${x}" cy="${y}" r="${r * 0.8}" fill="url(#g${p})"/><circle cx="${x}" cy="${y}" r="${r * 0.56}" fill="none" stroke="${k}" stroke-width="0.035"/>`
+    + `<circle cx="${x}" cy="${y}" r="${r * 0.5}" fill="none" stroke="${p ? 'rgba(0,0,0,.45)' : 'rgba(255,255,255,.8)'}" stroke-width="0.025"/></g>`;
+}
 function dieSvg(x, y, v, s, used) {
   const P = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] }[v];
   return `<g opacity="${used ? 0.35 : 1}"><rect x="${x - s / 2}" y="${y - s / 2}" width="${s}" height="${s}" rx="${s * 0.18}" fill="#fffbeb" stroke="#78716c" stroke-width="0.03"/>${P.map(([a, b]) => `<circle cx="${x + a * s * 0.26}" cy="${y + b * s * 0.26}" r="${s * 0.09}" fill="#1c1917"/>`).join('')}</g>`;
@@ -937,7 +944,7 @@ function strips(t, S, p) {
   for (const pl of [0, 1]) {
     const y = pl === 0 ? H - SH / 2 : SH / 2, on = live && p === pl, x = M + 0.05, w = 6 * CW - 0.1;
     h += `<rect x="${x}" y="${y - SH / 2 + 0.07}" width="${w}" height="${SH - 0.14}" rx="${(SH - 0.14) / 2}" fill="${on ? 'rgba(6,78,59,.9)' : 'rgba(0,0,0,.28)'}" stroke="${on ? '#34d399' : 'none'}" stroke-width="0.05"/>`;
-    h += `<circle cx="${x + 0.33}" cy="${y}" r="0.24" fill="url(#g${pl})" stroke="${pl ? '#d97706' : '#a8a29e'}" stroke-width="0.03"/>`;
+    h += `<circle cx="${x + 0.33}" cy="${y}" r="0.24" fill="url(#g${pl})" stroke="${pl ? '#9ca3af' : '#a8a29e'}" stroke-width="0.03"/>`;
     h += `<text x="${x + 0.7}" y="${y + 0.14}" font-size="0.4" font-weight="800" fill="#fff">${esc(pname(pl))}</text>`;
     h += `<text x="${x + w - 0.3}" y="${y + 0.16}" text-anchor="end" font-size="0.5" font-weight="900" fill="#fde68a">${G.score[pl]}<tspan font-size="0.3" font-weight="700" fill="#cbd5e1">/${G.target}</tspan></text>`;
   }
@@ -947,8 +954,10 @@ function render() {
   if (!G) return;
   fitBoard();
   const t = T(), S = G.S, p = G.turn;
-  let h = `<defs><radialGradient id="g0" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".75" stop-color="#e7dcc5"/><stop offset="1" stop-color="#cfc2a6"/></radialGradient>
-<radialGradient id="g1" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#b91c1c"/><stop offset=".7" stop-color="#5b0d0d"/><stop offset="1" stop-color="#3b0a0a"/></radialGradient>
+  let h = `<defs><radialGradient id="g0" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#f4efe4"/><stop offset="1" stop-color="#ddd5c4"/></radialGradient>
+<radialGradient id="g1" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#4a4a4a"/><stop offset=".65" stop-color="#232323"/><stop offset="1" stop-color="#141414"/></radialGradient>
+<linearGradient id="e0" x1=".15" y1=".1" x2=".85" y2=".95"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#b3a995"/></linearGradient>
+<linearGradient id="e1" x1=".15" y1=".1" x2=".85" y2=".95"><stop offset="0" stop-color="#5c5c5c"/><stop offset=".5" stop-color="#1c1c1c"/><stop offset="1" stop-color="#000000"/></linearGradient>
 <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c4a21"/><stop offset="1" stop-color="#4a2a12"/></linearGradient></defs>`;
   h += `<rect x="0" y="0" width="${W}" height="${H}" rx="0.35" fill="url(#wood)"/>`;
   h += `<rect x="${M}" y="${SH}" width="${6 * CW}" height="${H - 2 * SH}" fill="#e9d5a1"/><rect x="${HB}" y="${SH}" width="${6 * CW}" height="${H - 2 * SH}" fill="#e9d5a1"/>`;
@@ -971,7 +980,7 @@ function render() {
     const c0 = S.c[0][a], c1 = S.c[1][a]; if (!c0 && !c1) continue;
     const { x, bottom } = ptGeo(a), tp = S.top[a], bp = c0 && c1 ? 1 - tp : -1;
     const list = []; if (bp >= 0) list.push([bp, true]); const n = tp >= 0 ? S.c[tp][a] : 0; for (let i = 0; i < n; i++) list.push([tp, false]);
-    const tot = list.length, step = tot > 5 ? (PH - 2 * R0 - 0.05) / (tot - 1) : 0.92;
+    const tot = list.length, step = Math.min(2 * R0 + 0.02, (PH - 2 * R0 - 0.05) / (Math.max(tot, 5) - 1));
     list.forEach(([pl, pinned], i) => {
       const y = bottom ? H - SH - R0 - 0.02 - i * step : SH + R0 + 0.02 + i * step;
       const isSel = sel !== null && sel >= 0 && PATH[p][sel] === a && i === tot - 1;
@@ -988,15 +997,15 @@ function render() {
     const n = S.bar[pl]; if (!n) continue;
     const cx = HB - BW / 2;
     const k = Math.min(n, 4);
-    for (let i = 0; i < k; i++) { const y = pl === 0 ? H / 2 + 0.7 + i * 0.5 : H / 2 - 0.7 - i * 0.5; if (i === k - 1) XY['bar' + pl] = [cx, y]; h += checker(cx, y, pl, i === k - 1 ? `data-k="bar${pl}"` : ''); }
-    if (pl === p && canMove.has(-1)) h += `<circle class="mv" cx="${cx}" cy="${pl === 0 ? H / 2 + 0.7 : H / 2 - 0.7}" r="${R0 + 0.05}" fill="none" stroke="#34d399" stroke-width="0.07" pointer-events="none"/>`;
+    for (let i = 0; i < k; i++) { const y = pl === 0 ? H / 2 + 0.7 + i * 0.5 : H / 2 - 0.7 - i * 0.5; if (i === k - 1) XY['bar' + pl] = [cx, y]; h += checker(cx, y, pl, i === k - 1 ? `data-k="bar${pl}"` : '', RB); }
+    if (pl === p && canMove.has(-1)) h += `<circle class="mv" cx="${cx}" cy="${pl === 0 ? H / 2 + 0.7 : H / 2 - 0.7}" r="${RB + 0.05}" fill="none" stroke="#34d399" stroke-width="0.07" pointer-events="none"/>`;
     if (n > 1) h += `<text x="${cx}" y="${pl === 0 ? H / 2 + 0.85 : H / 2 - 0.55}" text-anchor="middle" font-size="0.4" font-weight="800" fill="${pl ? '#fde68a' : '#44403c'}">${n}</text>`;
-    if (sel === -1 && p === pl) h += `<circle cx="${cx}" cy="${pl === 0 ? H / 2 + 0.7 : H / 2 - 0.7}" r="${R0 + 0.06}" fill="none" stroke="#fbbf24" stroke-width="0.09"/>`;
+    if (sel === -1 && p === pl) h += `<circle cx="${cx}" cy="${pl === 0 ? H / 2 + 0.7 : H / 2 - 0.7}" r="${RB + 0.06}" fill="none" stroke="#fbbf24" stroke-width="0.09"/>`;
   }
   // çıkan pullar: sahibinin şeridinde, ev tarafının köşesinden içeri doğru dizilir
   for (const pl of [0, 1]) {
     const n = S.off[pl], y = pl === 0 ? H - SH / 2 : SH / 2, x0 = HB + 6 * CW - 0.2;
-    for (let i = 0; i < n; i++) { const x = x0 - i * 0.27; if (i === n - 1) XY['off' + pl] = [x, y]; h += `<rect${i === n - 1 ? ` data-k="off${pl}"` : ''} x="${x - 0.11}" y="${y - SH / 2 + 0.12}" width="0.22" height="${SH - 0.24}" rx="0.06" fill="${pl ? '#7f1d1d' : '#efe6d2'}" stroke="${pl ? '#d97706' : '#a8a29e'}" stroke-width="0.025"/>`; }
+    for (let i = 0; i < n; i++) { const x = x0 - i * 0.27; if (i === n - 1) XY['off' + pl] = [x, y]; h += `<rect${i === n - 1 ? ` data-k="off${pl}"` : ''} x="${x - 0.11}" y="${y - SH / 2 + 0.12}" width="0.22" height="${SH - 0.24}" rx="0.06" fill="${pl ? '#1c1c1c' : '#efe6d2'}" stroke="${pl ? '#6b7280' : '#a8a29e'}" stroke-width="0.025"/>`; }
     if (n) h += `<text x="${x0 - n * 0.27 - 0.12}" y="${y + 0.14}" text-anchor="end" font-size="0.36" font-weight="800" fill="rgba(253,230,138,.85)">${n}/15</text>`;
   }
   if (sel !== null && dstSet.has(24)) h += `<rect class="dst" x="${HB}" y="${p === 0 ? H - SH : 0}" width="${6 * CW}" height="${SH}" rx="0.15" fill="#34d399" opacity="0.6"/>`;
