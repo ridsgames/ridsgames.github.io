@@ -368,7 +368,15 @@ function init() {
   addEventListener('resize', () => { layoutStage(); fitTiles(); });
   if (document.fonts) document.fonts.ready.then(fitTiles);
   addEventListener('pointerdown', () => Sfx.unlock(), { once: true });
-  show('home');
+  // Reklam/video bağlantısıyla gelen (adreste etiket var) menüyü görmeden doğrudan bölüme girer
+  const direct = /[?&](utm_campaign|campaign|utm_source|ref|oyna)(=|&|$)/.test(location.search);
+  if (direct) {
+    // iOS eğim iznini yalnız dokunuşla verir: izin ilk dokunuşta istenir, o zamana kadar parmakla oynanır
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      gyroTried = true; addEventListener('pointerdown', () => enableGyro(), { once: true });
+    }
+    startLevel(nextLevelIndex());
+  } else show('home');
   requestAnimationFrame(frame);
   restoreSave().then((changed) => { if (changed) { updateCoins(); if (curScreen === 'home') renderHome(); } });
   Ads.init();
