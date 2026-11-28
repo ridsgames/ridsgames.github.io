@@ -707,7 +707,7 @@ const KNOWN = [[/youtu/i, 'YouTube'], [/instagram/i, 'Instagram'], [/tiktok/i, '
 function refLabel(name, scheme) {
   const n = String(name || '').trim();
   if (!n || n === '(no data)') return 'Doğrudan veya bilinmiyor';
-  if (/^(www\.)?ridsgames\.(github\.io|com)/.test(n)) return 'Site içinden';
+  if (/^(https?:\/\/)?(www\.)?ridsgames\.(github\.io|com)/.test(n)) return 'Site içinden';
   const k = KNOWN.find(([re]) => re.test(n));
   const label = k ? k[1] : esc(n.replace(/^https?:\/\//, ''));
   return scheme === 'c' ? label + '<span class="chip cut">etiketli</span>' : label;
@@ -759,7 +759,8 @@ function render(data) {
   countUp($('kRate'), Math.round(rate * 100), '%'); countUp($('kConv'), Math.round(conv * 100), '%');
   delta($('dVisits'), cur.visits, prev && prev.visits); delta($('dStarts'), cur.starts, prev && prev.starts);
   if (pRate == null) $('dRate').textContent = ''; else delta($('dRate'), rate, pRate, 'rate');
-  if (pConv == null) $('dConv').textContent = ''; else delta($('dConv'), conv, pConv, 'rate');
+  // önceki dönemde ziyaret sayımı (site/giris) henüz yoksa oran 1'i aşar: karşılaştırma anlamsız
+  if (pConv == null) $('dConv').textContent = ''; else if (pConv > 1) $('dConv').textContent = 'önceki dönemin ziyaret verisi eksik'; else delta($('dConv'), conv, pConv, 'rate');
   setDur('kSite', cur.siteTime, cur.hasTime); setDur('kSiteAvg', cur.siteAvg, cur.hasTime); setDur('kGame', cur.gameTime, cur.hasTime); setDur('kGameAvg', cur.gameAvg, cur.hasTime);
   const ph = prev && prev.hasTime;
   for (const [id, k] of [['dSite', 'siteTime'], ['dSiteAvg', 'siteAvg'], ['dGame', 'gameTime'], ['dGameAvg', 'gameAvg']]) {
