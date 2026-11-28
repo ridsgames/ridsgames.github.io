@@ -99,7 +99,13 @@ function win() {
     else earned = stars > (prev.stars || 0) ? (stars - prev.stars) * COINS.newStar : COINS.replay;
     rec = !prev || prev.best === null || timer < prev.best;
     best = prev && prev.best !== null ? Math.min(prev.best, timer) : timer;
+    const wasOpen = WORLDS.map((_, wi) => worldOpen(wi));
     save.levels[lv.id] = { stars: Math.max(stars, prev ? prev.stars : 0), best };
+    WORLDS.forEach((w, wi) => { // yeni açılan dünya kalıcı olarak kaydedilir ve haber verilir
+      if (wasOpen[wi] || !worldOpen(wi)) return;
+      save.unlockedWorlds = [...new Set([...save.unlockedWorlds, wi])];
+      setTimeout(() => toast(tf('worldOpened', { name: w.name }), 3200), 1900);
+    });
     if (lv.id === '1-1') save.tutorial = true;
   }
   save.coins += earned; store();

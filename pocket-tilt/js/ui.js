@@ -110,7 +110,14 @@ function renderHome() {
 // --- Dünyalar ve bölümler ---
 const WORLD_COVER = [8, 2, 0, 6]; // kapakta gösterilen bölüm
 function worldStars(wi) { return WORLDS[wi].levels.reduce((s, lv) => s + ((save.levels[lv.id] || {}).stars || 0), 0); }
-function worldOpen(wi) { return UNLOCK_ALL || wi === 0 || save.unlockedWorlds.includes(wi) || !!save.levels[WORLDS[wi - 1].levels[WORLDS[wi - 1].levels.length - 1].id]; }
+// Sonraki dünya, öncekinde 45 yıldız toplanınca ya da önceki dünyanın son bölümü bitince açılır
+const WORLD_STARS = 45;
+function worldNeed(wi) { return Math.min(WORLD_STARS, WORLDS[wi - 1].levels.length * 3); }
+function worldOpen(wi) {
+  if (UNLOCK_ALL || wi === 0 || save.unlockedWorlds.includes(wi)) return true;
+  const prev = WORLDS[wi - 1].levels;
+  return !!save.levels[prev[prev.length - 1].id] || worldStars(wi - 1) >= worldNeed(wi);
+}
 function levelOpen(i) { return UNLOCK_ALL || i === 0 || !!save.levels[LEVELS[i].id] || (LEVELS[i].num === 1 && worldOpen(LEVELS[i].w)) || !!save.levels[LEVELS[i - 1].id]; }
 function renderWorlds() {
   const list = $('worldList'); list.innerHTML = '';
@@ -122,9 +129,9 @@ function renderWorlds() {
     if (ART['world-' + (wi + 1)]) b.insertAdjacentHTML('beforeend', `<img class="emblem" src="${ART['world-' + (wi + 1)]}" alt="" draggable="false">`);
     else b.appendChild(thumb(w.levels[WORLD_COVER[wi]], 104));
     const info = document.createElement('div');
-    info.innerHTML = `<h3>${wi + 1}. ${w.name}</h3><div class="meta">${open ? icon('star') + `${st} / ${w.levels.length * 3}` : icon('lockc') + t('locked')}</div><div class="progress"><i style="width:${st / (w.levels.length * 3) * 100}%"></i></div>`;
+    info.innerHTML = `<h3>${wi + 1}. ${w.name}</h3><div class="meta">${open ? icon('star') + `${st} / ${w.levels.length * 3}` : icon('lockc') + icon('star') + `${worldStars(wi - 1)} / ${worldNeed(wi)}`}</div><div class="progress"><i style="width:${open ? st / (w.levels.length * 3) * 100 : Math.min(100, worldStars(wi - 1) / worldNeed(wi) * 100)}%"></i></div>`;
     b.appendChild(info);
-    b.addEventListener('click', () => { Sfx.tap(); if (open) { curWorld = wi; renderLevelGrid(); show('levels'); } else toast(t('locked')); });
+    b.addEventListener('click', () => { Sfx.tap(); if (open) { curWorld = wi; renderLevelGrid(); show('levels'); } else toast(tf('needStars', { n: worldNeed(wi), w: wi })); });
     list.appendChild(b);
   });
 }
@@ -153,10 +160,13 @@ function skinPreview(id, css) {
   envColor = '#8f9aa8'; drawSkin(c, 0, 0, 7, id, 0.4); envColor = env;
   return cnv;
 }
+// Sitede reklam yok: reklamla açılan bilyeler altınla satılır, reklamla ücretsiz altın gösterilmez
+const NO_ADS = !NATIVE.AdMob;
+const skinPrice = (s) => s.price || (NO_ADS && s.webPrice) || 0;
 function freeLeft() { return save.ads.freeDay === today() ? COINS.freeAdPerDay - save.ads.freeCount : COINS.freeAdPerDay; }
 function renderShop() {
   const fc = $('freeCoins'), left = freeLeft();
-  fc.disabled = left <= 0;
+  fc.disabled = left <= 0; fc.hidden = NO_ADS; fc.style.display = NO_ADS ? 'none' : '';
   fc.innerHTML = `${icon('tvb', 'badge')}<div><div class="big">${t('freeCoins')} +${COINS.freeAd}</div><small>${left > 0 ? tf('leftToday', { n: left }) : t('noneLeft')}</small></div><div class="sp"></div>${icon('coin')}`;
   const grid = $('skinGrid'); grid.innerHTML = '';
   for (const s of SKINS) {
@@ -166,7 +176,7 @@ function renderShop() {
     let pr;
     if (sel) pr = `<span class="pr">${icon('check')}${t('selected')}</span>`;
     else if (owned) pr = `<span class="pr">${t('select')}</span>`;
-    else if (s.price) pr = `<span class="pr">${icon('coin')}${s.price}</span>`;
+    else if (skinPrice(s)) pr = `<span class="pr">${icon('coin')}${skinPrice(s)}</span>`;
     else if (s.ads) pr = `<span class="pr ad">${icon('tvb', 'badge')}${tf('adUnlock', { a: save.skinAds[s.id] || 0, b: s.ads })}</span>`;
     else pr = `<span class="pr day">${icon('gift')}${t('day7')}</span>`; // 7 günlük ödülün son günü
     b.insertAdjacentHTML('beforeend', `<span class="nm">${skinName(s)}</span>${pr}`);
@@ -181,10 +191,11 @@ function unlockSkin(id) {
 async function onSkin(s) {
   Sfx.tap();
   if (save.skins.includes(s.id)) { save.skin = s.id; store(); renderShop(); return; }
-  if (s.price) {
-    if (save.coins < s.price) { toast(t('notEnough')); return; }
-    save.coins -= s.price; updateCoins(true); unlockSkin(s.id);
-  } else if (s.ads) {
+  const price = skinPrice(s);
+  if (price) {
+    if (save.coins < price) { toast(t('notEnough')); return; }
+    save.coins -= price; updateCoins(true); unlockSkin(s.id);
+  } else if (s.ads && !NO_ADS) {
     if (!(await Ads.rewarded())) return;
     save.skinAds[s.id] = (save.skinAds[s.id] || 0) + 1;
     if (save.skinAds[s.id] >= s.ads) unlockSkin(s.id); else store();
@@ -192,7 +203,7 @@ async function onSkin(s) {
   renderShop();
 }
 async function onFreeCoins() {
-  if (freeLeft() <= 0) return;
+  if (NO_ADS || freeLeft() <= 0) return;
   if (!(await Ads.rewarded())) return;
   if (save.ads.freeDay !== today()) { save.ads.freeDay = today(); save.ads.freeCount = 0; }
   save.ads.freeCount++;

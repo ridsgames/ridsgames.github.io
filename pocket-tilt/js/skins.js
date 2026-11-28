@@ -1,5 +1,5 @@
 // --- Bilye görünümleri ---
-// price: altınla; ads: bu kadar reklam izleyince açılır; daily: 7 günlük ödülün son günü
+// price: altınla; ads: bu kadar reklam izleyince açılır (sitede reklam yok, orada webPrice altınla); daily: 7 günlük ödülün son günü
 const SKINS = [
   { id: 'steel', name: ['Çelik', 'Steel'], price: 0 },
   { id: 'copper', name: ['Bakır', 'Copper'], price: 200 },
@@ -8,9 +8,9 @@ const SKINS = [
   { id: 'pearl', name: ['İnci', 'Pearl'], price: 550 },
   { id: 'glass', name: ['Cam Misket', 'Glass Marble'], price: 700 },
   { id: 'cateye', name: ['Kedi Gözü', 'Cat\'s Eye'], price: 900 },
-  { id: 'rainbow', name: ['Gökkuşağı', 'Rainbow'], ads: 3 },
+  { id: 'rainbow', name: ['Gökkuşağı', 'Rainbow'], ads: 3, webPrice: 1000 },
   { id: 'nazar', name: ['Nazar Boncuğu', 'Evil Eye Bead'], price: 1100 },
-  { id: 'football', name: ['Futbol', 'Football'], ads: 5 },
+  { id: 'football', name: ['Futbol', 'Football'], ads: 5, webPrice: 1600 },
   { id: 'lava', name: ['Lav', 'Lava'], price: 1400 },
   { id: 'galaxy', name: ['Galaksi', 'Galaxy'], price: 1800 },
   { id: 'diamond', name: ['Elmas', 'Diamond'], daily: true }
