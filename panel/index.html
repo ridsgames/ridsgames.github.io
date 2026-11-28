@@ -127,6 +127,22 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
 .hint { font-size: 14px; color: var(--steel-dim); margin: 6px 2px 0; }
 .hint code { font-size: 13px; color: var(--water); background: rgba(54, 197, 232, .1); padding: 1px 5px; border-radius: 4px; word-break: break-all; }
 .lists .rows + .rows { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+/* Son ziyaretler */
+.visits { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.visit { --cut: 8px; background: rgba(7, 8, 11, .35); padding: 10px 12px; }
+.visit .vh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; font-size: 13.5px; color: var(--steel-dim); }
+.visit .vh b { font-family: var(--display); font-size: 16px; font-weight: 700; color: #fff; }
+.visit .vh .vd { margin-left: auto; color: var(--steel); }
+.visit .steps { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.st { font-size: 13px; line-height: 1.55; padding: 1px 8px; border-radius: 6px; background: rgba(201, 210, 223, .08); color: var(--steel); }
+.st.pg { background: rgba(54, 197, 232, .16); color: #fff; font-weight: 600; }
+.st.go { background: rgba(255, 181, 71, .15); color: var(--play); }
+.st.ok { background: rgba(74, 222, 128, .13); color: var(--good); }
+.st.bad { background: rgba(248, 113, 113, .16); color: var(--bad); }
+.st.tm { background: none; color: var(--steel-dim); padding: 1px 2px; }
+.st i { font-style: normal; opacity: .7; margin-left: 4px; }
+.st small { font-size: 12.5px; opacity: .85; }
+.visits .warn { color: var(--play); }
 .game .body h3.m { display: none; font-size: 18px; } /* telefonda ad kapak yerine burada */
 
 /* Listeler */
@@ -218,7 +234,7 @@ a.btn { display: inline-flex; align-items: center; padding: 0 22px; text-decorat
     <p>Bu panel GoatCounter verilerini okur. Bir kez API anahtarı girmen yeterli, anahtar yalnızca bu tarayıcıda saklanır.</p>
     <ol>
       <li><b>ridsgames.goatcounter.com</b> sayfasında sağ üstteki kullanıcı adına dokun, sonra <b>API</b> sekmesini aç.</li>
-      <li>Yeni anahtar oluştur. İzinlerden yalnızca <b>Read statistics</b> işaretli olsun.</li>
+      <li>Yeni anahtar oluştur. İzinlerden <b>Read statistics</b> ve <b>Export</b> işaretli olsun. Son ziyaretler için GitHub'daki <b>GOATCOUNTER_KEY</b> de aynı anahtar olmalı.</li>
       <li>Oluşan anahtarı kopyalayıp aşağıya yapıştır.</li>
     </ol>
     <div id="keyErr" class="err cut" hidden></div>
@@ -262,6 +278,11 @@ a.btn { display: inline-flex; align-items: center; padding: 0 22px; text-decorat
 
     <h2 class="section-title">Oyunlar</h2>
     <div class="games" id="games"></div>
+
+    <div class="card cut">
+      <div class="card-head"><h2>Son 10 ziyaret</h2><span class="sub-h" id="vSub">saatte bir güncellenir</span></div>
+      <ol class="visits" id="visits"></ol>
+    </div>
 
     <div class="lists">
       <div class="card cut"><div class="card-head"><h2>Oyunda kalma süresi</h2><span class="sub-h">oyun açılışlarına göre</span></div><ul class="rows" id="dist"></ul></div>
@@ -747,6 +768,118 @@ function drawLists(cur, lists) {
   rows($('systems'), lists.systems.slice(0, 6).map((s) => ({ label: esc(s.name || 'Bilinmiyor'), count: s.count })), { ...P, total: lists.systems.reduce((a, s) => a + s.count, 0) });
 }
 
+// ---------- Son ziyaretler ----------
+// Tarayıcı GoatCounter'dan tek tek kayıt alamıyor (dışa aktarma saatte bir ve izin sorgusu bu hakkı harcıyor). GitHub'daki
+// "Son ziyaretler" işi (.github/ziyaret.mjs) saatte bir kayıtları alır, GOATCOUNTER_KEY'den türeyen anahtarla şifreleyip
+// veri dalına yazar. Panel aynı anahtarla çözer. Satır: [zaman, yol, olay mı, başlık, oturum, ekran, tarayıcı, sistem, konum, kaynak, kaynak türü, ilk]
+const VURL = 'https://raw.githubusercontent.com/ridsgames/ridsgames.github.io/veri/ziyaret.json';
+const BUCKETS = [1, 2, 3, 5, 7, 10, 15, 20, 30, 45, 60, 90, 120];
+const hm = new Intl.DateTimeFormat('tr-TR', { hour: '2-digit', minute: '2-digit' });
+const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function openVisits(f) {
+  const raw = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('ridsgames-ziyaret:' + key));
+  const k = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(f.iv) }, k, unb64(f.ct));
+  return JSON.parse(await new Response(new Blob([pt]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
+}
+function when(sec) {
+  const d = new Date(sec * 1000), now = new Date();
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime(), diff = Math.round((day(now) - day(d)) / 864e5);
+  return (diff === 0 ? '' : diff === 1 ? 'dün ' : dayFmt.format(d) + ' ') + hm.format(d);
+}
+// aynı oturumun kayıtları; 30 dakikadan uzun aradan sonra açılan sayfa yeni ziyaret sayılır
+function visitsOf(rows) {
+  const by = new Map();
+  for (const x of rows) { const k = x[4] || [x[5], x[6], x[7], x[8]].join('|'); if (!by.has(k)) by.set(k, []); by.get(k).push(x); }
+  const out = [];
+  for (const list of by.values()) {
+    list.sort((a, b) => a[0] - b[0]);
+    let cur = null;
+    for (const x of list) {
+      const opens = !x[2] || clean(x[1]) === 'site/giris';
+      if (!cur || (opens && x[0] - cur[cur.length - 1][0] > 1800)) out.push(cur = []);
+      cur.push(x);
+    }
+  }
+  return out.sort((a, b) => b[b.length - 1][0] - a[a.length - 1][0]).slice(0, 10);
+}
+const bucketLabel = (b) => { const i = BUCKETS.indexOf(b); return i < 0 ? '' : i === 0 ? '1 dk’dan az' : b === 120 ? '90 dk üstü' : `${BUCKETS[i - 1]}-${b} dk`; };
+function resultLabel(v) {
+  const [who, lv] = v.split('-');
+  const w = { insan: 'kazandı', cpu: 'bilgisayar kazandı', kazandi: 'kazandı', kaybetti: 'kaybetti', berabere: 'berabere' }[who];
+  return w ? w + (lv && LV[lv] ? ` (${lv})` : '') : v.replace(/-/g, ' ');
+}
+function visitSteps(v) {
+  const out = [];
+  const push = (cls, label) => { const p = out[out.length - 1]; if (p && p.cls === cls && p.label === label) p.n++; else out.push({ cls, label, n: 1 }); };
+  const ev = v.map((x) => { const p = clean(x[1]), parts = p.split('/'); return { t: x[0], p, slug: parts[0], kind: parts[1] || '', val: parts.slice(2).join('/') }; });
+  // mod ve sonuç olayları başlatma/bitirmenin yanında yazılır (aynı oyundan, 10 sn içinde)
+  const near = (i, kind, want) => ev.findIndex((e, j) => j !== i && e.slug === ev[i].slug && e.kind === want && Math.abs(e.t - ev[i].t) <= 10 && v[j][2]);
+  let page = null;
+  ev.forEach((e, i) => {
+    const x = v[i];
+    if (!x[2]) { const slug = e.p || 'ana-sayfa'; if (slug !== page) push('pg', esc(PAGES[slug] || e.p)); page = slug; return; }
+    if (e.p === 'site/giris' || e.slug === 'kampanya' || !e.kind) return;
+    const k = e.kind, val = e.val;
+    if (k === 'basladi') { const m = near(i, k, 'mod'); push('go', 'başlattı' + (m >= 0 ? ` <small>· ${esc(modeLabel(e.slug, ev[m].val))}</small>` : '')); }
+    else if (k === 'bitti') { const r = near(i, k, 'sonuc'); push('ok', 'bitirdi' + (r >= 0 ? ` <small>· ${esc(resultLabel(ev[r].val))}</small>` : '')); }
+    else if (k === 'mod') { if (near(i, k, 'basladi') < 0) push('', esc(modeLabel(e.slug, val))); }
+    else if (k === 'sonuc') { if (near(i, k, 'bitti') < 0) push('', esc(resultLabel(val))); }
+    else if (k === 'tekrar') push('go', 'tekrar oynadı');
+    else if (k === 'kurallar') push('', 'kurallara baktı');
+    else if (k === 'sure' || k === 'ek') { const b = bucketLabel(+val); if (b) push('tm', '⏱ ' + b); }
+    else if (k === 'hata') push('bad', 'hata' + (x[3] ? ': ' + esc(String(x[3]).replace(/^[^:]*:\s*/, '')) : ''));
+    else if (k === 'play') push('go', "Google Play'e gitti");
+    else push('', esc(k + (val ? ': ' + val : '')));
+  });
+  return out;
+}
+function drawVisits(rows, warn) {
+  const vs = visitsOf(rows);
+  const top = warn ? `<li class="empty warn">${warn}</li>` : '';
+  if (!vs.length) { $('visits').innerHTML = top + '<li class="empty">Son 3 günde ziyaret yok.</li>'; return; }
+  $('visits').innerHTML = top + vs.map((v) => {
+    const first = v.find((x) => !x[2]) || v[0], code = String(first[8] || '').slice(0, 2);
+    let place = code || 'Bilinmiyor';
+    try { if (regionName && /^[A-Z]{2}$/i.test(code)) place = regionName.of(code.toUpperCase()) || place; } catch (e) {}
+    const dev = [SIZES[first[5]] || first[5], first[7], first[6]].filter(Boolean).map(esc).join(' · ');
+    const ref = refLabel(first[9], first[10]);
+    const camp = v.map((x) => clean(x[1]).match(/^kampanya\/([^/]+)\/giris$/)).find(Boolean);
+    let active = 0, games = 0;
+    for (const x of v) {
+      if (!x[2]) continue;
+      const m = clean(x[1]).match(/^[a-z0-9-]+\/(sure|ek|basladi)(?:\/(\d+))?$/);
+      if (!m || /^kampanya\//.test(clean(x[1]))) continue;
+      if (m[1] === 'basladi') games++; else if (MID[+m[2]] != null) active += MID[+m[2]];
+    }
+    const span = (v[v.length - 1][0] - v[0][0]) / 60;
+    const time = active ? 'aktif ≈ ' + dur(active) : span >= 1 ? '≈ ' + dur(span) : '';
+    const steps = visitSteps(v), shown = steps.slice(0, 40);
+    return `<li class="visit cut"><div class="vh"><b>${when(v[0][0])}</b><span>${flag(code)}${esc(place)}</span><span>${dev || 'cihaz bilinmiyor'}</span>`
+      + `<span>${ref === 'Doğrudan veya bilinmiyor' ? 'doğrudan' : ref}${camp ? `<span class="chip cut">${esc(camp[1])}</span>` : ''}</span>`
+      + `<span class="vd">${[time, games ? games + ' oyun' : ''].filter(Boolean).join(' · ')}</span></div>`
+      + `<div class="steps">${shown.map((s) => `<span class="st ${s.cls}">${s.label}${s.n > 1 ? `<i>×${s.n}</i>` : ''}</span>`).join('')}`
+      + `${steps.length > shown.length ? `<span class="st tm">+${steps.length - shown.length}</span>` : ''}</div></li>`;
+  }).join('');
+}
+let vLoad = 0;
+async function loadVisits() {
+  const id = ++vLoad, box = $('visits'), msg = (t) => { if (id === vLoad) box.innerHTML = `<li class="empty">${t}</li>`; };
+  if (!box.children.length) msg('Yükleniyor…');
+  let f, d;
+  try {
+    const r = await fetch(VURL + '?t=' + Math.floor(Date.now() / 60000), { cache: 'no-store' });
+    if (r.status === 404) return msg('Henüz veri yok. GitHub\'daki "Son ziyaretler" işi ilk kez çalışınca (saatte bir) burada görünür.');
+    if (!r.ok) throw new Error();
+    f = await r.json();
+  } catch (e) { return msg('Ziyaret verisi alınamadı. Yenileyince tekrar denenir.'); }
+  try { d = await openVisits(f); }
+  catch (e) { return msg('Veri bu tarayıcıdaki anahtarla açılamadı. Paneldeki anahtar, GitHub\'daki <b>GOATCOUNTER_KEY</b> ile aynı olmalı.'); }
+  if (id !== vLoad) return;
+  $('vSub').textContent = 'saatte bir güncellenir · son: ' + when(Date.parse(f.at) / 1000);
+  drawVisits(d.rows || [], d.err === 'izin' ? 'GOATCOUNTER_KEY anahtarında <b>Export</b> izni yok, yeni ziyaretler gelmiyor. GoatCounter\'da API sayfasından bu izni ver.' : '');
+}
+
 // ---------- Hepsi ----------
 function setDur(id, min, has) { const el = $(id); el.textContent = has ? dur(min) : '–'; }
 function render(data) {
@@ -819,7 +952,7 @@ function showKey(msg) {
 function showDash() {
   panelMode(true); $('keyBox').hidden = true; $('dash').hidden = false; $('refresh').hidden = false;
   document.querySelectorAll('#ranges button').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.d === days));
-  load();
+  load(); loadVisits();
 }
 $('keyForm').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -834,10 +967,10 @@ $('ranges').addEventListener('click', (e) => {
   document.querySelectorAll('#ranges button').forEach((x) => x.setAttribute('aria-pressed', x === b));
   load();
 });
-$('refresh').addEventListener('click', load);
+$('refresh').addEventListener('click', () => { load(); loadVisits(); });
 $('forget').addEventListener('click', () => {
   store.del('rids_panel_key'); for (const d of [1, 7, 30, 90]) store.del('rids_panel_cache_' + d);
-  key = null; showKey();
+  $('visits').innerHTML = ''; key = null; showKey();
 });
 let lastW = innerWidth;
 addEventListener('resize', () => {
@@ -845,7 +978,7 @@ addEventListener('resize', () => {
   try { const c = JSON.parse(store.get('rids_panel_cache_' + days)); if (c && c.v === CACHE_V && !$('dash').hidden) render(c); } catch (e) {}
 });
 // uygulamaya geri dönünce en fazla dakikada bir kendiliğinden yenilenir
-document.addEventListener('visibilitychange', () => { if (!document.hidden && key && !$('dash').hidden && Date.now() - lastOk > 60000) load(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && key && !$('dash').hidden && Date.now() - lastOk > 60000) { load(); loadVisits(); } });
 // anahtar yoksa sayfa yokmuş gibi görünür; giriş formu yalnızca #giris ile açılır
 const wantsKey = () => location.hash === '#giris';
 addEventListener('hashchange', () => { if (!key) (wantsKey() ? showKey() : showNotFound()); });

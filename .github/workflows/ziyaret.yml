@@ -1,0 +1,37 @@
+name: Son ziyaretler
+on:
+  schedule:
+    - cron: '23 * * * *' # saatte bir (GoatCounter dışa aktarmayı saatte bir kabul ediyor)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: ziyaret
+jobs:
+  guncelle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Önceki veriyi al
+        run: |
+          if git fetch -q --depth=1 origin veri; then git show FETCH_HEAD:ziyaret.json > "$RUNNER_TEMP/eski.json" || true; fi
+      - name: Ziyaretleri çek
+        run: node .github/ziyaret.mjs "$RUNNER_TEMP/eski.json" "$RUNNER_TEMP/veri/ziyaret.json"
+        env:
+          GC_KEY: ${{ secrets.GOATCOUNTER_KEY }}
+      - name: Veri dalına yaz
+        # şifreli dosya tek commit'lik "veri" dalında durur; site kurulumu bu daldan etkilenmez
+        run: |
+          if [ ! -f "$RUNNER_TEMP/veri/ziyaret.json" ]; then echo "Değişiklik yok."; exit 0; fi
+          cd "$RUNNER_TEMP/veri"
+          git init -q -b veri
+          git add ziyaret.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Güncelleme"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" veri
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
