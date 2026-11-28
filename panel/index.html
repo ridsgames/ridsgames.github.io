@@ -834,6 +834,12 @@ function visitSteps(v) {
   });
   return out;
 }
+// dışa aktarmada ekran boyutu ham gelir ("genişlik,yükseklik,ölçek"); genişliğe göre cihaz türüne çevrilir
+function sizeOf(v) {
+  const w = parseInt(v, 10);
+  if (!(w > 0)) return SIZES[v] || v;
+  return w < 600 ? 'Telefon' : w < 1024 ? 'Tablet' : w <= 1920 ? 'Bilgisayar' : 'Büyük ekran';
+}
 function drawVisits(rows, warn) {
   const vs = visitsOf(rows);
   const top = warn ? `<li class="empty warn">${warn}</li>` : '';
@@ -842,7 +848,7 @@ function drawVisits(rows, warn) {
     const first = v.find((x) => !x[2]) || v[0], code = String(first[8] || '').slice(0, 2);
     let place = code || 'Bilinmiyor';
     try { if (regionName && /^[A-Z]{2}$/i.test(code)) place = regionName.of(code.toUpperCase()) || place; } catch (e) {}
-    const dev = [SIZES[first[5]] || first[5], first[7], first[6]].filter(Boolean).map(esc).join(' · ');
+    const dev = [sizeOf(first[5]), first[7], first[6]].filter(Boolean).map(esc).join(' · ');
     const ref = refLabel(first[9], first[10]);
     const camp = v.map((x) => clean(x[1]).match(/^kampanya\/([^/]+)\/giris$/)).find(Boolean);
     let active = 0, games = 0;
