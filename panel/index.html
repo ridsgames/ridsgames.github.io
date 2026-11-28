@@ -64,7 +64,8 @@ h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; color: #E
 /* Aralık seçici */
 .upd { margin: 0 0 4px; color: var(--steel-dim); font-size: 14px; }
 .upd:empty { display: none; }
-.ranges { --cut: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; background: var(--plate); margin: 6px 0 18px; }
+.ranges { --cut: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; background: var(--plate); margin: 6px 0 18px; position: sticky; top: 6px; z-index: 5; } /* aşağı inince de aralık değiştirilebilsin */
+.idle { grid-column: 1 / -1; margin: 2px 2px 0; font-size: 14px; color: var(--steel-dim); }
 .ranges button { --cut: 7px; height: 40px; border: 0; background: none; font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--steel-dim); }
 .ranges button[aria-pressed="true"] { background: var(--water); color: var(--ink-on-water); }
 
@@ -177,8 +178,13 @@ a.btn { display: inline-flex; align-items: center; padding: 0 22px; text-decorat
   .kpis.time .val { font-size: 25px; }
   .card { padding: 15px 14px 14px; }
   .chart svg { height: 180px; }
-  .games { grid-template-columns: 1fr; }
-  .game { display: grid; grid-template-columns: 112px 1fr; }
+  .games { grid-template-columns: 1fr; gap: 8px; }
+  /* telefonda oyunlar kısa satır: dokununca ayrıntı açılır */
+  .game { display: grid; grid-template-columns: 64px 1fr; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .game:not(.open) .rate, .game:not(.open) .facts, .game:not(.open) .spark { display: none; }
+  .game .body h3.m::after { content: "▾"; float: right; color: var(--steel-dim); transition: transform .2s; }
+  .game.open .body h3.m::after { transform: rotate(180deg); }
+  .game .rank { right: 4px; top: 4px; font-size: 12px; padding: 1px 6px; }
   .game .cover { height: auto; min-height: 100%; }
   .game .cover::after { background: linear-gradient(90deg, rgba(14, 17, 22, 0) 40%, rgba(21, 26, 34, .9)); }
   .game .cover h3 { display: none; }
@@ -640,7 +646,9 @@ const OWN = {
 function drawGames(cur, list) {
   // Pocket Tilt ve Hece Patlat her zaman en üstte; sıra numarası yalnız diğer oyunlar arasında
   const pin = (x) => { const i = PINNED.indexOf(x.slug); return i < 0 ? 99 : i; };
-  const order = GAMES.map((x) => ({ ...x, d: cur.g[x.slug] })).sort((a, b) => pin(a) - pin(b) || b.d.starts - a.d.starts || b.d.opens - a.d.opens);
+  const all = GAMES.map((x) => ({ ...x, d: cur.g[x.slug] })).sort((a, b) => pin(a) - pin(b) || b.d.starts - a.d.starts || b.d.opens - a.d.opens);
+  // bu aralıkta hiç açılmayan oyunlar kart yerine tek satırda adıyla (sabitlenenler hep kart)
+  const busy = (x) => pin(x) < 99 || x.d.opens || x.d.starts || x.d.ends, order = all.filter(busy), idle = all.filter((x) => !busy(x));
   $('games').innerHTML = order.map((x, i) => {
     const k = i - PINNED.length, ranked = k >= 0 && x.d.starts;
     const d = x.d, rate = pct(d.ends, d.starts);
@@ -655,7 +663,8 @@ function drawGames(cur, list) {
     const own = OWN[x.slug];
     if (own) facts.push(...own(d)); else { const tm = topMode(d, x.slug); if (tm) facts.push(['En çok seçilen', tm]); }
     if (d.errors) facts.push(['Hata', `<b class="bad">${fmt.format(d.errors)}</b>`]);
-    return `<article class="game cut">
+    const op = openGames.has(x.slug);
+    return `<article class="game cut${op ? ' open' : ''}" data-slug="${x.slug}" tabindex="0" aria-expanded="${op}">
       <div class="cover" style="background-image:url('${x.img}')"><h3>${esc(x.name)}</h3>${ranked ? `<span class="rank cut">${k + 1}.</span>` : ''}</div>
       <div class="body">
         <h3 class="m">${esc(x.name)}</h3>
@@ -665,8 +674,16 @@ function drawGames(cur, list) {
         ${spark(series)}
       </div>
     </article>`;
-  }).join('');
+  }).join('') + (idle.length ? `<p class="idle">Bu aralıkta açılmayan (${idle.length}): ${idle.map((x) => esc(x.name)).join(', ')}</p>` : '');
 }
+// telefonda karta dokununca ayrıntı açılır/kapanır; yenilemede açık kalır
+const openGames = new Set();
+function toggleGame(a) {
+  const on = a.classList.toggle('open'); a.setAttribute('aria-expanded', on);
+  if (on) openGames.add(a.dataset.slug); else openGames.delete(a.dataset.slug);
+}
+$('games').addEventListener('click', (e) => { const a = e.target.closest('.game'); if (a) toggleGame(a); });
+$('games').addEventListener('keydown', (e) => { const a = e.target.closest('.game'); if (a && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleGame(a); } });
 
 // ---------- Listeler ----------
 function rows(el, items, opts = {}) {
