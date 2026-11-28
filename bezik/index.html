@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<script id="rgErrJs">(() => { const E = window.__rgErr = [], keep = (m, src) => { if (E.length >= 5) E.shift(); E.push({ m: String(m || '').slice(0, 300), src: String(src || '').slice(0, 400), t: new Date().toISOString().slice(11, 19) }); }, st = (x, n) => x && x.stack ? String(x.stack).split('\n').slice(1, n).map((y) => y.trim()).join(' | ') : '';
+addEventListener('error', (e) => { if (e.target && e.target !== window) return; const s = st(e.error, 4); keep(e.message, `${(e.filename || '').split('/').pop()}:${e.lineno}:${e.colno}${s ? ' ' + s : ''}`); }, true);
+addEventListener('unhandledrejection', (e) => { const r = e.reason; keep(r && r.message ? r.message : r, st(r, 3) || 'promise'); }); })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Bezik | Ridsgames</title>
+<meta name="description" content="Bezik: Türk usulü 96 kâğıtlık bezik. Maça kızı ile karo valesini topla, sayı aç, 3000'e ilk ulaş. Bilgisayara karşı, üç zorluk.">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="../assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --cyan: #22d3ee;
+  --text: #f1f5f9;
+  --dim: #94a3b8;
+  --turn: #ef4444;
+  --red: #d32f2f;
+  --ink: #1b1b1f;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex; flex-direction: column; min-height: 100dvh; height: 100dvh; overflow: hidden;
+  font-family: "Inter", system-ui, -apple-system, sans-serif; color: var(--text);
+  background: radial-gradient(ellipse at 50% 42%, rgba(6, 9, 15, .05) 0%, rgba(6, 9, 15, .62) 100%), url("../kizma-birader/masa.webp") center / cover, #1a0f08;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Üst çubuk: diğer oyunlarla aynı */
+.top { flex: none; border-bottom: 1px solid rgba(30, 41, 59, .8); background: rgba(2, 6, 23, .85); backdrop-filter: blur(10px); position: relative; z-index: 25; }
+.top .in { max-width: 72rem; margin: 0 auto; height: 52px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo img { display: block; height: 32px; width: auto; mix-blend-mode: lighten; }
+.gname { font-size: 12px; color: rgba(34, 211, 238, .9); padding: 2px 8px; border-radius: 999px; background: rgba(8, 51, 68, .8); border: 1px solid rgba(6, 182, 212, .3); white-space: nowrap; }
+.tools { display: flex; align-items: center; gap: 6px; }
+.pill {
+  height: 34px; min-width: 34px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border: 1px solid rgba(34, 211, 238, .4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .35); font-size: 14px; font-weight: 600; color: #e2e8f0; transition: border-color .15s, transform .1s;
+}
+.pill:hover { border-color: var(--cyan); color: #fff; }
+.pill:active { transform: translateY(1px); }
+.pill .ico { font-size: 16px; line-height: 1; }
+.pill.lang { font-size: 12px; font-weight: 800; color: #67e8f9; letter-spacing: .02em; }
+@media (max-width: 520px) { .gname, .pill .lbl { display: none; } .pill { padding: 0 8px; } .top .in { height: 46px; } .logo img { height: 28px; } }
+:root:fullscreen .logo { display: none; } :root:fullscreen .tools { margin-left: auto; }
+:root:-webkit-full-screen .logo { display: none; } :root:-webkit-full-screen .tools { margin-left: auto; }
+
+/* Oyun alanı: ileti, masa, puan paneli */
+main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 10px 8px; }
+.slot { flex: none; height: 32px; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 6; margin-bottom: -32px; } /* masanın üstünde süzülür, yer kaplamaz */
+.msg {
+  max-width: 100%; padding: 6px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 800; color: #fff; text-align: center; line-height: 1.25;
+  background: rgba(15, 23, 42, .92); border: 1.5px solid var(--cyan); box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; pointer-events: none;
+}
+.msg.on { opacity: 1; transform: none; }
+.msg.gold { border-color: #ffd43b; }
+#stage { flex: 1; min-height: 0; width: 100%; max-width: 760px; position: relative; z-index: 0; isolation: isolate; overflow: hidden; touch-action: manipulation; }
+
+/* Kartlar: konum JS'ten transform ile, çevirme içteki katmanla */
+.card { position: absolute; left: 0; top: 0; width: var(--cw); height: var(--ch); transition-property: transform; transition-timing-function: cubic-bezier(.25, .8, .3, 1); will-change: transform; }
+.card .in { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateY(180deg); transition: transform .35s, translate .15s; }
+.card.up .in { transform: none; }
+.face { position: absolute; inset: 0; border-radius: calc(var(--cw) * .05); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 0 0 .5px rgba(0, 0, 0, .35); overflow: hidden; }
+.front { background: #fff; }
+.front img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+.back { transform: rotateY(180deg); background: var(--back) center / 100% 100% no-repeat, #fffdf8; }
+.card.play { cursor: pointer; }
+.card.play:hover .in { translate: 0 calc(var(--ch) * -.1); }
+.card.hit .front { box-shadow: 0 0 0 2px #ffd43b, 0 0 14px rgba(255, 212, 59, .8), 0 2px 6px rgba(0, 0, 0, .45); }
+.card.hot .in { translate: 0 calc(var(--ch) * -.14); }
+.card.flat .face { box-shadow: none; } /* destede yığılan gölgeler kararmasın */
+
+.badge { position: absolute; z-index: 300; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 12.5px; font-weight: 800; color: #fff; background: rgba(2, 6, 23, .82); border: 1px solid rgba(255, 220, 170, .35); font-variant-numeric: tabular-nums; pointer-events: none; translate: -50% -50%; transition: opacity .2s; }
+.badge.zero { opacity: 0; }
+.lbl2 { position: absolute; z-index: 300; font-size: 11px; font-weight: 700; color: rgba(255, 235, 200, .8); text-shadow: 0 1px 2px rgba(0, 0, 0, .8); translate: -50% 0; pointer-events: none; white-space: nowrap; }
+#pop { position: absolute; z-index: 320; left: 0; top: 0; translate: -50% -50%; pointer-events: none; font-weight: 900; font-size: 44px; color: #ffe066; letter-spacing: .02em; white-space: nowrap;
+  text-shadow: 0 3px 0 #8a5a00, 0 0 18px rgba(255, 200, 0, .7), 0 6px 14px rgba(0, 0, 0, .7); opacity: 0; }
+#pop.go { animation: popIn 1.3s cubic-bezier(.2, 1.4, .4, 1) forwards; }
+@keyframes popIn { 0% { opacity: 0; scale: .3; } 18% { opacity: 1; scale: 1.15; } 30% { scale: 1; } 80% { opacity: 1; } 100% { opacity: 0; scale: 1.05; translate: -50% -90%; } }
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+
+/* Puan paneli: keçeli ahşap tepsi */
+.dock {
+  flex: none; width: 100%; max-width: 440px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+  border-style: solid; border-width: 20px 17px 24px; border-image: url("../kizma-birader/tepsi.webp") 60 50 72 50 fill / 20px 17px 24px stretch;
+  padding: 0 4px 0 8px; background: none;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .5)) drop-shadow(0 0 7px color-mix(in srgb, var(--turn) 60%, transparent));
+  transition: filter .3s;
+}
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ava { flex: none; display: inline-block; border-radius: 50%; background: url("../kizma-birader/karakterler.webp") 0 0 / 400% 100%; }
+.chip { width: 46px; height: 46px; box-shadow: 0 0 0 3px var(--turn), 0 3px 8px rgba(0, 0, 0, .45); transition: box-shadow .3s; }
+.chip.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { scale: .4; } 100% { scale: 1; } }
+.who .t { min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+#turnName { font-size: 17px; font-weight: 800; line-height: 1.2; color: #fff; }
+#turnMsg { font-size: 14px; color: #d8f3dc; line-height: 1.3; margin-top: 2px; min-height: 1.3em; }
+.skor { display: grid; gap: 6px; padding: 6px 8px; border-radius: 12px; background: rgba(2, 6, 23, .35); }
+.skor > div { display: flex; align-items: center; gap: 7px; font-size: 17px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.skor .ava { width: 24px; height: 24px; }
+.skor small { font-size: 11.5px; font-weight: 700; color: #ffe066; min-width: 3.2em; }
+#hedef { font-size: 11px; font-weight: 700; color: rgba(255, 235, 200, .75); text-align: center; }
+
+footer { flex: none; text-align: center; font-size: 11px; color: #64748b; padding: 6px 12px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid #0f172a; background: rgba(2, 6, 23, .6); }
+
+/* Yatay telefon: üst çubuk solda dar menü sütunu, masa ortada, sağda ileti ve puan paneli; alt bilgi gizli */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { display: grid; grid-template-columns: 0 minmax(0, 1fr) clamp(150px, 25vw, 200px); grid-template-rows: auto minmax(0, 1fr); }
+  main { display: contents; }
+  .top { grid-column: 1; grid-row: 1 / 3; border-bottom: 0; border-right: 1px solid rgba(30, 41, 59, .8); overflow-y: auto; }
+  .top .in { height: auto; max-width: none; flex-direction: column; justify-content: flex-start; padding: 10px 6px; gap: 12px; }
+  .logo img { width: 100%; max-width: 56px; height: auto; }
+  .gname, .pill .lbl { display: none; }
+  .tools { flex-direction: column; gap: 7px; }
+  .pill { padding: 0 8px; }
+  .pill.lang { font-size: 11px; padding: 0 6px; white-space: nowrap; }
+  #stage { grid-column: 2; grid-row: 1 / 3; width: auto; max-width: none; }
+  .slot { grid-column: 3; grid-row: 1; width: auto; height: auto; min-height: 40px; margin: 0; padding: 8px 8px 0 0; }
+  .msg { font-size: 12.5px; padding: 6px 10px; border-radius: 14px; }
+  .dock { grid-column: 3; grid-row: 2; width: auto; max-width: none; margin: 8px 8px 8px 0; grid-template-columns: 1fr; align-content: space-evenly; justify-items: center; gap: 10px; padding: 4px 4px 8px; }
+  .who { flex-direction: column; text-align: center; gap: 8px; }
+  .chip { width: 50px; height: 50px; }
+  body > .ov { padding: 8px; }
+  footer { display: none; }
+  #setupOv .card2 { max-width: 560px; padding: 14px 18px; }
+  #setupOv h2 { font-size: 22px; }
+  #setupOv .sub { margin-bottom: 8px; }
+  #setupOv .field { grid-template-columns: 130px 1fr; align-items: center; padding: 8px 0; }
+  #setupOv .btns { margin-top: 8px; grid-auto-flow: column; grid-auto-columns: 1fr; }
+  #handOv .card2 { max-width: 520px; padding: 10px 16px; }
+  #handOv h2 { font-size: 19px; }
+  #handOv .sub { margin-bottom: 4px; font-size: 12.5px; }
+  #handOv table.sum { font-size: 12.5px; }
+  #handOv table.sum td, #handOv table.sum th { padding: 2px 6px; }
+  #handOv table.sum thead .ava { width: 20px; height: 20px; }
+  #handOv tr.tot td, #handOv tr.all td { font-size: 14px; }
+  #handOv .btns { margin-top: 8px; }
+  #handOv .big { height: 40px; font-size: 15px; }
+}
+/* Geniş yatay ekran: masa solda büyük, panel sağda */
+@media (orientation: landscape) and (min-height: 501px) and (min-width: 900px) {
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto minmax(0, 1fr); gap: 12px 18px; max-width: 1200px; width: 100%; margin: 0 auto; padding: 14px 18px; }
+  #stage { grid-column: 1; grid-row: 1 / 3; max-width: none; align-self: stretch; }
+  .slot { grid-column: 2; grid-row: 1; height: auto; min-height: 44px; margin: 0; align-items: flex-end; }
+  .msg { border-radius: 16px; }
+  .dock { grid-column: 2; grid-row: 2; align-self: start; grid-template-columns: 1fr; justify-items: center; gap: 14px; padding: 10px 6px 14px; }
+  .who { flex-direction: column; text-align: center; gap: 10px; }
+  .chip { width: 64px; height: 64px; }
+}
+
+/* Pencereler */
+.ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 64px 16px 16px; background: rgba(2, 6, 23, .78); backdrop-filter: blur(6px); }
+.card2 {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; border-radius: 20px; padding: 22px 20px 20px;
+  background: linear-gradient(180deg, #111a2c, #0b1220); border: 1px solid rgba(34, 211, 238, .45); box-shadow: 0 20px 60px rgba(0, 0, 0, .6), 0 0 30px rgba(6, 182, 212, .15);
+}
+.card2 h2 { margin: 0 0 4px; font-size: 26px; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.card2 .sub { margin: 0 0 16px; font-size: 14px; color: var(--dim); text-align: center; line-height: 1.45; }
+.field { display: grid; gap: 8px; padding: 12px 0 4px; border-top: 1px solid rgba(148, 163, 184, .12); font-size: 14px; font-weight: 600; color: #cbd5e1; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: rgba(2, 6, 23, .7); border: 1px solid rgba(148, 163, 184, .2); border-radius: 11px; padding: 3px; gap: 3px; }
+.seg button { min-height: 38px; border: 0; border-radius: 8px; background: none; font-size: 13.5px; font-weight: 600; color: #cbd5e1; padding: 0 4px; }
+.seg button .mini { display: inline-block; width: 15px; height: 21px; border-radius: 2px; vertical-align: middle; margin-right: 7px; background: var(--b) center / 100% 100%; box-shadow: 0 0 0 1px rgba(255, 255, 255, .5); }
+.seg button[aria-pressed="true"] { background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff; box-shadow: 0 2px 8px rgba(6, 182, 212, .35); }
+.btns { display: grid; gap: 10px; margin-top: 14px; }
+.big {
+  height: 50px; border-radius: 14px; border: 1px solid #67e8f9; background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+  font-size: 17px; font-weight: 800; box-shadow: 0 4px 15px rgba(6, 182, 212, .35); transition: filter .15s, transform .1s;
+}
+.big:hover { filter: brightness(1.1); }
+.big:active { transform: translateY(1px); }
+.big.alt { background: linear-gradient(180deg, rgba(15, 23, 42, .9), rgba(10, 15, 29, .95)); border-color: rgba(34, 211, 238, .4); color: #e2e8f0; box-shadow: none; }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.5; color: #cbd5e1; }
+.rules li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.rules b { color: #fff; }
+.trophy { font-size: 52px; text-align: center; line-height: 1; margin-bottom: 6px; }
+.final { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 4px 0 6px; font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.final span { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px; background: rgba(2, 6, 23, .55); }
+.final span.win { background: rgba(6, 182, 212, .16); border: 1px solid rgba(34, 211, 238, .5); }
+.final .ava { width: 32px; height: 32px; }
+table.sum { width: 100%; border-collapse: collapse; font-size: 14px; color: #cbd5e1; font-variant-numeric: tabular-nums; }
+table.sum th, table.sum td { padding: 6px 8px; text-align: right; border-bottom: 1px solid rgba(148, 163, 184, .12); }
+table.sum th:first-child, table.sum td:first-child { text-align: left; }
+table.sum thead th { color: #fff; }
+table.sum thead .ava { width: 26px; height: 26px; vertical-align: middle; }
+table.sum tr.tot td { color: #fff; font-weight: 800; font-size: 15px; }
+table.sum tr.all td { color: #67e8f9; font-weight: 800; font-size: 16px; border-bottom: 0; }
+table.sum td.z { color: #475569; }
+
+/* Bezik'e özel */
+#declPick { min-width: 240px; }
+#declPick .b { display: grid; gap: 6px; }
+#declPick .b button, #declPass { width: 100%; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, .45); background: rgba(15, 23, 42, .95); color: #fff; font-weight: 800; font-size: 14.5px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+#declPick .b button:hover { border-color: #22d3ee; background: rgba(8, 51, 68, .95); }
+#declPick .b button b { color: #ffe066; font-variant-numeric: tabular-nums; }
+#declPass { margin-top: 8px; justify-content: center; border-color: rgba(255, 212, 59, .7); color: #ffe066; }
+#stockN { z-index: 290; }
+.card.dim .front img { filter: brightness(.58) saturate(.6); }
+.card.gone { visibility: hidden; }
+.card { touch-action: none; }
+.card.drag { cursor: grabbing; }
+.card.drag .in { translate: none !important; }
+.card.drag .face { box-shadow: 0 14px 28px rgba(0, 0, 0, .55), 0 0 0 .5px rgba(0, 0, 0, .35); }
+.seat { position: absolute; z-index: 310; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; }
+.seat .ava { width: 38px; height: 38px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .3), 0 3px 8px rgba(0, 0, 0, .5); transition: box-shadow .3s, scale .3s; }
+.seat.on .ava { box-shadow: 0 0 0 3px var(--c), 0 0 16px var(--c); scale: 1.14; }
+.seat b { font-size: 11px; font-weight: 800; color: #fff; background: rgba(2, 6, 23, .78); padding: 1px 7px; border-radius: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.seat b.bid { color: #1a1200; background: #ffd43b; }
+.seat b.ok { color: #052e16; background: #4ade80; }
+.seat b.team { box-shadow: 0 0 0 1.5px var(--t); }
+#seat0 { flex-direction: row; gap: 6px; translate: 0 -50%; }
+#seat0 .ava { width: 28px; height: 28px; }
+#trumpB { position: absolute; z-index: 305; translate: -50% -50%; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: opacity .2s, scale .2s; }
+#trumpB.off { opacity: 0; scale: .5; }
+#trumpB i { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 27px; line-height: 1; box-shadow: 0 0 0 2.5px #ffd43b, 0 3px 10px rgba(0, 0, 0, .55); font-family: Georgia, serif; }
+#trumpB b { font-size: 10.5px; font-weight: 800; color: #ffe066; background: rgba(2, 6, 23, .8); padding: 1px 6px; border-radius: 7px; }
+.pick { position: absolute; z-index: 400; translate: -50% -50%; padding: 10px 12px 12px; border-radius: 16px; background: rgba(2, 6, 23, .94); border: 1px solid rgba(34, 211, 238, .55); box-shadow: 0 12px 30px rgba(0, 0, 0, .6); text-align: center; max-width: calc(100% - 16px); }
+.pick .t { font-size: 13.5px; font-weight: 800; margin-bottom: 8px; color: #fff; }
+.pick .s { font-size: 12px; color: var(--dim); margin: -4px 0 8px; }
+.skor.g4 { grid-template-columns: auto auto; column-gap: 14px; }
+.skor > div.full { grid-column: 1 / -1; }
+.skor > div.w { color: #ffe066; }
+.skor .pair { display: inline-flex; }
+.skor .pair .ava + .ava { margin-left: -7px; }
+table.sum td.nm { display: flex; align-items: center; gap: 7px; }
+table.sum td.nm .ava { width: 22px; height: 22px; }
+table.sum td.nm .ava + .ava { margin-left: -12px; }
+table.sum tr.win td { color: #ffe066; font-weight: 800; }
+table.sum td.neg { color: #f87171; font-weight: 800; }
+@keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+.card.no .in { animation: shake .25s 2; }
+/* Telefonda oyun alanı tüm ekranı kullanır */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 1100px) { footer { display: none; } }
+
+/* Tek düğme düzeni: sağ üstte ayarlar, sağ altta tam ekran; üst çubuk ayarlar penceresine dönüştü, oyun alanı ekranın tamamı */
+.top { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; padding: 16px; margin: 0; overflow: auto;
+  background: rgba(2, 6, 23, .72); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 0; grid-column: auto; grid-row: auto; }
+html.rgSet .top { display: flex; }
+.top .in { position: relative; width: 100%; max-width: 340px; height: auto; margin: auto; padding: 18px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 14px;
+  border-radius: 20px; background: #0b1220; border: 1px solid rgba(34, 211, 238, .3); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
+.top .logo { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.top .logo img { height: 40px; width: auto; max-width: none; }
+.top .gname { display: inline-block; }
+.top .tools { display: grid; gap: 8px; margin: 0; flex-direction: column; }
+.top .pill { width: 100%; height: 48px; border-radius: 13px; justify-content: flex-start; gap: 12px; padding: 0 16px; font-size: 16px; font-weight: 700; }
+.top .pill .ico { width: 22px; text-align: center; font-size: 18px; }
+.top .pill .lbl { display: inline; }
+.top .pill.lang { justify-content: center; font-size: 15px; padding: 0 16px; }
+.top .rgClose { height: 44px; border-radius: 999px; border: 0; font-weight: 800; font-size: 15px; color: #e2e8f0; background: rgba(30, 41, 59, .9); }
+.rgFab { position: fixed; z-index: 30; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: rgba(2, 6, 23, .62); border: 1px solid rgba(148, 163, 184, .32); color: #e2e8f0; box-shadow: 0 3px 10px rgba(0, 0, 0, .4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.rgFab:hover { background: rgba(15, 23, 42, .9); color: #fff; }
+.rgFab.set { top: max(6px, env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); }
+.rgFab.fs { bottom: max(6px, env(safe-area-inset-bottom)); right: max(6px, env(safe-area-inset-right)); width: 36px; height: 36px; opacity: .8; }
+.rgFab.fs .fsOut, html.isFs .rgFab.fs .fsIn { display: none; } html.isFs .rgFab.fs .fsOut { display: inline; }
+footer { display: none; }
+
+/* Yatay telefon: masa tüm genişliği kullanır; sıra/puan paneli sol üstte küçük bir rozet */
+@media (orientation: landscape) and (max-height: 500px) {
+  body { grid-template-columns: 0 minmax(0, 1fr) 0; }
+  .slot { position: fixed; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: auto; max-width: 60vw; height: auto; min-height: 0; margin: 0; padding: 0; z-index: 12; pointer-events: none; }
+  .dock { position: fixed; top: max(6px, env(safe-area-inset-top)); left: max(6px, env(safe-area-inset-left)); z-index: 12; width: auto; max-width: 44vw; margin: 0; padding: 4px 8px; display: flex; align-items: center; gap: 8px; border-radius: 14px; }
+  .who { flex-direction: row; text-align: left; gap: 7px; } .chip { width: 30px; height: 30px; }
+  #turnName { font-size: 13px; } #turnMsg { font-size: 11px; min-height: 0; margin-top: 0; }
+  .skor { padding: 3px 6px; gap: 2px 10px; border-radius: 9px; } .skor > div { font-size: 12.5px; gap: 4px; } .skor .ava { width: 16px; height: 16px; } .skor small { font-size: 10px; min-width: 0; }
+}
+/* Sıra ve puan paneli yok: ayarların altındaki düğme puan tablosunu açar; koltuklar isim ve puan plakası */
+.dock { display: none !important; }
+.rgFab.sk { top: calc(max(6px, env(safe-area-inset-top)) + 46px); right: max(6px, env(safe-area-inset-right)); }
+.rgFab.sk[aria-expanded="true"] { background: rgba(15, 23, 42, .95); color: #ffe066; border-color: rgba(255, 224, 102, .6); }
+#skorPop { position: fixed; z-index: 331; top: calc(max(6px, env(safe-area-inset-top)) + 92px); right: max(6px, env(safe-area-inset-right)); padding: 6px; border-radius: 14px;
+  background: rgba(2, 6, 23, .9); border: 1px solid rgba(148, 163, 184, .32); box-shadow: 0 8px 24px rgba(0, 0, 0, .5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+#skorPop .skor { background: none; padding: 4px 8px; }
+#stage .seat { flex-direction: row; gap: 6px; padding: 3px 5px 3px 3px; border-radius: 999px; white-space: nowrap; color: #fff; font-weight: 800; font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+  background: linear-gradient(180deg, #9a3412, #7c2d12); border: 2px solid #d97706; box-shadow: 0 3px 8px rgba(0, 0, 0, .4); transition: border-color .2s, box-shadow .2s; }
+#stage .seat.on { border-color: #fde047; box-shadow: 0 0 0 3px rgba(253, 224, 71, .35), 0 3px 8px rgba(0, 0, 0, .4); }
+#stage .seat .ava, #stage #seat0 .ava { width: 24px; height: 24px; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .5); scale: none; }
+#stage .seat b { font-size: 11px; padding: 1px 6px; letter-spacing: 0; } #stage .seat b:not(.bid):not(.ok) { background: rgba(2, 6, 23, .55); }
+#stage .seat .cn { font-size: 12px; min-width: 22px; padding: 1px 6px; border-radius: 6px; text-align: center; letter-spacing: 0; color: #111827; background: #fffdf8; font-variant-numeric: tabular-nums; }
+</style>
+<!-- Ziyaret sayacı (GoatCounter): çerez kullanmaz; ?lang= gibi ekler aynı sayfa sayılır -->
+<script>window.goatcounter = { path: (p) => p.split('?')[0] || '/' };</script>
+<script src="../assets/kabuk.js"></script>
+<script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- Etkin süre, yeni ziyaret ve hata kaydı (ortak) -->
+<script src="../assets/olcum.js" data-page="bezik" data-name="Bezik"></script>
+</head>
+<body>
+<header class="top">
+  <div class="in">
+    <a id="homeLink" class="logo" href="../" aria-label="Ridsgames ana sayfa">
+      <span class="homeIco" aria-hidden="true" style="display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(8,51,68,.85);border:1.5px solid rgba(34,211,238,.5);color:#67e8f9;box-shadow:0 2px 8px rgba(0,0,0,.35);flex:none"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 3.3 2.6 11.6a.8.8 0 0 0 .53 1.4H5v7.2c0 .44.36.8.8.8h4.2v-5.6h4v5.6h4.2c.44 0 .8-.36.8-.8V13h1.87a.8.8 0 0 0 .53-1.4z"/></svg></span>
+      <span class="gname" id="gameName">Bezik</span>
+    </a>
+    <div class="tools">
+      <button id="menuBtn" class="pill" type="button"><span class="ico">☰</span><span class="lbl" id="menuLbl">Yeni oyun</span></button>
+      <button id="soundBtn" class="pill" type="button" aria-label="Ses"><span class="ico" id="soundIco">🔊</span></button>
+      <button id="rulesBtn" class="pill" type="button" aria-label="Kurallar"><span class="ico">?</span><span class="lbl" id="rulesLbl">Kurallar</span></button>
+      <button id="langBtn" class="pill lang" type="button" aria-label="Dili değiştir">TR | EN</button>
+    </div>
+    <button type="button" class="rgClose">Kapat</button>
+  </div>
+</header>
+<button id="rgSetBtn" class="rgFab set" type="button" aria-label="Ayarlar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+<button id="skBtn" class="rgFab sk" type="button" aria-label="Puan tablosu" aria-expanded="false" aria-controls="skorPop"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path fill="currentColor" d="M4 20h4V10H4zm6 0h4V4h-4zm6 0h4v-7h-4z"/></svg></button>
+<button id="fsBtn" class="rgFab fs" type="button" aria-label="Tam ekran"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="fsIn" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fsOut" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+
+<main>
+  <div class="slot"><div class="msg" id="msg" role="status" aria-live="polite"></div></div>
+  <div id="stage" aria-label="Masa">
+    <div class="seat" id="seat0"><i class="ava"></i><span class="nm"></span><b></b><span class="cn"></span></div>
+    <div class="seat" id="seat1"><i class="ava"></i><span class="nm"></span><b></b><span class="cn"></span></div>
+    <div id="trumpB" class="off"><i></i><b id="trumpLbl"></b></div>
+    <span class="badge zero" id="stockN"></span>
+    <div id="declPick" class="pick" hidden><div class="t" id="dpT"></div><div class="s" id="dpS"></div><div class="b" id="dpB"></div><button type="button" id="declPass"></button></div>
+    <div id="pop"></div>
+  </div>
+  <div class="dock" id="dock">
+    <div class="who">
+      <span class="chip ava" id="chip" aria-hidden="true"></span>
+      <div class="t"><div id="turnName"></div><div id="turnMsg"></div></div>
+    </div>
+  </div>
+  <div id="skorPop" hidden><div class="skor" id="skor" role="status"></div></div>
+</main>
+
+<footer>© 2026 Ridsgames. <span id="rights">Tüm hakları saklıdır.</span></footer>
+<canvas id="confetti" hidden></canvas>
+
+<!-- Kurulum -->
+<div class="ov" id="setupOv">
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+    <h2 id="setupTitle">Bezik</h2>
+    <p class="sub" id="setupSub"></p>
+    <div class="field"><span id="lvlLbl"></span><div class="seg" id="lvlSeg"><button type="button" data-v="easy"></button><button type="button" data-v="mid"></button><button type="button" data-v="hard"></button></div></div>
+    <div class="field"><span id="tgtLbl"></span><div class="seg" id="tgtSeg"><button type="button" data-v="1000"></button><button type="button" data-v="2000"></button><button type="button" data-v="3000"></button></div></div>
+    <div class="field"><span id="deckLbl"></span><div class="seg" id="deckSeg"><button type="button" data-v="red"></button><button type="button" data-v="black"></button></div></div>
+    <div class="btns">
+      <button class="big" id="startBtn" type="button"></button>
+      <button class="big alt" id="resumeBtn" type="button" hidden></button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div class="ov" id="rulesOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" tabindex="-1" style="outline:none"></h2>
+    <p class="sub" id="rulesSub"></p>
+    <ul class="rules" id="rulesList"></ul>
+    <div class="btns"><button class="big" id="rulesOk" type="button"></button></div>
+  </div>
+</div>
+
+<!-- Tur sonu -->
+<div class="ov" id="handOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="handTitle">
+    <h2 id="handTitle"></h2>
+    <p class="sub" id="handSub"></p>
+    <table class="sum" id="sumTable"></table>
+    <div class="btns"><button class="big" id="nextBtn" type="button"></button></div>
+  </div>
+</div>
+
+<!-- Oyun sonu -->
+<div class="ov" id="winOv" hidden>
+  <div class="card2" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 id="winTitle"></h2>
+    <div class="final" id="final"></div>
+    <p class="sub" id="winSub"></p>
+    <div class="btns">
+      <button class="big" id="againBtn" type="button"></button>
+      <button class="big alt" id="toMenuBtn" type="button"></button>
+    </div>
+  </div>
+</div>
+
+<script id="motor">
+// ---------- Motor: Türk usulü bezik kuralları ve bilgisayar (arayüzden bağımsız) ----------
+// 96 kâğıt: 9'dan asa 24'lük deste dört kez. Kâğıt 0-95: tür = id % 24, renk = tür / 6 (0 maça, 1 kupa, 2 karo, 3 sinek),
+// değer = tür % 6 (0: 9, 1: vale, 2: kız, 3: papaz, 4: 10, 5: as); güç sırası da budur
+const suitOf = (c) => ((c % 24) / 6) | 0, rk = (c) => c % 6, ty = (c) => c % 24;
+const RJ = 1, RQ = 2, RK = 3, R10 = 4, RA = 5, BQ = 2, BJ = 13; // BQ maça kızı, BJ karo valesi
+const FOUR = { 1: [40, 400], 2: [60, 600], 3: [80, 800], 5: [100, 1000] }; // dörtlüler: [karışık, aynı dört koz]
+const BEZ = [0, 50, 500, 1500, 3000]; // bezik: tek, çift, üçlü, dörtlü
+const isBrisk = (c) => rk(c) >= R10; // as ve 10'lu
+const best = (a, f) => a.reduce((b, c) => (f(c) > f(b) ? c : b));
+function shuffled(rnd = Math.random, a = Array.from({ length: 96 }, (_, i) => i)) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// b, önce atılan a'yı yener mi: aynı renkte büyük ya da koz; eşit kâğıtta önce atan alır
+const beats = (a, b, tr) => (suitOf(b) === suitOf(a) ? rk(b) > rk(a) : tr >= 0 && suitOf(b) === tr);
+// h: { stock, hands: kapalı el, table: masaya açılan (yine eldedir), groups: bozulmamış gruplar { k: kq|seri|four|bez, key, cards, val },
+//      won, trick: [{ p, c, rp: yeniden yazılan }], rd: turda yazılan, dn: dönük sayı, trump, tseri: koz serisi açıldı mı, end: deste bitti mi,
+//      leader, turn, phase: deal|play|decl|draw|done, noDecl, lastW, res, mid }
+function newRound(dealer, rnd) {
+  const nd = 1 - dealer;
+  return { stock: shuffled(rnd), hands: [[], []], table: [[], []], groups: [[], []], won: [[], []], trick: [], rd: [0, 0], dn: [0, 0], trump: -1, tseri: false, end: false,
+    leader: nd, turn: nd, phase: 'deal', noDecl: false, lastW: -1, res: null, mid: true };
+}
+const dealStep = (h, k) => { const p = ((k / 3) | 0) % 2 ? 1 - h.leader : h.leader; h.hands[p].push(h.stock.pop()); return p; }; // üçer üçer, önce dağıtmayana
+// Deste bitene kadar her kâğıt atılabilir; sonra renge uymak ve büyütmek, o renk yoksa koz atmak zorunlu
+function legalOf(h, p) {
+  const all = h.hands[p].concat(h.table[p]);
+  if (!h.end || !h.trick.length) return all;
+  const a = h.trick[0].c, f = all.filter((c) => suitOf(c) === suitOf(a));
+  if (f.length) { const hi = f.filter((c) => rk(c) > rk(a)); return hi.length ? hi : f; }
+  const t = all.filter((c) => suitOf(c) === h.trump);
+  return t.length ? t : all;
+}
+// Açılabilecek sayılar (en yükseği başta). Önce masadaki kâğıtlar kullanılır, en az bir kâğıt elden gelmeli.
+// Aynı türden bozulmamış grup masadaysa yalnız daha yükseği açılır (tek bezikten çifte, karışık 4 astan aynı 4 asa gibi).
+// ponytail: birleşik sayılar (koz papaz-kız + karo vale 100, seri + bezik 300) ve "masada 5 as varken 4 as açılmaz" yok; tek kaynakta geçiyor
+function decls(hand, table, groups, tr) {
+  const out = [], pool = table.concat(hand), T = (t) => (x) => ty(x) === t;
+  const top = (k, key) => Math.max(0, ...groups.filter((g) => g.k === k && g.key === key).map((g) => g.val));
+  const pick = (preds) => {
+    const used = new Set(), cards = [];
+    for (const f of preds) { const c = pool.find((x) => !used.has(x) && f(x)); if (c === undefined) return null; used.add(c); cards.push(c); }
+    if (cards.some((c) => hand.includes(c))) return cards;
+    for (let i = 0; i < preds.length; i++) { const c = hand.find((x) => !used.has(x) && preds[i](x)); if (c !== undefined) { cards[i] = c; return cards; } }
+    return null;
+  };
+  const add = (k, key, preds, val) => { if (val <= top(k, key)) return false; const cards = pick(preds); if (cards) out.push({ k, key, cards, val }); return !!cards; };
+  for (let s = 0; s < 4; s++) {
+    const t = tr < 0 || s === tr; // koz yokken açılan papaz-kız ya da seri kozu belirler
+    if (!top('seri', s)) add('kq', s, [T(s * 6 + RK), T(s * 6 + RQ)], t ? 40 : 20);
+    add('seri', s, [RA, R10, RK, RQ, RJ].map((r) => T(s * 6 + r)), t ? 250 : 150);
+  }
+  for (const r of [RJ, RQ, RK, RA]) {
+    const same = [];
+    if (tr >= 0) same.push([tr * 6 + r, FOUR[r][1]]);
+    if (r === RA) for (let s = 0; s < 4; s++) if (s !== tr) same.push([s * 6 + RA, 500]);
+    if (!same.some(([t, v]) => add('four', r, [T(t), T(t), T(t), T(t)], v))) add('four', r, Array(4).fill((x) => rk(x) === r), FOUR[r][0]);
+  }
+  const nb = Math.min(pool.filter(T(BQ)).length, pool.filter(T(BJ)).length);
+  for (let n = nb; n > 0; n--) if (add('bez', 0, [...Array(n).fill(T(BQ)), ...Array(n).fill(T(BJ))], BEZ[n])) break;
+  return out.sort((a, b) => b.val - a.val);
+}
+const declsOf = (h, p) => decls(h.hands[p], h.table[p], h.groups[p], h.trump);
+function declareC(h, p, d) {
+  for (const c of d.cards) { const i = h.hands[p].indexOf(c); if (i >= 0) { h.hands[p].splice(i, 1); h.table[p].push(c); } }
+  h.groups[p] = h.groups[p].filter((g) => !(g.key === d.key && (g.k === d.k || (d.k === 'seri' && g.k === 'kq')))); // seri, içindeki papaz-kızın yerini alır
+  h.groups[p].push({ k: d.k, key: d.key, cards: d.cards.slice(), val: d.val });
+  if (h.trump < 0 && (d.k === 'kq' || d.k === 'seri')) h.trump = d.key;
+  if (d.k === 'seri' && d.key === h.trump) h.tseri = true;
+  h.rd[p] += d.val;
+}
+// Eli başlatan, bozulmamış grubundaki bir kâğıdın aynısını elden atarsa o grubun sayısı yeniden yazılır (dönükken olmaz)
+// ponytail: yeniden yazma kendiliğinden olur ve yalnız eli başlatana; birden çok grup uyarsa en yükseği yazılır ("300 dursun, 500" yok)
+const replayVal = (h, p, c) => (h.end || h.dn[p] ? 0 : Math.max(0, ...h.groups[p].filter((g) => g.cards.some((x) => ty(x) === ty(c))).map((g) => g.val)));
+const canDecl = (h, p) => !h.end && !h.noDecl && !h.dn[p] && declsOf(h, p).length > 0;
+function playC(h, p, c) {
+  const ti = h.table[p].indexOf(c); let rp = 0;
+  if (ti >= 0) { h.table[p].splice(ti, 1); h.groups[p] = h.groups[p].filter((g) => !g.cards.includes(c)); } // masadan oynanan kâğıt grubunu bozar, sayı kalır
+  else { h.hands[p].splice(h.hands[p].indexOf(c), 1); if (!h.trick.length) { rp = replayVal(h, p, c); h.rd[p] += rp; } }
+  h.trick.push({ p, c, rp }); h.turn = 1 - p;
+  return rp;
+}
+// Eli yeniden yazan kaptırırsa dönük olur; dönük olan el alınca kurtulur ama o tur sayı açamaz
+function resolveC(h) {
+  const [a, b] = h.trick, w = beats(a.c, b.c, h.trump) ? b.p : a.p, ev = { w, dn: -1, clr: false };
+  h.won[w].push(a.c, b.c); h.trick = []; h.leader = h.turn = w; h.noDecl = false;
+  if (!h.end && h.dn[w]) { h.dn[w] = 0; h.noDecl = ev.clr = true; }
+  if (a.rp && w !== a.p) { h.dn[a.p] = a.rp; ev.dn = a.p; }
+  if (h.end) { if (h.hands[w].length) h.phase = 'play'; else { h.phase = 'done'; h.lastW = w; } }
+  else h.phase = canDecl(h, w) ? 'decl' : 'draw';
+  return ev;
+}
+function drawC(h) { // önce eli alan çeker; deste bitince masadakiler ele alınır
+  const w = h.leader; h.hands[w].push(h.stock.pop()); h.hands[1 - w].push(h.stock.pop()); h.phase = 'play';
+  if (h.stock.length) return false;
+  h.end = true;
+  for (const p of [0, 1]) { h.hands[p].push(...h.table[p]); h.table[p] = []; h.groups[p] = []; }
+  return true;
+}
+// Tur içinde hedefe ulaşan (dönük değilse) hemen kazanır; yoksa -1
+const reached = (G) => [0, 1].filter((p) => !G.h.dn[p] && G.scores[p] + G.h.rd[p] >= G.target).concat(-1)[0];
+// Tur sonu: yanan dönük düşülür, son el (koz serisi açıldıysa 250, yalnız koz 40), sonra briskler (her biri 20)
+function roundEnd(G) {
+  const h = G.h, lb = h.tseri ? 250 : h.trump >= 0 ? 40 : 0;
+  const r = [0, 1].map((p) => ({ meld: h.rd[p], burn: h.dn[p], last: p === h.lastW ? lb : 0, brisk: 0 }));
+  const tot = (p) => G.scores[p] + r[p].meld - r[p].burn + r[p].last + r[p].brisk;
+  let win = -1, raised = false, noBrisk = false;
+  if (lb && tot(h.lastW) >= G.target) { win = h.lastW; noBrisk = true; } // son elle ulaşan kazanır, briskler sayılmaz
+  else {
+    r.forEach((x, p) => { x.brisk = h.won[p].filter(isBrisk).length * 20; });
+    const ok = [0, 1].map((p) => tot(p) >= G.target);
+    if (ok[0] && ok[1]) raised = true; else if (ok[0] || ok[1]) win = ok[0] ? 0 : 1;
+  }
+  r.forEach((x, p) => { x.sum = tot(p) - G.scores[p]; });
+  r.forEach((x, p) => { G.scores[p] += x.sum; });
+  if (raised) G.target += 1000; // ikisi de geçerse hedef 1000 artar
+  G.win = win; h.phase = 'done';
+  return (h.res = { r, win, raised, noBrisk, lb });
+}
+
+// ---------- Bilgisayar ----------
+// Kâğıdı elde tutmanın değeri: brisk, koz ve kurulabilecek gruplar (zorda oynanmış kâğıtlar hesaba katılır)
+function keepVal(h, p, c, lv) {
+  const r = rk(c), s = suitOf(c), tr = h.trump, own = h.hands[p].concat(h.table[p]), n = (f) => own.filter(f).length, has = (t) => n((x) => ty(x) === t);
+  const out = lv === 'hard' ? h.won[0].concat(h.won[1], h.table[1 - p]) : [];
+  const can = (t) => has(t) > 0 || out.filter((x) => ty(x) === t).length < 4;
+  let v = [0, 2, 3, 4, 7, 9][r];
+  if (tr >= 0 && s === tr) v += 5 + r;
+  if (h.groups[p].some((g) => g.cards.includes(c))) v += 4; // masadaki grubu bozmasın
+  if (r && r !== R10) { const k = n((x) => rk(x) === r); if (k >= 2) v += (k - 1) * (r === RA ? 6 : 4); }
+  if (ty(c) === BQ || ty(c) === BJ) { const m = ty(c) === BQ ? BJ : BQ; if (can(m)) v += 10 + has(m) * 6; }
+  if (r === RK || r === RQ) { const m = s * 6 + (r === RK ? RQ : RK); if (has(m)) v += tr < 0 || s === tr ? 14 : 6; else if (can(m)) v += 2; }
+  if (r) { const m = new Set(own.filter((x) => suitOf(x) === s && rk(x)).map(rk)).size; if (m >= 3) v += m * (tr < 0 || s === tr ? 4 : 2); }
+  return v;
+}
+// Bilgisayar yalnız kendi elini, masadaki açık kâğıtları ve oynanmış kâğıtları kullanır
+function cpuPlay(h, p, lv, rnd = Math.random) {
+  const legal = legalOf(h, p);
+  if (legal.length === 1) return legal[0];
+  if (lv === 'easy' && rnd() < 0.45) return legal[Math.floor(rnd() * legal.length)];
+  if (h.end) return endPlay(h, p, lv, legal);
+  const val = (c) => keepVal(h, p, c, lv);
+  if (!h.trick.length) return best(legal, (c) => -(val(c) + (isBrisk(c) ? 18 : 0) - replayVal(h, p, c) * 0.25));
+  const a = h.trick[0], tr = h.trump;
+  const declAfter = (c) => { if (h.dn[p]) return 0; const d = decls(h.hands[p].filter((x) => x !== c), h.table[p].filter((x) => x !== c), h.groups[p].filter((g) => !g.cards.includes(c)), tr); return d.length ? d[0].val : 0; };
+  return best(legal, (c) => {
+    const pts = (isBrisk(a.c) ? 20 : 0) + (isBrisk(c) ? 20 : 0);
+    return beats(a.c, c, tr) ? pts + declAfter(c) * 0.9 + a.rp * 0.8 + h.dn[p] * 0.5 - val(c) : -pts - val(c) * 0.6;
+  });
+}
+// Son 9 el. ponytail: zor seviye son 7 elde tam hesaplar, daha önce sezgisel
+function endPlay(h, p, lv, legal) {
+  const tr = h.trump, lead = h.trick.length ? h.trick[0].c : -1;
+  if (lv === 'hard' && h.hands[p].length <= 7) { // rakibin eli oynanmış kâğıtlardan bellidir
+    const seen = new Set([...h.won[0], ...h.won[1], ...h.hands[p], ...(lead >= 0 ? [lead] : [])]), opp = [];
+    for (let c = 0; c < 96; c++) if (!seen.has(c)) opp.push(c);
+    return solve(h.hands[p], opp, tr, h.tseri ? 250 : tr >= 0 ? 40 : 0, lead);
+  }
+  const low = (a) => best(a, (c) => -(rk(c) + (suitOf(c) === tr ? 6 : 0)));
+  if (lead >= 0) { const w = legal.filter((c) => beats(lead, c, tr)); return low(w.length ? w : legal); }
+  const side = legal.filter((c) => suitOf(c) !== tr), aces = side.filter((c) => rk(c) === RA);
+  return aces.length ? aces[0] : low(side.length ? side : legal);
+}
+// İki taraf da en iyi oynarsa A'nın alacağı brisk ve son el sayısı; A'nın en iyi kâğıdını döndürür
+function solve(A, B, tr, lb, lead) {
+  const memo = new Map(), bv = (c) => (isBrisk(c) ? 20 : 0);
+  const opts = (cards, m, a) => {
+    const ix = []; for (let i = 0; i < cards.length; i++) if ((m >> i) & 1) ix.push(i);
+    if (a < 0) return ix;
+    const f = ix.filter((i) => suitOf(cards[i]) === suitOf(a));
+    if (f.length) { const hi = f.filter((i) => rk(cards[i]) > rk(a)); return hi.length ? hi : f; }
+    const t = ix.filter((i) => suitOf(cards[i]) === tr); return t.length ? t : ix;
+  };
+  const after = (ca, cb, aLed, ma, mb) => { // ma, mb: bu elden sonra kalanlar
+    const aWins = aLed ? !beats(ca, cb, tr) : beats(cb, ca, tr), last = !ma;
+    return (aWins ? bv(ca) + bv(cb) + (last ? lb : 0) : 0) + (last ? 0 : rec(ma, mb, aWins));
+  };
+  const rec = (ma, mb, aLeads) => {
+    const key = (ma * 256 + mb) * 2 + (aLeads ? 1 : 0); let v = memo.get(key);
+    if (v !== undefined) return v;
+    if (aLeads) v = Math.max(...opts(A, ma, -1).map((i) => Math.min(...opts(B, mb, A[i]).map((j) => after(A[i], B[j], true, ma & ~(1 << i), mb & ~(1 << j))))));
+    else v = Math.min(...opts(B, mb, -1).map((j) => Math.max(...opts(A, ma, B[j]).map((i) => after(A[i], B[j], false, ma & ~(1 << i), mb & ~(1 << j))))));
+    memo.set(key, v); return v;
+  };
+  const fa = (1 << A.length) - 1, fb = (1 << B.length) - 1;
+  const score = lead >= 0
+    ? (i) => { const ma = fa & ~(1 << i), aWins = beats(lead, A[i], tr), last = !ma; return (aWins ? bv(lead) + bv(A[i]) + (last ? lb : 0) : 0) + (last ? 0 : rec(ma, fb, aWins)); }
+    : (i) => Math.min(...opts(B, fb, A[i]).map((j) => after(A[i], B[j], true, fa & ~(1 << i), fb & ~(1 << j))));
+  return A[best(opts(A, fa, lead), score)];
+}
+function cpuDecl(h, p, lv, rnd = Math.random) {
+  const ds = declsOf(h, p);
+  if (!ds.length || (lv === 'easy' && rnd() < 0.3)) return null;
+  if (lv === 'easy') return ds[Math.floor(rnd() * ds.length)];
+  const own = h.hands[p].concat(h.table[p]), len = (s) => own.filter((c) => suitOf(c) === s).length;
+  return best(ds, (d) => d.val + (d.k === 'kq' && h.trump < 0 ? len(d.key) * 0.1 : 0)); // koz belirlenecekse kâğıdı çok olan renk
+}
+</script>
+<script>
+// ---------- Metinler ----------
+const SUITCH = ['♠︎', '♥︎', '♦︎', '♣︎'], SUITCOL = ['#16161a', '#d40000', '#d40000', '#16161a'];
+const STR = {
+  tr: {
+    title: 'Bezik | Ridsgames', game: 'Bezik', homeLabel: 'Ridsgames ana sayfa', newGame: 'Yeni oyun', rules: 'Kurallar', sound: 'Ses', fs: 'Tam ekran', langAria: 'Dili değiştir',
+    rights: 'Tüm hakları saklıdır.', stage: 'Masa', names: ['Sen', 'Balina'],
+    setupSub: 'Maça kızıyla karo valesini topla, sayı aç, hedefe ilk sen ulaş.', lvlLbl: 'Bilgisayarın seviyesi', easy: 'Kolay', mid: 'Orta', hard: 'Zor',
+    tgtLbl: 'Kaça oynansın?', deckLbl: 'Deste', red: 'Kırmızı', black: 'Siyah', start: 'Başla', resume: 'Kaldığın yerden devam et',
+    rulesTitle: 'Nasıl oynanır?', rulesSub: 'İki kişi, 96 kâğıtla oynanır. Sayı açarak hedefe ilk ulaşan kazanır.', ok: 'Tamam',
+    ruleList: [
+      ['🃏', 'İki kişi oynanır. Deste <b>96 kâğıttır</b>: 9\'dan asa 24 kâğıt, dört kez. Herkese üçer üçer <b>9 kâğıt</b> dağıtılır, kalanı ortada kapalı durur. İlk kartı dağıtmayan atar.'],
+      ['🔢', 'Kâğıt sırası: <b>As, 10, Papaz, Kız, Vale, 9</b>. Atılan renkten büyük kâğıt ya da koz eli alır; yoksa el ilk kartı atanındır. İki aynı kâğıttan önce atılan alır.'],
+      ['👑', 'Başta koz yoktur. <b>İlk açılan papaz-kız</b> (ya da seri) kozu belirler.'],
+      ['✋', 'Deste bitene kadar renge uymak ya da büyütmek gerekmez. Masaya açtığın kâğıtlar da elindir, istediğin zaman atabilirsin.'],
+      ['📣', 'Eli alan bir sayı açabilir: kâğıtları masaya açılır, sayısı hemen yazılır. Sonra önce eli alan, sonra diğeri desteden birer kâğıt çeker.'],
+      ['💯', '<b>Sayılar:</b> papaz-kız 20, kozda 40 · seri (as, 10, papaz, kız, vale) 150, kozda 250 · 4 vale 40, 4 kız 60, 4 papaz 80, 4 as 100 · aynı renk 4 as 500 · aynı 4 koz vale, kız, papaz, as: 400, 600, 800, 1000 · <b>bezik</b> (maça kızı ile karo valesi) 50, çift 500, üçlü 1500, dörtlü 3000. Her sayıda en az bir kâğıt elden gelmeli; 9\'lu ve 10\'lu ile dörtlü olmaz.'],
+      ['🔁', 'Masadaki bozulmamış bir grubun aynısı olan kâğıdı elden atıp eli başlatırsan o sayı <b>yeniden yazılır</b>. Eli rakip alırsa <b>dönük</b> olursun: el alana kadar sayı yazamazsın, eli aldığın tur da sayı açamazsın. Deste bitene kadar dönükten kurtulamazsan o sayı silinir.'],
+      ['🧩', 'Masadan kâğıt atmak o grubu bozar, yazılan sayı kalır. Eksik kâğıt elden tamamlanınca aynı sayı yeniden yazılabilir.'],
+      ['🔒', 'Deste bitince masadaki kâğıtlar ele alınır. Son 9 elde atılan renkten atmak ve <b>büyütmek</b> zorunludur; o renk yoksa <b>koz</b> atılır. Artık sayı açılmaz.'],
+      ['🏁', 'Son eli alan, koz serisi açıldıysa <b>250</b>, yalnız koz açıldıysa <b>40</b> yazar. Sonra aldığın her as ve 10\'lu (<b>brisk</b>) 20 sayıdır.'],
+      ['🏆', 'Hedefe (genelde <b>3000</b>) ilk ulaşan kazanır. Tur içinde ulaşan hemen kazanır; son elle ulaşılırsa briskler sayılmaz. Tur sonunda ikiniz de geçerseniz hedef 1000 artar. Kaybeden hedefin yarısına ulaşamadıysa <b>rubikon</b> olur.']
+    ],
+    suit: ['Maça', 'Kupa', 'Karo', 'Sinek'], trump: 'Koz', rank: ['9', 'Vale', 'Kız', 'Papaz', '10', 'As'], four: ['', 'vale', 'kız', 'papaz', '', 'as'],
+    turnYou: 'Sıra sende', turnOf: (p) => `Sıra: ${STR.tr.names[p]}`, hintThink: 'Düşünüyor...', hintDeal: 'Kartlar dağıtılıyor...', hintLead: 'İlk kartı sen atıyorsun', hintPlay: 'Bir kart at', hintDecl: 'Açacağın sayıyı seç ya da geç',
+    declT: 'Sayı aç', declS: 'Eli aldın. Açmak istediğini seç:', pass: 'Geç',
+    dName: (d, tr) => {
+      const S = SUITCH[d.key], F = STR.tr.four[d.key];
+      if (d.k === 'kq') return tr < 0 ? `Papaz-kız ${S} (koz olur)` : d.key === tr ? `Koz papaz-kız ${S}` : `Papaz-kız ${S}`;
+      if (d.k === 'seri') return tr < 0 ? `Seri ${S} (koz olur)` : d.key === tr ? `Koz serisi ${S}` : `Seri ${S}`;
+      if (d.k === 'bez') return ['', 'Bezik', 'Çift bezik', 'Üçlü bezik', 'Dörtlü bezik'][d.cards.length / 2];
+      return d.val === FOUR[d.key][1] ? `4 koz ${F}` : d.val === 500 ? `4 aynı as ${SUITCH[suitOf(d.cards[0])]}` : `4 ${F}`;
+    },
+    declSay: (p, n, v) => (p === 0 ? `${n}: +${v}` : `${STR.tr.names[p]}: ${n} +${v}`),
+    replay: (p, v) => (p === 0 ? `Masadaki grubun aynısını attın: +${v}` : `${STR.tr.names[1]} masadaki grubun aynısını attı: +${v}`),
+    donuk: (p) => (p === 0 ? 'Eli kaptırdın, dönüksün: el alana kadar sayı yazamazsın' : `${STR.tr.names[1]} dönük oldu`),
+    cleared: (p) => (p === 0 ? 'Dönükten kurtuldun' : `${STR.tr.names[1]} dönükten kurtuldu`), donukB: 'Dönük',
+    trumpIs: (s) => `Koz ${STR.tr.suit[s].toLowerCase()}`, took: (p) => (p === 0 ? 'Eli aldın' : `Eli ${STR.tr.names[p]} aldı`),
+    endPhase: 'Deste bitti, masadakiler ele alındı: artık renge uymak ve büyütmek zorunlu',
+    whyNot: { follow: 'Atılan renkten atmalısın', higher: 'Daha büyüğünü atmalısın', trump: 'O renk yok, koz atmalısın' },
+    roundOver: (n) => `${n}. tur bitti`, lastBy: (p, v) => (p === 0 ? `Son eli sen aldın: +${v}` : `Son eli ${STR.tr.names[p]} aldı: +${v}`),
+    raised: (t) => `İkiniz de hedefi geçtiniz, yeni hedef ${t}`, noBrisk: 'Son elle hedefe ulaşıldı, briskler sayılmadı',
+    rows: ['Açılan sayılar', 'Yanan dönük', 'Son el', 'Briskler', 'Bu tur', 'Toplam'], nextRound: 'Sonraki tur', seeResult: 'Sonucu gör', progress: (t, n) => `Hedef ${t} · ${n}. tur`,
+    youWin: 'Kazandın!', cpuWin: 'Balina kazandı', winSub: (t) => `${t} sayıya ilk ulaşan kazandı`, rubikon: (p) => (p === 0 ? 'Rubikon! Hedefin yarısına ulaşamadın' : 'Rubikon! Balina hedefin yarısına ulaşamadı'),
+    again2: 'Tekrar oyna', toMenu: 'Ayarları değiştir', scoreAria: (names, sc) => 'Puanlar: ' + sc.map((v, i) => `${names[i]} ${v}`).join(', '),
+    cardName: (c) => `${STR.tr.suit[suitOf(c)]} ${STR.tr.rank[rk(c)]}`
+  },
+  en: {
+    title: 'Bezique | Ridsgames', game: 'Bezique', homeLabel: 'Ridsgames home', newGame: 'New game', rules: 'Rules', sound: 'Sound', fs: 'Fullscreen', langAria: 'Switch language',
+    rights: 'All rights reserved.', stage: 'Table', names: ['You', 'Whale'],
+    setupSub: 'Collect the queen of spades and jack of diamonds, declare melds and reach the target first.', lvlLbl: 'Computer level', easy: 'Easy', mid: 'Medium', hard: 'Hard',
+    tgtLbl: 'Play to', deckLbl: 'Deck', red: 'Red', black: 'Black', start: 'Start', resume: 'Resume game',
+    rulesTitle: 'How to play', rulesSub: 'Turkish bezique for two with 96 cards. Declare melds and be the first to reach the target.', ok: 'OK',
+    ruleList: [
+      ['🃏', 'Two players. The deck has <b>96 cards</b>: four 24-card packs from 9 to ace. Each player gets <b>9 cards</b> in threes; the rest is the face-down stock. The non-dealer leads first.'],
+      ['🔢', 'Card order: <b>Ace, 10, King, Queen, Jack, 9</b>. A higher card of the suit led, or a trump, wins the trick; otherwise the leader wins. Of two identical cards the first one played wins.'],
+      ['👑', 'There are no trumps at first. The <b>first king-queen marriage</b> (or sequence) declared sets trumps.'],
+      ['✋', 'While the stock lasts you need not follow suit or play higher. Cards you laid on the table still belong to your hand and can be played at any time.'],
+      ['📣', 'The trick winner may declare one meld: its cards are laid face up and scored at once. Then the winner draws from the stock, then the other player.'],
+      ['💯', '<b>Melds:</b> marriage 20, in trumps 40 · sequence (A, 10, K, Q, J) 150, in trumps 250 · four jacks 40, queens 60, kings 80, aces 100 · four identical aces 500 · four identical trump jacks, queens, kings, aces: 400, 600, 800, 1000 · <b>bezique</b> (queen of spades and jack of diamonds) 50, double 500, triple 1500, quadruple 3000. Each meld needs at least one card from your hand; nines and tens make no fours.'],
+      ['🔁', 'If you lead from your hand a twin of a card in an unbroken meld on the table, that meld <b>scores again</b>. If your opponent wins that trick you are <b>dönük</b>: you score nothing until you win a trick, and you cannot declare in the turn you win it. If you are still dönük when the stock runs out, those points are lost.'],
+      ['🧩', 'Playing a card from the table breaks its meld but keeps its points. Complete it again from your hand to score it once more.'],
+      ['🔒', 'When the stock runs out, table cards go back to the hands. In the last 9 tricks you must <b>follow suit and beat</b> the card if you can; if you cannot follow you must <b>trump</b>. No more declarations.'],
+      ['🏁', 'The last trick scores <b>250</b> if a trump sequence was declared, or <b>40</b> if trumps are set. Then every ace and ten you took (<b>brisque</b>) scores 20.'],
+      ['🏆', 'The first to reach the target (usually <b>3000</b>) wins. Reaching it during a round wins at once; reaching it with the last trick wins without counting brisques. If both pass it at the end of a round, the target rises by 1000. A loser below half the target is <b>rubicon</b>.']
+    ],
+    suit: ['Spades', 'Hearts', 'Diamonds', 'Clubs'], trump: 'Trumps', rank: ['Nine', 'Jack', 'Queen', 'King', 'Ten', 'Ace'], four: ['', 'jacks', 'queens', 'kings', '', 'aces'],
+    turnYou: 'Your turn', turnOf: (p) => `${STR.en.names[p]}'s turn`, hintThink: 'Thinking...', hintDeal: 'Dealing...', hintLead: 'You lead', hintPlay: 'Play a card', hintDecl: 'Pick a meld or skip',
+    declT: 'Declare', declS: 'You won the trick. Pick a meld:', pass: 'Skip',
+    dName: (d, tr) => {
+      const S = SUITCH[d.key], F = STR.en.four[d.key];
+      if (d.k === 'kq') return tr < 0 ? `Marriage ${S} (sets trumps)` : d.key === tr ? `Royal marriage ${S}` : `Marriage ${S}`;
+      if (d.k === 'seri') return tr < 0 ? `Sequence ${S} (sets trumps)` : d.key === tr ? `Trump sequence ${S}` : `Sequence ${S}`;
+      if (d.k === 'bez') return ['', 'Bezique', 'Double bezique', 'Triple bezique', 'Quadruple bezique'][d.cards.length / 2];
+      return d.val === FOUR[d.key][1] ? `Four trump ${F}` : d.val === 500 ? `Four identical aces ${SUITCH[suitOf(d.cards[0])]}` : `Four ${F}`;
+    },
+    declSay: (p, n, v) => (p === 0 ? `${n}: +${v}` : `${STR.en.names[p]}: ${n} +${v}`),
+    replay: (p, v) => (p === 0 ? `You led a twin of a meld card: +${v}` : `${STR.en.names[1]} led a twin of a meld card: +${v}`),
+    donuk: (p) => (p === 0 ? 'You lost the trick and are dönük: no scoring until you win one' : `${STR.en.names[1]} is dönük`),
+    cleared: (p) => (p === 0 ? 'You are no longer dönük' : `${STR.en.names[1]} is no longer dönük`), donukB: 'Dönük',
+    trumpIs: (s) => `${STR.en.suit[s]} are trumps`, took: (p) => (p === 0 ? 'You took the trick' : `${STR.en.names[p]} took the trick`),
+    endPhase: 'The stock is out and table cards are back in hand: now follow suit and beat',
+    whyNot: { follow: 'You must follow suit', higher: 'You must play higher', trump: 'You cannot follow, you must trump' },
+    roundOver: (n) => `Round ${n} is over`, lastBy: (p, v) => (p === 0 ? `You took the last trick: +${v}` : `${STR.en.names[p]} took the last trick: +${v}`),
+    raised: (t) => `You both passed the target, new target ${t}`, noBrisk: 'Target reached with the last trick, brisques not counted',
+    rows: ['Melds', 'Lost (dönük)', 'Last trick', 'Brisques', 'This round', 'Total'], nextRound: 'Next round', seeResult: 'See the result', progress: (t, n) => `Target ${t} · Round ${n}`,
+    youWin: 'You win!', cpuWin: 'Whale wins', winSub: (t) => `First to reach ${t}`, rubikon: (p) => (p === 0 ? 'Rubicon! You did not reach half the target' : 'Rubicon! Whale did not reach half the target'),
+    again2: 'Play again', toMenu: 'Change settings', scoreAria: (names, sc) => 'Scores: ' + sc.map((v, i) => `${names[i]} ${v}`).join(', '),
+    cardName: (c) => `${STR.en.rank[rk(c)]} of ${STR.en.suit[suitOf(c)].toLowerCase()}`
+  }
+};
+let savedLang = null;
+try { savedLang = localStorage.getItem('lang'); } catch (e) {}
+let lang = /^tr/i.test(new URLSearchParams(location.search).get('lang') || savedLang || navigator.language || 'tr') ? 'tr' : 'en';
+const T = () => STR[lang];
+const $ = (id) => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- Durum ----------
+// G: { level, target, goal: ilk hedef, scores, roundNo, dealer, h, over, win }
+let G = null, setup = { level: 'mid', target: '3000', deck: 'red' };
+let busy = true, epoch = 0, speed = 1, soundOn = true, bitenVar = false;
+try { const s = JSON.parse(localStorage.getItem('rids_bezik_setup')); if (s && ['easy', 'mid', 'hard'].includes(s.level) && ['1000', '2000', '3000'].includes(String(s.target))) setup = { ...setup, ...s }; } catch (e) {}
+try { soundOn = localStorage.getItem('rids_bezik_sound') !== '0'; } catch (e) {}
+const sayac = (olay, ad) => { try { window.goatcounter.count({ path: 'bezik/' + olay, title: 'Bezik: ' + ad, event: true }); } catch (e) {} };
+const lvAd = (lv) => (lv === 'easy' ? 'kolay' : lv === 'mid' ? 'orta' : 'zor');
+const avaPos = (i) => `${i * 100 / 3}% 0`;
+const TURNCOL = ['#ef4444', '#3b82f6'];
+const wait = (ms) => new Promise((r) => setTimeout(r, ms / speed));
+const live = (p) => G.scores[p] + (G.h && G.h.phase !== 'done' ? G.h.rd[p] : 0); // turda yazılan dahil
+
+// ---------- Kartlar (DOM) ----------
+const stage = $('stage'), els = [];
+// Kart yüzleri: Adrian Kennard'ın geleneksel İngiliz desenli kartları (CC0); ayrıntı: ../assets/kart/LISANS.txt
+const SUITC = 'SHDC', RANK = ['9', 'J', 'Q', 'K', '10', 'A'];
+const cardSvg = (c) => `<img src="../assets/kart/${SUITC[suitOf(c)]}${RANK[rk(c)]}.svg" alt="" draggable="false" decoding="async">`;
+function backSvg(ink) { // klasik iskambil sırtı: tek renk kafes, ortada Ridsgames R'si ile rozet
+  const R = 'M0 4L4 0h6v60H0zM12 0h19l9 9v15l-6 6H12v-8h18l2-2v-9l-3-3H12zM14 33h9l17 27H30z', W = '#fffdf8';
+  const rot = (n, f) => Array.from({ length: n }, (_, i) => f(i * 360 / n)).join('');
+  const rosette = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${W}"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rot(8, (a) => `<ellipse cx="${x}" cy="${y - r * .5}" rx="${r * .2}" ry="${r * .42}" fill="${ink}" transform="rotate(${a} ${x} ${y})"/>`) + `<circle cx="${x}" cy="${y}" r="${r * .2}" fill="${W}" stroke="${ink}" stroke-width="1.4"/>`;
+  const diamond = (y) => `<path d="M125 ${y - 22}l15 22-15 22-15-22z" fill="${W}" stroke="${ink}" stroke-width="2.2"/><path d="M125 ${y - 12}l8 12-8 12-8-12z" fill="${ink}"/><circle cx="125" cy="${y}" r="2" fill="${W}"/>`;
+  const C = [125, 175];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 350" preserveAspectRatio="none"><defs>`
+    + `<pattern id="k" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(45 125 175)"><rect width="13" height="13" fill="${W}"/><path d="M0 0H13M0 0V13" stroke="${ink}" stroke-width="2.4"/><circle cx="6.5" cy="6.5" r="1.5" fill="${ink}"/></pattern></defs>`
+    + `<rect width="250" height="350" fill="${W}"/>`
+    + `<rect x="13" y="13" width="224" height="324" rx="9" fill="${ink}"/>`
+    + `<rect x="22" y="22" width="206" height="306" rx="5" fill="none" stroke="${W}" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0 6.2"/>`
+    + `<rect x="30" y="30" width="190" height="290" fill="url(#k)" stroke="${W}" stroke-width="1.5"/>`
+    + `<rect x="34" y="34" width="182" height="282" fill="none" stroke="${ink}" stroke-width="1.6"/>`
+    + rosette(50, 50, 13) + rosette(200, 50, 13) + rosette(50, 300, 13) + rosette(200, 300, 13)
+    + diamond(72) + diamond(278)
+    // orta rozet: taç yaprakları, iki halka, içinde logodaki köşeli R
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="82" fill="${W}"/><circle cx="${C[0]}" cy="${C[1]}" r="79" fill="none" stroke="${ink}" stroke-width="2.6"/>`
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="74" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0 5.8"/>`
+    + rot(16, (a) => `<path d="M125 105c11 7 11 19 0 24-11-5-11-17 0-24z" fill="${ink}" transform="rotate(${a} 125 175)"/><path d="M125 111c5 4 5 10 0 13-5-3-5-9 0-13z" fill="${W}" transform="rotate(${a} 125 175)"/>`)
+    + rot(16, (a) => `<circle cx="125" cy="109" r="2.6" fill="${ink}" transform="rotate(${a + 11.25} 125 175)"/>`)
+    + `<circle cx="${C[0]}" cy="${C[1]}" r="45" fill="${ink}"/><circle cx="${C[0]}" cy="${C[1]}" r="40" fill="none" stroke="${W}" stroke-width="1.4"/>`
+    + rot(24, (a) => `<path d="M125 136.5v3" stroke="${W}" stroke-width="1.6" transform="rotate(${a} 125 175)"/>`)
+    + `<path transform="translate(111.4 154.6) scale(.68)" d="${R}" fill="${W}"/></svg>`;
+}
+const DECKS = { red: '#b3141b', black: '#1d1f26' };
+for (const k in DECKS) document.documentElement.style.setProperty('--back-' + k, `url("data:image/svg+xml,${encodeURIComponent(backSvg(DECKS[k]))}")`);
+const applyDeck = () => stage.style.setProperty('--back', `var(--back-${DECKS[setup.deck] ? setup.deck : 'red'})`);
+function makeCard(c) {
+  const el = document.createElement('div');
+  el.className = 'card'; el.dataset.c = c;
+  el.innerHTML = `<div class="in"><div class="face front">${cardSvg(c)}</div><div class="face back"></div></div>`;
+  el.addEventListener('pointerdown', (e) => dragStart(e, c)); el.addEventListener('pointermove', dragMove); el.addEventListener('pointerup', dragEnd); el.addEventListener('pointercancel', dragEnd);
+  stage.appendChild(el); return el;
+}
+for (let c = 0; c < 96; c++) els[c] = makeCard(c);
+
+// Yerleşim: rakip üstte (eli kapalı, altında masaya açtıkları), deste solda, alınan eller sağda; sen altta, elinin üstünde masadakilerin
+let L = null;
+function layout() {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const cw = Math.floor(Math.max(34, Math.min(W / 4.6, (H - 64) / 3.95 / 1.4, 110))), ch = Math.round(cw * 1.4);
+  const os = 0.6, och = ch * os, ocw = cw * os, ts = 0.66, tch = ch * ts;
+  const topVis = och * 0.5, oppSeatY = topVis + 14, oppTabY = oppSeatY + 14 + tch / 2;
+  const handY = H - ch / 2 - Math.max(4, ch * 0.05), myTabY = handY - ch / 2 - 8 - tch / 2;
+  const midY = Math.round((oppTabY + myTabY) / 2), cx = W / 2, stockX = Math.max(cw * 0.5 + 10, cx - cw * 1.9);
+  L = { W, H, cw, ch, os, och, ocw, ts, tch, topY: topVis - och / 2, oppSeatY, oppTabY, handY, myTabY, mySeatY: myTabY - tch / 2 - 17, midY, cx, stockX, wonX: W - stockX };
+  L.tp = [[cx + cw * 0.3, midY + ch * 0.1], [cx - cw * 0.3, midY - ch * 0.1]];
+  stage.style.setProperty('--cw', cw + 'px'); stage.style.setProperty('--ch', ch + 'px');
+  $('pop').style.fontSize = Math.round(Math.max(28, Math.min(52, cw * 0.48))) + 'px';
+  render(0);
+}
+const hash = (c, k) => { const x = Math.sin(c * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+function put(c, x, y, rot, sc, up, z, dur) {
+  const el = els[c];
+  el.style.transitionDuration = (dur / speed) + 'ms';
+  el.style.transform = `translate(${x - L.cw / 2}px, ${y - L.ch / 2}px) rotate(${rot}deg) scale(${sc})`;
+  el.style.zIndex = z; el.classList.toggle('up', !!up);
+}
+const sortKey = (c, tr) => { const order = tr >= 0 ? [tr, ...[0, 1, 3, 2].filter((x) => x !== tr)] : [0, 1, 3, 2]; return order.indexOf(suitOf(c)) * 10 + (5 - rk(c)); };
+const sortMine = () => { const h = G.h; for (const a of [h.hands[0], h.table[0], h.table[1]]) a.sort((x, y) => sortKey(x, h.trump) - sortKey(y, h.trump)); };
+let hotCard = -1;
+function render(dur = 360) {
+  if (!L) return;
+  const h = G && G.h;
+  if (!h) { for (let c = 0; c < 96; c++) { const k = Math.min(c, 30) * 0.15; put(c, L.cx - k, L.midY - k, 0, 1, false, c + 1, 0); els[c].className = 'card flat'; } ui(); return; }
+  const flat = new Set(), play = canPlay(), legal = play ? legalOf(h, 0) : [];
+  h.stock.forEach((c, i) => { const k = Math.min(i, 30) * 0.15; put(c, L.stockX - k, L.midY - k, 0, 1, false, i + 1, dur); if (i < h.stock.length - 2) flat.add(c); });
+  const row = (cards, y, sc, z, gap, fan) => {
+    const m = cards.length, w = L.cw * sc, sp = Math.min(w * gap, (L.W - 12 - w) / Math.max(1, m - 1));
+    cards.forEach((c, i) => { const off = i - (m - 1) / 2; put(c, L.cx + off * sp, y, fan ? off * Math.min(1.4, 12 / m) : 0, sc, true, c === hotCard ? 399 : z + i, dur); });
+  };
+  row(h.hands[0], L.handY, 1, 300, 0.62, true);
+  row(h.table[0], L.myTabY, L.ts, 250, 0.8);
+  row(h.table[1], L.oppTabY, L.ts, 250, 0.8);
+  { const m = h.hands[1].length, sp = Math.min(L.ocw * 0.42, (L.W * 0.6 - L.ocw) / Math.max(1, m - 1)); h.hands[1].forEach((c, i) => { const off = i - (m - 1) / 2; put(c, L.cx + off * sp, L.topY, -off, L.os, false, 200 + i, dur); }); }
+  h.trick.forEach((x, i) => { const [tx, tyy] = L.tp[x.p]; put(x.c, tx + (hash(x.c, 1) - 0.5) * 6, tyy + (hash(x.c, 2) - 0.5) * 6, (hash(x.c, 3) - 0.5) * 14, 1, true, 500 + i, dur); });
+  for (let p = 0; p < 2; p++) h.won[p].forEach((c, i) => { const k = Math.min(i, 24) * 0.2; put(c, L.wonX + k, L.midY + (p ? -1 : 1) * L.ch * 0.32 - k, 0, 0.5, false, 40 + i, dur); if (i < h.won[p].length - 2) flat.add(c); });
+  for (let c = 0; c < 96; c++) {
+    const el = els[c], mine = h.hands[0].includes(c) || h.table[0].includes(c), ok = play && legal.includes(c);
+    el.classList.toggle('flat', flat.has(c)); el.classList.toggle('play', ok);
+    el.classList.toggle('dim', play && mine && !ok); el.classList.toggle('hot', ok && hotCard === c);
+  }
+  ui();
+}
+function ui() { // koltuklar, koz işareti, deste sayısı, sayı açma penceresinin yeri
+  const h = G && G.h, t = T();
+  for (let p = 0; p < 2; p++) {
+    const s = $('seat' + p);
+    s.style.left = (p ? L.cx : 6) + 'px'; s.style.top = (p ? L.oppSeatY : L.mySeatY) + 'px'; s.style.setProperty('--c', TURNCOL[p]);
+    s.querySelector('.ava').style.backgroundPosition = avaPos(p);
+    s.classList.toggle('on', !!(h && (h.phase === 'play' || h.phase === 'decl') && h.turn === p && !G.over));
+    const b = s.querySelector('b'); b.hidden = !(h && h.dn[p]); b.textContent = t.donukB; b.className = 'bid';
+    s.querySelector('.nm').textContent = t.names[p]; s.querySelector('.cn').textContent = G ? live(p) : 0;
+    s.hidden = !h;
+  }
+  const tb = $('trumpB'), on = !!(h && h.trump >= 0);
+  tb.classList.toggle('off', !on);
+  if (on) { tb.querySelector('i').textContent = SUITCH[h.trump]; tb.querySelector('i').style.color = SUITCOL[h.trump]; }
+  $('trumpLbl').textContent = t.trump; tb.style.left = L.stockX + 'px'; tb.style.top = (L.midY + L.ch / 2 + 30) + 'px';
+  const sn = $('stockN'), n = h ? h.stock.length : 0; sn.textContent = n; sn.classList.toggle('zero', !h || !n || h.phase === 'deal'); sn.style.left = L.stockX + 'px'; sn.style.top = L.midY + 'px';
+  const dp = $('declPick'); dp.style.left = L.cx + 'px'; dp.style.top = L.midY + 'px';
+}
+
+// ---------- Ses ----------
+const Sfx = (() => {
+  let ac = null;
+  const ctx = () => { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), gn = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn).connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(delay, vol, freq, len, type = 'bandpass') { // kartın kumaşa sürtünmesi
+    const c = soundOn && ctx(); if (!c) return;
+    const t = c.currentTime + delay, buf = c.createBuffer(1, Math.max(1, c.sampleRate * len), c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), gn = c.createGain();
+    f.type = type; f.frequency.value = freq; f.Q.value = .8; gn.gain.value = vol;
+    s.buffer = buf; s.connect(f).connect(gn).connect(c.destination); s.start(t);
+  }
+  return {
+    unlock: ctx,
+    deal() { noise(0, 0.25, 3200, 0.05); },
+    play() { noise(0, 0.35, 2400, 0.07); noise(0.03, 0.2, 900, 0.04); },
+    take(n) { for (let i = 0; i < Math.min(5, n); i++) noise(i * 0.035, 0.22, 2000 + i * 200, 0.06); },
+    won() { [587, 784, 988].forEach((f, k) => tone(f, f, 0.14, 0.1, 'triangle', k * 0.08)); },
+    trump() { tone(392, 784, 0.18, 0.09, 'square'); },
+    win() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, f * 1.01, 0.22, 0.12, 'triangle', k * 0.12)); },
+    lose() { [440, 370, 311, 262].forEach((f, k) => tone(f, f * .98, 0.24, 0.1, 'triangle', k * 0.16)); }
+  };
+})();
+const buzz = (p) => { try { if (soundOn && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+// ---------- Oyun akışı ----------
+let msgT = null;
+function say(s, gold) {
+  const el = $('msg'); el.textContent = s; el.classList.add('on'); el.classList.toggle('gold', !!gold);
+  clearTimeout(msgT); msgT = setTimeout(() => el.classList.remove('on'), 2600);
+}
+function popText(s, x, y) { const p = $('pop'); p.textContent = s; p.style.left = (x != null ? x : L.cx) + 'px'; p.style.top = (y != null ? y : L.midY) + 'px'; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go'); }
+function save() { try { if (G && !G.over && !(G.h && G.h.mid)) localStorage.setItem('rids_bezik_game', JSON.stringify(G)); } catch (e) {} }
+function loadSaved() {
+  try {
+    const s = JSON.parse(localStorage.getItem('rids_bezik_game')); if (!s || !s.h || !Array.isArray(s.scores) || !(s.target > 0)) return null;
+    const h = s.h, all = [...h.stock, ...h.hands.flat(), ...h.table.flat(), ...h.won.flat(), ...h.trick.map((x) => x.c)];
+    if (all.length !== 96 || new Set(all).size !== 96) return null;
+    h.mid = false; return s;
+  } catch (e) { return null; }
+}
+const noOv = () => $('setupOv').hidden && $('rulesOv').hidden && $('handOv').hidden && $('winOv').hidden;
+const canPlay = () => G && G.h && !G.over && !busy && G.h.phase === 'play' && G.h.turn === 0 && noOv();
+const canDecl0 = () => G && G.h && !G.over && !busy && G.h.phase === 'decl' && G.h.turn === 0;
+function hint() {
+  const t = T(), h = G.h;
+  if (!h || h.phase === 'done' || h.phase === 'draw') return '';
+  if (h.phase === 'deal') return t.hintDeal;
+  if (h.turn !== 0) return t.hintThink;
+  if (h.phase === 'decl') return t.hintDecl;
+  return h.trick.length ? t.hintPlay : t.hintLead;
+}
+function updateDock(hn) {
+  const t = T(), h = G && G.h, p = h ? h.turn : 0;
+  $('dock').style.setProperty('--turn', TURNCOL[p]);
+  const chip = $('chip'); if (chip.dataset.p !== String(p)) { chip.dataset.p = p; chip.style.backgroundPosition = avaPos(p); chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
+  $('turnName').textContent = p === 0 ? t.turnYou : t.turnOf(p);
+  $('turnMsg').textContent = hn == null ? (G ? hint() : '') : hn;
+  const sk = $('skor'), sc = [0, 1].map((i) => (G ? live(i) : 0));
+  sk.innerHTML = sc.map((v, i) => `<div class="${G && v > sc[1 - i] ? 'w' : ''}"><span class="ava" style="background-position:${avaPos(i)}"></span><span>${v}</span></div>`).join('') + `<div id="hedef">${G ? t.progress(G.target, Math.max(1, G.roundNo)) : ''}</div>`;
+  sk.setAttribute('aria-label', t.scoreAria(t.names, sc));
+  if (L) ui();
+}
+async function startRound() {
+  const my = epoch;
+  G.roundNo++; G.dealer = 1 - G.dealer; G.h = newRound(G.dealer);
+  const h = G.h; busy = true; hotCard = -1; render(0); updateDock();
+  await wait(250); if (my !== epoch) return;
+  for (let k = 0; k < 18; k++) {
+    if (dealStep(h, k) === 0) sortMine();
+    if (k % 2 === 0) Sfx.deal(); render(260); await wait(40); if (my !== epoch) return;
+  }
+  h.phase = 'play'; h.mid = false; save(); nextAction();
+}
+async function nextAction() {
+  const my = epoch, h = G.h; if (!h || G.over) return;
+  if (h.phase === 'done') { if (h.res) showRound(); return; }
+  if (h.phase === 'draw') return doDraw();
+  render(); updateDock();
+  if (h.turn === 1) {
+    busy = true; await wait(h.phase === 'decl' ? 600 : h.trick.length ? 620 : 760); if (my !== epoch) return;
+    return h.phase === 'decl' ? doDecl(1, cpuDecl(h, 1, G.level)) : playCard(1, cpuPlay(h, 1, G.level));
+  }
+  busy = false;
+  if (h.phase === 'decl') return askDecl();
+  render(); updateDock();
+}
+async function playCard(p, c) {
+  const my = epoch, h = G.h, t = T();
+  busy = true; hotCard = -1; h.mid = true;
+  const rp = playC(h, p, c);
+  Sfx.play(); render(320); updateDock('');
+  if (rp) { say(t.replay(p, rp), true); popText('+' + rp, L.tp[p][0], L.tp[p][1]); Sfx.won(); }
+  await wait(420); if (my !== epoch) return;
+  if (h.trick.length < 2) { h.mid = false; save(); return nextAction(); }
+  await wait(520); if (my !== epoch) return;
+  const ev = resolveC(h);
+  say(ev.dn >= 0 ? t.donuk(ev.dn) : ev.clr ? t.cleared(ev.w) : t.took(ev.w), ev.dn >= 0 || ev.clr);
+  Sfx.take(2); if (ev.w === 0) buzz(25); if (ev.dn === 0) buzz([40, 40, 80]);
+  render(420); updateDock('');
+  await wait(460); if (my !== epoch) return;
+  if (reachCheck()) return;
+  if (h.phase === 'done') return endRound();
+  h.mid = false; save(); nextAction();
+}
+// Sayı açma: eli alınca açılabilecekler listelenir, oyuncu seçer ya da geçer
+let declList = [];
+function askDecl() {
+  const h = G.h, t = T(); declList = declsOf(h, 0);
+  $('dpT').textContent = t.declT; $('dpS').textContent = t.declS;
+  $('dpB').innerHTML = declList.map((d, i) => `<button type="button" data-i="${i}"><span>${t.dName(d, h.trump)}</span><b>+${d.val}</b></button>`).join('');
+  $('declPass').textContent = t.pass; $('declPick').hidden = false; updateDock();
+  const b = $('dpB').querySelector('button'); if (b) b.focus({ preventScroll: true });
+}
+async function doDecl(p, d) {
+  const my = epoch, h = G.h, t = T();
+  busy = true; h.mid = true; $('declPick').hidden = true;
+  if (d) {
+    const tr0 = h.trump, nm = t.dName(d, tr0);
+    declareC(h, p, d); sortMine();
+    say(t.declSay(p, nm, d.val), true); Sfx.won(); render(380); updateDock('');
+    popText('+' + d.val, L.cx, p ? L.oppTabY : L.myTabY);
+    if (tr0 < 0 && h.trump >= 0) { await wait(900); if (my !== epoch) return; say(t.trumpIs(h.trump), true); Sfx.trump(); render(200); }
+    await wait(800); if (my !== epoch) return;
+    if (reachCheck()) return;
+  }
+  h.phase = 'draw'; doDraw();
+}
+async function doDraw() {
+  const my = epoch, h = G.h; busy = true; h.mid = true;
+  const ended = drawC(h); sortMine(); Sfx.deal(); render(340); updateDock('');
+  await wait(380); if (my !== epoch) return;
+  if (ended) { say(T().endPhase, true); Sfx.trump(); await wait(1100); if (my !== epoch) return; }
+  h.mid = false; save(); nextAction();
+}
+function reachCheck() {
+  const h = G.h, p = reached(G); if (p < 0) return false;
+  for (const i of [0, 1]) G.scores[i] += h.rd[i] - h.dn[i];
+  G.win = p; h.phase = 'done'; h.res = null; h.mid = false; finish(); return true;
+}
+async function endRound() {
+  const my = epoch, h = G.h; busy = true;
+  roundEnd(G); h.mid = false; save(); render(300); updateDock('');
+  if (h.res.lb) popText('+' + h.res.lb, L.tp[h.lastW][0], L.tp[h.lastW][1]);
+  if (G.win < 0) Sfx.take(3); else (G.win === 0 ? Sfx.win : Sfx.lose)();
+  await wait(1100); if (my !== epoch) return;
+  showRound();
+}
+function showRound() {
+  const t = T(), h = G.h, R = h.res;
+  $('handTitle').textContent = t.roundOver(G.roundNo);
+  $('handSub').textContent = [R.lb ? t.lastBy(h.lastW, R.lb) : '', R.noBrisk ? t.noBrisk : '', R.raised ? t.raised(G.target) : ''].filter(Boolean).join(' · ');
+  const cell = (v, neg) => `<td class="${v ? (neg ? 'neg' : '') : 'z'}">${v ? (neg ? '−' : '+') + v : '–'}</td>`;
+  $('sumTable').innerHTML = `<thead><tr><th></th>${[0, 1].map((p) => `<th><i class="ava" style="background-position:${avaPos(p)}"></i> ${t.names[p]}</th>`).join('')}</tr></thead><tbody>`
+    + ['meld', 'burn', 'last', 'brisk'].map((k, i) => `<tr><td>${t.rows[i]}</td>${R.r.map((x) => cell(x[k], k === 'burn')).join('')}</tr>`).join('')
+    + `<tr class="tot"><td>${t.rows[4]}</td>${R.r.map((x) => `<td>${x.sum}</td>`).join('')}</tr>`
+    + `<tr class="all"><td>${t.rows[5]}</td>${G.scores.map((v) => `<td>${v}</td>`).join('')}</tr></tbody>`;
+  $('nextBtn').textContent = G.win >= 0 ? t.seeResult : t.nextRound;
+  $('handOv').hidden = false; $('nextBtn').focus();
+}
+function afterRound() {
+  $('handOv').hidden = true;
+  if (G.win >= 0) return finish();
+  G.h = null; epoch++; startRound();
+}
+const winSubText = () => { const t = T(), lo = 1 - G.win; return G.scores[lo] < G.target / 2 ? t.rubikon(lo) : t.winSub(G.target); };
+function finish() {
+  const t = T(), win = G.win === 0;
+  G.over = true; busy = true; try { localStorage.removeItem('rids_bezik_game'); } catch (e) {}
+  sayac('bitti', 'oyun bitti'); bitenVar = true;
+  const k = win ? 'insan' : 'bilgisayar';
+  sayac(`sonuc/${k}-${lvAd(G.level)}`, `sonuç: ${k} kazandı (${lvAd(G.level)})`);
+  $('trophy').textContent = win ? '🏆' : '🃏';
+  $('winTitle').textContent = win ? t.youWin : t.cpuWin;
+  $('winSub').textContent = winSubText();
+  $('final').innerHTML = G.scores.map((v, p) => `<span class="${p === G.win ? 'win' : ''}"><i class="ava" style="background-position:${avaPos(p)}"></i>${v}</span>`).join('');
+  if (win) Sfx.win(); else Sfx.lose();
+  buzz([60, 60, 120]); if (win) confetti();
+  $('declPick').hidden = true; $('handOv').hidden = true; render(300); updateDock('');
+  $('winOv').hidden = false; $('againBtn').focus();
+}
+function newGame(level, target) {
+  epoch++; closeAll(); sayac('basladi', 'oyun başladı');
+  if (bitenVar) { bitenVar = false; sayac('tekrar', 'bitirdikten sonra yeni oyun'); }
+  sayac(`mod/${lvAd(level)}-${target}`, `mod: ${lvAd(level)}, ${target}`);
+  G = { level, target, goal: target, scores: [0, 0], roundNo: 0, dealer: Math.random() < 0.5 ? 0 : 1, h: null, over: false, win: -1 };
+  layout(); applyLang(); startRound();
+}
+function resume() {
+  const s = loadSaved(); if (!s) return;
+  epoch++; closeAll(); G = s; G.over = false; busy = true; hotCard = -1;
+  layout(); applyLang(); nextAction();
+}
+function whyNot(c, h) { const s = suitOf(h.trick[0].c); if (suitOf(c) !== s && h.hands[0].some((x) => suitOf(x) === s)) return 'follow'; return suitOf(c) === s ? 'higher' : 'trump'; }
+function tapCard(c) {
+  if (!canPlay()) return;
+  const h = G.h; if (!h.hands[0].includes(c) && !h.table[0].includes(c)) return;
+  Sfx.unlock();
+  if (!legalOf(h, 0).includes(c)) { const el = els[c]; el.classList.remove('no'); void el.offsetWidth; el.classList.add('no'); say(T().whyNot[whyNot(c, h)]); return; }
+  // dokunmatikte ilk dokunuş kartı kaldırır, ikincisi atar; farede tek tık yeter
+  if (lastPointer !== 'mouse' && hotCard !== c) { hotCard = c; render(160); return; }
+  playCard(0, c);
+}
+let lastPointer = 'mouse';
+addEventListener('pointerdown', (e) => { lastPointer = e.pointerType; if (hotCard >= 0 && !e.target.closest('.card')) { hotCard = -1; render(160); } }, true);
+// Sürükle bırak: kartı tutup yukarı çekince atılır; yerinde bırakılırsa dokunuş gibi sayılır
+let drag = null;
+const dragOk = (c) => canPlay() && legalOf(G.h, 0).includes(c);
+function dragStart(e, c) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  if (!dragOk(c)) return tapCard(c);
+  const r = els[c].getBoundingClientRect();
+  drag = { c, id: e.pointerId, x0: e.clientX, y0: e.clientY, ox: r.left + r.width / 2 - e.clientX, oy: r.top + r.height / 2 - e.clientY, moved: false };
+  try { els[c].setPointerCapture(e.pointerId); } catch (er) {}
+}
+function dragMove(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.moved) { if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 8) return; drag.moved = true; hotCard = -1; render(160); els[drag.c].classList.add('drag'); }
+  const s = stage.getBoundingClientRect();
+  put(drag.c, e.clientX + drag.ox - s.left, e.clientY + drag.oy - s.top, 0, 1.06, true, 900, 0);
+}
+function dragEnd(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag; drag = null;
+  els[d.c].classList.remove('drag');
+  if (!d.moved) { if (e.type === 'pointerup') tapCard(d.c); return; }
+  if (e.type === 'pointerup' && e.clientY < d.y0 - L.ch * 0.45 && dragOk(d.c)) { Sfx.unlock(); hotCard = -1; return playCard(0, d.c); }
+  render(220);
+}
+function confetti() {
+  if (reduce) return;
+  const k = $('confetti'), c = k.getContext('2d'), d = Math.min(2, devicePixelRatio || 1);
+  k.hidden = false; k.width = innerWidth * d; k.height = innerHeight * d;
+  const cols = ['#ef4444', '#22d3ee', '#ffd43b', '#ffffff', '#84cc16', '#8b5cf6', '#ff6fb5'];
+  const bits = Array.from({ length: 170 }, () => ({
+    x: Math.random() * innerWidth, y: -20 - Math.random() * innerHeight * 0.6, vx: (Math.random() - 0.5) * 60, vy: 120 + Math.random() * 160,
+    w: 6 + Math.random() * 6, h: 9 + Math.random() * 8, a: Math.random() * 6, va: (Math.random() - 0.5) * 10, col: cols[Math.floor(Math.random() * cols.length)]
+  }));
+  let last = performance.now(); const end = last + 4200;
+  (function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
+    for (const b of bits) {
+      b.vy = Math.min(b.vy + 220 * dt, 260); b.x += (b.vx + Math.sin(now / 300 + b.a) * 40) * dt; b.y += b.vy * dt; b.a += b.va * dt;
+      c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(Math.cos(b.a * 1.7), 1);
+      c.fillStyle = b.col; c.globalAlpha = Math.min(1, (end - now) / 600); c.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); c.restore();
+    }
+    if (now < end) requestAnimationFrame(tick); else { c.clearRect(0, 0, k.width, k.height); k.hidden = true; }
+  })(last);
+}
+
+// ---------- Pencereler ve dil ----------
+function closeAll() {
+  for (const id of ['setupOv', 'rulesOv', 'handOv', 'winOv', 'declPick']) $(id).hidden = true;
+}
+function renderSetup() {
+  const t = T();
+  $('setupTitle').textContent = t.game; $('setupSub').textContent = t.setupSub; $('lvlLbl').textContent = t.lvlLbl; $('tgtLbl').textContent = t.tgtLbl; $('deckLbl').textContent = t.deckLbl;
+  const lab = { easy: t.easy, mid: t.mid, hard: t.hard, 1000: '1000', 2000: '2000', 3000: '3000', red: `<i class="mini" style="--b:var(--back-red)"></i>${t.red}`, black: `<i class="mini" style="--b:var(--back-black)"></i>${t.black}` };
+  const cur = { lvlSeg: setup.level, tgtSeg: String(setup.target), deckSeg: setup.deck };
+  for (const id in cur) document.querySelectorAll('#' + id + ' button').forEach((b) => { b.innerHTML = lab[b.dataset.v]; b.setAttribute('aria-pressed', b.dataset.v === cur[id]); });
+  $('startBtn').textContent = t.start; $('resumeBtn').textContent = t.resume; $('resumeBtn').hidden = !loadSaved();
+}
+function openSetup() {
+  save(); epoch++; busy = true; hotCard = -1;
+  closeAll(); renderSetup(); render(0); $('setupOv').hidden = false; $('startBtn').focus();
+}
+function applyLang() {
+  const t = T();
+  document.documentElement.lang = lang; document.title = t.title;
+  $('homeLink').href = '../?lang=' + lang; $('homeLink').setAttribute('aria-label', t.homeLabel);
+  $('gameName').textContent = t.game; $('menuLbl').textContent = t.newGame; $('rulesLbl').textContent = t.rules;
+  $('menuBtn').setAttribute('aria-label', t.newGame); $('rulesBtn').setAttribute('aria-label', t.rules); $('soundBtn').setAttribute('aria-label', t.sound); $('fsBtn').setAttribute('aria-label', t.fs); $('langBtn').setAttribute('aria-label', t.langAria);
+  $('rights').textContent = t.rights; $('rulesTitle').textContent = t.rulesTitle; $('rulesSub').textContent = t.rulesSub; $('rulesOk').textContent = t.ok;
+  $('rulesList').innerHTML = t.ruleList.map(([i, s]) => `<li><span>${i}</span><span>${s}</span></li>`).join('');
+  $('againBtn').textContent = t.again2; $('toMenuBtn').textContent = t.toMenu; stage.setAttribute('aria-label', t.stage);
+  $('langBtn').innerHTML = lang === 'tr' ? '<span style="color:#fff">TR</span>&nbsp;|&nbsp;EN' : 'TR&nbsp;|&nbsp;<span style="color:#fff">EN</span>';
+  for (let c = 0; c < 96; c++) els[c].setAttribute('aria-label', t.cardName(c));
+  renderSetup(); updateDock(G && G.h && busy && G.h.turn === 0 ? '' : null); if (L) ui();
+  if (G && G.h && !$('declPick').hidden) askDecl();
+  if (!$('handOv').hidden && G && G.h && G.h.res) showRound();
+  if (!$('winOv').hidden && G && G.over) { $('winTitle').textContent = G.win === 0 ? t.youWin : t.cpuWin; $('winSub').textContent = winSubText(); }
+}
+function applySound() { $('soundIco').textContent = soundOn ? '🔊' : '🔇'; $('soundBtn').setAttribute('aria-pressed', soundOn); }
+
+// ---------- Girdi ----------
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { if (!$('rulesOv').hidden) $('rulesOv').hidden = true; return; }
+  if ($('declPick').hidden || !canDecl0()) return;
+  if (/^[1-9]$/.test(e.key) && declList[+e.key - 1]) doDecl(0, declList[+e.key - 1]);
+  else if (e.key === 'p' || e.key === 'P') doDecl(0, null);
+});
+$('dpB').addEventListener('click', (e) => { const b = e.target.closest('button[data-i]'); if (b && canDecl0()) { Sfx.unlock(); doDecl(0, declList[+b.dataset.i]); } });
+$('declPass').addEventListener('click', () => { if (canDecl0()) { Sfx.unlock(); doDecl(0, null); } });
+document.querySelectorAll('.seg').forEach((s) => s.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  if (s.id === 'lvlSeg') setup.level = b.dataset.v;
+  else if (s.id === 'deckSeg') { setup.deck = b.dataset.v; applyDeck(); try { localStorage.setItem('rids_bezik_setup', JSON.stringify(setup)); } catch (e) {} }
+  else setup.target = b.dataset.v;
+  renderSetup();
+}));
+$('startBtn').addEventListener('click', () => { Sfx.unlock(); try { localStorage.setItem('rids_bezik_setup', JSON.stringify(setup)); } catch (e) {} newGame(setup.level, +setup.target); });
+$('resumeBtn').addEventListener('click', () => { Sfx.unlock(); resume(); });
+$('menuBtn').addEventListener('click', openSetup);
+$('rulesBtn').addEventListener('click', () => { $('rulesOv').hidden = false; $('rulesTitle').focus(); sayac('kurallar', 'kurallar açıldı'); });
+$('rulesOk').addEventListener('click', () => { $('rulesOv').hidden = true; render(); });
+$('rulesOv').addEventListener('click', (e) => { if (e.target.id === 'rulesOv') { $('rulesOv').hidden = true; render(); } });
+$('nextBtn').addEventListener('click', afterRound);
+$('againBtn').addEventListener('click', () => newGame(G.level, G.goal));
+$('toMenuBtn').addEventListener('click', openSetup);
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; applySound(); try { localStorage.setItem('rids_bezik_sound', soundOn ? '1' : '0'); } catch (e) {} if (soundOn) Sfx.unlock(); });
+if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) $('fsBtn').hidden = true;
+$('fsBtn').addEventListener('click', () => {
+  const d = document, el = d.documentElement;
+  const r = d.fullscreenElement || d.webkitFullscreenElement ? (d.exitFullscreen || d.webkitExitFullscreen).call(d) : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+  if (r && r.catch) r.catch(() => {});
+});
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'tr' ? 'en' : 'tr';
+  try { localStorage.setItem('lang', lang); history.replaceState(null, '', '?lang=' + lang); } catch (e) {}
+  applyLang();
+});
+const relayout = () => layout();
+addEventListener('resize', relayout); document.addEventListener('fullscreenchange', relayout); document.addEventListener('webkitfullscreenchange', relayout);
+if (window.ResizeObserver) new ResizeObserver(relayout).observe(stage);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+// Deneme kancası: hızlandırma ve durum okuma (oyuncuya görünmez)
+window.__bezik = {
+  setSpeed: (s) => { speed = s; },
+  state: () => ({ G, busy, canPlay: !!canPlay(), legal: canPlay() ? legalOf(G.h, 0) : [], phase: G && G.h ? G.h.phase : null, declOpen: !$('declPick').hidden, decls: declList, epoch }),
+  card: (c) => { const r = els[c].querySelector('.in').getBoundingClientRect(); return [r.left + r.width * 0.15, r.top + r.height * 0.18]; }, // kartın her zaman görünen sol üst köşesi
+  stop: () => { epoch++; closeAll(); busy = false; },
+  setHand: (o) => { Object.assign(G.h, o); render(0); updateDock(); }
+};
+
+applySound(); applyDeck(); layout(); applyLang(); openSetup();
+</script>
+<script>
+(() => {
+  const H = document.documentElement, top = document.querySelector('header.top'), $ = (i) => document.getElementById(i);
+  const L = () => (H.lang || 'tr').startsWith('en') ? { s: 'Settings', c: 'Close' } : { s: 'Ayarlar', c: 'Kapat' };
+  const close = top.querySelector('.rgClose');
+  const labels = () => { const l = L(); $('rgSetBtn').setAttribute('aria-label', l.s); close.textContent = l.c;
+    top.querySelectorAll('.tools .pill').forEach((b) => { if (b.classList.contains('lang')) return; let s = b.querySelector('.lbl'); if (!s) { s = document.createElement('span'); s.className = 'lbl rgL'; b.appendChild(s); } if (s.classList.contains('rgL')) s.textContent = b.getAttribute('aria-label') || ''; }); };
+  const open = (on) => { if (on) labels(); H.classList.toggle('rgSet', on); };
+  $('rgSetBtn').addEventListener('click', () => open(!H.classList.contains('rgSet')));
+  close.addEventListener('click', () => open(false));
+  top.addEventListener('click', (e) => { if (e.target === top) open(false); });
+  top.querySelector('.tools').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && b.id !== 'soundBtn' && b.id !== 'langBtn') open(false); else setTimeout(labels, 0); }, true);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && H.classList.contains('rgSet')) { open(false); e.stopImmediatePropagation(); } }, true);
+  const fs = () => H.classList.toggle('isFs', !!(document.fullscreenElement || document.webkitFullscreenElement));
+  document.addEventListener('fullscreenchange', fs); document.addEventListener('webkitfullscreenchange', fs);
+  new MutationObserver(() => { if (H.classList.contains('rgSet')) labels(); }).observe(H, { attributes: true, attributeFilter: ['lang'] });
+})();
+</script>
+<!-- Kurulum penceresi ekrana sığsın: taşarsa boşluklar daralır, yatayda bölümler sütunlara dizilir -->
+<style id="fitSetupCss">
+#setupOv > .fz1 > h2 { font-size: 21px; margin-bottom: 2px; }
+#setupOv > .fz1 > .sub { font-size: 12.5px; margin-bottom: 6px; }
+#setupOv > .fz1 > :not(h2):not(.sub):not(.btns) { margin-top: 6px; padding-top: 6px; }
+#setupOv > .fz1 .lbl { margin-bottom: 5px; }
+#setupOv > .fz1 .note { margin-top: 4px; font-size: 12px; min-height: 0; }
+#setupOv > .fz1 > .btns { margin-top: 10px; }
+#setupOv > .fzc { display: block !important; width: 100%; max-width: min(100%, 940px) !important; columns: var(--fcols, 2); column-gap: 18px; padding: 12px 16px 14px !important; }
+#setupOv > .fzc > * { break-inside: avoid; }
+#setupOv > .fzc > :is(h2, .sub, .btns) { column-span: all; }
+#setupOv > .fzc:not(.fzn) > .wide { column-span: all; }
+#setupOv > .fzc > :not(h2):not(.sub):not(.btns) { display: block; }
+#setupOv > .fzc > .btns { position: static !important; margin: 10px 0 0 !important; padding: 0 !important; background: none !important; display: grid !important; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
+#setupOv > .fz2 > .sub { display: none; }
+#setupOv > .fz2 .seg button { height: 34px; }
+#setupOv > .fz2 .seg.tall button { height: 44px; }
+#setupOv > .fz2 .big { height: 42px; font-size: 16px; }
+#setupOv > .fz2 .note { font-size: 11.5px; line-height: 1.35; }
+#setupOv > .fz2 .seg.tall button { height: 38px; flex-direction: row; gap: 6px; }
+#setupOv > .fz2 .seg.tall .em { font-size: 17px; } #setupOv > .fz2 .seg.tall small { font-size: 12.5px; }
+#setupOv > .fz2 .catSeg button { height: 34px; }
+#setupOv > .fz2 .chips { gap: 4px; } #setupOv > .fz2 .chips button { height: 30px; padding: 0 9px; font-size: 12px; }
+#setupOv > .fz2 .stepper { grid-template-columns: 40px 1fr 40px; } #setupOv > .fz2 .stepper button { height: 38px; font-size: 22px; }
+#setupOv > .fz2 .tval output { font-size: 26px; } #setupOv > .fz2 .tval small { margin-top: 2px; }
+#setupOv > .fz2 .players, #setupOv > .fz2 .names { gap: 4px; }
+#setupOv > .fz2 :is(.prow, .names) input { height: 34px; font-size: 14px; }
+#setupOv > .fz2 .prow button { height: 34px; }
+#setupOv > .fz2 .add { height: 34px; }
+#setupOv > .fzc .seg button { font-size: 12.5px; padding: 0 2px; white-space: normal; line-height: 1.1; }
+#setupOv > .fzc .prow { grid-template-columns: 18px 1fr 34px; gap: 4px; }
+#setupOv > .fzc .catSeg { grid-template-columns: repeat(2, 1fr); }
+#setupOv > .fz3 .note { display: none; }
+#setupOv > .fzn .seg.tall:not(.two) button { flex-direction: column; height: 44px; gap: 0; }
+#setupOv > .fzn .seg.tall:not(.two) .em { font-size: 15px; } #setupOv > .fzn .seg.tall:not(.two) small { font-size: 11px; white-space: normal; }
+</style>
+<script id="fitSetupJs">
+(() => {
+  const ov = document.getElementById('setupOv'); const c = ov && ov.querySelector(':scope > .card, :scope > .card2'); if (!c) return;
+  const over = () => c.scrollHeight > c.clientHeight + 1 || c.scrollWidth > c.clientWidth + 1;
+  let busy = false, q = 0;
+  const fit = () => {
+    if (ov.hidden || busy) return; busy = true;
+    c.classList.remove('fz1', 'fz2', 'fz3', 'fzc', 'fzn'); c.style.removeProperty('--fcols');
+    if (over()) {
+      const land = innerWidth > innerHeight && innerWidth >= 560;
+      const cols = (n) => () => { c.classList.add('fzc'); c.style.setProperty('--fcols', n); };
+      const nw = () => c.classList.add('fzn'), steps = [() => c.classList.add('fz1')];
+      if (land) steps.push(cols(2), cols(3), () => c.classList.add('fz2'), nw);
+      else steps.push(() => c.classList.add('fz2'));
+      if (land && innerWidth >= 760) steps.push(cols(4));
+      if (!land && innerWidth >= 340) steps.push(cols(2), nw);
+      steps.push(() => c.classList.add('fz3'));
+      if (land && innerWidth >= 640 && innerWidth < 760) steps.push(cols(4));
+      for (const s of steps) { s(); if (!over()) break; }
+    }
+    busy = false;
+  };
+  const later = () => { cancelAnimationFrame(q); q = requestAnimationFrame(fit); };
+  new MutationObserver(later).observe(ov, { attributes: true, attributeFilter: ['hidden'], childList: true, subtree: true, characterData: true });
+  addEventListener('resize', later); addEventListener('orientationchange', later);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);
+  later();
+})();
+</script>
+<!-- Sorun bildir: yalnızca ayarlardan açılır, oyun sırasında hiçbir şey göstermez -->
+<style id="rgRepCss">
+#rgRep { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; padding: 12px; background: rgba(2, 6, 23, .72); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #e2e8f0; }
+#rgRep[hidden] { display: none; }
+#rgRep .rc { width: min(100%, 440px); max-height: calc(100dvh - 24px); overflow: auto; background: #0f172a; border: 1px solid rgba(148, 163, 184, .3); border-radius: 16px; padding: 16px; box-shadow: 0 16px 48px rgba(0, 0, 0, .5); }
+#rgRep h2 { margin: 0 0 4px; font-size: 19px; color: #f8fafc; }
+#rgRep p { margin: 0 0 10px; font-size: 13px; color: #94a3b8; }
+#rgRep textarea { box-sizing: border-box; width: 100%; min-height: 96px; resize: vertical; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .4); background: #1e293b; color: #f1f5f9; padding: 10px; font: inherit; font-size: 16px; }
+#rgRep textarea:focus { outline: 2px solid #22d3ee; outline-offset: 1px; }
+#rgRep details { margin: 8px 0 0; font-size: 12.5px; color: #94a3b8; }
+#rgRep summary { cursor: pointer; }
+#rgRep pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font: 11.5px/1.35 ui-monospace, Menlo, Consolas, monospace; color: #cbd5e1; background: #1e293b; border-radius: 8px; padding: 8px; max-height: 140px; overflow: auto; }
+#rgRep .rb { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+#rgRep button { min-height: 42px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, .35); background: #1e293b; color: #e2e8f0; font: inherit; font-weight: 600; cursor: pointer; padding: 0 10px; }
+#rgRep button.go { grid-column: 1 / -1; background: #22d3ee; border-color: #22d3ee; color: #082f49; }
+#rgRep .ok { margin: 8px 0 0; font-size: 12.5px; color: #67e8f9; }
+#rgRep .ok:empty { display: none; }
+@media (max-height: 480px) { #rgRep .rc { padding: 12px 14px; } #rgRep h2 { font-size: 17px; } #rgRep p { margin-bottom: 6px; } #rgRep textarea { min-height: 56px; } #rgRep .rb { grid-template-columns: 2fr 1fr 1fr; margin-top: 8px; } #rgRep button.go { grid-column: auto; } #rgRep button { min-height: 38px; } }
+/* yatay telefonda ayarlar menüsü iki sütun, kaydırmadan sığsın */
+@media (orientation: landscape) and (max-height: 520px) { #setOv .sheet { max-width: 560px; gap: 10px; } #setOv .sheet .logo { flex-direction: row; justify-content: center; } #setOv .mlist { grid-template-columns: 1fr 1fr; } #setOv .mi { height: 42px; } }
+@media (orientation: landscape) and (max-height: 520px) { html.rgSet .top .in { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet .top .logo { flex-direction: row; justify-content: center; } html.rgSet .top .tools { grid-template-columns: 1fr 1fr; } html.rgSet .top .pill { height: 42px; } html.rgSet .top .rgClose { height: 40px; }
+  html.rgSet #topHeader > div { max-width: 560px; gap: 10px; padding: 14px 18px; } html.rgSet #topHeader #homeLink { flex-direction: row; } html.rgSet #topHeader #homeLink + div { grid-template-columns: 1fr 1fr; } html.rgSet #topHeader #modeSelect { grid-column: 1 / -1; height: 40px; } html.rgSet #topHeader #homeLink + div > button { height: 42px; } html.rgSet #topHeader .rgClose { height: 40px; } }
+</style>
+<script id="rgRepJs">
+(() => {
+  const MAIL = 'destek@ridsgames.com', H = document.documentElement, errs = window.__rgErr || [];
+  const T = {
+    tr: { b: 'Sorun bildir', h: 'Sorun bildir', p: 'Ne oldu? Kısaca yazın. Gönder deyince e-posta uygulamanız hazır bir mesajla açılır, siz göndermeden hiçbir şey bize ulaşmaz.', ph: 'Örnek: Kartı oynadığımda oyun takıldı.', inf: 'Mesaja eklenecek bilgiler', send: 'E-posta ile gönder', copy: 'Kopyala', close: 'Kapat', copied: 'Kopyalandı. ' + MAIL + ' adresine gönderebilirsiniz.', nocopy: 'Kopyalanamadı. Metni seçip kopyalayın ve ' + MAIL + ' adresine gönderin.', subj: 'Sorun bildirimi', game: 'Oyun', page: 'Sayfa', lang: 'Dil', scr: 'Ekran', br: 'Tarayıcı', time: 'Zaman', err: 'Son hatalar', none: 'yok', desc: 'Açıklama' },
+    en: { b: 'Report a problem', h: 'Report a problem', p: 'What happened? Write a few words. Send opens your email app with a ready message; nothing reaches us unless you send it.', ph: 'Example: the game froze when I played a card.', inf: 'Details added to the message', send: 'Send by email', copy: 'Copy', close: 'Close', copied: 'Copied. You can send it to ' + MAIL + '.', nocopy: 'Could not copy. Select the text, copy it and send it to ' + MAIL + '.', subj: 'Problem report', game: 'Game', page: 'Page', lang: 'Language', scr: 'Screen', br: 'Browser', time: 'Time', err: 'Recent errors', none: 'none', desc: 'Description' }
+  };
+  const t = () => T[(H.lang || 'tr').startsWith('en') ? 'en' : 'tr'];
+  const gname = () => { const g = document.getElementById('gameName') || document.querySelector('#homeLink .gname'); return ((g && g.textContent) || document.title || '').replace(/\s*[|·–-]\s*Ridsgames.*$/i, '').trim(); };
+  const info = () => { const l = t(), so = screen.orientation && screen.orientation.type;
+    return [`${l.game}: ${gname()}`, `${l.page}: ${location.pathname}`, `${l.lang}: ${H.lang || '-'}`,
+      `${l.scr}: ${innerWidth}x${innerHeight} @${Math.round((devicePixelRatio || 1) * 100) / 100}x${so ? ' ' + so : ''}${matchMedia('(pointer: coarse)').matches ? ' touch' : ''}`,
+      `${l.br}: ${navigator.userAgent}`, `${l.time}: ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
+      `${l.err}: ${errs.length ? '' : l.none}`, ...errs.slice(-3).reverse().map((e) => `- ${e.t} ${e.m} @ ${e.src}`)].join('\n'); };
+  let ov = null;
+  const body = () => { const l = t(), d = ov.querySelector('textarea').value.trim(); return `${l.desc}:\n${d || '-'}\n\n---\n${info()}`; };
+  const build = () => {
+    ov = document.createElement('div'); ov.id = 'rgRep'; ov.hidden = true;
+    ov.innerHTML = '<div class="rc" role="dialog" aria-modal="true" aria-labelledby="rgRepH"><h2 id="rgRepH"></h2><p class="pp"></p><textarea maxlength="1200"></textarea><details><summary></summary><pre></pre></details><div class="ok" role="status"></div><div class="rb"><button type="button" class="go"></button><button type="button" class="cp"></button><button type="button" class="cl"></button></div></div>';
+    document.body.appendChild(ov);
+    const q = (s) => ov.querySelector(s), close = () => { ov.hidden = true; };
+    q('.cl').onclick = close;
+    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    ['keydown', 'keyup', 'keypress'].forEach((k) => ov.addEventListener(k, (e) => { e.stopPropagation(); if (k === 'keydown' && e.key === 'Escape') close(); }));
+    ['pointerdown', 'mousedown', 'touchstart', 'wheel', 'contextmenu'].forEach((k) => ov.addEventListener(k, (e) => e.stopPropagation(), { passive: true }));
+    q('.go').onclick = () => { const l = t(); let b = body(); if (b.length > 1400) b = b.slice(0, 1400) + '…';
+      location.href = `mailto:${MAIL}?subject=${encodeURIComponent(`${l.subj}: ${gname()}`)}&body=${encodeURIComponent(b)}`; };
+    q('.cp').onclick = () => { const l = t(), b = `${l.subj}: ${gname()}\n\n${body()}`, ok = q('.ok');
+      const fb = () => { const a = document.createElement('textarea'); a.value = b; a.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; ov.appendChild(a); a.select(); let r = false; try { r = document.execCommand('copy'); } catch (_) {} a.remove(); ok.textContent = r ? l.copied : l.nocopy; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(b).then(() => { ok.textContent = l.copied; }, fb); else fb(); };
+  };
+  const open = () => { if (!ov) build(); const l = t(), q = (s) => ov.querySelector(s);
+    q('h2').textContent = l.h; q('.pp').textContent = l.p; q('textarea').placeholder = l.ph; q('summary').textContent = l.inf; q('pre').textContent = info();
+    q('.go').textContent = l.send; q('.cp').textContent = l.copy; q('.cl').textContent = l.close; q('.ok').textContent = '';
+    ov.hidden = false; setTimeout(() => q('textarea').focus({ preventScroll: true }), 30); };
+  // Menüye satır ekle: Kurallar düğmesinin görünüşünü kopyalar
+  const ICO = '✉';
+  let btn = null;
+  const label = () => { if (!btn) return; const l = t(); btn.setAttribute('aria-label', l.b); btn.title = l.b; const s = btn.querySelector('.rgRepL'); if (s) s.textContent = l.b; };
+  const mount = () => {
+    const rules = document.getElementById('rulesBtn'), lang = document.getElementById('langBtn');
+    btn = document.createElement('button'); btn.type = 'button'; btn.id = 'rgRepBtn';
+    if (rules && lang && rules.parentNode === lang.parentNode) {
+      btn.className = rules.className; const sp = [...rules.children].filter((x) => x.tagName === 'SPAN');
+      const a = document.createElement('span'); a.textContent = ICO; if (sp[0]) a.className = sp[0].className; btn.appendChild(a);
+      if (sp[1]) { const b = document.createElement('span'); b.className = (sp[1].className + ' rgRepL').trim(); btn.appendChild(b); }
+      lang.parentNode.insertBefore(btn, lang);
+    } else {
+      const host = document.getElementById('btn-reset-from-settings'), menu = document.getElementById('menu');
+      const s = document.createElement('span'); s.className = 'rgRepL'; btn.append(ICO + ' ', s);
+      if (host) { btn.className = host.className; host.parentNode.insertBefore(btn, host); }
+      else if (menu) { btn.style.cssText = 'background:none;border:0;box-shadow:none;color:inherit;opacity:.75;font-size:13px;text-decoration:underline;margin-top:10px;min-height:0;padding:4px'; menu.appendChild(btn); }
+      else { btn = null; return; }
+    }
+    btn.addEventListener('click', () => setTimeout(open, 0));
+    label(); new MutationObserver(label).observe(H, { attributes: true, attributeFilter: ['lang'] });
+  };
+  window.rgReport = () => open();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
+})();
+</script>
+<script>
+// Puan tablosu: düğmeyle açılır, dışına dokununca kapanır
+{
+  const b = document.getElementById('skBtn'), p = document.getElementById('skorPop');
+  const set = (on) => { p.hidden = !on; b.setAttribute('aria-expanded', on); };
+  b.addEventListener('click', () => set(p.hidden));
+  addEventListener('pointerdown', (e) => { if (!p.hidden && !p.contains(e.target) && !b.contains(e.target)) set(false); }, true);
+  const lbl = () => b.setAttribute('aria-label', document.documentElement.lang === 'en' ? 'Scoreboard' : 'Puan tablosu');
+  lbl(); new MutationObserver(lbl).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+}
+</script>
+</body>
+</html>
