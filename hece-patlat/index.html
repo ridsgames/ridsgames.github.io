@@ -11,7 +11,7 @@
         --sab: env(safe-area-inset-bottom, 0px);
       }
     </style>
-    <script type="module" crossorigin src="./assets/index-z43c3RKe.js"></script>
+    <script type="module" crossorigin src="./assets/index-z43c3RKe.js?v=2"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-BSneLIUD.css">
     <style>
       .home { position: relative; }
@@ -24,6 +24,41 @@
     <script data-goatcounter="https://ridsgames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
     <script src="../assets/olcum.js" data-page="hece-patlat" data-name="Hece Patlat"></script>
     <script>window.rgSay = function (olay, ad) { try { window.goatcounter.count({ path: "hece-patlat/" + olay, title: "Hece Patlat: " + ad, event: true }); } catch (e) {} };</script>
+    <style>.home-top{gap:10px}.rg-lb{margin:2px 0 4px}</style>
+    <script src="../assets/siralama.js"></script>
+    <script>
+      // Sıralama: en yüksek puan; Blok ve Kelime, Türkçe ve İngilizce ayrı panolar
+      (function () {
+        if (!window.RidsSiralama) return;
+        const dil = () => ((document.documentElement.lang || 'tr').slice(0, 2) === 'tr' ? 'tr' : 'en');
+        const lb = RidsSiralama({
+          panolar: [
+            { id: 'hece-blok-tr', tr: 'Blok · Türkçe', en: 'Block · Turkish' },
+            { id: 'hece-kelime-tr', tr: 'Kelime · Türkçe', en: 'Word · Turkish' },
+            { id: 'hece-blok-en', tr: 'Blok · İngilizce', en: 'Block · English' },
+            { id: 'hece-kelime-en', tr: 'Kelime · İngilizce', en: 'Word · English' }
+          ],
+          dil, renk: '#f5b301',
+          bicim: (k, d) => (k.p || 0).toLocaleString(d === 'tr' ? 'tr-TR' : 'en-US') + (d === 'tr' ? ' puan' : ' pts'),
+          olay: (ad) => { if (window.rgSay) rgSay('siralama/' + ad, 'sıralama: ' + ad); }
+        });
+        const pano = (mod, l) => 'hece-' + mod + '-' + (l === 'en' ? 'en' : 'tr');
+        window.rgOver = function (kart, mod, l, puan) {
+          if (!(puan > 0)) return;
+          const yuva = document.createElement('div'); yuva.className = 'rg-lb';
+          const big = kart.querySelector('.stats') || kart.querySelector('.big');
+          if (big) big.after(yuva); else kart.append(yuva);
+          lb.bitti(yuva, pano(mod, l), { s: -Math.min(puan, 99999999), d: 0, p: Math.min(puan, 99999999) });
+        };
+        window.rgLbBtn = function (mod, l) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'btn icon-btn'; b.id = 'home-lb';
+          b.setAttribute('aria-label', dil() === 'tr' ? 'Sıralama' : 'Leaderboard');
+          b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8M9.5 18h5"/></svg>';
+          b.addEventListener('click', () => lb.ac(pano(mod, l)));
+          return b;
+        };
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

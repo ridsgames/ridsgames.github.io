@@ -17,6 +17,7 @@ const STR = {
   symbols: ['Renk işaretleri', 'Colour symbols'], symbolsSub: ['Renkli bilyelerde şekil göster', 'Show shapes on coloured balls'],
   privacyOptions: ['Reklam gizlilik seçenekleri', 'Ad privacy options'], privacyPolicy: ['Gizlilik politikası', 'Privacy policy'],
   version: ['Sürüm', 'Version'], close: ['Kapat', 'Close'], restartNote: ['Dil değişikliği için oyun yeniden açılıyor', 'Restarting to change the language'],
+  leaderboard: ['Sıralama', 'Leaderboard'],
   dailyTitle: ['Günlük Ödül', 'Daily Reward'], day: ['Gün', 'Day'], claim: ['Al', 'Claim'], claim2x: ['2 kat al', 'Claim double'],
   comeBack: ['Yarın yeni ödül seni bekliyor', 'A new reward awaits tomorrow'], diamondBall: ['Elmas bilye', 'Diamond ball'],
   freeCoins: ['Ücretsiz altın', 'Free coins'], leftToday: ['Bugün {n} hak kaldı', '{n} left today'], noneLeft: ['Yarın yine gel', 'Come back tomorrow'],

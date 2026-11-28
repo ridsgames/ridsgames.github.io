@@ -6,6 +6,15 @@ let gameEpoch = 0, readyTimer = null, appActive = true;
 // site istatistiği: bu bölümler bu cihazda ilk kez bitince sayılır (panelde ilerleme hunisi)
 const MILESTONES = ['1-1', '1-3', '1-5', '1-10', '1-20', '1-30', '2-25', '3-25', '4-25'];
 let ctlSent = false;
+// Sıralama (yalnız sitede): her labirentin ve her günün labirentinin kendi panosu, en kısa süre üstte
+const lbDaily = () => 'tilt-gunluk-' + today().replace(/-/g, '');
+const LB = PLATFORM === 'web' && window.RidsSiralama ? RidsSiralama({
+  panolar: [{ id: lbDaily(), tr: 'Günün Labirenti', en: 'Daily Maze' }, ...LEVELS.map((lv) => ({ id: 'tilt-' + lv.id, tr: label(lv), en: label(lv) }))],
+  dil: () => LANG, renk: '#FFB020',
+  bicim: (k) => RidsSiralama.sure(k.d),
+  olay: (ad) => { if (window.rgSay) rgSay('siralama/' + ad, 'sıralama: ' + ad); },
+}) : null;
+const lbBoard = (lv) => lv.daily ? lbDaily() : 'tilt-' + lv.id;
 const SHOWCASE = ['3-3', '2-4', '4-15', '1-9', '2-7', '4-14', '2-12', '3-7', '4-7', '2-25', '4-17', '4-25'];
 
 function newBalls(lv) {
@@ -26,7 +35,7 @@ function startLevel(i) { li = i; openGame(LEVELS[i]); }
 function openGame(lv) {
   Sfx.unlock();
   if (touch && !gyroTried) enableGyro();
-  closeAll();
+  closeAll(); if (LB) LB.bosalt($('lbSlot'));
   setLevel(lv); demo = false; timer = 0; timing = false; doubled = false;
   if (window.rgSay) { rgSay('basladi', 'bölüm başladı'); rgSay('mod/' + (lv.daily ? 'gunluk' : 'd' + (lv.w + 1)), lv.daily ? 'mod: günün labirenti' : 'mod: dünya ' + (lv.w + 1)); } // site istatistiği
   if (window.rgSay && !ctlSent) { // sayfa başına bir kez, eğim izni sonuçlandıktan sonra: eğerek / parmakla / fareyle
@@ -125,6 +134,7 @@ function showWin(stars, rec, best) {
   const nxt = L.daily || li >= LEVELS.length - 1;
   $('winNext').innerHTML = nxt ? badge('home') + `<span>${t('toHome')}</span>` : `<span>${t('next')}</span>` + badge('next', 'play');
   $('winLevels').hidden = !!L.daily;
+  if (LB) { const d = Math.min(99999, Math.max(1, Math.round(timer * 10))); LB.bitti($('lbSlot'), lbBoard(L), { s: d, d }); }
   openOv('winOv');
   [...$('winStars').children].forEach((s, k) => { if (k < stars) setTimeout(() => { s.classList.add('on'); Sfx.star(k); buzz('light'); }, 250 + k * 280); });
   setTimeout(() => updateCoins(true), 300 + stars * 280);
@@ -336,6 +346,7 @@ function init() {
   bind('dailyMazeBtn', () => { Sfx.tap(); li = -1; openGame(dailyLevel()); });
   bind('dailyBtn', () => { Sfx.tap(); renderDaily(); openOv('dailyOv'); });
   bind('setBtn', () => { Sfx.tap(); renderSettings(); openOv('settingsOv'); });
+  if (LB) bind('lbBtn', () => { Sfx.tap(); const k = li >= 0 ? li : Math.max(0, nextLevelIndex() - 1); LB.ac(L && L.daily && !demo ? lbDaily() : 'tilt-' + LEVELS[k].id); });
   bind('setClose', () => closeOv('settingsOv'));
   bind('claimBtn', () => claimDaily(false));
   bind('claim2x', () => claimDaily(true));

@@ -471,3 +471,10 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: 
   .sheet { gap: 9px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+/* sıralama sonucu: krem kâğıt üstünde koyu yazı */
+#lbSlot.lb-yuva { color: var(--text-dark); font-weight: 600; width: 100%; }
+#lbSlot.lb-yuva b { color: var(--text-dark); }
+#lbSlot.lb-yuva .lb-kucuk { color: var(--muted-dark); }
+#lbSlot.lb-yuva .lb-uyari { color: #c0392b; }
+#lbSlot .lb-bag { color: #b86e00; }
+#lbSlot:empty { display: none; }

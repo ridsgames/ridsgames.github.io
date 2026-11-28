@@ -320,6 +320,7 @@ function initIcons() {
   $('dailyBtn').insertAdjacentHTML('afterbegin', badge('gift'));
   $('dailyBtn').classList.toggle('art', !!ART['b-gift']);
   badgeButton($('setBtn'), 'gear');
+  badgeButton($('lbBtn'), 'trophy'); $('lbBtn').hidden = !LB;
   badgeButton($('siteHome'), 'home'); $('siteHome').href = '../?lang=' + LANG; $('siteHome').setAttribute('aria-label', LANG === 'tr' ? 'RIDS Games ana sayfa' : 'RIDS Games home');
   $('levelsBtn').insertAdjacentHTML('afterbegin', badge('grid', 'maze'));
   $('dailyMazeBtn').insertAdjacentHTML('afterbegin', badge('calendar'));
