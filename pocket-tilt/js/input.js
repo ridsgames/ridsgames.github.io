@@ -100,7 +100,7 @@ function setGyro(on) {
   if (!on) return;
   gyroGot = false; orientSeen = false; motionG = null; gyroStart = performance.now();
   setTimeout(() => {
-    if (gyroOn && !gyroGot) { gyroOn = false; updateLevelBtn(); toast(t('gyroNone')); if (tutorialStep === 1) showTutorial(1); }
+    if (gyroOn && !gyroGot) { gyroOn = false; updateLevelBtn(); if (!sensorBlocked()) toast(t('gyroNone')); if (tutorialStep === 1) showTutorial(1); }
   }, 1500);
 }
 // iOS'ta izin kullanıcının dokunuşuyla istenmeli; bu yüzden bir düğmeye basıldığında çağrılır
@@ -109,7 +109,7 @@ async function enableGyro() {
   if (!touch) return;
   if (window.isSecureContext === false || typeof DeviceOrientationEvent === 'undefined') return;
   if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    try { if (await DeviceOrientationEvent.requestPermission() !== 'granted') { toast(t('gyroDenied')); return; } } catch (e) { return; }
+    try { if (await DeviceOrientationEvent.requestPermission() !== 'granted') { if (!sensorBlocked()) toast(t('gyroDenied')); return; } } catch (e) { sensorBlocked(); return; }
   }
   setGyro(true);
 }

@@ -265,6 +265,7 @@ function onBack() {
     else if (ov.id === 'winOv') leaveGame(L.daily ? 'home' : 'levels');
     else if (ov.id === 'hintOv') { closeOv('hintOv'); state = 'play'; }
     else if (ov.id === 'mechOv') { closeOv('mechOv'); state = 'play'; }
+    else if (ov.id === 'sensorOv') closeSensor('parmak');
     else closeOv(ov.id);
     return;
   }
@@ -300,6 +301,29 @@ function frame(now) {
   updateParts(dt);
   draw();
   requestAnimationFrame(frame);
+}
+
+// --- Sensörü engelleyen tarayıcı (yalnız sitede): ne olduğunu söyle, eğerek oynamanın yolunu göster ---
+// Android'de sayfa sensör izni isteyemez: Chrome'da açma ya da uygulama önerilir. iOS'ta izin bir dokunuşla yeniden istenir.
+const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.ridsgames.pockettilt';
+let sensorAsked = false, sensorWasPlay = false;
+function sensorBlocked() { // pencere açıldıysa true
+  if (PLATFORM !== 'web' || !touch || sensorAsked) return false;
+  sensorAsked = true;
+  const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const android = /Android/i.test(ua);
+  const chrome = android && /Chrome\//.test(ua) && !navigator.brave && !/SamsungBrowser|EdgA|OPR|YaBrowser|Firefox|DuckDuckGo|; wv\)/.test(ua);
+  const showChrome = android && !chrome;
+  $('sensorText').textContent = t(ios ? 'sensorTextIos' : showChrome ? 'sensorText' : 'sensorTextApp');
+  $('sensorChrome').hidden = !showChrome; $('sensorApp').hidden = !android; $('sensorRetry').hidden = !ios;
+  sensorWasPlay = state === 'play'; if (sensorWasPlay) state = 'intro';
+  openOv('sensorOv');
+  if (window.rgSay) rgSay('sensor/engelli', 'sensör engelli penceresi');
+  return true;
+}
+function closeSensor(how) {
+  closeOv('sensorOv'); if (sensorWasPlay && state === 'intro') state = 'play';
+  if (window.rgSay) rgSay('sensor/' + how, 'sensör penceresi: ' + ({ chrome: "Chrome'da aç", uygulama: 'uygulamayı indir', izin: 'izin ver', parmak: 'parmakla oyna' })[how]);
 }
 
 // --- Başlangıç ---
@@ -339,6 +363,10 @@ function init() {
   bind('hintCoins', () => useHint(false));
   bind('hintClose', () => { closeOv('hintOv'); state = 'play'; });
   bind('mechOk', () => { closeOv('mechOv'); state = 'play'; Sfx.tap(); });
+  bind('sensorChrome', () => { closeSensor('chrome'); location.href = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end'; });
+  bind('sensorApp', () => { closeSensor('uygulama'); window.open(PLAY_URL, '_blank'); });
+  bind('sensorRetry', () => { closeSensor('izin'); enableGyro(); });
+  bind('sensorDrag', () => { Sfx.tap(); closeSensor('parmak'); });
   bind('reviveBtn', onRevive);
   bind('readyBtn', beginReadyCountdown);
   bind('readyLeave', () => leaveGame(L.daily ? 'home' : 'levels'));
