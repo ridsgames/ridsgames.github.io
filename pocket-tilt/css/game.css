@@ -478,3 +478,31 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: 
 #lbSlot.lb-yuva .lb-uyari { color: #c0392b; }
 #lbSlot .lb-bag { color: #b86e00; }
 #lbSlot:empty { display: none; }
+/* sıralama penceresi: oyunun krem kâğıt ve mürekkep çizgili görünümü */
+body .lb-ort { background: rgba(16,12,30,.62); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); font-family: var(--display); color: var(--text-dark); }
+body .lb-kutu { border-radius: 28px; border: 4px solid var(--ink); padding: 18px 16px 16px; gap: 12px;
+  background: var(--grain, none), linear-gradient(180deg, #fffbf2, var(--paper) 40%, #fbedd2);
+  box-shadow: inset 0 -7px 0 var(--paper-edge), inset 0 3px 0 #fff, 0 6px 0 var(--ink), 0 26px 50px rgba(0,0,0,.45); animation: pop .3s cubic-bezier(.2, 1.4, .4, 1); }
+body .lb-ust h2 { font: 800 26px/1.05 var(--display); color: #fff; text-shadow: var(--o-sm); letter-spacing: .01em; }
+body .lb-x { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--ink); background: linear-gradient(180deg, #ff8a7a, var(--red)); color: #fff; font: 800 17px/1 var(--display); text-shadow: var(--o-sm); box-shadow: inset 0 -4px 0 #c93a3a, 0 3px 0 var(--ink); }
+body .lb-pano { height: 44px; border-radius: 14px; border: 3px solid var(--ink); background: #fffaf0; color: var(--text-dark); font: 800 16px var(--display); box-shadow: inset 0 -4px 0 var(--paper2); }
+body .lb-sekme { border-radius: 16px; border: 3px solid var(--ink); background: var(--paper2); padding: 4px; }
+body .lb-sekme button { height: 38px; border-radius: 11px; color: var(--muted-dark); font: 800 15px var(--display); }
+body .lb-sekme button[aria-selected=true] { background: linear-gradient(180deg, #ffe07a, var(--gold)); color: var(--text-dark); box-shadow: inset 0 -4px 0 var(--gold-d), 0 0 0 2px var(--ink); }
+body .lb-liste { gap: 6px; }
+body .lb-satir { min-height: 44px; border-radius: 14px; border: 2px solid var(--paper-edge); background: #fffaf0; font-size: 16px; box-shadow: inset 0 -3px 0 var(--paper2); }
+body .lb-satir .lb-no { color: var(--muted-dark); font-size: 17px; }
+body .lb-satir .lb-ad { color: var(--text-dark); font-weight: 800; }
+body .lb-satir .lb-ad small { color: var(--gold-d); }
+body .lb-satir .lb-puan { color: var(--text-dark); font-weight: 800; }
+body .lb-satir.lb-ben { border: 3px solid var(--ink); background: linear-gradient(180deg, #fff1b8, #ffd95e); box-shadow: inset 0 -4px 0 var(--gold-d); }
+body .lb-durum, body .lb-not { color: var(--muted-dark); font-weight: 600; }
+body .lb-ara { color: var(--muted-dark); }
+body .lb-alt { border-top: 2px dashed var(--paper-edge); color: var(--muted-dark); font-weight: 600; }
+body .lb-alt b { color: var(--text-dark); }
+body .lb-alt a { color: var(--muted-dark); }
+body .lb-bag { color: #b86e00; font-weight: 800; }
+body .lb-form input { height: 44px; border-radius: 14px; border: 3px solid var(--ink); background: #fffaf0; color: var(--text-dark); font: 700 16px var(--display); box-shadow: inset 0 3px 0 var(--paper2); }
+body .lb-form input::placeholder { color: var(--muted-dark); }
+body .lb-dugme { height: 44px; border-radius: 14px; border: 3px solid var(--ink); background: linear-gradient(180deg, #7fe06a, var(--green)); color: #fff; font: 800 16px var(--display); text-shadow: var(--o-sm); box-shadow: inset 0 -4px 0 #2f9a26, 0 3px 0 var(--ink); }
+body .lb-dugme.lb-ikinci { background: linear-gradient(180deg, #fffaf0, #f1dfbd); color: var(--text-dark); text-shadow: none; box-shadow: inset 0 -4px 0 #cfae7a, 0 3px 0 var(--ink); }
