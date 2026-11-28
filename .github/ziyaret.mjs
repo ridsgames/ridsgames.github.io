@@ -64,6 +64,7 @@ for (let i = 0; !ex.finished_at && !ex.error && i < 200; i++) {
   r = await api('GET', `/export/${ex.id}`);
   if (r.ok) ex = await r.json();
 }
+console.log('Dışa aktarma bilgisi:', JSON.stringify({ id: ex.id, num_rows: ex.num_rows, size: ex.size, start: ex.start_from_hit_id, last: ex.last_hit_id, finished: ex.finished_at }));
 if (ex.error) throw new Error('Dışa aktarma hatası: ' + ex.error);
 if (!ex.finished_at) throw new Error('Dışa aktarma 10 dakikada bitmedi.');
 
@@ -104,9 +105,10 @@ for (let i = 0; ; i++) {
 }
 if (!r.ok) throw new Error(`Dışa aktarılan dosya indirilemedi (${r.status}).`);
 const dec = new TextDecoder();
-for await (const chunk of Readable.fromWeb(r.body).pipe(createGunzip())) feed(dec.decode(chunk, { stream: true }));
+let bytes = 0;
+for await (const chunk of Readable.fromWeb(r.body).pipe(createGunzip())) { bytes += chunk.length; feed(dec.decode(chunk, { stream: true })); }
 feed(dec.decode()); if (field || row.length) { row.push(field); onRow(row); }
-console.log(`Dışa aktarma ${ex.id}: ${total} satır, son 3 günden ${fresh.length}.`);
+console.log(`Dışa aktarma ${ex.id}: ${bytes} bayt, sütunlar: ${head ? Object.keys(head).join(',') : 'yok'}, ${total} satır, son 3 günden ${fresh.length}.`);
 
 const rows = state.rows.filter((x) => x[0] >= cut).concat(fresh).sort((a, b) => a[0] - b[0]).slice(-MAX_ROWS);
 await write({ last: ex.last_hit_id || state.last, rows });
