@@ -396,6 +396,23 @@ async function allHits(span, id) {
   return out;
 }
 
+// Misket Play düğmesi (olcum.js: ana-sayfa/play) seçili aralıktan bağımsız, sayımın başladığı günden bugüne.
+// API yol adıyla süzmüyor: yolun kimliği bu aralığın verisinden ya da yol listesinden bulunup saklanır
+async function playCount(end, hits) {
+  const P = 'ana-sayfa/play';
+  let pid = +store.get('rids_play_pid') || 0;
+  if (!pid) { const h = (hits || []).find((x) => clean(x.path) === P); if (h) pid = h.path_id; }
+  for (let after = 0, i = 0; !pid && i < 10; i++) {
+    const ps = (await get('/paths', after ? { limit: 200, after } : { limit: 200 }, 'Google Play')).paths || [];
+    const p = ps.find((x) => clean(x.path) === P); if (p) pid = p.id;
+    if (ps.length < 200) break; after = ps[ps.length - 1].id;
+  }
+  if (!pid) return 0; // henüz kimse basmadı
+  store.set('rids_play_pid', pid);
+  const r = await get('/stats/hits', { start: '2026-11-28T00:00:00Z', end, include_paths: pid, limit: 10 }, 'Google Play');
+  return (r.hits || []).reduce((a, h) => a + (h.count || 0), 0);
+}
+
 // ---------- Veriyi oyunlara göre topla ----------
 const clean = (p) => String(p || '').replace(/^\/+|\/+$/g, '');
 const blank = () => ({ opens: 0, starts: 0, ends: 0, again: 0, rules: 0, errors: 0, errMsg: '', modes: {}, results: {}, time: 0, visits: 0, extra: 0, dist: {}, startDays: {} });
@@ -701,8 +718,7 @@ async function load() {
       catch (e) { if (e.auth) throw e; missing.push(what); }
       if (id !== loadId) return;
     }
-    // Misket Play düğmesi seçili aralıktan bağımsız, sayımın başladığı günden bugüne
-    try { lists.play = ((await get('/stats/hits', { start: '2026-11-28T00:00:00Z', end: span.end, filter: 'ana-sayfa/play', limit: 10 }, 'Google Play')).hits || []).reduce((a, h) => a + (h.count || 0), 0); }
+    try { lists.play = await playCount(span.end, hits); }
     catch (e) { if (e.auth) throw e; missing.push('Google Play'); }
     if (id !== loadId) return;
     const data = { v: CACHE_V, days, cur, prev, lists, at: Date.now() };
