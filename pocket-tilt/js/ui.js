@@ -113,6 +113,13 @@ function worldStars(wi) { return WORLDS[wi].levels.reduce((s, lv) => s + ((save.
 // Sonraki dünya, öncekinde 45 yıldız toplanınca ya da önceki dünyanın son bölümü bitince açılır
 const WORLD_STARS = 45;
 function worldNeed(wi) { return Math.min(WORLD_STARS, WORLDS[wi - 1].levels.length * 3); }
+// Türkçede dünya adına ayrılma eki: Labirentler'den, Yuvalar'dan
+function fromName(name) {
+  if (LANG === 'en') return name;
+  const v = (name.toLocaleLowerCase('tr').match(/[aıoueiöü](?=[^aıoueiöü]*$)/) || ['e'])[0], last = name.slice(-1).toLocaleLowerCase('tr');
+  return `${name}'${'çfhkpsşt'.includes(last) ? 't' : 'd'}${'aıou'.includes(v) ? 'a' : 'e'}n`;
+}
+const needText = (wi) => tf('needStars', { n: worldNeed(wi), w: fromName(WORLDS[wi - 1].name) });
 function worldOpen(wi) {
   if (UNLOCK_ALL || wi === 0 || save.unlockedWorlds.includes(wi)) return true;
   const prev = WORLDS[wi - 1].levels;
@@ -129,9 +136,9 @@ function renderWorlds() {
     if (ART['world-' + (wi + 1)]) b.insertAdjacentHTML('beforeend', `<img class="emblem" src="${ART['world-' + (wi + 1)]}" alt="" draggable="false">`);
     else b.appendChild(thumb(w.levels[WORLD_COVER[wi]], 104));
     const info = document.createElement('div');
-    info.innerHTML = `<h3>${wi + 1}. ${w.name}</h3><div class="meta">${open ? icon('star') + `${st} / ${w.levels.length * 3}` : icon('lockc') + icon('star') + `${worldStars(wi - 1)} / ${worldNeed(wi)}`}</div><div class="progress"><i style="width:${open ? st / (w.levels.length * 3) * 100 : Math.min(100, worldStars(wi - 1) / worldNeed(wi) * 100)}%"></i></div>`;
+    info.innerHTML = `<h3>${wi + 1}. ${w.name}</h3><div class="meta">${open ? icon('star') + `${st} / ${w.levels.length * 3}` : icon('lockc') + icon('star') + `${worldStars(wi - 1)} / ${worldNeed(wi)}`}</div><div class="progress"><i style="width:${open ? st / (w.levels.length * 3) * 100 : Math.min(100, worldStars(wi - 1) / worldNeed(wi) * 100)}%"></i></div>` + (open ? '' : `<div class="need">${needText(wi)}</div>`);
     b.appendChild(info);
-    b.addEventListener('click', () => { Sfx.tap(); if (open) { curWorld = wi; renderLevelGrid(); show('levels'); } else toast(tf('needStars', { n: worldNeed(wi), w: wi })); });
+    b.addEventListener('click', () => { Sfx.tap(); if (open) { curWorld = wi; renderLevelGrid(); show('levels'); } else toast(needText(wi)); });
     list.appendChild(b);
   });
 }

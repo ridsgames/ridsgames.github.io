@@ -21,7 +21,7 @@ const STR = {
   comeBack: ['Yarın yeni ödül seni bekliyor', 'A new reward awaits tomorrow'], diamondBall: ['Elmas bilye', 'Diamond ball'],
   freeCoins: ['Ücretsiz altın', 'Free coins'], leftToday: ['Bugün {n} hak kaldı', '{n} left today'], noneLeft: ['Yarın yine gel', 'Come back tomorrow'],
   selected: ['Seçili', 'Selected'], select: ['Seç', 'Select'], adUnlock: ['{a}/{b}', '{a}/{b}'], dailyOnly: ['Bu bilye 7. gün ödülü', 'This ball is the day 7 reward'], day7: ['7. gün', 'Day 7'],
-  notEnough: ['Yeterli altının yok', 'Not enough coins'], needStars: ['Açmak için {w}. dünyada {n} yıldız topla', 'Collect {n} stars in world {w} to unlock'], worldOpened: ['Yeni dünya açıldı: {name}', 'New world unlocked: {name}'], unlocked: ['Yeni bilye açıldı!', 'New ball unlocked!'], balls: ['Bilyeler', 'Balls'],
+  notEnough: ['Yeterli altının yok', 'Not enough coins'], needStars: ['Kilidi açmak için {w} {n} yıldız topla', 'Collect {n} stars in {w} to unlock'], worldOpened: ['Yeni dünya açıldı: {name}', 'New world unlocked: {name}'], unlocked: ['Yeni bilye açıldı!', 'New ball unlocked!'], balls: ['Bilyeler', 'Balls'],
   hintTitle: ['İpucu', 'Hint'], hintText: ['Hayalet bilye sana doğru yolu gösterir.', 'A ghost ball shows you the way.'],
   useCoins: ['{n} altın', '{n} coins'], watchAd: ['Ücretsiz', 'Free'],
   revive: ['Kaldığın yerden devam', 'Continue from here'],

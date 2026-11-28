@@ -208,6 +208,7 @@ body.pills .btn.ghost { color: var(--muted-dark); text-shadow: none; }
 .progress i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(180deg, #fff1a1, #ffc83a 45%, #f29b12); box-shadow: inset 0 -2px 0 rgba(160,90,0,.35); }
 .world.locked canvas { filter: grayscale(.9) brightness(.7) drop-shadow(3px 6px 5px rgba(0,0,0,.45)); }
 .world.locked::after { content: ''; position: absolute; inset: 0; background: rgba(20,24,48,.45); }
+.world .need { position: relative; z-index: 1; margin-top: 8px; font: 800 15px/1.25 var(--display); color: #fff; text-shadow: var(--o-sm); }
 
 /* Bölüm kutuları: oyuncağın kendisi */
 .lvGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 10px; padding-top: 6px; }
