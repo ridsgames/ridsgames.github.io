@@ -3,6 +3,9 @@ const levelDot = $('levelDot'), cv = $('c'), ctx = cv.getContext('2d'), layer = 
 let L = null, li = -1, balls = [], state = 'menu', demo = true, acc = 0, last = 0, timer = 0, timing = false, winHold = 0, simTime = 0, S = 0;
 let curScreen = 'home', attractT = 0, showcase = 0, earned = 0, doubled = false, reviveFor = null, tutorialStep = 0;
 let gameEpoch = 0, readyTimer = null, appActive = true;
+// site istatistiği: bu bölümler bu cihazda ilk kez bitince sayılır (panelde ilerleme hunisi)
+const MILESTONES = ['1-1', '1-3', '1-5', '1-10', '1-20', '1-30', '2-25', '3-25', '4-25'];
+let ctlSent = false;
 const SHOWCASE = ['3-3', '2-4', '4-15', '1-9', '2-7', '4-14', '2-12', '3-7', '4-7', '2-25', '4-17', '4-25'];
 
 function newBalls(lv) {
@@ -26,6 +29,10 @@ function openGame(lv) {
   closeAll();
   setLevel(lv); demo = false; timer = 0; timing = false; doubled = false;
   if (window.rgSay) { rgSay('basladi', 'bölüm başladı'); rgSay('mod/' + (lv.daily ? 'gunluk' : 'd' + (lv.w + 1)), lv.daily ? 'mod: günün labirenti' : 'mod: dünya ' + (lv.w + 1)); } // site istatistiği
+  if (window.rgSay && !ctlSent) { // sayfa başına bir kez, eğim izni sonuçlandıktan sonra: eğerek / parmakla / fareyle
+    ctlSent = true;
+    setTimeout(() => { const k = touch ? controlMode() : 'fare'; rgSay('kontrol/' + k, 'kontrol: ' + ({ gyro: 'eğerek', drag: 'parmakla', fare: 'fareyle' })[k]); }, 3000);
+  }
   calibrate(1000); // bölüm başında telefon eline oturana kadar bilye kıpırdamaz
   if (!lv.daily) { save.last = li; store(); }
   setBg(lv.daily ? 'home' : 'w' + (lv.w + 1));
@@ -87,6 +94,7 @@ function win() {
     } else { rec = timer < dm.best; dm.best = Math.min(dm.best, timer); best = dm.best; }
   } else {
     const prev = save.levels[lv.id];
+    if (!prev && window.rgSay && MILESTONES.includes(lv.id)) rgSay('ilk/' + lv.id, 'ilk kez bitirdi: ' + lv.id); // ilerleme hunisi
     if (!prev) earned = COINS.first + stars * COINS.perStar;
     else earned = stars > (prev.stars || 0) ? (stars - prev.stars) * COINS.newStar : COINS.replay;
     rec = !prev || prev.best === null || timer < prev.best;

@@ -342,7 +342,7 @@ if (key) store.set('skipgc', 't');
 let days = +(store.get('rids_panel_days') || 7);
 if (![1, 7, 30, 90].includes(days)) days = 7;
 let loadId = 0, lastOk = 0;
-const CACHE_V = 3; // veri biçimi değişince eski önbellek kullanılmaz
+const CACHE_V = 4; // veri biçimi değişince eski önbellek kullanılmaz
 
 // ---------- Zaman aralığı (yerel saatle; GoatCounter saat başına yuvarlanmış zaman ister) ----------
 const iso = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -415,7 +415,7 @@ async function playCount(end, hits) {
 
 // ---------- Veriyi oyunlara göre topla ----------
 const clean = (p) => String(p || '').replace(/^\/+|\/+$/g, '');
-const blank = () => ({ opens: 0, starts: 0, ends: 0, again: 0, rules: 0, errors: 0, errMsg: '', modes: {}, results: {}, time: 0, visits: 0, extra: 0, dist: {}, startDays: {} });
+const blank = () => ({ opens: 0, starts: 0, ends: 0, again: 0, rules: 0, errors: 0, errMsg: '', modes: {}, results: {}, time: 0, visits: 0, extra: 0, dist: {}, startDays: {}, ev: {} });
 function summarize(hits, list) {
   const g = {}; for (const x of [...GAMES.map((x) => x.slug), 'ana-sayfa']) g[x] = blank();
   const pageDays = {}, entryDays = {}, startDays = {}, pageHours = new Array(24).fill(0), entryHours = new Array(24).fill(0), startHours = new Array(24).fill(0);
@@ -448,6 +448,7 @@ function summarize(hits, list) {
       case 'hata': x.errors += h.count; x.errMsg = String(h.title || '').replace(/^[^:]*:\s*/, ''); break;
       case 'mod': x.modes[val] = (x.modes[val] || 0) + h.count; break;
       case 'sonuc': x.results[val] = (x.results[val] || 0) + h.count; break;
+      default: if (val) { const e = x.ev[kind] || (x.ev[kind] = {}); e[val] = (e[val] || 0) + h.count; } // oyuna özel olaylar (Pocket Tilt, Hece Patlat)
       case 'sure': case 'ek': {
         const m = MID[+val]; if (m == null) break;
         x.time += m * h.count;
@@ -606,6 +607,35 @@ function soloRate(x) { // tek piyonla bitirme oranı
   let one = 0, all = 0; for (const [k, c] of Object.entries(x.results)) { all += c; if (/-1$/.test(k)) one += c; }
   return all ? `%${pct(one, all)} <small>(${fmt.format(one)}/${fmt.format(all)})</small>` : '';
 }
+// Pocket Tilt ve Hece Patlat: basit oyunlardaki "en çok seçilen" yerine oyuna özel satırlar
+const shares = (o, label, n = 3) => {
+  const e = Object.entries(o || {}).sort((a, b) => b[1] - a[1]), all = e.reduce((a, [, c]) => a + c, 0);
+  return all ? e.slice(0, n).map(([k, c]) => `${esc(label(k))} <small>%${pct(c, all)}</small>`).join(' · ') : '';
+};
+const perPlayer = (d) => d.visits ? dec.format(Math.round(d.starts / d.visits * 10) / 10) : '';
+const PT_MILES = ['1-1', '1-3', '1-5', '1-10', '1-20', '1-30', '2-25', '3-25', '4-25'];
+const DIGITS = (n) => (n <= 3 ? '1 binin altı' : { 4: '1–10 bin', 5: '10–100 bin', 6: '100 bin–1 milyon' }[n] || '1 milyon üstü');
+const OWN = {
+  'pocket-tilt': (d) => {
+    const ilk = d.ev.ilk || {}, funnel = PT_MILES.filter((m) => ilk[m]).map((m) => `${m}: ${fmt.format(ilk[m])}`).join(' · ');
+    return [
+      ['Oyuncu başına bölüm', perPlayer(d)],
+      ['Dünyalar', shares(d.modes, (m) => m === 'gunluk' ? 'günlük' : 'D' + m.replace('d', ''), 5)],
+      ['Kontrol', shares(d.ev.kontrol, (k) => ({ gyro: 'eğerek', drag: 'parmakla', fare: 'fareyle' })[k] || k)],
+      ['İlk kez bitiren', funnel]
+    ];
+  },
+  'hece-patlat': (d) => {
+    const puan = { blok: {}, kelime: {} };
+    for (const [k, c] of Object.entries(d.ev.puan || {})) { const [m, n] = k.split('-'), g = DIGITS(+n); if (puan[m]) puan[m][g] = (puan[m][g] || 0) + c; }
+    return [
+      ['Oyuncu başına el', perPlayer(d)],
+      ['Modlar', shares(d.modes, (m) => (m.startsWith('blok') ? 'Blok' : 'Kelime') + (m.endsWith('-en') ? ' (EN)' : ''))],
+      ['Puan, blok', shares(puan.blok, String, 2)],
+      ['Puan, kelime', shares(puan.kelime, String, 2)]
+    ];
+  }
+};
 function drawGames(cur, list) {
   const order = GAMES.map((x) => ({ ...x, d: cur.g[x.slug] })).sort((a, b) => b.d.starts - a.d.starts || b.d.opens - a.d.opens);
   $('games').innerHTML = order.map((x, k) => {
@@ -618,7 +648,8 @@ function drawGames(cur, list) {
     if (x.clear) { const w = winRate(d, 'kazandi'); if (w) facts.push([x.clearLbl || 'Tarlayı temizleme', w]); }
     if (d.ends) facts.push(['Tekrar oynama', `%${pct(d.again, d.ends)}`]);
     if (x.rules && d.opens) facts.push(['Kurallara bakan', `%${pct(d.rules, d.opens)}`]);
-    const tm = topMode(d, x.slug); if (tm) facts.push(['En çok seçilen', tm]);
+    const own = OWN[x.slug];
+    if (own) facts.push(...own(d)); else { const tm = topMode(d, x.slug); if (tm) facts.push(['En çok seçilen', tm]); }
     if (d.errors) facts.push(['Hata', `<b class="bad">${fmt.format(d.errors)}</b>`]);
     return `<article class="game cut">
       <div class="cover" style="background-image:url('${x.img}')"><h3>${esc(x.name)}</h3>${d.starts ? `<span class="rank cut">${k + 1}.</span>` : ''}</div>
