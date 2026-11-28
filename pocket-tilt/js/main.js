@@ -304,8 +304,7 @@ function frame(now) {
 }
 
 // --- Sensörü engelleyen tarayıcı (yalnız sitede): ne olduğunu söyle, eğerek oynamanın yolunu göster ---
-// Android'de sayfa sensör izni isteyemez: Chrome'da açma ya da uygulama önerilir. iOS'ta izin bir dokunuşla yeniden istenir.
-const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.ridsgames.pockettilt';
+// Android'de sayfa sensör izni isteyemez: Chrome'da açma önerilir. iOS'ta izin bir dokunuşla yeniden istenir.
 let sensorAsked = false, sensorWasPlay = false;
 function sensorBlocked() { // pencere açıldıysa true
   if (PLATFORM !== 'web' || !touch || sensorAsked) return false;
@@ -314,8 +313,9 @@ function sensorBlocked() { // pencere açıldıysa true
   const android = /Android/i.test(ua);
   const chrome = android && /Chrome\//.test(ua) && !navigator.brave && !/SamsungBrowser|EdgA|OPR|YaBrowser|Firefox|DuckDuckGo|; wv\)/.test(ua);
   const showChrome = android && !chrome;
-  $('sensorText').textContent = t(ios ? 'sensorTextIos' : showChrome ? 'sensorText' : 'sensorTextApp');
-  $('sensorChrome').hidden = !showChrome; $('sensorApp').hidden = !android; $('sensorRetry').hidden = !ios;
+  if (!ios && !showChrome) return false;
+  $('sensorText').textContent = t(ios ? 'sensorTextIos' : 'sensorText');
+  $('sensorChrome').hidden = !showChrome; $('sensorRetry').hidden = !ios;
   sensorWasPlay = state === 'play'; if (sensorWasPlay) state = 'intro';
   openOv('sensorOv');
   if (window.rgSay) rgSay('sensor/engelli', 'sensör engelli penceresi');
@@ -323,7 +323,7 @@ function sensorBlocked() { // pencere açıldıysa true
 }
 function closeSensor(how) {
   closeOv('sensorOv'); if (sensorWasPlay && state === 'intro') state = 'play';
-  if (window.rgSay) rgSay('sensor/' + how, 'sensör penceresi: ' + ({ chrome: "Chrome'da aç", uygulama: 'uygulamayı indir', izin: 'izin ver', parmak: 'parmakla oyna' })[how]);
+  if (window.rgSay) rgSay('sensor/' + how, 'sensör penceresi: ' + ({ chrome: "Chrome'da aç", izin: 'izin ver', parmak: 'parmakla oyna' })[how]);
 }
 
 // --- Başlangıç ---
@@ -364,7 +364,6 @@ function init() {
   bind('hintClose', () => { closeOv('hintOv'); state = 'play'; });
   bind('mechOk', () => { closeOv('mechOv'); state = 'play'; Sfx.tap(); });
   bind('sensorChrome', () => { closeSensor('chrome'); location.href = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end'; });
-  bind('sensorApp', () => { closeSensor('uygulama'); window.open(PLAY_URL, '_blank'); });
   bind('sensorRetry', () => { closeSensor('izin'); enableGyro(); });
   bind('sensorDrag', () => { Sfx.tap(); closeSensor('parmak'); });
   bind('reviveBtn', onRevive);
