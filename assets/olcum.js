@@ -79,6 +79,12 @@
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); else { last = performance.now(); mark(); } });
   addEventListener('pagehide', flush);
 
+  // Google Play bağlantısına basma (ör. ana sayfadaki Misket Klasik düğmesi): "<sayfa>/play"
+  document.addEventListener('click', (e) => {
+    const a = e.target && e.target.closest && e.target.closest('a[href*="play.google.com"]');
+    if (a) send(`${page}/play`, `${name}: Google Play'e gitti`);
+  }, true);
+
   // hatalar
   let errs = 0;
   function onErr(msg) {

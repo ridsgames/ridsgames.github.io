@@ -262,6 +262,8 @@ a.btn { display: inline-flex; align-items: center; padding: 0 22px; text-decorat
       <div class="card cut"><div class="card-head"><h2>Nereden geliyorlar</h2></div><ul class="rows" id="refs"></ul></div>
       <div class="card cut"><div class="card-head"><h2>Kampanyalar</h2></div><ul class="rows" id="camps"></ul>
         <p class="hint">Paylaştığın bağlantının sonuna <code>?ref=youtube&amp;campaign=kizma-video</code> gibi bir etiket eklersen buradan hangi paylaşımın oyuncu getirdiğini görürsün.</p></div>
+      <div class="card cut"><div class="card-head"><h2>Misket Klasik</h2><span class="sub-h">tüm zamanlar</span></div><ul class="rows" id="play"></ul>
+        <p class="hint">Ana sayfadaki "Google Play'den indir" düğmesine basanlar. Sayım 28 Kasım 2026'da başladı.</p></div>
       <div class="card cut"><div class="card-head"><h2>Ülkeler</h2></div><ul class="rows" id="locs"></ul></div>
       <div class="card cut"><div class="card-head"><h2>Cihaz ve sistem</h2></div><ul class="rows" id="sizes"></ul><ul class="rows" id="systems"></ul></div>
     </div>
@@ -648,6 +650,8 @@ function drawLists(cur, lists) {
     const sub = k && k.giris ? `<small>${fmt.format(k.giris)} ziyaretçi · ${fmt.format(k.starts)} oyun başlatma (%${Math.round(k.starts / k.giris * 100)}) · ${fmt.format(k.ends)} bitirme · kişi başı ${dur(k.time / k.giris)}</small>` : '';
     return { label: esc(c.name || c.id) + sub, count: c.count };
   }), { empty: 'Henüz etiketli paylaşım yok.' });
+  if (lists.play == null) $('play').innerHTML = '<li class="empty">–</li>';
+  else rows($('play'), [{ label: "Google Play'den indir'e basan", count: lists.play }], { noPct: true });
   rows($('locs'), lists.locs.slice(0, 8).map((l) => {
     const code = String(l.id || '').slice(0, 2);
     let nm = l.name || code || 'Bilinmiyor';
@@ -697,6 +701,10 @@ async function load() {
       catch (e) { if (e.auth) throw e; missing.push(what); }
       if (id !== loadId) return;
     }
+    // Misket Play düğmesi seçili aralıktan bağımsız, sayımın başladığı günden bugüne
+    try { lists.play = ((await get('/stats/hits', { start: '2026-11-28T00:00:00Z', end: span.end, filter: 'ana-sayfa/play', limit: 10 }, 'Google Play')).hits || []).reduce((a, h) => a + (h.count || 0), 0); }
+    catch (e) { if (e.auth) throw e; missing.push('Google Play'); }
+    if (id !== loadId) return;
     const data = { v: CACHE_V, days, cur, prev, lists, at: Date.now() };
     if (!missing.length) store.set(cacheKey, JSON.stringify(data));
     $('dash').classList.remove('loading'); render(data);
