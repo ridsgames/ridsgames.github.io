@@ -28,7 +28,9 @@
     radial-gradient(40% 30% at 15% 20%, rgba(255,255,255,.4), transparent 70%), linear-gradient(160deg, #bff0dc, #8fdcc0 60%, #7fcfb4);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+/* oyun alanında parmak hareketini tarayıcı kaydırma/yenileme sanıp kesmesin */
+#game { touch-action: none; }
 body {
   background: #6e4426; color: var(--white); font: 600 16px/1.35 var(--display);
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
